@@ -100,7 +100,7 @@ nachtragen_datei = ""
 # Meilensteine per Kommentar /milestone … auf einem Admin-Issue verwalten
 milestone_admin = true
 # Nummer des Admin-Issues – wird beim Anwenden automatisch eingetragen (0 = noch nicht angelegt)
-admin_issue = 0
+admin_issue = 1
 
 [actions]
 erlaubte_actions = "ausgewaehlt"  # «alle», «ausgewaehlt» (GitHub-eigene + verifizierte + Liste) oder «nur_github»
