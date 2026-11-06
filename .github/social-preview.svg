@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<rect width="1280" height="640" fill="#0b3d63"/>
+<rect x="80" y="120" width="16" height="120" fill="#f2b705"/>
+<text x="124" y="190" font-family="Helvetica, Arial, sans-serif" font-size="72" font-weight="700" fill="#ffffff">EduKSX-Glossary</text>
+<text x="124" y="298" font-family="Helvetica, Arial, sans-serif" font-size="36" fill="#dbe7f0">EduKSX-Glossary – Glossar mit Begriffen und</text>
+<text x="124" y="346" font-family="Helvetica, Arial, sans-serif" font-size="36" fill="#dbe7f0">Definitionen, veröffentlicht über GitHub Pages.</text>
+<text x="124" y="570" font-family="Menlo, Consolas, monospace" font-size="28" fill="#f2b705">github.com/MarkusKeller8200/EduKSX-Glossary</text>
+</svg>

@@ -1,0 +1,230 @@
+# Konfiguration des GitHub-Blueprints (Antworten auf CHECKLISTE.md).
+# Nach dem Ändern: Actions → «Blueprint anwenden» → Run workflow (oder python3 .github/blueprint/apply.py).
+# Nur Python-Standardbibliothek (tomllib, Python 3.11+).
+
+[projekt]
+name = "EduKSX-Glossary"                       # voller Name, z. B. «SekBülach Intranet»
+kurz = "Glossar"                            # kurzer Name für Release-Titel («Projekt 0.2.0»)
+verantwortlich = "Projektverantwortliche:r"  # wer freigibt (Rolle, kein Name nötig)
+sicherheit_kontakt = "direkt an den Eigentümer dieses Repositorys (E-Mail oder Teams)"
+# Datenschutz-Hinweis in allen Issue-Vorlagen; leer = kein Hinweis
+datenschutz = "Keine echten Personendaten, Zugangsdaten oder Bildschirmfotos mit Personendaten anhängen."
+# Wo sieht man die Version? (für «Fehler melden»)
+version_ort = "im Fuss der Glossar-Website"
+# Befehl, der vor jedem Commit alle Prüfungen ausführt (für PR-Vorlage und CONTRIBUTING)
+pruefbefehl = "python3 .github/blueprint/release.py check"
+# Zusätzliche Punkte für die Checkliste der PR-Vorlage, z. B. ["Nur erfundene Testdaten"]
+pr_checkliste = ["Begriffe mit Quelle bzw. Definition, alphabetisch eingeordnet", "Keine echten Personendaten"]
+# Abschnitt «Entwicklungsumgebung» in CONTRIBUTING.md (Markdown), leer = kein Abschnitt
+entwicklung = "Die Website liegt im Ordner `site/` und wird bei jedem Push auf `main` über GitHub Pages veröffentlicht. Lokal ansehen: `python3 -m http.server -d site 8000`, dann http://localhost:8000 öffnen."
+# Abschnitt «Grundsätze» in SECURITY.md, z. B. ["Zugangsdaten nur verschlüsselt speichern"]
+sicherheit_grundsaetze = []
+# Zusätzlicher Link bei «Neues Issue» (z. B. Doku-Ordner), leer = keiner
+doku_url = ""
+doku_titel = "Dokumentation"
+doku_beschreibung = "Konzepte, Anleitungen und Betrieb."
+# Sprache von Oberfläche, Issues und Doku (Vorlagen sind Deutsch, Schweizer Schreibweise)
+sprache = "de-CH"
+
+[repository]
+# «oeffentlich» oder «privat». Geändert wird die Sichtbarkeit NUR mit «apply.py --sichtbarkeit» (Schutz vor
+# versehentlichem Veröffentlichen); «auto»-Werte unten richten sich nach der Sichtbarkeit.
+sichtbarkeit = "oeffentlich"
+standard_branch = "main"          # Workflows des Blueprints erwarten «main»
+beschreibung = "EduKSX-Glossary – Glossar mit Begriffen und Definitionen, veröffentlicht über GitHub Pages."                 # Text bei «About»
+webseite = "https://markuskeller8200.github.io/EduKSX-Glossary/"
+themen = ["glossary", "glossar", "education", "schule", "github-pages", "markdown"]                       # Topics, z. B. ["schule", "laravel"]
+vorlage = false                   # als Template-Repository markieren
+issues = true
+projekte = true
+wiki = "auto"                     # auto: öffentlich an, privat aus
+diskussionen = "auto"             # auto: öffentlich an, privat aus
+# Pull Requests: «solo» (direkte Pushes, Squash + Rebase) oder «team» (nur Squash, Auto-Merge); auto: privat → solo, öffentlich → team
+pr_profil = "auto"
+pr_pflicht = false               # allein gepflegt: direkte Pushes erlaubt (Branch bleibt vor Löschen/Force-Push geschützt)
+web_commit_signoff = "auto"       # Sign-off bei Commits im Browser (DCO); auto: öffentlich an
+secret_scanning = "auto"          # Secret Scanning + Push-Schutz; auto: öffentlich an (privat kostenpflichtig)
+branch_schutz = true              # Rulesets: Standard-Branch nicht löschen/force-pushen, Versions-Tags v* unveränderlich
+pflicht_pruefungen = []           # Status-Checks, die vor dem Merge grün sein müssen (Job-Namen, z. B. ["ci"])
+lineare_historie = "auto"         # keine Merge-Commits auf dem Standard-Branch; auto: öffentlich an
+
+[sponsoring]
+# Nur bei öffentlichen Repositorys: erzeugt .github/FUNDING.yml und docs/UNTERSTUETZEN.md. Leer = nicht anzeigen.
+github = ""                       # GitHub-Benutzer mit GitHub Sponsors (Profil muss freigeschaltet sein)
+buy_me_a_coffee = ""              # Benutzername bei buymeacoffee.com
+ko_fi = "markussxch"                        # Benutzername bei ko-fi.com
+liberapay = ""                    # Benutzername bei liberapay.com
+links = []                        # bis 4 eigene Links, z. B. TWINT-/PayPal-Spendenlink oder Projektseite
+
+[social_preview]
+# Bild für Link-Vorschauen (1280×640): python3 .github/blueprint/social_preview.py, danach von Hand hochladen
+titel = ""                        # leer = projekt.name
+untertitel = ""                   # leer = repository.beschreibung
+farbe = "#0b3d63"                 # Hintergrund
+akzent = "#f2b705"
+
+[issues]
+# Auswahl «Bereich» in den Vorlagen
+bereiche = ["Begriffe / Definitionen", "Kategorien / Struktur", "Suche / Navigation", "Darstellung / Website", "Übersetzungen", "Dokumentation", "anderes"]
+# Zusätzliche Vorlagen: "plugin" (Plugin-Idee), "gui" (GUI-Baustein)
+zusatzvorlagen = []
+# GitHub-Standard-Labels (bug, enhancement, …) entfernen
+standard_labels_entfernen = true
+# Eigene zusätzliche Labels: { name = "…", farbe = "rrggbb", beschreibung = "…" }
+zusatzlabels = []
+
+[meilensteine]
+# Sammlungen Fehler / Verbesserungen / Funktionen anlegen und neue Issues danach zuordnen
+sammlungen = true
+# erster Release-Meilenstein, leer = keiner
+erster_release = ""
+
+[versionierung]
+# Datei mit der Versionsnummer: VERSION, version.py, package.json, composer.json, pyproject.toml
+datei = "VERSION"
+startversion = "0.1.0"
+# Titel des GitHub-Releases
+release_titel = "{kurz} {version}"
+# Workflows (Namen), die für den Release-Commit grün sein müssen, z. B. ["deploy"]; leer = sofort
+release_nach = []
+# Manifeste mit eigener «version», die bei Änderung erhöht werden muss (Globs), leer = keine Prüfung
+# z. B. ["plugins/*/plugin.json", "modules/*/module.json"]
+plugin_manifeste = []
+# Eigene Befehle zum Setzen bzw. Prüfen der Version (für Doku und AGENTS.md); leer lassen = release.py des Blueprints
+# release_befehl = "php tools/release.php X.Y.Z --commit"
+# release_check_befehl = "php tools/release.php --check"
+# Rückwirkende Tags: Datei mit Zeilen «Version Commit», leer = keine
+nachtragen_datei = ""
+
+[workflows]
+# Meilensteine per Kommentar /milestone … auf einem Admin-Issue verwalten
+milestone_admin = true
+# Nummer des Admin-Issues – wird beim Anwenden automatisch eingetragen (0 = noch nicht angelegt)
+admin_issue = 0
+
+[actions]
+erlaubte_actions = "ausgewaehlt"  # «alle», «ausgewaehlt» (GitHub-eigene + verifizierte + Liste) oder «nur_github»
+verifizierte_erlauben = true      # Actions von verifizierten Erstellern (Marketplace-Haken)
+zusaetzlich_erlaubt = []          # weitere Actions, z. B. ["shivammathur/setup-php@*"]
+sha_pinning = false               # Actions nur mit Commit-SHA erlauben (sicherer; alle Workflows müssen dann pinnen)
+aufbewahrung_tage = "auto"        # Artefakte/Protokolle; auto: öffentlich 90, privat 30
+fork_freigabe = "all_external_contributors"  # öffentlich: Workflows aus Forks erst nach Freigabe
+oidc_claims = []                  # leer = Standard-Subject; z. B. ["repo", "context"] für Cloud-Anmeldung ohne Schlüssel
+
+[pages]
+aktiv = true                     # GitHub Pages über Workflow pages.yml (Ordner «site» bzw. «docs»)
+ordner = "site"
+
+[sicherheit]
+dependabot_warnungen = true
+dependabot_sicherheitsupdates = true
+code_scanning = "auto"            # CodeQL Standard-Setup; auto: öffentlich an (privat nur mit Advanced Security)
+private_meldungen = true          # öffentlich: «Report a vulnerability» einschalten
+
+[dependabot]
+oekosysteme = ["github-actions"]  # z. B. ["github-actions", "composer", "npm", "pip", "docker"]
+intervall = "weekly"
+# Neue Paketversionen erst nach so vielen Tagen vorschlagen (Schutz vor frisch veröffentlichten, kompromittierten
+# Paketen); Sicherheits-Updates kommen trotzdem sofort. 0 = aus
+cooldown_tage = 5
+
+[copilot]
+aktiv = false                     # Copilot-Lizenz vorhanden? Dann Code Review und Coding Agent einrichten
+code_review = false               # Copilot prüft Pull Requests automatisch (Ruleset-Regel)
+
+[codespaces]
+devcontainer = false              # .devcontainer/devcontainer.json anlegen
+
+[secrets_einstellungen]
+# Secrets ohne Wert aus der Umgebung mit Platzhalter anlegen, damit die Namen in GitHub sichtbar sind
+platzhalter = true
+
+# EduKSX-Glossary: statische Website über GitHub Pages – kein Server-Deployment, daher keine Umgebungen
+# test/produktion, Variablen, Secrets oder Deploy-Keys. Bei Bedarf einkommentieren.
+
+# --- Umgebungen (Environments) -----------------------------------------------------------------------------
+# [[umgebungen]]
+# name = "test"
+# nur_branches = ["main"]
+
+# [[umgebungen]]
+# name = "produktion"
+# pruefer = true                    # Deployment nur nach Freigabe durch die Eigentümerin / den Eigentümer
+# nur_branches = ["main"]
+# nur_tags = ["v*"]
+# wartezeit = 0                     # Minuten Wartezeit vor dem Deployment
+
+# --- Variablen (nicht geheim) -----------------------------------------------------------------------------
+# bereich = "actions" (ganzes Repository) oder "umgebung:<name>"
+# [[variablen]]
+# name = "APP_URL"
+# wert = "https://test.example.org"
+# bereich = "umgebung:test"
+
+# [[variablen]]
+# name = "APP_URL"
+# wert = "https://www.example.org"
+# bereich = "umgebung:produktion"
+
+# [[variablen]]
+# name = "DEPLOY_HOST"
+# wert = "server.example.org"
+# bereich = "umgebung:produktion"
+
+# [[variablen]]
+# name = "DEPLOY_USER"
+# wert = "deploy"
+# bereich = "umgebung:produktion"
+
+# [[variablen]]
+# name = "DEPLOY_PFAD"
+# wert = "/srv/app"
+# bereich = "umgebung:produktion"
+
+# --- Secrets (Werte nie hier; aus Umgebungsvariablen gleichen Namens oder Platzhalter) ------------------
+# bereich = "actions", "umgebung:<name>", "codespaces", "dependabot" oder "agents" (Copilot Coding Agent)
+# [[secrets]]
+# name = "DEPLOY_SSH_KEY"
+# bereich = "umgebung:produktion"
+# beschreibung = "privater SSH-Schlüssel für das Deployment auf den Server"
+
+# [[secrets]]
+# name = "DEPLOY_KNOWN_HOSTS"
+# bereich = "umgebung:produktion"
+# beschreibung = "Ausgabe von ssh-keyscan des Servers"
+
+# Beispiele, bei Bedarf einkommentieren:
+# [[secrets]]                     # private Paketquelle für Dependabot
+# name = "NPM_TOKEN"
+# bereich = "dependabot"
+# [[secrets]]                     # Zugang im Codespace
+# name = "API_TOKEN_DEV"
+# bereich = "codespaces"
+# [[secrets]]                     # MCP-Server für den Copilot Coding Agent (Umgebung «copilot»)
+# name = "COPILOT_MCP_API_TOKEN"
+# bereich = "agents"
+
+# --- Deploy-Keys (öffentlicher Schlüssel als Datei; ohne Datei erscheint die Anleitung als offener Punkt) ---
+# [[deploy_keys]]
+# titel = "Server – Pull"
+# zweck = "Server holt den Code per git pull"
+# nur_lesen = true
+# oeffentlicher_schluessel = ""     # z. B. "~/.ssh/projekt-server.pub"
+
+# [[deploy_keys]]
+# titel = "Backup – Spiegel"
+# zweck = "Sicherung bzw. Spiegel des Repositorys"
+# nur_lesen = true
+# oeffentlicher_schluessel = ""
+
+# [[deploy_keys]]
+# titel = "Extern – Push"
+# zweck = "anderes System schreibt in dieses Repository (z. B. erzeugte Doku)"
+# nur_lesen = false
+# oeffentlicher_schluessel = ""
+
+# --- Webhooks (Geheimnis aus Umgebungsvariable) -----------------------------------------------------------
+# [[webhooks]]
+# url = "https://example.org/github-hook"
+# ereignisse = ["issues", "pull_request", "release"]
+# secret_env = "WEBHOOK_SECRET"

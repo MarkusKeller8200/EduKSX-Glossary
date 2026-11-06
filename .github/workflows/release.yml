@@ -1,0 +1,41 @@
+name: release
+
+# GitHub-Blueprint (docs/GITHUB-ABLAUF.md): Tag v<Version> und GitHub-Release anlegen, sobald main eine freigegebene
+# Version enthält (Versionsdatei + Abschnitt im CHANGELOG), für die es noch keinen Tag gibt – erst wenn die in
+# .github/blueprint.toml → release_nach genannten Workflows für diesen Commit grün sind. Läuft bei jedem Push:
+# so entsteht das Release auch, wenn erst ein nachgeschobener Commit (z. B. Formatkorrektur) grün wird.
+# Gibt es den Tag schon, endet der Lauf nach wenigen Sekunden (Developer Release).
+# Von Hand: Run workflow (z. B. nach einer Korrektur) oder mit «nachtragen» rückwirkende Tags aus der
+# konfigurierten Datei anlegen.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      nachtragen:
+        description: 'Rückwirkende Tags/Releases aus der Datei «nachtragen_datei» anlegen'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Tag und Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 .github/blueprint/release.py github-release --sha "$GITHUB_SHA" ${{ inputs.nachtragen && '--nachtragen' || '' }}

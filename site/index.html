@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EduKSX-Glossary</title>
+  <style>
+    :root { --bg: #ffffff; --fg: #1d2330; --muted: #5f6b7a; --line: #dfe3e8; --accent: #0b3d63; --mark: #f2b705; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #11161d; --fg: #e6e9ee; --muted: #9aa5b1; --line: #2a323c; --accent: #7fb6e6; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    h1 { margin: 0 0 .25rem; color: var(--accent); }
+    .lead { margin: 0 0 1.5rem; color: var(--muted); }
+    input[type=search] { width: 100%; padding: .7rem .9rem; font: inherit; color: inherit; background: transparent;
+      border: 1px solid var(--line); border-radius: 8px; }
+    input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .count { margin: .75rem 0 1rem; color: var(--muted); font-size: .9rem; }
+    dl { margin: 0; }
+    .eintrag { padding: 1rem 0; border-top: 1px solid var(--line); }
+    dt { font-weight: 650; font-size: 1.1rem; }
+    dt .kat { margin-left: .5rem; font-weight: 400; font-size: .8rem; color: var(--muted); }
+    dd { margin: .25rem 0 0; }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>EduKSX-Glossary</h1>
+  <p class="lead">Begriffe und Definitionen.</p>
+
+  <input id="suche" type="search" placeholder="Begriff suchen …" aria-label="Begriff suchen" autocomplete="off">
+  <p class="count" id="anzahl" aria-live="polite"></p>
+  <dl id="liste"></dl>
+
+  <footer>
+    Version <span id="version">–</span> ·
+    <a href="https://github.com/MarkusKeller8200/EduKSX-Glossary/issues/new/choose">Begriff vorschlagen oder Fehler melden</a>
+  </footer>
+</main>
+<script>
+  const liste = document.getElementById("liste");
+  const anzahl = document.getElementById("anzahl");
+  const suche = document.getElementById("suche");
+  let begriffe = [];
+
+  function zeige(filter) {
+    const f = filter.trim().toLowerCase();
+    const treffer = begriffe.filter(b => !f || (b.begriff + " " + b.definition + " " + (b.kategorie || "")).toLowerCase().includes(f));
+    liste.replaceChildren(...treffer.map(b => {
+      const div = document.createElement("div");
+      div.className = "eintrag";
+      const dt = document.createElement("dt");
+      dt.textContent = b.begriff;
+      if (b.kategorie) {
+        const kat = document.createElement("span");
+        kat.className = "kat";
+        kat.textContent = b.kategorie;
+        dt.append(kat);
+      }
+      const dd = document.createElement("dd");
+      dd.textContent = b.definition;
+      div.append(dt, dd);
+      return div;
+    }));
+    anzahl.textContent = treffer.length === 1 ? "1 Begriff" : treffer.length + " Begriffe";
+  }
+
+  fetch("begriffe.json")
+    .then(r => r.json())
+    .then(daten => {
+      begriffe = daten.sort((a, b) => a.begriff.localeCompare(b.begriff, "de-CH"));
+      zeige("");
+    })
+    .catch(() => { anzahl.textContent = "Begriffe konnten nicht geladen werden."; });
+
+  suche.addEventListener("input", e => zeige(e.target.value));
+
+  fetch("VERSION")
+    .then(r => r.ok ? r.text() : "")
+    .then(v => { if (v.trim()) document.getElementById("version").textContent = v.trim(); })
+    .catch(() => {});
+</script>
+</body>
+</html>

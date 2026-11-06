@@ -1,0 +1,60 @@
+name: Fehler melden
+description: Etwas funktioniert nicht wie erwartet.
+title: "Fehler: "
+labels: ["fehler", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Ablauf:** Neue Meldungen erhalten das Label `triage` und werden geprüft. Erst die ausdrückliche
+        Freigabe (Label `_1 bereit`, Projektverantwortliche:r) macht daraus einen Entwicklungsauftrag.
+
+        **Datenschutz:** Keine echten Personendaten, Zugangsdaten oder Bildschirmfotos mit Personendaten anhängen.
+  - type: markdown
+    attributes:
+      value: |
+        **Sicherheitslücken bitte nicht hier**, sondern privat melden (siehe SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Steht im Fuss der Glossar-Website
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Bereich
+      options:
+        - Begriffe / Definitionen
+        - Kategorien / Struktur
+        - Suche / Navigation
+        - Darstellung / Website
+        - Übersetzungen
+        - Dokumentation
+        - anderes
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Was ist passiert?
+      description: Was hast du erwartet, was ist stattdessen passiert? Fehlermeldung wörtlich einfügen.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen
+      placeholder: |
+        1. …
+        2. …
+        3. → Fehler …
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Weitere Hinweise
+      description: Bildschirmfoto, Gerät/Browser/Betriebssystem, Häufigkeit
