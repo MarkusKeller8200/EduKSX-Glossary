@@ -1,103 +1,105 @@
-# Datenschutzerklärung EduKSX-Glossary (Entwurf, #34)
+# Datenschutzerklärung EduKSX-Glossary – konsolidierter Entwurf
 
-> **Entwurf zur Abnahme.** Grundlage ist das Schweizer Datenschutzgesetz (DSG). Für Personen in der EU gelten
-> zusätzlich die Rechte nach DSGVO. Platzhalter stehen in eckigen Klammern. Vor der Veröffentlichung juristisch
-> prüfen lassen; das ist keine Rechtsberatung. Die gültige Fassung erscheint auf der Website unter
-> `/datenschutz` mit Versionsnummer. Bei der Registrierung wird die Zustimmung zu dieser Version gespeichert.
+> **Nicht zur Veröffentlichung freigegeben.** Die folgenden Angaben müssen vor öffentlicher Nutzung anhand tatsächlicher Betriebsdaten, Verträge und Rechtsgrundlagen geprüft werden. Insbesondere sind Betreiber, Anschrift, Kontakt, Datenstandorte und Fristen zu bestätigen. Die anwendbare Schweizer Rechtsordnung hängt auch davon ab, wer die Anwendung rechtlich betreibt; für eine öffentliche Stelle können kantonale Bestimmungen massgeblich sein. Aussagen zur EU-DSGVO gelten nur, soweit diese im Einzelfall anwendbar ist.
 
-**Version [1.0], gültig ab [Datum]**
+**Version:** [1.0] · **Gültig ab:** [Datum] · **Status:** Entwurf vom 07.11.2026
 
-## 1. Verantwortlich
+## 1. Verantwortliche Stelle
 
-[Vorname Name / Organisation], [Adresse], [E-Mail für Datenschutzanfragen, z. B. datenschutz@eduksx.ch].
-EduKSX-Glossary ist ein Angebot von [MarKusSXCH / Organisation].
+[Rechtlich verantwortliche Person / Organisation], [vollständige Adresse], [Kontaktadresse für Datenschutzanliegen]. EduKSX-Glossary wird unter der Marke [MarKusSXCH / präzise Betreibergesellschaft] angeboten. Verantwortlichkeiten, insbesondere bei Auftragsbearbeitern, werden vertraglich festgelegt.
 
-## 2. Grundsatz
+## 2. Zweck und Grundsatz
 
-Das Glossary ist ein öffentliches Nachschlagewerk. Begriffe lesen geht ohne Konto und ohne Angaben zur Person.
-Personendaten bearbeiten wir nur, wenn Sie ein Konto anlegen, Vorschläge einreichen oder uns schreiben, und nur so
-viele, wie dafür nötig sind.
+EduKSX-Glossary ist eine öffentlich lesbare Begriffssammlung für das Umfeld von Volksschulen, Schulgemeinden und Gemeinden. Das Lesen der veröffentlichten Begriffe und die Nutzung der öffentlichen GET-API sind ohne Konto möglich. Beim Abruf fallen technisch dennoch Verbindungsdaten an. Zusätzliche personenbezogene Daten entstehen durch Konten, Vorschläge, Anmeldedienste, Supportkontakte und sicherheitsrelevante Verarbeitung. Wir beschränken die Bearbeitung auf erforderliche Zwecke und schützen interne Daten vor der öffentlichen Veröffentlichung.
 
-## 3. Welche Daten wir bearbeiten
+## 3. Bearbeitete Personendaten
 
-**a) Besuch der Website und Nutzung der API (ohne Konto)**
+### a) Website und öffentliche API
 
-- Technisch nötige Angaben beim Abruf: IP-Adresse, Zeitpunkt, aufgerufene Adresse, Browser-Kennung. Sie dienen
-  dem Betrieb, der Sicherheit und der Abwehr von Missbrauch (z. B. Abruflimit der API).
-- Server-Protokolle werden nach [14] Tagen gelöscht.
-- Wir verwenden keine Analyse- oder Werbedienste und kein Tracking.
+Bei Zugriffen können IP-Adresse, Zeitpunkt, angefragte URL, Browser-/Client-Kennung sowie technische Sicherheitsmerkmale verarbeitet werden. Zweck sind Auslieferung, Fehlerdiagnose, Sicherheit und Missbrauchsschutz beziehungsweise Rate-Limiting. **Vorgesehene Frist für Serverlogs: [14 Tage; technisch prüfen].** Es sind keine Werbe- oder Nutzungsanalyse-Tracker vorgesehen. Temporäre Sicherheitsdaten bei Dienstleistern können abweichenden Fristen folgen; diese sind vor Freigabe zu prüfen.
 
-**b) Konto (Community, Moderation, Administration)**
+### b) Persönliche Benutzerkonten
 
-| Angabe                                                                                              | Zweck                                     |
-| --------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| Vorname, Name, E-Mail (Pflicht)                                                                     | Anmeldung, Kontakt zu Ihren Vorschlägen   |
-| Passwort (nur als Hash)                                                                             | Anmeldung                                 |
-| Community-Name, Funktion, Art der Einrichtung, Gemeinde/Schule (freiwillig)                         | Einordnung von Vorschlägen                |
-| Zweiter Faktor (geheimer Schlüssel, verschlüsselt)                                                  | Schutz von Konten mit erweiterten Rechten |
-| Rollen, Status, Bestätigung der E-Mail, Zustimmung zu dieser Erklärung, Datum der letzten Anmeldung | Betrieb, Sicherheit, Löschfristen         |
-| Verknüpfte Anmeldedienste (Microsoft, Edulog): nur die Kennung des Dienstes                         | Anmeldung über den Dienst                 |
+- Bei lokaler Anmeldung: Vorname, Nachname, verifizierte E-Mail und Passwort nur als sicherer Hash; bei Edulog können Attribute fehlen und nur soweit nötig ergänzt werden.
+- Freiwillig: Community-Name, Funktion, Art der Einrichtung, Gemeinde/Schule.
+- Sicherheit und Betrieb: Rollen, Kontostatus, E-Mail-Bestätigung, Datum der letzten Anmeldung, MFA-Status, verschlüsselte TOTP-Geheimnisse und nur gehashte Wiederherstellungscodes.
+- Externe Anmeldedienste: Anbieter, Ausstellerkennung und stabile pseudonyme beziehungsweise technische Benutzerkennung; weitere Attribute nur soweit erforderlich.
+- Dokumentation der **Kenntnisnahme** dieser Erklärung: Version und Zeitpunkt. Zweckgebundene **Einwilligungen** werden gesondert protokolliert, wenn sie erforderlich sind.
 
-Öffentlich sichtbar ist höchstens Ihr Community-Name bei Ihren Vorschlägen. Vorname, Name, E-Mail, Funktion und
-Einrichtung sehen nur die Moderation und die Administration.
+Der Community-Name kann bei öffentlich zugeschriebenen Beiträgen sichtbar sein. Vorname, Nachname, E-Mail, Funktion und Einrichtung sind nicht Teil öffentlicher API- oder Glossary-Ausgaben. Zugriff auf interne Kontodaten erhalten nur hierfür berechtigte Personen.
 
-**c) Vorschläge**
+### c) Vorschläge und Moderation
 
-Inhalt des Vorschlags, Zeitpunkt, Stand der Bearbeitung und das einreichende Konto. Übernommene Inhalte werden Teil
-des Glossary und stehen unter der Lizenz der Daten (CC BY 4.0), ohne Angaben zu Ihrer Person.
+Gespeichert werden eingereichter Inhalt, betroffener Begriff, Zeitpunkt, Bearbeitungsstatus, notwendige Kommentare/Prüfvermerke und interne Zuordnung des Kontos. Freigegebene **Fachinhalte** können Teil des öffentlichen Glossary werden und der dafür beschlossenen Datenlizenz CC BY 4.0 unterliegen. Interne Identitätsangaben und Moderationsinformationen werden nicht mit veröffentlicht. Inhalte mit personenbezogenen Informationen werden vor Veröffentlichung geprüft und erforderlichenfalls bereinigt.
+
+### d) Technische Servicekonten
+
+Für automatisierte schreibende Integrationen speichern wir Bezeichnung, Zweck, zuständige Person, zugewiesene Rechte, Token-Hashes, Ablauf- und Widerrufsdaten sowie notwendige Zugriffs- und Sicherheitsprotokolle. Die öffentliche Lese-API erfordert kein Servicekonto.
 
 ## 4. Cookies und lokale Speicherung
 
-- **Sitzungs-Cookie** und **Schutz-Cookie** gegen gefälschte Formulare (XSRF): technisch nötig für die Anmeldung,
-  gelöscht nach Ende der Sitzung bzw. nach [120] Minuten Inaktivität.
-- **Darstellung** (hell/dunkel): als Cookie und im Browser gespeichert (`appearance`), ohne Personenbezug.
-- Keine Cookies von Dritten für Analyse oder Werbung.
+Für die Anmeldung verwenden wir technisch notwendige Sitzungs- und Schutz-Cookies; voraussichtliche Inaktivitätsdauer [120 Minuten; tatsächliche Konfiguration prüfen]. Die Darstellung (hell/dunkel) kann lokal als `appearance` gespeichert werden. Es sind keine Drittanbieter-Cookies zu Werbe- oder Trackingzwecken vorgesehen. Je nach tatsächlicher Integration können Sicherheitsdienste technisch notwendige Speichermechanismen verwenden; diese müssen vor Veröffentlichung geprüft und offengelegt werden.
 
-## 5. Weitergabe und Dienstleister
+## 5. Anmeldung über Microsoft und Edulog
 
-Wir verkaufen keine Daten und geben sie nicht für Werbung weiter. Folgende Dienstleister bearbeiten Daten in
-unserem Auftrag oder bei Ihrer Anmeldung:
+Bei freiwilliger Verwendung eines externen Anmeldedienstes verarbeitet dieser die für die Anmeldung erforderlichen Informationen gemäss seinen eigenen Datenschutzhinweisen. Das Glossary übernimmt nur freigegebene, für den Zugang erforderliche Identitätsattribute. Die sichere Kontozuordnung stützt sich auf bestätigte technische Kennungen, nicht allein auf eine E-Mail-Adresse.
 
-| Dienst                                                                          | Zweck                                                                                            | Ort                           |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------- |
-| Hostinger                                                                       | Server (Hosting)                                                                                 | [Standort des Rechenzentrums] |
-| Cloudflare                                                                      | Schutz und Auslieferung der Website (IP-Adresse, Abrufe), Spam-Schutz bei Formularen (Turnstile) | weltweit, USA²                |
-| [Mail-Dienst, z. B. Microsoft 365]                                              | Versand von Bestätigungs- und Passwort-Mails                                                     | [Ort]                         |
-| Microsoft (nur bei «Mit Microsoft anmelden»)                                    | Anmeldung über Ihr Microsoft-Konto                                                               | gemäss Ihrem Konto, USA²      |
-| Edulog / educa (nur bei «Mit Edulog anmelden»)                                  | Anmeldung über die Föderation Edulog                                                             | Schweiz                       |
-| GitHub (nur bei Meldungen über GitHub und für die Lesefassung auf GitHub Pages) | Fehlermeldungen, Ideen, statische Lesefassung                                                    | USA²                          |
-| jsDelivr (nur Seite `/api/docs`)                                                | Auslieferung der Bibliothek für die API-Doku                                                     | weltweit³                     |
+Microsoft-Anmeldung wird für private und organisatorische Microsoft-Konten vorgesehen. Edulog wird **erst nach Föderationsbeitritt und Prüfung** freigeschaltet. Je nach Edulog-Konfiguration können Vorname, Name und E-Mail fehlen; eine pseudonyme Kennung genügt für die technische Identifikation. Die Nutzung durch Lernende oder Minderjährige wird vor Freischaltung gesondert beurteilt.
 
-² Übermittlung in die USA gestützt auf das Swiss-U.S. Data Privacy Framework bzw. Standardvertragsklauseln.
-³ Wird durch eine eigene Auslieferung ersetzt (offener Punkt im Konzept). Die Schrift «Inter» kommt von Bunny Fonts
-und wird [beim Build eingebunden / prüfen].
+## 6. Externe Dienstleister und internationale Bearbeitung
 
-Bei der Anmeldung über Microsoft oder Edulog erhalten wir nur Vorname, Name, E-Mail und eine Kennung. Für die
-Bearbeitung durch diese Dienste gelten deren Datenschutzerklärungen.
+Wir verwenden Dienstleister ausschliesslich für dokumentierte Zwecke. Die konkrete Konfiguration und Unterauftragsbearbeitung sind vor Publikation zu verifizieren:
 
-## 6. Aufbewahrung
+| Anbieter / Dienst | Datenkategorien / Zweck | Standort / Prüfung |
+| --- | --- | --- |
+| Hostinger | Hosting von Anwendung, Konten, Datenbank und Betriebsdaten | [konkretes Rechenzentrum und Verträge prüfen] |
+| Cloudflare | IP-Adresse, Verbindungs- und Sicherheitsdaten für Proxy/WAF und ggf. Turnstile | [Verarbeitungsorte, Produktkonfiguration, Garantien prüfen] |
+| [tatsächlicher Mailanbieter] | E-Mail-Adresse, Versand- und Nachrichtenmetadaten, technische Konto-Nachrichten | [Anbieter, Ort, Unterauftragsbearbeiter] |
+| Microsoft, nur bei Nutzung der Anmeldung | Authentifizierungsdaten und angeforderte Attribute | [vertragliche Hinweise / Auslandbearbeitung prüfen] |
+| Edulog/angeschlossene Identitätsdienste, erst bei Aktivierung | pseudonyme Kennungen und vereinbarte Attribute | [Föderationsbedingungen / konkrete Stellen prüfen] |
+| GitHub | öffentliche statische Lesefassung; personenbezogene GitHub-Issues nur bei deren Nutzung | [Datenflüsse und Hinweise prüfen] |
+| jsDelivr / Bunny Fonts, sofern tatsächlich extern geladen | technische Verbindungsdaten beim Abruf | [möglichst selbst hosten; tatsächlichen Zustand prüfen] |
 
-- Konto: bis Sie es löschen. Inaktive Community-Konten löschen wir nach 24 Monaten; 30 Tage vorher erhalten Sie
-  einen Hinweis.
-- Unbestätigte Registrierungen: nach 7 Tagen.
-- Vorschläge: bleiben erhalten. Nach Löschung des Kontos erscheinen sie ohne Personenbezug als «Community».
-- Protokoll von Änderungen an Rollen und Rechten: [5] Jahre (Nachvollziehbarkeit).
-- Server-Protokolle: [14] Tage. Sicherungskopien: [30] Tage.
+Daten werden weder verkauft noch für fremde Werbung bereitgestellt. Internationale Übermittlungen werden anhand der tatsächlich beteiligten Empfänger und einer im Einzelfall einschlägigen Grundlage abgesichert. Die Verfügbarkeit eines Datenschutzrahmens oder von Standardvertragsklauseln darf **nicht pauschal für jeden Anbieter oder jede Bearbeitung** unterstellt werden.
 
-## 7. Sicherheit
+## 7. Aufbewahrung und Löschung
 
-Verschlüsselte Verbindung (HTTPS), Passwörter nur als Hash, zweiter Faktor für Konten mit erweiterten Rechten,
-Rechte nach Rollen, regelmässige Updates und Sicherungen.
+Die tatsächlichen Fristen werden in einem internen, versionierten Löschkonzept je Datenkategorie, Zweck, Fristbeginn und Ausnahmeregel dokumentiert. Derzeit vorgesehen:
 
-## 8. Ihre Rechte
+| Kategorie | Geplante Frist / Auslöser | Vor Veröffentlichung zu prüfen |
+| --- | --- | --- |
+| Unbestätigte Registrierung | 7 Tage | Löschjob und Fehlerversand |
+| Inaktives Community-Konto | 24 Monate Inaktivität, Benachrichtigung 30 Tage zuvor | Rechtsgrundlage, Wiederaktivierung, Ausnahmen |
+| Benutzerprofil auf Löschantrag | ohne unnötige Verzögerung, soweit keine Aufbewahrungsgründe bestehen | technische Umsetzung und Fristen |
+| Externe Identitätsverknüpfungen, aktive Sitzungen, Token | bei Löschung/Entkopplung unverzüglich widerrufen oder entfernen | Protokollreste separat behandeln |
+| Vorschläge und private Moderationsdaten | zweckbezogen begrenzen; keine unbegrenzte Personenbindung | konkrete Frist und redaktioneller Archivbedarf |
+| Rollen- und Sicherheits-Audits | **[vorläufig 5 Jahre]** | Erforderlichkeit, Verhältnismässigkeit, Rechtsgrundlage und Umfang prüfen |
+| Serverlogs | [14 Tage] | tatsächliche Einstellungen auch bei Dienstleistern |
+| Sicherungskopien | [30 Tage] | Wiederherstellungsverfahren und ausgenommene Daten |
 
-Sie können Auskunft über Ihre Daten verlangen, falsche Daten berichtigen und Ihre Daten löschen lassen. Sie können
-die Herausgabe Ihrer Daten in einem gängigen Format verlangen und eine Einwilligung widerrufen. Vieles geht direkt
-im eigenen Konto (Angaben ändern, Konto löschen); sonst schreiben Sie an [E-Mail]. Beschwerden können Sie beim
-Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB) einreichen; Personen in der EU bei ihrer
-Aufsichtsbehörde.
+Nach Kontolöschung können fachliche Vorschlagsinhalte nur dann ohne Personenbezug verbleiben, wenn nicht nur die Kontoreferenz, sondern auch identifizierende Freitextinhalte und Verknüpfungsmöglichkeiten angemessen berücksichtigt werden. Sicherheitsprotokolle können bei dokumentiertem Bedarf begrenzt fortbestehen. Bei der Wiederherstellung von Backups werden bereits ausgeführte Löschungen und Sperren erneut angewandt.
 
-## 9. Änderungen
+## 8. Datenschutz durch Technik
 
-Wir passen diese Erklärung an, wenn sich das Angebot ändert. Die jeweils gültige Version steht auf der Website. Bei
-wesentlichen Änderungen informieren wir angemeldete Personen per E-Mail.
+Die Anwendung setzt HTTPS, Passwort-Hashing, verpflichtende MFA für privilegierte Funktionen, serverseitige Berechtigungsprüfungen, sichere Sitzungen, minimale Servicekonto-Scopes, regelmässige Sicherheitsupdates und geprüfte Backups ein. Öffentliche Ansichten, API, Export, Change-Feed, GitHub Pages und später Confluence werden ausschliesslich aus ausdrücklich freigegebenen Datenfeldern erzeugt. Kontodaten, unveröffentlichte Vorschläge, interne Moderation und Auditdaten werden nicht veröffentlicht.
+
+## 9. Kenntnisnahme, Einwilligung und Rechte
+
+Bei der Registrierung wird die geltende Datenschutzerklärung angezeigt; Version und Zeitpunkt der Kenntnisnahme werden dokumentiert. Dies ist **keine pauschale Einwilligung** in alle Datenbearbeitungen. Wo eine Einwilligung erforderlich ist, wird sie getrennt, informiert, zweckbezogen und nachweisbar eingeholt; ein Widerruf ist mit Wirkung für die Zukunft möglich, soweit keine andere zulässige Grundlage die Bearbeitung trägt.
+
+Betroffene Personen können je nach anwendbarem Recht Auskunft, Berichtigung und unter den gesetzlichen Voraussetzungen Löschung oder Herausgabe ihrer Personendaten verlangen. Weitergehende Rechte, Beschwerdestellen und Rechtsbehelfe bestimmen sich nach der tatsächlich anwendbaren Rechtsordnung. Für Anfragen: [Kontakt]. Zuständige Aufsicht: [nach Betreiberstatus und geltendem Recht präzisieren; nicht automatisch nur EDÖB].
+
+## 10. Änderungen
+
+Die aktuelle Fassung steht unter `/datenschutz` mit Versionsnummer und Gültigkeitsdatum. Bei wesentlichen Änderungen werden registrierte Personen angemessen informiert. Eine neue Einwilligung wird nur eingeholt, wo dies für eine bestimmte Bearbeitung erforderlich ist.
+
+## 11. Freigabecheck vor Veröffentlichung
+
+- [ ] Verantwortliche Stelle, Adresse und Kontakt vollständig.
+- [ ] Anwendbares Datenschutzrecht und Aufsicht korrekt bestimmt; rechtliche Prüfung erfolgt.
+- [ ] Tatsächliches Hosting, Cloudflare, Mailanbieter und Drittdienste dokumentiert.
+- [ ] Verträge, internationale Datenflüsse und Garantien geprüft.
+- [ ] Technische Cookies, Log- und Backupfristen verifiziert.
+- [ ] Edulog nur nach formeller und technischer Freigabe in die Erklärung aufgenommen beziehungsweise als zukünftig markiert.
+- [ ] Löschkonzept samt Auditfrist fachlich/rechtlich geprüft.
+- [ ] Öffentliches Export-/API-Schema gegen Abfluss interner Daten getestet.
