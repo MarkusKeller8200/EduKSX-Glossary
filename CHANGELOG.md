@@ -51,6 +51,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Löschkonzept in `docs/LOESCHKONZEPT.md`; `glossary:loeschfristen` löscht täglich unbestätigte Registrierungen,
   inaktive Community-Konten nach 24 Monaten (Hinweis per Mail 30 Tage vorher) und Protokolleinträge nach der Frist.
 
+- **Keine fremden Server auf öffentlichen Seiten (#44):** Die API-Doku (Scalar) wird selbst ausgeliefert statt von
+  jsDelivr geladen; die Schrift Inter wird beim Build eingebunden. Datenschutzerklärung und Rechtliches nachgeführt.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.
