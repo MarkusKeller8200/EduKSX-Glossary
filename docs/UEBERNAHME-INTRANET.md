@@ -15,7 +15,7 @@ noch festzulegen (KONZEPT, Lizenzen).
 | `resources/js/hooks/use-appearance.tsx`, `resources/js/lib/utils.ts`      | gleicher Pfad        |
 | `resources/js/components/{input-error,text-link,appearance-tabs}.tsx`     | gleicher Pfad        |
 | `resources/js/types/vite-env.d.ts`                                        | gleicher Pfad        |
-| `app/Http/Middleware/HandleAppearance.php`, `app/Http/Controllers/Controller.php` | gleicher Pfad |
+| `app/Http/Middleware/HandleAppearance.php` | gleicher Pfad |
 | `artisan`, `public/index.php`, `public/.htaccess`                         | gleicher Pfad        |
 | `config/{cache,filesystems,logging,mail,queue,services,session}.php`      | gleicher Pfad        |
 | `.editorconfig`, `.gitattributes`, `.dockerignore`, `.npmrc`, `pint.json`, `components.json`, `tsconfig.json` (ohne `modules/`) | gleicher Pfad |
