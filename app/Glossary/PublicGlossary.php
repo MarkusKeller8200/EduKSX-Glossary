@@ -9,6 +9,7 @@ use App\Models\TermRevision;
 use App\Models\TermUserOverride;
 use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * Öffentliche Sicht auf das Glossary (#24): ausschliesslich veröffentlichte Revisionen, die im Abbild aktiv sind – nie der
@@ -37,6 +38,7 @@ final class PublicGlossary
      */
     public function list(?User $user = null): array
     {
+        $user = $this->personalFor($user);
         $categories = $this->labels(Category::class);
         $overrides = $this->overrides($user);
 
@@ -82,6 +84,7 @@ final class PublicGlossary
      */
     public function find(string $slug, ?User $user = null): ?array
     {
+        $user = $this->personalFor($user);
         $term = Term::query()->published()->where('slug', $slug)->with('publishedRevision')->first();
         $revision = $term?->publishedRevision;
         if ($term === null || $revision === null || ($revision->snapshot['is_active'] ?? true) !== true) {
@@ -154,6 +157,15 @@ final class PublicGlossary
         }
 
         return $detail;
+    }
+
+    /**
+     * Konto, dessen persönliche Darstellung gilt: nur mit Recht «personal-display» (#114). Ohne Recht (z. B. Gast)
+     * die gemeinsame Sicht; gespeicherte Anpassungen bleiben erhalten.
+     */
+    private function personalFor(?User $user): ?User
+    {
+        return $user !== null && Gate::forUser($user)->allows('personal-display') ? $user : null;
     }
 
     /**

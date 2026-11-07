@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::post('datenschutz/kenntnisnahme', [PrivacyController::class, 'store'])->name('privacy.store');
 });
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
-// Meine Darstellung (DEC-020): persönliche Anpassung eines Begriffs, nur für das eigene Konto
-Route::middleware(['auth', 'throttle:30,1'])->group(function () {
+// Meine Darstellung (DEC-020): persönliche Anpassung eines Begriffs, nur für das eigene Konto, ab Benutzer (#114)
+Route::middleware(['auth', 'can:personal-display', 'throttle:30,1'])->group(function () {
     Route::put('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.personal');
     Route::delete('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'destroy'])->where('slug', '[a-z0-9-]+')->name('term.personal.destroy');
 });
