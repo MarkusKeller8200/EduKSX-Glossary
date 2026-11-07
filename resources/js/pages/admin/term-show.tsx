@@ -206,10 +206,7 @@ export default function TermShow({
                             <dt className="text-muted-foreground">
                                 {labels[key] ?? key}
                             </dt>
-                            <dd
-                                className="whitespace-pre-line break-words"
-                                translate="no"
-                            >
+                            <dd className="whitespace-pre-line" translate="no">
                                 {v}
                             </dd>
                         </div>
