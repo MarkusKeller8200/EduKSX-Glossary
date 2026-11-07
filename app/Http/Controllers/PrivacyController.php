@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
-use League\CommonMark\Extension\GithubFlavoredMarkdownExtension;
 
 /**
  * Datenschutzerklärung (#42, DEC-019): Seite /datenschutz aus docs/DATENSCHUTZ-ENTWURF.md mit Version; Kenntnisnahme
@@ -46,9 +45,8 @@ class PrivacyController extends Controller
 
         return [
             // eigene Datei; HTML darin wird entfernt, unsichere Links nicht zugelassen
-            'html' => (string) Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false], [
-                new GithubFlavoredMarkdownExtension,
-            ]),
+            // Str::markdown nutzt GitHub-Flavored Markdown (Tabellen, Aufgabenlisten)
+            'html' => (string) Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false]),
             'version' => (string) config('glossary.privacy_version'),
             'entwurf' => (bool) config('glossary.privacy_draft'),
         ];
