@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         // Rechte: Daten ändern nur mit Anmeldung (DEC-014). Feinere Rollen (Redaktion) folgen mit der Redaktion.
-        Gate::define('administer', fn (User $user): bool => $user->is_admin);
+        Gate::define('administer', fn (User $user): bool => $user->is_admin === true);
 
         // Öffentliche Lese-API: 120 Abrufe pro Minute und Adresse
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));

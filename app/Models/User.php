@@ -19,6 +19,13 @@ class User extends Authenticatable
 {
     use HasUuids, Notifiable;
 
+    /**
+     * Vorgaben für neue Konten: ohne Angabe kein Admin (sonst wäre das Feld bis zum Neuladen null).
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = ['is_admin' => false];
+
     /** @var list<string> */
     protected $fillable = ['name', 'email', 'password', 'is_admin'];
 
