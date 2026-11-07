@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,6 +15,10 @@ use Illuminate\Notifications\Notifiable;
  * @property string $name
  * @property string $email
  * @property bool $is_admin
+ * @property string|null $two_factor_secret
+ * @property list<string>|null $two_factor_recovery_codes Hashes
+ * @property CarbonImmutable|null $two_factor_confirmed_at
+ * @property int|null $two_factor_last_step
  */
 class User extends Authenticatable
 {
@@ -30,7 +35,7 @@ class User extends Authenticatable
     protected $fillable = ['name', 'email', 'password', 'is_admin'];
 
     /** @var list<string> */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'];
 
     /**
      * @return array<string, string>
@@ -41,6 +46,16 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'encrypted:array',
+            'two_factor_confirmed_at' => 'immutable_datetime',
+            'two_factor_last_step' => 'integer',
         ];
+    }
+
+    /** Zweiter Faktor eingerichtet und bestätigt (#11). */
+    public function hasTwoFactor(): bool
+    {
+        return $this->two_factor_confirmed_at !== null && $this->two_factor_secret !== null;
     }
 }

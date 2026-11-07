@@ -5,7 +5,9 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\PageController;
+use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
 
 // Öffentlich: nur lesen (PUB-01)
@@ -20,12 +22,19 @@ Route::view('api/docs', 'api-docs')->name('api.docs');
 Route::middleware('guest')->group(function () {
     Route::get('anmelden', [LoginController::class, 'create'])->name('login');
     Route::post('anmelden', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
+    Route::get('anmelden/code', [TwoFactorController::class, 'challenge'])->name('login.two-factor');
+    Route::post('anmelden/code', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('login.two-factor.verify');
 });
 Route::post('abmelden', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
 // Administration: alles, was Daten ändert, nur angemeldet und mit Recht
-Route::middleware(['auth', 'can:administer'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
+
+    // Zweiter Faktor (#11): Pflicht, ohne ihn führt jede Seite hierher
+    Route::get('zwei-faktor', [TwoFactorController::class, 'setup'])->name('admin.two-factor');
+    Route::post('zwei-faktor', [TwoFactorController::class, 'confirm'])->middleware('throttle:10,1')->name('admin.two-factor.confirm');
+    Route::post('zwei-faktor/codes', [TwoFactorController::class, 'recoveryCodes'])->name('admin.two-factor.codes');
     // Redaktion (#14)
     Route::get('begriffe', [TermController::class, 'index'])->name('admin.terms');
     Route::post('begriffe/veroeffentlichen', [TermController::class, 'publish'])->name('admin.terms.publish');

@@ -18,13 +18,20 @@ abstract class TestCase extends BaseTestCase
         $this->withoutVite();
     }
 
+    /** Geheimer Schlüssel des Test-Admins (zweiter Faktor, #11). */
+    protected const TOTP_SECRET = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+
+    /** Admin mit eingerichtetem zweitem Faktor (Pflicht in der Administration). */
     protected function admin(): User
     {
-        return User::query()->create([
+        $user = User::query()->create([
             'name' => 'Admin Test',
             'email' => 'admin@example.org',
             'password' => 'ein-langes-Test-Passwort-1',
             'is_admin' => true,
         ]);
+        $user->forceFill(['two_factor_secret' => self::TOTP_SECRET, 'two_factor_confirmed_at' => now()])->save();
+
+        return $user;
     }
 }

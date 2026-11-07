@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -14,7 +16,7 @@ use Inertia\Response;
 
 /**
  * Anmeldung der lokalen Konten (DEC-014): E-Mail und Passwort, höchstens 5 Versuche pro Minute je E-Mail und
- * Adresse. Zweiter Faktor (TOTP) folgt vor dem Freischalten der Redaktion (KONZEPT-STACK).
+ * Adresse; mit eingerichtetem zweitem Faktor folgt die Code-Abfrage (#11).
  */
 class LoginController extends Controller
 {
@@ -38,13 +40,24 @@ class LoginController extends Controller
             ]);
         }
 
-        if (! Auth::attempt(['email' => $email, 'password' => (string) $credentials['password']], $request->boolean('remember'))) {
+        $user = User::query()->where('email', $email)->first();
+        if ($user === null || ! Hash::check((string) $credentials['password'], $user->password)) {
             RateLimiter::hit($key, 60);
 
             throw ValidationException::withMessages(['email' => 'E-Mail oder Passwort stimmt nicht.']);
         }
-
         RateLimiter::clear($key);
+
+        // Zweiter Faktor eingerichtet → erst nach dem Code anmelden (#11)
+        if ($user->hasTwoFactor()) {
+            $request->session()->regenerate();
+            $request->session()->put(['login.id' => $user->id, 'login.remember' => $request->boolean('remember')]);
+
+            return redirect('/anmelden/code');
+        }
+
+        // Noch ohne zweiten Faktor: anmelden, die Administration verlangt danach die Einrichtung
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
         return redirect()->intended('/admin');

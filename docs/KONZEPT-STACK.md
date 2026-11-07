@@ -41,9 +41,11 @@ Damit keine ungewollten Datenänderungen entstehen, gibt es **ab dem ersten Depl
   speichert nur den Hash). Keine Registrierung über die Website.
 - Passwort mindestens 12 Zeichen, Begrenzung der Anmeldeversuche, Sitzung nur über HTTPS (Cookie `secure`,
   `httponly`, `samesite=lax`).
-- **Zweiter Faktor (TOTP)** für Admins: Vorschlag mit Laravel Fortify (2FA mit Wiederherstellungscodes, ohne
-  Registrierung und ohne Passwort-Reset per E-Mail); kommt im ersten Ausbau nach dem Gerüst, bevor die Redaktion
-  freigeschaltet wird.
+- **Zweiter Faktor (TOTP)** für Admins, umgesetzt 07.11.2026 (#11): **ohne Laravel Fortify** (Zusatzpakete waren
+  in der Cloud-Sitzung nicht installierbar), TOTP nach RFC 6238 in `App\Support\Totp` (geprüft mit den
+  RFC-Testwerten), Schlüssel verschlüsselt, 8 Wiederherstellungscodes nur als Hash, jeder Code nur einmal. Pflicht:
+  Ohne bestätigten zweiten Faktor führt jede Seite der Administration zur Einrichtung. Zurücksetzen auf dem Server
+  mit `php artisan glossary:admin E-MAIL --reset-2fa`. QR-Code folgt, sobald ein Paket dafür möglich ist.
 - Community-Anmeldung: wird geklärt, wenn die Vorschlagsfunktion umgesetzt wird.
 
 ## Aufbau im Repository
@@ -65,7 +67,7 @@ site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Expor
 | --------- | ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | Speicher  | SQLite                 | JSON-Dateien wie im Intranet-Prototyp    | JSON: Repositories 1:1 aus dem Intranet. SQLite: Transaktionen für Revisionen und Sync ohne späteren Umbau.                         |
 | Website   | Inertia (wie Intranet) | eigenes statisches Frontend über die API | Inertia: ein Code für Website und Redaktion. Statisch: zweites Projekt. Für Suchmaschinen bei Bedarf Inertia mit SSR (`build:ssr`). |
-| 2. Faktor | Laravel Fortify (TOTP) | eigenes TOTP oder Passkeys               | Fortify ist offiziell und gepflegt; das Intranet hat es bewusst weggelassen (dort später OIDC).                                     |
+| 2. Faktor | eigenes TOTP (umgesetzt) | Laravel Fortify oder Passkeys          | Fortify ist offiziell und gepflegt; das Intranet hat es bewusst weggelassen (dort später OIDC).                                     |
 
 ## Offen (wird geklärt, wenn benötigt)
 

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Glossary\TwoFactor;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
@@ -16,13 +17,26 @@ class CreateAdmin extends Command
     protected $signature = 'glossary:admin
         {email? : E-Mail-Adresse des Kontos}
         {--name= : Anzeigename}
-        {--password= : Passwort (nur für Skripte; ohne Angabe wird gefragt)}';
+        {--password= : Passwort (nur für Skripte; ohne Angabe wird gefragt)}
+        {--reset-2fa : Nur den zweiten Faktor des Kontos zurücksetzen (z. B. Handy verloren)}';
 
     protected $description = 'Lokalen Admin anlegen bzw. Passwort neu setzen';
 
-    public function handle(): int
+    public function handle(TwoFactor $twoFactor): int
     {
         $email = (string) ($this->argument('email') ?? $this->ask('E-Mail'));
+        if ($this->option('reset-2fa')) {
+            $user = User::query()->where('email', strtolower($email))->first();
+            if ($user === null) {
+                $this->error("Kein Konto mit {$email}.");
+
+                return self::FAILURE;
+            }
+            $twoFactor->reset($user);
+            $this->info("Zweiter Faktor für {$user->email} zurückgesetzt – bei der nächsten Anmeldung neu einrichten.");
+
+            return self::SUCCESS;
+        }
         $name = (string) ($this->option('name') ?: ($this->ask('Name', 'Administration') ?? 'Administration'));
         $password = $this->option('password');
         if (! is_string($password) || $password === '') {

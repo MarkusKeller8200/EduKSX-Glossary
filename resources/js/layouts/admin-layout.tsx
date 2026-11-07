@@ -55,9 +55,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         >
                             Website
                         </Link>
-                        <span className="text-muted-foreground">
+                        <Link
+                            href="/admin/zwei-faktor"
+                            className="text-muted-foreground underline-offset-4 hover:underline"
+                            title="Zweiter Faktor"
+                        >
                             {auth.user?.name}
-                        </span>
+                        </Link>
                         <Button
                             variant="outline"
                             size="sm"

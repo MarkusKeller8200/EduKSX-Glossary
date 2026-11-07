@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Zweiter Faktor (#11):** Anmeldung in der Administration mit Passwort und sechsstelligem Code aus einer
+  Authenticator-App (TOTP). Pflicht: ohne eingerichteten zweiten Faktor führt jede Seite der Administration zur
+  Einrichtung (Schlüssel zum Abtippen oder als Link fürs Handy). Acht Wiederherstellungscodes, jeder einmal gültig;
+  Zurücksetzen auf dem Server mit `php artisan glossary:admin E-MAIL --reset-2fa`.
 - **Redaktion (#14):** Begriffe in der Administration anlegen und bearbeiten (Formular mit allen Feldern, offizielle
   Felder nur mit Recht), Detailseite mit Arbeitsstand, Stand der Veröffentlichung und Verlauf (wer, wann, welche
   Felder geändert), «Veröffentlichen» und «Zurückziehen» je Begriff. Neue Seite «Listen» zum Pflegen von
