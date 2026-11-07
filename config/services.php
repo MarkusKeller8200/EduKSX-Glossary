@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    // Anmeldung mit Microsoft (#45): eine mehrinstanzenfähige App-Registrierung (Organisationen und private Konten).
+    // Ohne Client-ID ist der Knopf ausgeblendet. Secret nur in der .env.
+    'microsoft' => [
+        'client_id' => env('MICROSOFT_CLIENT_ID'),
+        'client_secret' => env('MICROSOFT_CLIENT_SECRET'),
+        'redirect' => env('MICROSOFT_REDIRECT_URI', rtrim((string) env('APP_URL', 'http://localhost:8000'), '/').'/anmelden/microsoft/rueckkehr'),
+        'tenant' => env('MICROSOFT_TENANT', 'common'),
+        'include_tenant_info' => false,
+        'include_avatar' => false,
+    ],
+
 ];

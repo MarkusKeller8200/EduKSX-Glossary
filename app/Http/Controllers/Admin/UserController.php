@@ -44,6 +44,8 @@ class UserController extends Controller
         'account.verified' => 'E-Mail bestätigt',
         'account.password_reset' => 'Passwort über Link zurückgesetzt',
         'privacy.acknowledged' => 'Datenschutzerklärung zur Kenntnis genommen',
+        'identity.linked' => 'Anmeldedienst verknüpft',
+        'identity.unlinked' => 'Anmeldedienst gelöst',
     ];
 
     public function __construct(private readonly RoleManager $roles, private readonly AccountManager $accounts) {}

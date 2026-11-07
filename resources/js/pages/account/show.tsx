@@ -16,16 +16,28 @@ type Konto = {
     institution_name: string;
     zweiter_faktor: boolean;
     zweiter_faktor_pflicht: boolean;
+    passwort_gesetzt: boolean;
+    identitaeten: Identitaet[];
     rollen: string[];
+};
+
+type Identitaet = {
+    id: number;
+    anbieter: string;
+    art: string;
+    seit: string | null;
+    zuletzt: string | null;
 };
 
 /** Mein Konto (#39): Angaben, Passwort, zweiter Faktor, Konto löschen. */
 export default function AccountShow({
     konto,
     einrichtungen,
+    microsoft,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
+    microsoft: boolean;
 }) {
     return (
         <>
@@ -51,7 +63,24 @@ export default function AccountShow({
             </div>
 
             <Angaben konto={konto} einrichtungen={einrichtungen} />
-            <Passwort />
+            {konto.passwort_gesetzt ? (
+                <Passwort />
+            ) : (
+                <Abschnitt titel="Passwort">
+                    <p className="text-sm text-muted-foreground">
+                        Sie melden sich über einen Anmeldedienst an. Ein eigenes
+                        Passwort setzen Sie über{' '}
+                        <Link
+                            href="/passwort-vergessen"
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            «Passwort vergessen»
+                        </Link>
+                        .
+                    </p>
+                </Abschnitt>
+            )}
+            <Anmeldedienste konto={konto} microsoft={microsoft} />
 
             <Abschnitt titel="Zweiter Faktor">
                 <p className="text-sm text-muted-foreground">
@@ -70,7 +99,7 @@ export default function AccountShow({
                 </div>
             </Abschnitt>
 
-            <Loeschen />
+            <Loeschen passwortGesetzt={konto.passwort_gesetzt} />
         </>
     );
 }
@@ -323,7 +352,106 @@ function Passwort() {
     );
 }
 
-function Loeschen() {
+function Anmeldedienste({
+    konto,
+    microsoft,
+}: {
+    konto: Konto;
+    microsoft: boolean;
+}) {
+    const form = useForm({ password: '' });
+    const errors = form.errors as Record<string, string | undefined>;
+    const hatMicrosoft = konto.identitaeten.some(
+        (i) => i.anbieter === 'Microsoft',
+    );
+    const verknuepfen = (e: FormEvent) => {
+        e.preventDefault();
+        // nach der Passwortbestätigung leitet der Server zu Microsoft weiter
+        form.post('/konto/anmeldedienste/microsoft', {
+            onFinish: () => form.reset('password'),
+        });
+    };
+    const loesen = (id: number) => {
+        const password = window.prompt(
+            'Verknüpfung lösen – bitte Passwort eingeben:',
+        );
+        if (password) {
+            router.delete(`/konto/anmeldedienste/${id}`, {
+                data: { password },
+                preserveScroll: true,
+            });
+        }
+    };
+
+    if (!microsoft && konto.identitaeten.length === 0) {
+        return null;
+    }
+
+    return (
+        <Abschnitt titel="Anmeldedienste">
+            {konto.identitaeten.length > 0 ? (
+                <ul className="grid gap-2 text-sm">
+                    {konto.identitaeten.map((i) => (
+                        <li
+                            key={i.id}
+                            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border p-3"
+                        >
+                            <span>
+                                <span className="font-medium">
+                                    {i.anbieter}
+                                </span>{' '}
+                                ({i.art}) · seit {i.seit ?? '–'} · zuletzt{' '}
+                                {i.zuletzt ?? '–'}
+                            </span>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => loesen(i.id)}
+                            >
+                                Lösen
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p className="text-sm text-muted-foreground">
+                    Noch kein Anmeldedienst verknüpft.
+                </p>
+            )}
+            <InputError className="mt-2" message={errors.identitaet} />
+            {microsoft && !hatMicrosoft && konto.passwort_gesetzt ? (
+                <form onSubmit={verknuepfen} className="mt-4 grid gap-3">
+                    <Feld
+                        id="link_password"
+                        label="Microsoft verknüpfen – Passwort bestätigen"
+                    >
+                        <Input
+                            id="link_password"
+                            type="password"
+                            autoComplete="current-password"
+                            value={form.data.password}
+                            onChange={(e) =>
+                                form.setData('password', e.target.value)
+                            }
+                            required
+                        />
+                    </Feld>
+                    <div>
+                        <Button
+                            type="submit"
+                            variant="outline"
+                            disabled={form.processing}
+                        >
+                            Mit Microsoft verknüpfen
+                        </Button>
+                    </div>
+                </form>
+            ) : null}
+        </Abschnitt>
+    );
+}
+
+function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
     const form = useForm({ password: '' });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -345,12 +473,16 @@ function Loeschen() {
                 </p>
                 <Feld
                     id="delete_password"
-                    label="Passwort bestätigen"
+                    label={
+                        passwortGesetzt
+                            ? 'Passwort bestätigen'
+                            : 'Zur Bestätigung «LÖSCHEN» eingeben'
+                    }
                     error={form.errors.password}
                 >
                     <Input
                         id="delete_password"
-                        type="password"
+                        type={passwortGesetzt ? 'password' : 'text'}
                         autoComplete="current-password"
                         value={form.data.password}
                         onChange={(e) =>

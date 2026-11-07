@@ -54,6 +54,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Keine fremden Server auf öffentlichen Seiten (#44):** Die API-Doku (Scalar) wird selbst ausgeliefert statt von
   jsDelivr geladen; die Schrift Inter wird beim Build eingebunden. Datenschutzerklärung und Rechtliches nachgeführt.
 
+- **Anmelden mit Microsoft (#45):** Knopf «Mit Microsoft anmelden» für Geschäfts-, Schul- und private
+  Microsoft-Konten (OpenID Connect mit PKCE, geprüftes id_token). Neue Konten haben nur Community-Rechte. Eine
+  gleiche E-Mail verknüpft nie automatisch: Bestehende Konten verknüpfen Microsoft unter «Mein Konto» nach
+  Passwortbestätigung. Mit eingerichtetem zweitem Faktor folgt die Code-Abfrage. Aktiv, sobald `MICROSOFT_CLIENT_ID`
+  und `MICROSOFT_CLIENT_SECRET` gesetzt sind.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.

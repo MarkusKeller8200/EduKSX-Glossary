@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Access\AccessDenied;
 use App\Access\AccountManager;
 use App\Access\Audit;
+use App\Access\Sso\MicrosoftLogin;
 use App\Models\User;
+use App\Models\UserIdentity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +25,7 @@ use Inertia\Response;
  */
 class AccountController extends Controller
 {
-    public function show(Request $request): Response
+    public function show(Request $request, MicrosoftLogin $microsoft): Response
     {
         $user = $this->user($request);
 
@@ -38,9 +40,18 @@ class AccountController extends Controller
                 'institution_name' => (string) $user->institution_name,
                 'zweiter_faktor' => $user->hasTwoFactor(),
                 'zweiter_faktor_pflicht' => $user->needsTwoFactor(),
+                'passwort_gesetzt' => $user->password_set,
+                'identitaeten' => $user->identities()->orderBy('created_at')->get()->map(fn (UserIdentity $i): array => [
+                    'id' => $i->id,
+                    'anbieter' => UserIdentity::PROVIDERS[$i->provider] ?? $i->provider,
+                    'art' => $i->tenant_id === '9188040d-6c67-4c5b-b112-36a304b66dad' ? 'privates Konto' : 'Geschäfts- oder Schulkonto',
+                    'seit' => $i->created_at?->toDateString(),
+                    'zuletzt' => $i->last_used_at?->toDateString(),
+                ])->all(),
                 'rollen' => $user->roleKeys(),
             ],
             'einrichtungen' => User::INSTITUTION_TYPES,
+            'microsoft' => $microsoft->enabled(),
         ]);
     }
 
@@ -95,8 +106,10 @@ class AccountController extends Controller
     {
         $user = $this->user($request);
         $data = $request->validate(['password' => ['required', 'string']]);
-        if (! Hash::check((string) $data['password'], $user->password)) {
-            throw ValidationException::withMessages(['password' => 'Das Passwort stimmt nicht.']);
+        // ohne eigenes Passwort (nur Anmeldedienst, #45): Eingabe «LÖSCHEN» als Bestätigung
+        $ok = $user->password_set ? Hash::check((string) $data['password'], $user->password) : $data['password'] === 'LÖSCHEN';
+        if (! $ok) {
+            throw ValidationException::withMessages(['password' => $user->password_set ? 'Das Passwort stimmt nicht.' : 'Bitte «LÖSCHEN» eingeben.']);
         }
         try {
             $accounts->delete($user, $user);

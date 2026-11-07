@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +30,8 @@ use Illuminate\Support\Facades\DB;
  * @property string|null $privacy_notice_version
  * @property CarbonImmutable|null $privacy_notice_acknowledged_at
  * @property CarbonImmutable|null $inactivity_notice_sent_at
+ * @property bool $password_set false = nur über Anmeldedienst (#45)
+ * @property-read Collection<int, UserIdentity> $identities
  * @property string $email
  * @property string|null $two_factor_secret
  * @property list<string>|null $two_factor_recovery_codes Hashes
@@ -55,7 +58,7 @@ class User extends Authenticatable
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['status' => 'active'];
+    protected $attributes = ['status' => 'active', 'password_set' => true];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
@@ -72,6 +75,7 @@ class User extends Authenticatable
             'email_verified_at' => 'immutable_datetime',
             'privacy_notice_acknowledged_at' => 'immutable_datetime',
             'inactivity_notice_sent_at' => 'immutable_datetime',
+            'password_set' => 'boolean',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
@@ -105,6 +109,12 @@ class User extends Authenticatable
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'user_roles');
+    }
+
+    /** @return HasMany<UserIdentity, $this> */
+    public function identities(): HasMany
+    {
+        return $this->hasMany(UserIdentity::class);
     }
 
     /** @return list<string> Schlüssel der zugewiesenen Rollen */

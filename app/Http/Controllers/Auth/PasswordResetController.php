@@ -67,7 +67,7 @@ class PasswordResetController extends Controller
             ['email' => strtolower((string) $data['email']), 'token' => $data['token'], 'password' => $data['password'],
                 'password_confirmation' => $request->input('password_confirmation')],
             function (User $user, string $password) use ($accounts): void {
-                $user->forceFill(['password' => $password])->save();
+                $user->forceFill(['password' => $password, 'password_set' => true])->save();
                 $accounts->endSessions($user);
                 Audit::log($user, $user, 'account.password_reset');
             },
