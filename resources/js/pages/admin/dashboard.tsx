@@ -1,5 +1,6 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { versionLabel } from '@/components/version-label';
 
@@ -58,6 +59,17 @@ export default function Dashboard({
                         · Datenstand {stats.release ?? '–'}
                     </CardContent>
                 </Card>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild>
+                    <Link href="/admin/import">Excel-Import</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <Link href="/admin/begriffe">Begriffe anzeigen</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <a href="/admin/export">Excel-Export</a>
+                </Button>
             </div>
             <Alert className="mt-6">
                 <AlertTitle>Nächste Schritte</AlertTitle>
