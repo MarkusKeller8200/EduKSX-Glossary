@@ -132,14 +132,13 @@ Vorschlag zum offenen Entscheid 5 aus [KONZEPT.md](KONZEPT.md). Wird erst nach A
 - **Missbrauch** (massenhaftes Abfragen, Umgehen des Limits) kann je Adresse gesperrt werden; Cloudflare-Regeln
   folgen mit #19.
 
-### Nutzung der Daten (Lizenz – Entscheid nötig)
+### Nutzung der Daten (Lizenz – beschlossen 07.11.2026, vorläufig)
 
-- **Vorschlag:** Begriffssammlung unter **CC BY 4.0**. Nennung: «EduKSX-Glossary, glossary.eduksx.ch». Die API
+- **Entscheid:** Begriffssammlung vorerst unter **CC BY 4.0** (Projektverantwortliche:r, 07.11.2026: «momentan ok»;
+  wird mit der Lizenzprüfung, offener Entscheid 3, bestätigt). Nennung: «EduKSX-Glossary, glossary.eduksx.ch». Die API
   liefert die Lizenz im Vollstand (`license`) und auf `/api/v1` mit.
 - **Ausnahme:** Offizielle Bezeichnungen und Abkürzungen sind Fakten und frei. Längere Texte aus amtlichen Quellen
   übernehmen wir nur als Verweis (`url`, Herkunft), nicht wörtlich. So bleibt CC BY für die eigenen Texte möglich.
-- **Alternative:** CC0 (keine Namensnennung nötig, einfachste Nachnutzung) oder vorerst «alle Rechte vorbehalten,
-  Nutzung über die API erlaubt», bis die Lizenzprüfung (offener Entscheid 3) erledigt ist.
 - **Software-Lizenz:** getrennt, nicht Teil dieses Entscheids.
 
 ### Umsetzung nach Abnahme
