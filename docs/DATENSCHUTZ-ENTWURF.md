@@ -50,15 +50,15 @@ Microsoft-Anmeldung wird für private und organisatorische Microsoft-Konten vorg
 
 Wir verwenden Dienstleister ausschliesslich für dokumentierte Zwecke. Die konkrete Konfiguration und Unterauftragsbearbeitung sind vor Publikation zu verifizieren:
 
-| Anbieter / Dienst | Datenkategorien / Zweck | Standort / Prüfung |
-| --- | --- | --- |
-| Hostinger | Hosting von Anwendung, Konten, Datenbank und Betriebsdaten | [konkretes Rechenzentrum und Verträge prüfen] |
-| Cloudflare | IP-Adresse, Verbindungs- und Sicherheitsdaten für Proxy/WAF und ggf. Turnstile | [Verarbeitungsorte, Produktkonfiguration, Garantien prüfen] |
-| [tatsächlicher Mailanbieter] | E-Mail-Adresse, Versand- und Nachrichtenmetadaten, technische Konto-Nachrichten | [Anbieter, Ort, Unterauftragsbearbeiter] |
-| Microsoft, nur bei Nutzung der Anmeldung | Authentifizierungsdaten und angeforderte Attribute | [vertragliche Hinweise / Auslandbearbeitung prüfen] |
-| Edulog/angeschlossene Identitätsdienste, erst bei Aktivierung | pseudonyme Kennungen und vereinbarte Attribute | [Föderationsbedingungen / konkrete Stellen prüfen] |
-| GitHub | öffentliche statische Lesefassung; personenbezogene GitHub-Issues nur bei deren Nutzung | [Datenflüsse und Hinweise prüfen] |
-| jsDelivr / Bunny Fonts, sofern tatsächlich extern geladen | technische Verbindungsdaten beim Abruf | [möglichst selbst hosten; tatsächlichen Zustand prüfen] |
+| Anbieter / Dienst                                             | Datenkategorien / Zweck                                                                 | Standort / Prüfung                                          |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Hostinger                                                     | Hosting von Anwendung, Konten, Datenbank und Betriebsdaten                              | [konkretes Rechenzentrum und Verträge prüfen]               |
+| Cloudflare                                                    | IP-Adresse, Verbindungs- und Sicherheitsdaten für Proxy/WAF und ggf. Turnstile          | [Verarbeitungsorte, Produktkonfiguration, Garantien prüfen] |
+| [tatsächlicher Mailanbieter]                                  | E-Mail-Adresse, Versand- und Nachrichtenmetadaten, technische Konto-Nachrichten         | [Anbieter, Ort, Unterauftragsbearbeiter]                    |
+| Microsoft, nur bei Nutzung der Anmeldung                      | Authentifizierungsdaten und angeforderte Attribute                                      | [vertragliche Hinweise / Auslandbearbeitung prüfen]         |
+| Edulog/angeschlossene Identitätsdienste, erst bei Aktivierung | pseudonyme Kennungen und vereinbarte Attribute                                          | [Föderationsbedingungen / konkrete Stellen prüfen]          |
+| GitHub                                                        | öffentliche statische Lesefassung; personenbezogene GitHub-Issues nur bei deren Nutzung | [Datenflüsse und Hinweise prüfen]                           |
+| jsDelivr / Bunny Fonts, sofern tatsächlich extern geladen     | technische Verbindungsdaten beim Abruf                                                  | [möglichst selbst hosten; tatsächlichen Zustand prüfen]     |
 
 Daten werden weder verkauft noch für fremde Werbung bereitgestellt. Internationale Übermittlungen werden anhand der tatsächlich beteiligten Empfänger und einer im Einzelfall einschlägigen Grundlage abgesichert. Die Verfügbarkeit eines Datenschutzrahmens oder von Standardvertragsklauseln darf **nicht pauschal für jeden Anbieter oder jede Bearbeitung** unterstellt werden.
 
@@ -66,16 +66,16 @@ Daten werden weder verkauft noch für fremde Werbung bereitgestellt. Internation
 
 Die tatsächlichen Fristen werden in einem internen, versionierten Löschkonzept je Datenkategorie, Zweck, Fristbeginn und Ausnahmeregel dokumentiert. Derzeit vorgesehen:
 
-| Kategorie | Geplante Frist / Auslöser | Vor Veröffentlichung zu prüfen |
-| --- | --- | --- |
-| Unbestätigte Registrierung | 7 Tage | Löschjob und Fehlerversand |
-| Inaktives Community-Konto | 24 Monate Inaktivität, Benachrichtigung 30 Tage zuvor | Rechtsgrundlage, Wiederaktivierung, Ausnahmen |
-| Benutzerprofil auf Löschantrag | ohne unnötige Verzögerung, soweit keine Aufbewahrungsgründe bestehen | technische Umsetzung und Fristen |
-| Externe Identitätsverknüpfungen, aktive Sitzungen, Token | bei Löschung/Entkopplung unverzüglich widerrufen oder entfernen | Protokollreste separat behandeln |
-| Vorschläge und private Moderationsdaten | zweckbezogen begrenzen; keine unbegrenzte Personenbindung | konkrete Frist und redaktioneller Archivbedarf |
-| Rollen- und Sicherheits-Audits | **[vorläufig 5 Jahre]** | Erforderlichkeit, Verhältnismässigkeit, Rechtsgrundlage und Umfang prüfen |
-| Serverlogs | [14 Tage] | tatsächliche Einstellungen auch bei Dienstleistern |
-| Sicherungskopien | [30 Tage] | Wiederherstellungsverfahren und ausgenommene Daten |
+| Kategorie                                                | Geplante Frist / Auslöser                                            | Vor Veröffentlichung zu prüfen                                            |
+| -------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Unbestätigte Registrierung                               | 7 Tage                                                               | Löschjob und Fehlerversand                                                |
+| Inaktives Community-Konto                                | 24 Monate Inaktivität, Benachrichtigung 30 Tage zuvor                | Rechtsgrundlage, Wiederaktivierung, Ausnahmen                             |
+| Benutzerprofil auf Löschantrag                           | ohne unnötige Verzögerung, soweit keine Aufbewahrungsgründe bestehen | technische Umsetzung und Fristen                                          |
+| Externe Identitätsverknüpfungen, aktive Sitzungen, Token | bei Löschung/Entkopplung unverzüglich widerrufen oder entfernen      | Protokollreste separat behandeln                                          |
+| Vorschläge und private Moderationsdaten                  | zweckbezogen begrenzen; keine unbegrenzte Personenbindung            | konkrete Frist und redaktioneller Archivbedarf                            |
+| Rollen- und Sicherheits-Audits                           | **[vorläufig 5 Jahre]**                                              | Erforderlichkeit, Verhältnismässigkeit, Rechtsgrundlage und Umfang prüfen |
+| Serverlogs                                               | [14 Tage]                                                            | tatsächliche Einstellungen auch bei Dienstleistern                        |
+| Sicherungskopien                                         | [30 Tage]                                                            | Wiederherstellungsverfahren und ausgenommene Daten                        |
 
 Nach Kontolöschung können fachliche Vorschlagsinhalte nur dann ohne Personenbezug verbleiben, wenn nicht nur die Kontoreferenz, sondern auch identifizierende Freitextinhalte und Verknüpfungsmöglichkeiten angemessen berücksichtigt werden. Sicherheitsprotokolle können bei dokumentiertem Bedarf begrenzt fortbestehen. Bei der Wiederherstellung von Backups werden bereits ausgeführte Löschungen und Sperren erneut angewandt.
 

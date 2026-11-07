@@ -16,12 +16,12 @@ EduKSX-Glossary ist öffentlich lesbar. Persönliche Konten dienen der Einreichu
 
 ### 2.1 Persönliche Benutzerkonten
 
-| Rolle | Aufgaben | MFA | Anmeldung |
-| --- | --- | --- | --- |
-| Community (keine zusätzliche Rolle) | Vorschläge einreichen; eigene Vorschläge und Status einsehen | freiwillig | lokal oder unterstützter Identitätsanbieter |
-| Moderator | Vorschläge prüfen; Rückfragen; Entwürfe bearbeiten | verpflichtend | persönliche Anmeldung mit wirksamer MFA |
-| Admin | Veröffentlichen; Benutzer- und Rollenverwaltung innerhalb der Sicherheitsgrenzen; Import und Listen | verpflichtend | persönliche Anmeldung mit wirksamer MFA |
-| Developer | sämtliche Anwendungsrechte sowie System- und Sicherheitsverwaltung | verpflichtend | persönliche Anmeldung mit wirksamer MFA |
+| Rolle                               | Aufgaben                                                                                            | MFA           | Anmeldung                                   |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------- |
+| Community (keine zusätzliche Rolle) | Vorschläge einreichen; eigene Vorschläge und Status einsehen                                        | freiwillig    | lokal oder unterstützter Identitätsanbieter |
+| Moderator                           | Vorschläge prüfen; Rückfragen; Entwürfe bearbeiten                                                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
+| Admin                               | Veröffentlichen; Benutzer- und Rollenverwaltung innerhalb der Sicherheitsgrenzen; Import und Listen | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
+| Developer                           | sämtliche Anwendungsrechte sowie System- und Sicherheitsverwaltung                                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
 
 Rollen sind kombinierbar. Die Anwendung berechnet die effektiven Rechte aus allen zugewiesenen Rollen und prüft sie **serverseitig für jede geschützte Aktion**. Eine Rolle ist keine direkte Autorisierung; massgebend ist das angeforderte Recht. Die Developer-Rolle ist eine unveränderbare, geschützte Systemrolle.
 
@@ -33,17 +33,17 @@ Jedes Servicekonto erhält einen Namen, Zweck, verantwortliche natürliche Perso
 
 ## 3. Berechtigungsmodell
 
-| Gate / Recht | Community | Moderator | Admin | Developer | Servicekonto (Default) |
-| --- | --- | --- | --- | --- | --- |
-| `propose` | ja | ja | ja | ja | nur mit Scope |
-| `moderate` | nein | ja | ja | ja | nein |
-| `edit-terms` | nein | ja | ja | ja | nein |
-| `publish` | nein | nein | ja | ja | nein |
-| `edit-official` | nein | nein | ja | ja | nein |
-| `manage-users` | nein | nein | ja (begrenzt) | ja | nein |
-| `import`, `lists` | nein | nein | ja | ja | nein |
-| `system` | nein | nein | nein | ja | nein |
-| Developer-Rolle vergeben/entziehen | nein | nein | nein | ja | nein |
+| Gate / Recht                       | Community | Moderator | Admin         | Developer | Servicekonto (Default) |
+| ---------------------------------- | --------- | --------- | ------------- | --------- | ---------------------- |
+| `propose`                          | ja        | ja        | ja            | ja        | nur mit Scope          |
+| `moderate`                         | nein      | ja        | ja            | ja        | nein                   |
+| `edit-terms`                       | nein      | ja        | ja            | ja        | nein                   |
+| `publish`                          | nein      | nein      | ja            | ja        | nein                   |
+| `edit-official`                    | nein      | nein      | ja            | ja        | nein                   |
+| `manage-users`                     | nein      | nein      | ja (begrenzt) | ja        | nein                   |
+| `import`, `lists`                  | nein      | nein      | ja            | ja        | nein                   |
+| `system`                           | nein      | nein      | nein          | ja        | nein                   |
+| Developer-Rolle vergeben/entziehen | nein      | nein      | nein          | ja        | nein                   |
 
 Dies sind **Voreinstellungen**, nicht zwingend jede denkbare zukünftige Rolle. Zusätzliche Rollen (z. B. «Redaktion Schule») sind möglich. Für die Konfiguration gelten drei Klassen:
 
@@ -57,16 +57,16 @@ Die Developer-Rolle wird nur durch einen bereits berechtigten Developer oder üb
 
 ## 4. Personendaten und Kontofelder
 
-| Feld | Pflicht | Öffentlichkeit / Sichtbarkeit | Hinweis |
-| --- | --- | --- | --- |
-| Vorname, Nachname | grundsätzlich ja; bei Edulog nach Attributverfügbarkeit gesondert beurteilen | nur berechtigte Moderation/Administration | nicht öffentlich |
-| E-Mail | für lokale Anmeldung ja; bei Edulog ggf. gesondert erheben und verifizieren | nur berechtigte Stellen | Kontakt / Wiederherstellung |
-| Passwort | nur bei lokalem Login | nie im Klartext | mindestens 12 Zeichen; sicherer Passwort-Hash |
-| Community-Name | nein | höchstens bei ausdrücklich öffentlich gezeigter Zuschreibung | eindeutig; leer = «Community» |
-| Funktion | nein | intern | Freitext |
-| Einrichtungsart | nein | intern | Schule, Schulgemeinde, Gemeinde, Kanton, andere |
-| Gemeinde/Schule | nein | intern | Freitext |
-| Zweiter Faktor | für privilegierte Nutzung ja | Admin sieht nur Status | TOTP-Geheimnis verschlüsselt; Recovery-Codes gehasht |
+| Feld              | Pflicht                                                                      | Öffentlichkeit / Sichtbarkeit                                | Hinweis                                              |
+| ----------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------- |
+| Vorname, Nachname | grundsätzlich ja; bei Edulog nach Attributverfügbarkeit gesondert beurteilen | nur berechtigte Moderation/Administration                    | nicht öffentlich                                     |
+| E-Mail            | für lokale Anmeldung ja; bei Edulog ggf. gesondert erheben und verifizieren  | nur berechtigte Stellen                                      | Kontakt / Wiederherstellung                          |
+| Passwort          | nur bei lokalem Login                                                        | nie im Klartext                                              | mindestens 12 Zeichen; sicherer Passwort-Hash        |
+| Community-Name    | nein                                                                         | höchstens bei ausdrücklich öffentlich gezeigter Zuschreibung | eindeutig; leer = «Community»                        |
+| Funktion          | nein                                                                         | intern                                                       | Freitext                                             |
+| Einrichtungsart   | nein                                                                         | intern                                                       | Schule, Schulgemeinde, Gemeinde, Kanton, andere      |
+| Gemeinde/Schule   | nein                                                                         | intern                                                       | Freitext                                             |
+| Zweiter Faktor    | für privilegierte Nutzung ja                                                 | Admin sieht nur Status                                       | TOTP-Geheimnis verschlüsselt; Recovery-Codes gehasht |
 
 Weitere intern geführte Daten: Rollen, Kontostatus, E-Mail-Verifikation, Datum der letzten Anmeldung (zwecks Inaktivität), Erstell- und Änderungszeitpunkt, Version/Zeitpunkt der **Kenntnisnahme** der Datenschutzerklärung sowie getrennte, zweckgebundene Einwilligungen nur falls benötigt. Externe Identitäten werden als `provider`, `issuer`, `subject` und nötigenfalls ergänzend `tenant_id`/`object_id` gespeichert. Eine E-Mail ist niemals der technische Schlüssel einer externen Identität.
 
