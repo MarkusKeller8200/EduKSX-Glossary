@@ -18,7 +18,7 @@ class CreateAdmin extends Command
 {
     protected $signature = 'glossary:admin
         {email? : E-Mail-Adresse des Kontos}
-        {--name= : Anzeigename}
+        {--name= : Vor- und Nachname}
         {--password= : Passwort (nur für Skripte; ohne Angabe wird gefragt)}
         {--reset-2fa : Nur den zweiten Faktor des Kontos zurücksetzen (z. B. Handy verloren)}
         {--entsperren : Nur ein gesperrtes Konto wieder freigeben (Notfall)}';
@@ -52,7 +52,7 @@ class CreateAdmin extends Command
 
             return self::SUCCESS;
         }
-        $name = (string) ($this->option('name') ?: ($this->ask('Name', 'Administration') ?? 'Administration'));
+        $name = (string) ($this->option('name') ?: ($this->ask('Vor- und Nachname', 'Administration') ?? 'Administration'));
         $password = $this->option('password');
         if (! is_string($password) || $password === '') {
             $password = (string) $this->secret('Passwort (mind. 12 Zeichen)');
@@ -77,7 +77,9 @@ class CreateAdmin extends Command
 
         $user = User::query()->firstOrNew(['email' => strtolower($email)]);
         $exists = $user->exists;
-        $user->fill(['name' => $name, 'password' => $password])->save();
+        $parts = preg_split('/\s+/', trim($name)) ?: [];
+        $last = count($parts) > 1 ? (string) array_pop($parts) : '';
+        $user->fill(['first_name' => implode(' ', $parts), 'last_name' => $last, 'password' => $password])->save();
         $roles->assign(null, $user, Role::byKey(Role::ADMIN));
 
         $this->info($exists ? "Passwort und Rechte für {$user->email} aktualisiert." : "Admin {$user->email} angelegt.");

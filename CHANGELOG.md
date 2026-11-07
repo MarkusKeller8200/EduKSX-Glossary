@@ -30,9 +30,16 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Schutzklassen, eigene Rollen wie «Redaktion Schule» anlegen). Was ausserhalb der eigenen Befugnis liegt, ist
   ausgegraut und wird serverseitig abgewiesen.
 
+- **Mein Konto (#39):** Seite `/konto` für alle angemeldeten Konten: Vor- und Nachname, freiwillig Community-Name
+  (öffentlich nur bei Vorschlägen), Funktion, Art der Einrichtung und Gemeinde/Schule; Passwort ändern (andere
+  Sitzungen werden abgemeldet), zweiter Faktor (für Community freiwillig) und Konto löschen. Gespeichert wird von
+  der letzten Anmeldung nur das Datum.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.
+- Der zweite Faktor wird unter «Mein Konto» eingerichtet (`/konto/zwei-faktor` statt `/admin/zwei-faktor`).
+  Bisherige Namen wurden in Vor- und Nachname aufgeteilt (letztes Wort = Nachname).
 
 ## [0.3.0] – 2026-11-07
 

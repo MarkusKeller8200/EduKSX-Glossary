@@ -55,16 +55,16 @@ class AuthTest extends TestCase
         $user->roles()->attach(Role::byKey(Role::ADMIN)->id);
 
         $this->post('/anmelden', ['email' => 'neu@example.org', 'password' => 'ein-langes-Test-Passwort-4'])->assertRedirect('/admin');
-        $this->get('/admin')->assertRedirect('/admin/zwei-faktor');
-        $this->get('/admin/begriffe')->assertRedirect('/admin/zwei-faktor');
+        $this->get('/admin')->assertRedirect('/konto/zwei-faktor');
+        $this->get('/admin/begriffe')->assertRedirect('/konto/zwei-faktor');
 
-        $this->get('/admin/zwei-faktor')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->component('admin/two-factor')->where('eingerichtet', false)->has('schluessel'));
+        $this->get('/konto/zwei-faktor')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('account/two-factor')->where('eingerichtet', false)->has('schluessel'));
         $secret = (string) $user->refresh()->two_factor_secret;
 
-        $this->post('/admin/zwei-faktor', ['code' => '123'])->assertSessionHasErrors('code');
-        $this->post('/admin/zwei-faktor', ['code' => Totp::code($secret)])
-            ->assertRedirect('/admin/zwei-faktor')
+        $this->post('/konto/zwei-faktor', ['code' => '123'])->assertSessionHasErrors('code');
+        $this->post('/konto/zwei-faktor', ['code' => Totp::code($secret)])
+            ->assertRedirect('/konto/zwei-faktor')
             ->assertSessionHas('recovery_codes');
         $this->assertTrue($user->refresh()->hasTwoFactor());
         $this->get('/admin')->assertOk();

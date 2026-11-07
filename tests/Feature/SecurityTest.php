@@ -20,9 +20,9 @@ class SecurityTest extends TestCase
         $this->actingAs($moderator);
 
         $this->assertFalse(Gate::allows('edit-terms'));
-        $this->get('/admin')->assertRedirect('/admin/zwei-faktor');
-        $this->get('/admin/begriffe')->assertRedirect('/admin/zwei-faktor');
-        $this->get('/admin/zwei-faktor')->assertOk();
+        $this->get('/admin')->assertRedirect('/konto/zwei-faktor');
+        $this->get('/admin/begriffe')->assertRedirect('/konto/zwei-faktor');
+        $this->get('/konto/zwei-faktor')->assertOk();
     }
 
     public function test_community_nach_anmeldung_auf_die_startseite(): void

@@ -63,9 +63,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             Website
                         </Link>
                         <Link
-                            href="/admin/zwei-faktor"
+                            href="/konto"
                             className="text-muted-foreground underline-offset-4 hover:underline"
-                            title="Zweiter Faktor"
+                            title="Mein Konto"
                         >
                             {auth.user?.name}
                         </Link>

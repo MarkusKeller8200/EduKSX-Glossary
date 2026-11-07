@@ -24,7 +24,7 @@ class UserAdminTest extends TestCase
 
         $this->get('/admin/benutzer')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/users')->has('benutzer', 1));
 
-        $this->post('/admin/benutzer', ['name' => 'Neu', 'email' => 'Neu@Example.org', 'password' => 'ein-langes-Test-Passwort-9'])
+        $this->post('/admin/benutzer', ['first_name' => 'Neu', 'last_name' => 'Konto', 'email' => 'Neu@Example.org', 'password' => 'ein-langes-Test-Passwort-9'])
             ->assertRedirect();
         $user = User::query()->where('email', 'neu@example.org')->firstOrFail();
         $this->assertSame([], $user->roleKeys());

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-/** Zweiter Faktor einrichten bzw. verwalten (#11). Pflicht vor der Administration. */
+/** Zweiter Faktor einrichten bzw. verwalten (#11). Pflicht für privilegierte Rechte, sonst freiwillig (#37, #39). */
 export default function TwoFactorSetup({
     eingerichtet,
     schluessel,
@@ -23,7 +23,7 @@ export default function TwoFactorSetup({
     const form = useForm({ code: '' });
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        form.post('/admin/zwei-faktor', { onFinish: () => form.reset('code') });
+        form.post('/konto/zwei-faktor', { onFinish: () => form.reset('code') });
     };
 
     return (
@@ -66,7 +66,7 @@ export default function TwoFactorSetup({
                                     'Neue Wiederherstellungscodes erzeugen? Die bisherigen gelten danach nicht mehr.',
                                 )
                             ) {
-                                router.post('/admin/zwei-faktor/codes');
+                                router.post('/konto/zwei-faktor/codes');
                             }
                         }}
                     >

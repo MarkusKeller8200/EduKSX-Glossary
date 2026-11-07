@@ -11,6 +11,10 @@ type Benutzer = {
     id: string;
     name: string;
     email: string;
+    community_name: string | null;
+    funktion: string | null;
+    einrichtung: string;
+    letzte_anmeldung: string | null;
     status: string;
     gesperrt_am: string | null;
     zweiter_faktor: boolean;
@@ -101,8 +105,22 @@ export default function UserShow({
                         {b.name}
                     </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {b.email} · angelegt {datum(b.angelegt)}
+                        {b.email} · angelegt {datum(b.angelegt)} · letzte
+                        Anmeldung {b.letzte_anmeldung ?? '–'}
                     </p>
+                    {b.community_name || b.funktion || b.einrichtung ? (
+                        <p className="mt-1 text-sm">
+                            {[
+                                b.community_name
+                                    ? `Community-Name «${b.community_name}»`
+                                    : null,
+                                b.funktion,
+                                b.einrichtung,
+                            ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                        </p>
+                    ) : null}
                     <p className="mt-2 flex flex-wrap gap-2 text-sm">
                         {b.status === 'blocked' ? (
                             <Badge variant="secondary">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
@@ -31,15 +32,24 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('abmelden', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
+// Mein Konto (#39): für alle angemeldeten Konten, auch Community
+Route::middleware('auth')->prefix('konto')->group(function () {
+    Route::get('/', [AccountController::class, 'show'])->name('account');
+    Route::put('/', [AccountController::class, 'update'])->name('account.update');
+    Route::put('passwort', [AccountController::class, 'password'])->middleware('throttle:10,1')->name('account.password');
+    Route::post('loeschen', [AccountController::class, 'destroy'])->middleware('throttle:5,1')->name('account.destroy');
+
+    // Zweiter Faktor (#11, #37): Pflicht für privilegierte Rechte, sonst freiwillig
+    Route::get('zwei-faktor', [TwoFactorController::class, 'setup'])->name('account.two-factor');
+    Route::post('zwei-faktor', [TwoFactorController::class, 'confirm'])->middleware('throttle:10,1')->name('account.two-factor.confirm');
+    Route::post('zwei-faktor/codes', [TwoFactorController::class, 'recoveryCodes'])->name('account.two-factor.codes');
+});
+
 // Administration: nur angemeldet, mit einem Recht ausser «Vorschläge einreichen» und mit zweitem Faktor; jede
 // Aktion zusätzlich mit ihrem Recht (#36)
 Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
 
-    // Zweiter Faktor (#11): Pflicht, ohne ihn führt jede Seite hierher
-    Route::get('zwei-faktor', [TwoFactorController::class, 'setup'])->name('admin.two-factor');
-    Route::post('zwei-faktor', [TwoFactorController::class, 'confirm'])->middleware('throttle:10,1')->name('admin.two-factor.confirm');
-    Route::post('zwei-faktor/codes', [TwoFactorController::class, 'recoveryCodes'])->name('admin.two-factor.codes');
     // Redaktion (#14)
     Route::get('begriffe', [TermController::class, 'index'])->middleware('can:edit-terms')->name('admin.terms');
     Route::post('begriffe/veroeffentlichen', [TermController::class, 'publish'])->middleware('can:publish')->name('admin.terms.publish');
