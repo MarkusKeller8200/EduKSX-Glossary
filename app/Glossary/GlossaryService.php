@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\PublicationRelease;
 use App\Models\Source;
 use App\Models\Term;
+use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -105,8 +106,9 @@ final class GlossaryService
     public function publish(Term $term, ?User $approver): Term
     {
         return DB::transaction(function () use ($term, $approver): Term {
-            if ($this->markPublished($term, $approver)) {
-                $this->newRelease($term->id, 'published', $approver);
+            $event = $this->markPublished($term, $approver);
+            if ($event !== null) {
+                $this->newRelease($term->id, 'published', $approver, [$event]);
             }
 
             return $term->refresh();
@@ -122,22 +124,23 @@ final class GlossaryService
     public function publishMany(iterable $terms, ?User $approver): int
     {
         return DB::transaction(function () use ($terms, $approver): int {
-            $count = 0;
+            $events = [];
             foreach ($terms as $term) {
-                if ($this->markPublished($term, $approver)) {
-                    $count++;
+                $event = $this->markPublished($term, $approver);
+                if ($event !== null) {
+                    $events[] = $event;
                 }
             }
-            if ($count > 0) {
-                $this->newRelease(null, 'published', $approver);
+            if ($events !== []) {
+                $this->newRelease(null, 'published', $approver, $events);
             }
 
-            return $count;
+            return count($events);
         });
     }
 
-    /** Neueste Revision freigeben; false, wenn sie schon veröffentlicht ist. */
-    private function markPublished(Term $term, ?User $approver): bool
+    /** Neueste Revision freigeben und Ereignis für den Change-Feed schreiben; null, wenn schon veröffentlicht. */
+    private function markPublished(Term $term, ?User $approver): ?TermPublicationEvent
     {
         /** @var TermRevision|null $latest */
         $latest = $term->revisions()->where('revision', $term->revision)->first();
@@ -145,7 +148,7 @@ final class GlossaryService
             throw new InvalidArgumentException('Begriff hat noch keine Revision.');
         }
         if ($term->published_revision_id === $latest->id) {
-            return false;
+            return null;
         }
 
         $latest->published_at = now()->toImmutable();
@@ -155,7 +158,9 @@ final class GlossaryService
         $term->published_revision_id = $latest->id;
         $term->save();
 
-        return true;
+        return TermPublicationEvent::query()->create([
+            'term_id' => $term->id, 'action' => 'published', 'revision' => $latest->revision,
+        ]);
     }
 
     /** Veröffentlichung zurückziehen: Begriff ist danach nicht mehr öffentlich (Tombstone im Change-Feed). */
@@ -168,7 +173,8 @@ final class GlossaryService
         return DB::transaction(function () use ($term, $user): Term {
             $term->published_revision_id = null;
             $term->save();
-            $this->newRelease($term->id, 'unpublished', $user);
+            $event = TermPublicationEvent::query()->create(['term_id' => $term->id, 'action' => 'unpublished']);
+            $this->newRelease($term->id, 'unpublished', $user, [$event]);
 
             return $term->refresh();
         });
@@ -347,15 +353,22 @@ final class GlossaryService
         }
     }
 
-    private function newRelease(?string $termId, string $action, ?User $user): void
+    /**
+     * Neuer Datenstand; die Ereignisse dieses Schritts werden ihm zugeordnet.
+     *
+     * @param  list<TermPublicationEvent>  $events
+     */
+    private function newRelease(?string $termId, string $action, ?User $user, array $events): void
     {
-        PublicationRelease::query()->create([
+        $release = PublicationRelease::query()->create([
             'term_id' => $termId,
             'action' => $action,
             'checksum' => $this->checksum(),
             'term_count' => Term::query()->published()->count(),
             'published_by' => $user?->id,
         ]);
+        TermPublicationEvent::query()->whereKey(array_map(fn (TermPublicationEvent $e): int => $e->id, $events))
+            ->update(['release_id' => $release->id]);
     }
 
     /** Slug aus Bezeichnung bzw. Abkürzung, eindeutig mit -2, -3 … */

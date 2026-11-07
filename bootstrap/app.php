@@ -3,11 +3,15 @@
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -39,4 +43,36 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // API: Fehler als application/problem+json (RFC 9457, docs/KONZEPT-API.md)
+        $exceptions->render(function (Throwable $e, Request $request) {
+            if (! $request->is('api/*')) {
+                return null;
+            }
+            $errors = null;
+            if ($e instanceof ValidationException) {
+                $status = 422;
+                $detail = 'Die Anfrage enthält ungültige Werte.';
+                $errors = $e->errors();
+            } elseif ($e instanceof ModelNotFoundException) {
+                $status = 404;
+                $detail = 'Nicht gefunden.';
+            } elseif ($e instanceof HttpExceptionInterface) {
+                $status = $e->getStatusCode();
+                $detail = $e->getMessage() !== '' ? $e->getMessage() : ($status === 404 ? 'Unbekannter Endpunkt.' : null);
+            } else {
+                $status = 500;
+                $detail = config('app.debug') ? $e->getMessage() : null;
+            }
+            $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
+
+            return response()->json(array_filter([
+                'type' => 'about:blank',
+                'title' => SymfonyResponse::$statusTexts[$status] ?? 'Error',
+                'status' => $status,
+                'detail' => $detail,
+                'instance' => $request->getRequestUri(),
+                'errors' => $errors,
+            ], fn ($v) => $v !== null), $status, ['Content-Type' => 'application/problem+json'] + $headers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        });
     })->create();

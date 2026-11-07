@@ -104,14 +104,15 @@ class Term extends Model
     }
 
     /**
-     * Öffentlich sichtbar: veröffentlicht und aktiv (PUB-01, unveröffentlichte Entwürfe nie).
+     * Veröffentlicht (es gibt eine freigegebene Revision). Ob der Begriff öffentlich angezeigt wird, entscheidet
+     * «is_active» im veröffentlichten Abbild – nicht der Arbeitsstand (PublicGlossary, API).
      *
      * @param  Builder<Term>  $query
      * @return Builder<Term>
      */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->whereNotNull('published_revision_id')->where('is_active', true);
+        return $query->whereNotNull('published_revision_id');
     }
 
     /** Angezeigte Abkürzung: eigene vor offizieller (wie im Intranet). */

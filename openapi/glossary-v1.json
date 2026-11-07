@@ -1,0 +1,1170 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EduKSX-Glossary API",
+    "version": "1.0.0",
+    "summary": "Öffentliche Lese-API des EduKSX-Glossary",
+    "description": "Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.\n\n- Liefert **nur veröffentlichte** Daten (freigegebene Revisionen). Entwürfe, Vorschläge und redaktionelle Notizen sind nie enthalten.\n- Lesen ohne Schlüssel; Rate-Limit 120 Abrufe pro Minute und Adresse.\n- Jede Antwort hat einen **ETag**; mit `If-None-Match` kommt bei unverändertem Inhalt `304`.\n- Fehler als `application/problem+json` (RFC 9457).\n- **Sync** (z. B. Intranet): einmal `/exports?format=json` (Vollstand), danach periodisch `/changes?since=<next_cursor>`; `/releases/latest` zeigt günstig, ob sich etwas geändert hat.\n- Versionierung: `/api/v1` bleibt rückwärtskompatibel (Felder kommen nur dazu); Brüche nur in `/api/v2`.\n\nKonzept: docs/KONZEPT-API.md im Repository.",
+    "contact": {
+      "name": "EduKSX-Glossary auf GitHub",
+      "url": "https://github.com/MarkusKeller8200/EduKSX-Glossary"
+    },
+    "license": {
+      "name": "noch festzulegen",
+      "url": "https://github.com/MarkusKeller8200/EduKSX-Glossary"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://glossary.eduksx.ch/api",
+      "description": "Produktion"
+    },
+    {
+      "url": "http://localhost:8000/api",
+      "description": "Lokal"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Begriffe"
+    },
+    {
+      "name": "Listen"
+    },
+    {
+      "name": "Sync"
+    },
+    {
+      "name": "Allgemein"
+    }
+  ],
+  "paths": {
+    "/v1": {
+      "get": {
+        "tags": [
+          "Allgemein"
+        ],
+        "summary": "Einstieg: Version, Datenstand, Endpunkte",
+        "operationId": "getStatus",
+        "responses": {
+          "200": {
+            "description": "Version der API und der Anwendung",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/terms": {
+      "get": {
+        "tags": [
+          "Begriffe"
+        ],
+        "summary": "Veröffentlichte Begriffe suchen und blättern",
+        "operationId": "listTerms",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Suchtext in Abkürzung, Bezeichnung, Aliasen und Kurzbeschreibung (ohne Gross-/Kleinschreibung)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "SHP"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Kategorie (Schlüssel oder Label)",
+            "schema": {
+              "type": "string"
+            },
+            "example": "per"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Status des Begriffs",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "aktuell",
+                "historisch",
+                "zu_pruefen"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eine Seite Begriffe",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TermPage"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/v1/terms/{idOrSlug}": {
+      "get": {
+        "tags": [
+          "Begriffe"
+        ],
+        "summary": "Ein veröffentlichter Begriff",
+        "operationId": "getTerm",
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "required": true,
+            "description": "UUID oder Slug",
+            "schema": {
+              "type": "string"
+            },
+            "example": "klassenlehrperson"
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Der Begriff",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Term"
+                    }
+                  }
+                },
+                "example": {
+                  "data": {
+                    "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
+                    "slug": "klassenlehrperson",
+                    "abbreviation": "KLP",
+                    "name": "Klassenlehrperson",
+                    "official_abbreviation": "KLP",
+                    "official_name": "Klassenlehrperson",
+                    "own_abbreviation": null,
+                    "own_name": null,
+                    "aliases": [
+                      "KL"
+                    ],
+                    "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
+                    "description": null,
+                    "url": "https://example.org/quelle",
+                    "categories": [
+                      {
+                        "key": "per",
+                        "label": "Personal",
+                        "name": "Personal",
+                        "url": null
+                      }
+                    ],
+                    "sources": [
+                      {
+                        "key": "vsa",
+                        "label": "VSA",
+                        "name": "Volksschulamt des Kantons Zürich",
+                        "url": "https://www.zh.ch/de/bildung/schulen/volksschule.html"
+                      }
+                    ],
+                    "status": "aktuell",
+                    "is_active": true,
+                    "valid_from": null,
+                    "valid_until": null,
+                    "revision": 3,
+                    "published_at": "2026-11-07T00:00:00Z",
+                    "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson"
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/categories": {
+      "get": {
+        "tags": [
+          "Listen"
+        ],
+        "summary": "Kategorien",
+        "operationId": "listCategories",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alle Kategorien",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/sources": {
+      "get": {
+        "tags": [
+          "Listen"
+        ],
+        "summary": "Herkunft (Quelleninstitutionen)",
+        "operationId": "listSources",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alle Herkünfte",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListItem"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/releases/latest": {
+      "get": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Aktueller Datenstand",
+        "operationId": "getLatestRelease",
+        "description": "Jede Veröffentlichung und jeder Rückzug erzeugt einen neuen Datenstand. Günstig für die periodische Prüfung, ob ein Sync nötig ist.",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datenstand",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/Release"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/changes": {
+      "get": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Änderungen seit einem Cursor (Change-Feed)",
+        "operationId": "listChanges",
+        "description": "Veröffentlichungen und Rückzüge in fester Reihenfolge. Mit `meta.next_cursor` weiterfragen, solange `meta.has_more` wahr ist. Wiederholte Abrufe liefern dasselbe (idempotent). Bei `published` enthält `term` den Begriff in genau dieser Revision; `unpublished` heisst: nicht mehr öffentlich (lokal entfernen oder ausblenden). Ist `term.is_active` falsch, ausblenden.",
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "description": "Letzter verarbeiteter Cursor (0 = von Anfang an)",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 500
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Änderungen",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePage"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/exports": {
+      "get": {
+        "tags": [
+          "Sync"
+        ],
+        "summary": "Vollstand aller öffentlichen Begriffe",
+        "operationId": "exportTerms",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json"
+              ],
+              "default": "json"
+            }
+          },
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vollstand",
+            "headers": {
+              "ETag": {
+                "description": "Prüfsumme des Inhalts; mit If-None-Match erneut senden → 304",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "description": "Nummer des aktuellen Datenstands",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Export"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ListItem": {
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "name"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Stabiler Schlüssel",
+            "examples": [
+              "per"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "examples": [
+              "Personal"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "examples": [
+              "Personal"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          }
+        }
+      },
+      "Term": {
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "categories",
+          "sources",
+          "status",
+          "revision"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Stabile ID (bei aus dem Intranet übernommenen Begriffen dieselbe wie im Intranet)"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Stabiler Teil der Adresse /begriffe/{slug}"
+          },
+          "abbreviation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Angezeigte Abkürzung (eigene vor offizieller)"
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Angezeigte Bezeichnung (eigene vor offizieller)"
+          },
+          "official_abbreviation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "official_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "own_abbreviation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "own_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Andere Schreibweisen"
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 160
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Quelle"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListItem"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListItem"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "aktuell",
+              "historisch",
+              "zu_pruefen"
+            ]
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "valid_from": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "valid_until": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "revision": {
+            "type": "integer",
+            "description": "Veröffentlichte Revision"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "web_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "example": {
+          "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
+          "slug": "klassenlehrperson",
+          "abbreviation": "KLP",
+          "name": "Klassenlehrperson",
+          "official_abbreviation": "KLP",
+          "official_name": "Klassenlehrperson",
+          "own_abbreviation": null,
+          "own_name": null,
+          "aliases": [
+            "KL"
+          ],
+          "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
+          "description": null,
+          "url": "https://example.org/quelle",
+          "categories": [
+            {
+              "key": "per",
+              "label": "Personal",
+              "name": "Personal",
+              "url": null
+            }
+          ],
+          "sources": [
+            {
+              "key": "vsa",
+              "label": "VSA",
+              "name": "Volksschulamt des Kantons Zürich",
+              "url": "https://www.zh.ch/de/bildung/schulen/volksschule.html"
+            }
+          ],
+          "status": "aktuell",
+          "is_active": true,
+          "valid_from": null,
+          "valid_until": null,
+          "revision": 3,
+          "published_at": "2026-11-07T00:00:00Z",
+          "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson"
+        }
+      },
+      "TermPage": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta",
+          "links"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Term"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "per_page": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "last_page": {
+                "type": "integer"
+              },
+              "release": {
+                "type": "integer"
+              }
+            }
+          },
+          "links": {
+            "type": "object",
+            "properties": {
+              "first": {
+                "type": "string"
+              },
+              "prev": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "next": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "last": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Release": {
+        "type": "object",
+        "required": [
+          "release",
+          "checksum",
+          "term_count"
+        ],
+        "properties": {
+          "release": {
+            "type": "integer",
+            "description": "Nummer des Datenstands (0 = noch nie veröffentlicht)"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "checksum": {
+            "type": "string",
+            "description": "SHA-256 über alle veröffentlichten Revisionen"
+          },
+          "term_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "Change": {
+        "type": "object",
+        "required": [
+          "cursor",
+          "action",
+          "term_id"
+        ],
+        "properties": {
+          "cursor": {
+            "type": "integer"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "published",
+              "unpublished"
+            ]
+          },
+          "term_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "release": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "term": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Term"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "ChangePage": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Change"
+            }
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "since": {
+                "type": "integer"
+              },
+              "next_cursor": {
+                "type": "integer"
+              },
+              "has_more": {
+                "type": "boolean"
+              },
+              "release": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "Export": {
+        "type": "object",
+        "required": [
+          "release",
+          "checksum",
+          "terms"
+        ],
+        "properties": {
+          "release": {
+            "type": "integer"
+          },
+          "checksum": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListItem"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListItem"
+            }
+          },
+          "terms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Term"
+            }
+          }
+        }
+      },
+      "Status": {
+        "type": "object",
+        "required": [
+          "name",
+          "api_version",
+          "app_version",
+          "endpoints"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "api_version": {
+            "type": "string",
+            "examples": [
+              "v1"
+            ]
+          },
+          "app_version": {
+            "type": "string"
+          },
+          "developer_release": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "commits": {
+                "type": "integer"
+              },
+              "base": {
+                "type": "string"
+              },
+              "planned": {
+                "type": "string"
+              }
+            }
+          },
+          "release": {
+            "$ref": "#/components/schemas/Release"
+          },
+          "openapi": {
+            "type": "string",
+            "format": "uri"
+          },
+          "docs": {
+            "type": "string",
+            "format": "uri"
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "description": "Fehler nach RFC 9457",
+        "required": [
+          "type",
+          "title",
+          "status"
+        ],
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "Nicht gefunden",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "about:blank",
+              "title": "Not Found",
+              "status": 404,
+              "detail": "Begriff «xyz» ist nicht veröffentlicht oder existiert nicht."
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "Ungültige Anfrage",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Zu viele Abrufe (Rate-Limit)",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    }
+  }
+}

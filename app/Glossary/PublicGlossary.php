@@ -8,7 +8,7 @@ use App\Models\Term;
 use Illuminate\Support\Collection;
 
 /**
- * Öffentliche Sicht auf das Glossary (#24): ausschliesslich veröffentlichte Revisionen aktiver Begriffe – nie der
+ * Öffentliche Sicht auf das Glossary (#24): ausschliesslich veröffentlichte Revisionen, die im Abbild aktiv sind – nie der
  * Arbeitsstand. Nicht öffentlich: redaktionelle Notiz, «Intern genutzt in», Verlauf. Grundlage auch für die
  * spätere API (docs/KONZEPT-API.md).
  */
@@ -57,7 +57,7 @@ final class PublicGlossary
     {
         $term = Term::query()->published()->where('slug', $slug)->with('publishedRevision')->first();
         $revision = $term?->publishedRevision;
-        if ($term === null || $revision === null) {
+        if ($term === null || $revision === null || ($revision->snapshot['is_active'] ?? true) !== true) {
             return null;
         }
         $s = $revision->snapshot;
@@ -120,8 +120,9 @@ final class PublicGlossary
         /** @var list<array<string, mixed>> $snapshots */
         $snapshots = [];
         foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
-            if ($term->publishedRevision !== null) {
-                $snapshots[] = $term->publishedRevision->snapshot;
+            $snapshot = $term->publishedRevision?->snapshot;
+            if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
+                $snapshots[] = $snapshot;
             }
         }
 

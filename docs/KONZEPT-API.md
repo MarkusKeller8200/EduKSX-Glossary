@@ -79,3 +79,20 @@ Beispiel-URL und -Datum sind Platzhalter.
 - Stabile IDs; Filter und Pagination getestet; ETag/304 korrekt.
 - Regel für Breaking Changes festgelegt; Import ohne Datenverlust.
 - Sync mit dem Intranet inkl. Rückzug und Wiederaufnahme nach Ausfall automatisch getestet.
+
+## Umsetzung v1 (#25, #26, 07.11.2026)
+
+- Endpunkte wie oben ausser `POST /api/v1/proposals` (kommt mit der Community-Funktion). Beschreibung:
+  `openapi/glossary-v1.json` (OpenAPI 3.1), ausgeliefert unter `/api/openapi.json` und `/api/openapi.yaml`
+  (JSON ist gültiges YAML). Interaktive Doku: **`/api/docs`** (Scalar). Ein Test prüft, dass jede Route unter
+  `/api/v1` in der Beschreibung steht.
+- **Change-Feed:** Tabelle `term_publication_events`; jede Veröffentlichung und jeder Rückzug ist ein Ereignis, die
+  ID ist der Cursor. «published» enthält den Begriff in genau der veröffentlichten Revision, «unpublished» ist der
+  Tombstone. Veröffentlichen mehrerer Begriffe in einem Schritt ergibt mehrere Ereignisse, aber einen Datenstand.
+- **Sichtbar** ist ein Begriff, wenn er veröffentlicht ist und im veröffentlichten Abbild `is_active` gilt – der
+  Arbeitsstand ändert nichts an Website oder API, bis er veröffentlicht wird.
+- **ETag** = Prüfsumme des Antwortinhalts (auch Listen-Änderungen werden erkannt), `Cache-Control: public,
+  max-age=60`, Kopfzeile `X-Glossary-Release`.
+- **Fehler** als `application/problem+json` (RFC 9457) für alle Pfade unter `/api/`.
+- **CORS:** `GET` von jeder Herkunft, ohne Cookies (`config/cors.php`).
+- Rate-Limit 120 Abrufe pro Minute und Adresse.

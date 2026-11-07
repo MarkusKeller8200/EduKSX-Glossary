@@ -66,6 +66,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                             {versionLabel(appVersion)}
                         </Link>
                         {' · '}
+                        <a
+                            href="/api/docs"
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            API
+                        </a>
+                        {' · '}
                         <Link
                             href={auth.user ? '/admin' : '/anmelden'}
                             className="text-link underline-offset-4 hover:underline"

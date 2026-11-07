@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Glossary\ApiPresenter;
 use App\Http\Controllers\Controller;
 use App\Support\AppVersion;
 use Illuminate\Http\JsonResponse;
 
-/**
- * Einstieg der öffentlichen API (docs/KONZEPT-API.md). Die Endpunkte für Begriffe, Kategorien, Datenstand und
- * Änderungen kommen mit dem Datenmodell (0.2/0.3); bis dahin nur Version und Verweise.
- */
+/** Einstieg der öffentlichen API (docs/KONZEPT-API.md): Version, Datenstand und Verweise auf alle Endpunkte. */
 class StatusController extends Controller
 {
-    public function __invoke(): JsonResponse
+    public function __invoke(ApiPresenter $presenter): JsonResponse
     {
         $version = AppVersion::info();
 
@@ -21,8 +19,18 @@ class StatusController extends Controller
             'api_version' => 'v1',
             'app_version' => $version['version'],
             'developer_release' => $version['dev'],
-            'openapi' => url('/api/openapi.yaml'),
-            'endpoints' => [],
-        ]);
+            'release' => $presenter->release(),
+            'openapi' => url('/api/openapi.json'),
+            'docs' => url('/api/docs'),
+            'endpoints' => [
+                url('/api/v1/terms'),
+                url('/api/v1/terms/{idOrSlug}'),
+                url('/api/v1/categories'),
+                url('/api/v1/sources'),
+                url('/api/v1/releases/latest'),
+                url('/api/v1/changes?since={cursor}'),
+                url('/api/v1/exports?format=json'),
+            ],
+        ], 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }
 }
