@@ -26,3 +26,7 @@
 ## Offen (wird geklärt, wenn benötigt)
 
 Format, Aufteilung der Seiten, Rechte für das Auslösen, Konflikte, historische Seiten, Häufigkeit.
+
+## Veröffentlichungsgrenze und technische Identität (DEC-018)
+
+Der Confluence-Publisher erhält ausschliesslich kontrollierte Veröffentlichungsfelder aus derselben Freigabeschicht wie API und GitHub Pages. Private Benutzerkonten, Vorschläge, Moderationsdaten, Audits und Servicekonto-Geheimnisse dürfen nicht exportiert werden. Die technische Anbindung verwendet ein zweckgebundenes Servicekonto oder eine gesicherte Zielverbindung. Der Publisher darf selbst keine fachlichen Freigaben erteilen.
