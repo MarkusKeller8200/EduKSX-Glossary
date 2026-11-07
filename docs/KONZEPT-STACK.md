@@ -46,7 +46,7 @@ Damit keine ungewollten Datenänderungen entstehen, gibt es **ab dem ersten Depl
   in der Cloud-Sitzung nicht installierbar), TOTP nach RFC 6238 in `App\Support\Totp` (geprüft mit den
   RFC-Testwerten), Schlüssel verschlüsselt, 8 Wiederherstellungscodes nur als Hash, jeder Code nur einmal. Pflicht:
   Ohne bestätigten zweiten Faktor führt jede Seite der Administration zur Einrichtung. Zurücksetzen auf dem Server
-  mit `php artisan glossary:admin E-MAIL --reset-2fa`. QR-Code folgt, sobald ein Paket dafür möglich ist.
+  mit `php artisan glossary:admin E-MAIL --reset-2fa`. QR-Code als SVG mit dem Paket `qrcode` (MIT, #70).
 - Community-Anmeldung: umgesetzt mit 0.4.0 (siehe [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md)).
 
 ## Aufbau im Repository
