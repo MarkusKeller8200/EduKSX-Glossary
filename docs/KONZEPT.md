@@ -118,6 +118,8 @@ veränderliche Begriffe; Änderungsjournal.
 
 ## Rollen (Vorschlag)
 
+> Wird mit DEC-017 durch [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md) ersetzt (#34).
+
 | Rolle                                  | lesen | vorschlagen                 | prüfen | freigeben | Import / Listen |
 | -------------------------------------- | ----- | --------------------------- | ------ | --------- | --------------- |
 | Öffentlichkeit                         | ja    | ja (geschützt)              | –      | –         | –               |
