@@ -8,17 +8,21 @@ use App\Glossary\GlossaryService;
 use App\Glossary\PublicGlossary;
 use App\Models\Category;
 use App\Models\Term;
+use App\Models\TermLegacyValue;
+use App\Models\TermUserOverride;
 use Tests\TestCase;
 
 /**
  * Veröffentlichungsgrenze (#43, DEC-018, Abnahmetest 6): Öffentliche Ausgaben enthalten nur freigegebene Felder des
- * veröffentlichten Stands – nie Notizen, «Intern genutzt in», Entwürfe, unveröffentlichte Begriffe oder Kontodaten.
+ * veröffentlichten Stands – nie Notizen, Altwerte («Intern genutzt in»), persönliche Darstellungen, Journal,
+ * Entwürfe, unveröffentlichte Begriffe oder Kontodaten (DEC-020).
  */
 class PublicBoundaryTest extends TestCase
 {
     /** Kennzeichen, die in keiner öffentlichen Ausgabe vorkommen dürfen. */
     private const SECRETS = [
         'GEHEIM-NOTIZ', 'GEHEIM-INTERN', 'GEHEIM-ENTWURF', 'GEHEIM-UNVEROEFFENTLICHT', 'geheim-admin@example.org',
+        'GEHEIM-PERSOENLICH', 'Test admin', 'change_set', 'actor_',
     ];
 
     private const PAGES_PATH = 'storage/framework/testing/grenze.json';
@@ -30,14 +34,19 @@ class PublicBoundaryTest extends TestCase
         parent::setUp();
         $glossary = app(GlossaryService::class);
         Category::query()->create(['key' => 'per', 'abbreviation' => 'PER', 'name' => 'Personal', 'label' => 'Personal']);
-        $this->userWithRoles(['admin'], 'geheim-admin@example.org');
+        $admin = $this->userWithRoles(['admin'], 'geheim-admin@example.org');
 
         // veröffentlicht mit internen Feldern, danach ein unveröffentlichter Entwurf
         $term = $glossary->save(null, [
             'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'short_description' => 'Leitet die Schule.',
-            'note' => 'GEHEIM-NOTIZ', 'used_in' => ['GEHEIM-INTERN'], 'categories' => ['per'],
-        ], null, true);
-        $term = $glossary->publish($term, null);
+            'note' => 'GEHEIM-NOTIZ', 'categories' => ['per'],
+        ], $admin, true);
+        TermLegacyValue::remember($term->id, 'used_in', 'GEHEIM-INTERN', 'import');
+        $term = $glossary->publish($term, $admin);
+        $override = new TermUserOverride(['name_override' => 'GEHEIM-PERSOENLICH']);
+        $override->term_id = $term->id;
+        $override->user_id = $admin->id;
+        $override->save();
         $this->term = $glossary->save($term, ['short_description' => 'GEHEIM-ENTWURF'], null, true);
 
         // nie veröffentlicht
@@ -86,7 +95,8 @@ class PublicBoundaryTest extends TestCase
 
         $this->assertSame([], array_diff(ExportPages::FIELDS, ApiPresenter::PUBLIC_TERM_FIELDS));
 
+        // im Change-Feed ohne die vom Gesamtstand abhängigen Felder
         $change = $this->getJson('/api/v1/changes')->json('data.0.term');
-        $this->assertSame(ApiPresenter::PUBLIC_TERM_FIELDS, array_keys($change));
+        $this->assertSame(array_values(array_diff(ApiPresenter::PUBLIC_TERM_FIELDS, ApiPresenter::CONTEXT_FIELDS)), array_keys($change));
     }
 }

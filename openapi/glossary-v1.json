@@ -4,7 +4,7 @@
     "title": "EduKSX-Glossary API",
     "version": "0.3.0-preview",
     "summary": "Öffentliche Lese-API des EduKSX-Glossary",
-    "description": "Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.\n\n- Liefert **nur veröffentlichte** Daten (freigegebene Revisionen). Entwürfe, Vorschläge und redaktionelle Notizen sind nie enthalten.\n- Lesen ohne Schlüssel; Rate-Limit 120 Abrufe pro Minute und Adresse.\n- Jede Antwort hat einen **ETag**; mit `If-None-Match` kommt bei unverändertem Inhalt `304`.\n- Fehler als `application/problem+json` (RFC 9457).\n- **Sync** (z. B. Intranet): einmal `/exports?format=json` (Vollstand), danach periodisch `/changes?since=<next_cursor>`; `/releases/latest` zeigt günstig, ob sich etwas geändert hat.\n- **Vorschau:** Bis zum öffentlichen Betrieb können sich Felder und Endpunkte noch ändern (Hinweise im CHANGELOG). Danach gilt die Stabilitätszusage: `/api/v1` bleibt rückwärtskompatibel (Felder kommen nur dazu), Brüche nur in `/api/v2` mit mindestens 12 Monaten Parallelbetrieb.\n- Keine Zusage zur Verfügbarkeit: Abnehmer halten einen lokalen Stand.\n- **Daten unter CC BY 4.0** – Nennung «EduKSX-Glossary, glossary.eduksx.ch».\n\nKonzept: docs/KONZEPT-API.md im Repository.",
+    "description": "Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.\n\n- Liefert **nur veröffentlichte** Daten (freigegebene Revisionen). Entwürfe, Vorschläge, redaktionelle Notizen, persönliche Darstellungen und das Änderungsjournal sind nie enthalten.\n- Lesen ohne Schlüssel; Rate-Limit 120 Abrufe pro Minute und Adresse.\n- Jede Antwort hat einen **ETag**; mit `If-None-Match` kommt bei unverändertem Inhalt `304`.\n- Fehler als `application/problem+json` (RFC 9457).\n- **Sync** (z. B. Intranet): einmal `/exports?format=json` (Vollstand), danach periodisch `/changes?since=<next_cursor>`; `/releases/latest` zeigt günstig, ob sich etwas geändert hat.\n- **Vorschau:** Bis zum öffentlichen Betrieb können sich Felder und Endpunkte noch ändern (Hinweise im CHANGELOG). Danach gilt die Stabilitätszusage: `/api/v1` bleibt rückwärtskompatibel (Felder kommen nur dazu), Brüche nur in `/api/v2` mit mindestens 12 Monaten Parallelbetrieb.\n- Keine Zusage zur Verfügbarkeit: Abnehmer halten einen lokalen Stand.\n- **Daten unter CC BY 4.0** – Nennung «EduKSX-Glossary, glossary.eduksx.ch».\n\nKonzept: docs/KONZEPT-API.md im Repository.",
     "contact": {
       "name": "EduKSX-Glossary auf GitHub",
       "url": "https://github.com/MarkusKeller8200/EduKSX-Glossary"
@@ -679,6 +679,11 @@
           "id",
           "slug",
           "name",
+          "official_aliases",
+          "alternative_aliases",
+          "aliases",
+          "display_label",
+          "is_full_term",
           "categories",
           "sources",
           "status",
@@ -699,14 +704,14 @@
               "string",
               "null"
             ],
-            "description": "Angezeigte Abkürzung (eigene vor offizieller)"
+            "description": "Gemeinsame veröffentlichte Abkürzung (= official_abbreviation; nie persönlich angepasst)"
           },
           "name": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Angezeigte Bezeichnung (eigene vor offizieller)"
+            "description": "Gemeinsame veröffentlichte Bezeichnung (= official_name; nie persönlich angepasst)"
           },
           "official_abbreviation": {
             "type": [
@@ -720,24 +725,43 @@
               "null"
             ]
           },
-          "own_abbreviation": {
-            "type": [
-              "string",
-              "null"
-            ]
+          "official_aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Offizielle Schreibweisen"
           },
-          "own_name": {
-            "type": [
-              "string",
-              "null"
-            ]
+          "alternative_aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Gemeinsam freigegebene alternative Schreibweisen"
           },
           "aliases": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Andere Schreibweisen"
+            "description": "Sammelliste: official_aliases und alternative_aliases (abwärtskompatibel)"
+          },
+          "display_label": {
+            "type": "string",
+            "description": "Abkürzung, sonst Bezeichnung"
+          },
+          "is_full_term": {
+            "type": "boolean",
+            "description": "Ohne Abkürzung, mit Bezeichnung"
+          },
+          "is_ambiguous": {
+            "type": "boolean",
+            "description": "Die Abkürzung hat im aktuellen Stand mehrere Bedeutungen. Nur in /terms, /terms/{idOrSlug} und /exports – nicht im Change-Feed (vom Gesamtstand abhängig)."
+          },
+          "meaning_count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Anzahl unterschiedlicher Bedeutungen der Abkürzung im aktuellen Stand (gleiche Bezeichnung zählt einmal). Wie is_ambiguous nicht im Change-Feed."
           },
           "short_description": {
             "type": [
@@ -820,11 +844,17 @@
           "name": "Klassenlehrperson",
           "official_abbreviation": "KLP",
           "official_name": "Klassenlehrperson",
-          "own_abbreviation": null,
-          "own_name": null,
+          "official_aliases": [],
+          "alternative_aliases": [
+            "KL"
+          ],
           "aliases": [
             "KL"
           ],
+          "display_label": "KLP",
+          "is_full_term": false,
+          "is_ambiguous": false,
+          "meaning_count": 1,
           "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
           "description": null,
           "url": "https://example.org/quelle",

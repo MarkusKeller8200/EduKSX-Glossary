@@ -80,7 +80,7 @@ class DuplicatesTest extends TestCase
             'categories' => ['per'], 'official_aliases' => ['S.L.'],
         ]);
         $neu = $this->term([
-            'own_abbreviation' => 'SLe', 'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung',
+            'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung',
             'short_description' => 'Leitet die Schule.', 'categories' => ['org'],
         ], publish: false);
 

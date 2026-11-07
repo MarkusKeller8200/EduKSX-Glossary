@@ -98,7 +98,7 @@ class GlossaryModelTest extends TestCase
 
     public function test_leeres_offizielles_feld_darf_ohne_recht_gesetzt_werden(): void
     {
-        $term = $this->glossary->save(null, ['own_abbreviation' => 'SL', 'own_name' => 'Schulleitung'], null, true);
+        $term = $this->glossary->save(null, ['official_abbreviation' => 'SL'], null, true);
         $term = $this->glossary->save($term, ['official_name' => 'Schulleitung'], null, false);
 
         $this->assertSame('Schulleitung', $term->official_name);
