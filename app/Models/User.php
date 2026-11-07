@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Access\Permission;
+use App\Glossary\Journal;
 use App\Notifications\ResetPasswordNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -96,6 +97,10 @@ class User extends Authenticatable
                 $user->first_name = implode(' ', $parts);
             }
             $user->name = trim($user->first_name.' '.$user->last_name);
+        });
+        // Kontolöschung (jeder Weg): persönliche Darstellungen weg, Journal pseudonymisieren (DEC-020)
+        static::deleting(function (User $user): void {
+            Journal::forget($user);
         });
     }
 

@@ -7,7 +7,9 @@ use App\Models\PublicationRelease;
 use App\Models\Source;
 use App\Models\Term;
 use App\Models\TermPublicationEvent;
+use App\Models\TermLegacyValue;
 use App\Models\TermRevision;
+use App\Models\TermUserOverride;
 use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
@@ -22,34 +24,37 @@ use InvalidArgumentException;
  * - Öffentlich ist nur die veröffentlichte Revision; Änderungen danach bleiben Entwurf bis zur nächsten Freigabe.
  * - Offizielle Felder nur mit Recht «edit-official» (leer → Wert setzen ist erlaubt, wie im Intranet).
  * - Jede Veröffentlichung bzw. jeder Rückzug erzeugt einen neuen Datenstand (PublicationRelease).
+ * - Nur gemeinsame Fachdaten (DEC-020): keine eigenen Bezeichnungen und kein «Intern genutzt in»; persönliche
+ *   Darstellung in TermUserOverride, Altwerte in TermLegacyValue. Jede Revision mit feldgenauem Journal.
  */
 final class GlossaryService
 {
     /** Felder, deren Wert beim Zusammenführen aus einem der Begriffe gewählt wird (#16). */
     public const MERGE_CHOICE = [
-        'official_abbreviation', 'own_abbreviation', 'official_name', 'own_name', 'short_description', 'description',
-        'url', 'note', 'lifecycle_status', 'valid_from', 'valid_until',
+        'official_abbreviation', 'official_name', 'short_description', 'description', 'url', 'note', 'lifecycle_status',
+        'valid_from', 'valid_until',
     ];
 
     /** Einfache Textfelder des Begriffs. */
     private const TEXT = [
-        'official_abbreviation', 'own_abbreviation', 'official_name', 'own_name', 'short_description', 'description',
-        'note', 'url', 'search_terms',
+        'official_abbreviation', 'official_name', 'short_description', 'description', 'note', 'url', 'search_terms',
     ];
 
     /**
      * Begriff anlegen (ohne $term) oder ändern. Ergebnis ist immer ein Entwurf; veröffentlicht wird mit publish().
      *
      * Felder in $data (alle optional beim Ändern): die Textfelder, lifecycle_status, is_active, valid_from,
-     * valid_until, used_in (Liste), official_aliases (Liste), own_alias, categories und sources (Listen von
-     * Schlüsseln). Beim Anlegen optional «id» (z. B. aus dem Intranet, #13).
+     * valid_until, official_aliases und alternative_aliases (Listen), categories und sources (Listen von
+     * Schlüsseln). Beim Anlegen optional «id» (z. B. aus dem Intranet, #13). $context kommt ins Journal (z. B.
+     * ['via' => 'excel']).
      *
      * @param  array<string, mixed>  $data
+     * @param  array<string, mixed>  $context
      *
      * @throws InvalidArgumentException bei ungültigen Werten
      * @throws OfficialFieldLocked ohne Recht für offizielle Felder
      */
-    public function save(?Term $term, array $data, ?User $author, bool $canEditOfficial, ?string $authorLabel = null, string $changeType = 'updated'): Term
+    public function save(?Term $term, array $data, ?User $author, bool $canEditOfficial, ?string $authorLabel = null, string $changeType = 'updated', array $context = []): Term
     {
         if ($term?->merged_into_id !== null) {
             throw new InvalidArgumentException('Begriff wurde zusammengeführt und kann nicht mehr geändert werden.');
@@ -62,7 +67,7 @@ final class GlossaryService
             $this->guardOfficial($term, $values);
         }
 
-        return DB::transaction(function () use ($term, $values, $creating, $data, $author, $authorLabel, $changeType): Term {
+        return DB::transaction(function () use ($term, $values, $creating, $data, $author, $authorLabel, $changeType, $context): Term {
             if ($creating && isset($data['id'])) {
                 $id = (string) $data['id'];
                 if (! Str::isUuid($id)) {
@@ -82,7 +87,7 @@ final class GlossaryService
             }
             $term->save();
 
-            if ($creating || array_intersect_key($values, array_flip(['official_aliases', 'own_alias', 'search_terms'])) !== []) {
+            if ($creating || array_intersect_key($values, array_flip(['official_aliases', 'alternative_aliases', 'search_terms'])) !== []) {
                 $this->syncAliases($term, $values);
             }
             if (array_key_exists('categories', $values)) {
@@ -103,9 +108,12 @@ final class GlossaryService
             $term->revisions()->create([
                 'revision' => $term->revision,
                 'change_type' => $creating ? 'created' : $changeType,
-                'snapshot' => $this->snapshot($term),
+                'snapshot' => $after,
+                'change_set' => Journal::diff($before, $after),
                 'author_id' => $author?->id,
-                'author_label' => $authorLabel ?? $author?->name,
+                'author_label' => $authorLabel ?? Journal::actorLabel($author),
+                'actor_type' => Journal::actorType($author),
+                'context' => $context === [] ? null : $context,
             ]);
 
             return $term->refresh();
@@ -170,17 +178,20 @@ final class GlossaryService
 
         return TermPublicationEvent::query()->create([
             'term_id' => $term->id, 'action' => 'published', 'revision' => $latest->revision,
-        ]);
+        ] + Journal::eventActor($approver));
     }
 
     /**
      * Doppelte zusammenführen (#16): $target bleibt, $others werden zur Weiterleitung auf $target.
      *
-     * - Kategorien, Herkunft, «Intern genutzt in» und offizielle Aliase werden vereinigt.
+     * - Kategorien, Herkunft, offizielle und alternative Aliase werden vereinigt.
      * - Texte: je Feld der Wert des in $choices gewählten Begriffs (Feld → ID), sonst der von $target.
      * - Abkürzungen und Bezeichnungen der anderen, die nicht übernommen werden, kommen zu den Suchbegriffen.
      * - War einer der Begriffe veröffentlicht, wird das Ergebnis gleich veröffentlicht (ein Datenstand); die
      *   anderen erscheinen im Change-Feed als «merged» mit Verweis auf $target.
+     * - Persönliche Darstellungen gehen auf $target über; hat dieselbe Person dort schon eine, werden nur leere
+     *   Felder ergänzt und bei Widerspruch bleibt die Anpassung am alten Begriff (nichts wird still überschrieben).
+     *   Altwerte gehen auf $target über.
      *
      * @param  list<Term>  $others
      * @param  array<string, string>  $choices
@@ -202,7 +213,7 @@ final class GlossaryService
         }
         foreach ($all as $term) {
             if ($term->merged_into_id !== null) {
-                throw new InvalidArgumentException('«'.$this->title($term).'» wurde schon zusammengeführt.');
+                throw new InvalidArgumentException('«'.$term->title().'» wurde schon zusammengeführt.');
             }
         }
 
@@ -213,8 +224,7 @@ final class GlossaryService
             $data[$field] = $value instanceof DateTimeInterface ? $value->format('Y-m-d') : $value;
         }
 
-        $categories = $sources = $usedIn = $official = $search = [];
-        $own = null;
+        $categories = $sources = $official = $alternative = $search = [];
         foreach ($all as $term) {
             $term->loadMissing(['categories', 'sources', 'aliases']);
             foreach ($term->categories as $category) {
@@ -223,17 +233,16 @@ final class GlossaryService
             foreach ($term->sources as $source) {
                 $sources[] = (string) $source->key;
             }
-            $usedIn = [...$usedIn, ...($term->used_in ?? [])];
             $official = [...$official, ...$term->aliases->where('alias_type', 'official')->pluck('alias')->all()];
-            $own ??= $term->aliases->firstWhere('alias_type', 'own')?->alias;
+            $alternative = [...$alternative, ...$term->aliases->where('alias_type', 'alternative')->pluck('alias')->all()];
             $search = [...$search, ...(preg_split('/[;,]/', (string) $term->search_terms) ?: [])];
         }
         // Namen der anderen bleiben auffindbar
         $kept = array_map(fn ($v): string => mb_strtolower(trim((string) $v)), [
-            $data['official_abbreviation'], $data['own_abbreviation'], $data['official_name'], $data['own_name'],
+            $data['official_abbreviation'], $data['official_name'],
         ]);
         foreach ($all as $term) {
-            foreach ([$term->official_abbreviation, $term->own_abbreviation, $term->official_name, $term->own_name] as $name) {
+            foreach ([$term->official_abbreviation, $term->official_name] as $name) {
                 $name = trim((string) $name);
                 if ($name !== '' && ! in_array(mb_strtolower($name), $kept, true)) {
                     $search[] = $name;
@@ -251,16 +260,18 @@ final class GlossaryService
         $data += [
             'categories' => array_values(array_unique($categories)),
             'sources' => array_values(array_unique($sources)),
-            'used_in' => array_values(array_unique($usedIn)),
             'official_aliases' => array_values(array_unique($official)),
-            'own_alias' => $own,
+            'alternative_aliases' => array_values(array_unique($alternative)),
             'search_terms' => implode('; ', $searchTerms),
             'is_active' => array_filter($all, fn (Term $t): bool => $t->is_active) !== [],
         ];
 
-        return DB::transaction(function () use ($target, $others, $all, $data, $user, $canEditOfficial): Term {
+        $context = ['merged_from' => array_map(fn (Term $t): string => $t->id, $others), 'choices' => $choices];
+
+        return DB::transaction(function () use ($target, $others, $all, $data, $user, $canEditOfficial, $context): Term {
             $anyPublished = array_filter($all, fn (Term $t): bool => $t->published_revision_id !== null) !== [];
-            $target = $this->save($target, $data, $user, $canEditOfficial, null, 'merged');
+            $target = $this->save($target, $data, $user, $canEditOfficial, null, 'merged', $context);
+            $conflicts = 0;
 
             $events = [];
             foreach ($others as $other) {
@@ -271,12 +282,15 @@ final class GlossaryService
                 $other->save();
                 // Frühere Weiterleitungen auf diesen Begriff zeigen jetzt direkt auf $target
                 Term::query()->where('merged_into_id', $other->id)->update(['merged_into_id' => $target->id]);
+                $conflicts += $this->moveOverrides($other, $target);
+                $this->moveLegacyValues($other, $target);
                 if ($wasPublished) {
                     $events[] = TermPublicationEvent::query()->create([
                         'term_id' => $other->id, 'action' => 'merged', 'merged_into' => $target->id,
-                    ]);
+                    ] + Journal::eventActor($user));
                 }
             }
+            $this->lastMergeConflicts = $conflicts;
             if ($anyPublished) {
                 $event = $this->markPublished($target, $user);
                 if ($event !== null) {
@@ -291,9 +305,57 @@ final class GlossaryService
         });
     }
 
-    private function title(Term $term): string
+    /** Persönliche Darstellungen beim letzten merge(), die wegen Widerspruch am alten Begriff geblieben sind. */
+    public int $lastMergeConflicts = 0;
+
+    /** Persönliche Darstellungen von $from auf $to übertragen; Rückgabe: Anzahl mit Widerspruch (bleiben bei $from). */
+    private function moveOverrides(Term $from, Term $to): int
     {
-        return trim($term->displayAbbreviation().' – '.$term->displayName(), ' –');
+        $conflicts = 0;
+        foreach (TermUserOverride::query()->where('term_id', $from->id)->get() as $override) {
+            $existing = TermUserOverride::query()->where('term_id', $to->id)->where('user_id', $override->user_id)->first();
+            if ($existing === null) {
+                $override->term_id = $to->id;
+                $override->save();
+
+                continue;
+            }
+            $conflict = false;
+            foreach (TermUserOverride::FIELDS as $field) {
+                $mine = $override->{$field};
+                if ($mine === null || $mine === '' || $mine === []) {
+                    continue;
+                }
+                $theirs = $existing->{$field};
+                if ($theirs === null || $theirs === '' || $theirs === []) {
+                    $existing->{$field} = $mine;
+                } elseif ($theirs !== $mine) {
+                    $conflict = true;
+                }
+            }
+            $existing->save();
+            if ($conflict) {
+                $conflicts++;
+            } else {
+                $override->delete();
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /** Altwerte von $from auf $to übertragen (gleiche Werte nur einmal). */
+    private function moveLegacyValues(Term $from, Term $to): void
+    {
+        foreach (TermLegacyValue::query()->where('term_id', $from->id)->get() as $value) {
+            $exists = TermLegacyValue::query()->where('term_id', $to->id)->where('field', $value->field)->where('value', $value->value)->exists();
+            if ($exists) {
+                $value->delete();
+            } else {
+                $value->term_id = $to->id;
+                $value->save();
+            }
+        }
     }
 
     /** Veröffentlichung zurückziehen: Begriff ist danach nicht mehr öffentlich (Tombstone im Change-Feed). */
@@ -306,7 +368,7 @@ final class GlossaryService
         return DB::transaction(function () use ($term, $user): Term {
             $term->published_revision_id = null;
             $term->save();
-            $event = TermPublicationEvent::query()->create(['term_id' => $term->id, 'action' => 'unpublished']);
+            $event = TermPublicationEvent::query()->create(['term_id' => $term->id, 'action' => 'unpublished'] + Journal::eventActor($user));
             $this->newRelease($term->id, 'unpublished', $user, [$event]);
 
             return $term->refresh();
@@ -314,14 +376,20 @@ final class GlossaryService
     }
 
     /**
-     * Abbild eines Begriffs für Revisionen (und später API/Export). Listen als Schlüssel, sortiert.
+     * Abbild eines Begriffs für Revisionen (Grundlage von API/Export). Nur gemeinsame Felder; Listen sortiert, damit
+     * die Reihenfolge allein keine Änderung ergibt.
      *
      * @return array<string, mixed>
      */
     public function snapshot(Term $term): array
     {
         $term->loadMissing(['categories', 'sources', 'aliases']);
-        $aliases = fn (string $type): array => $term->aliases->where('alias_type', $type)->pluck('alias')->values()->all();
+        $aliases = function (string $type) use ($term): array {
+            $list = $term->aliases->where('alias_type', $type)->pluck('alias')->map(fn ($a): string => (string) $a)->values()->all();
+            sort($list);
+
+            return $list;
+        };
         /**
          * @param  iterable<Category|Source>  $items
          * @return list<string>
@@ -346,11 +414,10 @@ final class GlossaryService
             'slug' => $term->slug,
             ...$snapshot,
             'official_aliases' => $aliases('official'),
-            'own_alias' => $aliases('own')[0] ?? null,
+            'alternative_aliases' => $aliases('alternative'),
             'search_aliases' => $aliases('search'),
             'categories' => $keys($term->categories),
             'sources' => $keys($term->sources),
-            'used_in' => $term->used_in ?? [],
             'lifecycle_status' => $term->lifecycle_status,
             'is_active' => $term->is_active,
             'valid_from' => $term->valid_from?->toDateString(),
@@ -410,15 +477,15 @@ final class GlossaryService
                 $values[$field] = $date === '' ? null : $date;
             }
         }
-        if (array_key_exists('used_in', $data)) {
-            $values['used_in'] = $this->list($data['used_in']);
-        }
-        if (array_key_exists('official_aliases', $data)) {
-            $values['official_aliases'] = $this->list($data['official_aliases']);
-        }
-        if (array_key_exists('own_alias', $data)) {
-            $alias = trim((string) ($data['own_alias'] ?? ''));
-            $values['own_alias'] = $alias === '' ? null : $alias;
+        foreach (['official_aliases', 'alternative_aliases'] as $field) {
+            if (array_key_exists($field, $data)) {
+                $values[$field] = $this->list($data[$field]);
+                foreach ($values[$field] as $alias) {
+                    if (mb_strlen($alias) > 120) {
+                        throw new InvalidArgumentException("Schreibweise «{$alias}» höchstens 120 Zeichen.");
+                    }
+                }
+            }
         }
         if (array_key_exists('categories', $data)) {
             $values['categories'] = $this->resolve(Category::class, $this->list($data['categories']), 'Kategorie');
@@ -428,10 +495,7 @@ final class GlossaryService
         }
 
         if ($creating) {
-            $names = array_filter([
-                $values['official_abbreviation'] ?? null, $values['own_abbreviation'] ?? null,
-                $values['official_name'] ?? null, $values['own_name'] ?? null,
-            ]);
+            $names = array_filter([$values['official_abbreviation'] ?? null, $values['official_name'] ?? null]);
             if ($names === []) {
                 throw new InvalidArgumentException('Abkürzung oder Bezeichnung angeben.');
             }
@@ -464,7 +528,7 @@ final class GlossaryService
     }
 
     /**
-     * Aliase neu schreiben: offizielle, eigener Alias und Suchbegriffe (aus search_terms, durch «;» oder «,»).
+     * Aliase neu schreiben: offizielle, alternative Schreibweisen und Suchbegriffe (aus search_terms, «;» oder «,»).
      *
      * @param  array<string, mixed>  $values
      */
@@ -472,14 +536,14 @@ final class GlossaryService
     {
         $current = $term->aliases()->get();
         $official = $values['official_aliases'] ?? $current->where('alias_type', 'official')->pluck('alias')->all();
-        $own = array_key_exists('own_alias', $values) ? $values['own_alias'] : $current->firstWhere('alias_type', 'own')?->alias;
+        $alternative = $values['alternative_aliases'] ?? $current->where('alias_type', 'alternative')->pluck('alias')->all();
 
         $term->aliases()->delete();
         foreach (array_unique((array) $official) as $alias) {
             $term->aliases()->create(['alias' => $alias, 'alias_type' => 'official', 'language' => 'de']);
         }
-        if (is_string($own) && $own !== '') {
-            $term->aliases()->create(['alias' => $own, 'alias_type' => 'own', 'language' => 'de']);
+        foreach (array_unique((array) $alternative) as $alias) {
+            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'alternative', 'language' => 'de']);
         }
         foreach ($this->list(preg_split('/[;,]/', (string) $term->search_terms) ?: []) as $alias) {
             $term->aliases()->create(['alias' => $alias, 'alias_type' => 'search', 'language' => 'de']);
@@ -507,7 +571,7 @@ final class GlossaryService
     /** Slug aus Bezeichnung bzw. Abkürzung, eindeutig mit -2, -3 … */
     private function uniqueSlug(Term $term): string
     {
-        $base = Str::slug((string) ($term->official_name ?: $term->own_name ?: $term->displayAbbreviation()), '-', 'de') ?: 'begriff';
+        $base = Str::slug((string) ($term->official_name ?: $term->official_abbreviation), '-', 'de') ?: 'begriff';
         $slug = $base;
         for ($i = 2; Term::query()->where('slug', $slug)->exists(); $i++) {
             $slug = "{$base}-{$i}";

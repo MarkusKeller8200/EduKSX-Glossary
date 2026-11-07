@@ -16,6 +16,7 @@ type Begriff = Record<string, unknown> & {
     is_active: boolean;
     lifecycle_status: string;
     zusammengefuehrt_in: { id: string; titel: string } | null;
+    altwerte: number;
 };
 
 type Eintrag = {
@@ -25,6 +26,23 @@ type Eintrag = {
     am: string;
     veroeffentlicht_am: string | null;
     felder: string[];
+    rolle: string | null;
+    quelle: string | null;
+    aenderungen: { feld: string; alt: string; neu: string }[];
+};
+
+const ROLLE: Record<string, string> = {
+    community: 'Community',
+    moderator: 'Moderation',
+    admin: 'Administration',
+    developer: 'Developer',
+    service: 'Dienst',
+    system: 'System',
+};
+
+const QUELLE: Record<string, string> = {
+    excel: 'Excel-Import',
+    altwerte: 'Altwerte',
 };
 
 type Option = { key: string; label: string };
@@ -38,17 +56,14 @@ const ART: Record<string, string> = {
 const REIHENFOLGE = [
     'official_abbreviation',
     'official_aliases',
-    'own_abbreviation',
-    'own_alias',
+    'alternative_aliases',
     'official_name',
-    'own_name',
     'short_description',
     'description',
     'url',
     'note',
     'categories',
     'sources',
-    'used_in',
     'lifecycle_status',
     'search_terms',
     'valid_from',
@@ -84,10 +99,7 @@ export default function TermShow({
     const [sending, setSending] = useState(false);
     const { auth } = usePage().props;
     const darfVeroeffentlichen = can(auth, 'publish');
-    const titel = [
-        b.own_abbreviation || b.official_abbreviation,
-        b.own_name || b.official_name,
-    ]
+    const titel = [b.official_abbreviation, b.official_name]
         .filter(Boolean)
         .join(' – ');
     const wert = (key: string): string => {
@@ -223,6 +235,25 @@ export default function TermShow({
                 </Alert>
             ) : null}
 
+            {b.altwerte > 0 ? (
+                <Alert className="mt-6" role="note">
+                    <AlertDescription>
+                        {b.altwerte === 1
+                            ? '1 Altwert'
+                            : `${b.altwerte} Altwerte`}{' '}
+                        aus dem Intranet-Format (eigene Form, «Intern genutzt
+                        in») noch nicht zugeordnet –{' '}
+                        <Link
+                            href="/admin/altwerte"
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            Altwerte
+                        </Link>
+                        .
+                    </AlertDescription>
+                </Alert>
+            ) : null}
+
             <h2 className="mt-8 text-lg font-semibold">
                 Arbeitsstand (Revision {b.revision})
             </h2>
@@ -257,6 +288,12 @@ export default function TermShow({
                             <span className="text-muted-foreground">
                                 {datum(e.am)}
                                 {e.von ? ` · ${e.von}` : ''}
+                                {e.rolle
+                                    ? ` (${ROLLE[e.rolle] ?? e.rolle})`
+                                    : ''}
+                                {e.quelle
+                                    ? ` · ${QUELLE[e.quelle] ?? e.quelle}`
+                                    : ''}
                             </span>
                             {e.veroeffentlicht_am ? (
                                 <Badge>
@@ -264,7 +301,37 @@ export default function TermShow({
                                 </Badge>
                             ) : null}
                         </div>
-                        {e.felder.length > 0 ? (
+                        {e.aenderungen.length > 0 ? (
+                            <dl className="mt-2 grid gap-x-4 gap-y-1 text-xs sm:grid-cols-[12rem_1fr]">
+                                {e.aenderungen.map((a) => (
+                                    <div key={a.feld} className="contents">
+                                        <dt className="text-muted-foreground">
+                                            {a.feld}
+                                        </dt>
+                                        <dd translate="no">
+                                            {a.alt !== '' ? (
+                                                <del className="text-muted-foreground">
+                                                    {a.alt}
+                                                </del>
+                                            ) : null}
+                                            {a.alt !== '' && a.neu !== ''
+                                                ? ' → '
+                                                : ''}
+                                            {a.neu !== '' ? (
+                                                <ins className="no-underline">
+                                                    {a.neu}
+                                                </ins>
+                                            ) : (
+                                                <span className="text-muted-foreground">
+                                                    {' '}
+                                                    (geleert)
+                                                </span>
+                                            )}
+                                        </dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        ) : e.felder.length > 0 ? (
                             <p className="mt-1 text-muted-foreground">
                                 Geändert: {e.felder.join(', ')}
                             </p>
