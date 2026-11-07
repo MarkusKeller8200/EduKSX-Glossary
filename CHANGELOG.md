@@ -13,6 +13,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   bisherige Konten ohne Rolle sind Benutzer.
 - **Persönliche Darstellung (#114):** nur noch mit dem Recht «Persönliche Darstellung» (ab Benutzer); Gäste sehen die
   gemeinsame Form, gespeicherte Anpassungen bleiben erhalten.
+- **Hierarchie der Rollen (#115):** «Rollen und Rechte» zeigt die Stufen Gast bis Developer mit den Rechten, die jede
+  Stufe dazubekommt, farbig nach Schutzklasse.
 
 ### Geändert
 

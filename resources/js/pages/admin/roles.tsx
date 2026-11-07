@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { palette } from '@/lib/colors';
+import { cn } from '@/lib/utils';
 
 type Rolle = {
     id: string;
@@ -32,7 +34,24 @@ const KLASSE: Record<Recht['klasse'], string> = {
     system: 'systemkritisch',
 };
 
-/** Rollen und Rechte (#38): Matrix mit Schutzklassen, eigene Rollen anlegen. */
+/** Farbe der Schutzklasse (#115): normal grün, privilegiert orange, systemkritisch rot. */
+const KLASSE_FARBE: Record<Recht['klasse'], string> = {
+    normal: palette.emerald.badge,
+    privileged: palette.amber.badge,
+    system: palette.rose.badge,
+};
+
+/** Voreingestellte Rollen in aufsteigender Reihenfolge (#115); eigene Rollen stehen nur in der Matrix. */
+const HIERARCHIE = [
+    'gast',
+    'benutzer',
+    'org-admin',
+    'moderator',
+    'admin',
+    'developer',
+];
+
+/** Rollen und Rechte (#38): Hierarchie (#115), Matrix mit Schutzklassen, eigene Rollen anlegen. */
 export default function Roles({
     rollen,
     rechte,
@@ -60,11 +79,16 @@ export default function Roles({
                 Rechte je Rolle einstellen. Privilegierte Rechte nur innerhalb
                 der eigenen Befugnis, einer eigenen Rolle keine Rechte
                 hinzufügen; systemkritische Rechte hat nur die Rolle Developer.
-                Wer ein Recht ausser «Vorschläge einreichen» hat, braucht den
-                zweiten Faktor.
+                Wer ein Recht ausser den Grundrechten (Vorschläge einreichen,
+                Exportieren, persönliche Darstellung) hat, braucht den zweiten
+                Faktor.
             </p>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <Hierarchie rollen={rollen} rechte={rechte} />
+
+            <h2 className="mt-8 text-lg font-semibold">Rechte je Rolle</h2>
+
+            <div className="mt-3 grid gap-4 lg:grid-cols-2">
                 {rollen.map((r) => (
                     <RolleKarte
                         key={r.id}
@@ -77,6 +101,99 @@ export default function Roles({
 
             <NeueRolle />
         </>
+    );
+}
+
+/**
+ * Rollen als Stufen mit den Rechten, die jede Stufe gegenüber der vorherigen dazubekommt (#115). Dient dem
+ * Verständnis; geprüft wird weiterhin je Recht. Fehlt einer Stufe ein Recht der vorherigen, steht es als «ohne».
+ */
+function Hierarchie({ rollen, rechte }: { rollen: Rolle[]; rechte: Recht[] }) {
+    const stufen = HIERARCHIE.map((key) =>
+        rollen.find((r) => r.key === key),
+    ).filter((r): r is Rolle => r !== undefined);
+    const recht = (key: string) => rechte.find((r) => r.key === key);
+
+    return (
+        <section className="mt-6" aria-labelledby="hierarchie">
+            <h2 id="hierarchie" className="text-lg font-semibold">
+                Hierarchie
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+                Jede Stufe mit den Rechten, die sie dazubekommt. Schutzklassen:{' '}
+                {(['normal', 'privileged', 'system'] as const).map((k, i) => (
+                    <span key={k}>
+                        {i > 0 ? ', ' : null}
+                        <Badge
+                            variant="outline"
+                            className={cn(KLASSE_FARBE[k])}
+                        >
+                            {KLASSE[k]}
+                        </Badge>
+                    </span>
+                ))}
+                . Geprüft wird immer das einzelne Recht.
+            </p>
+            <ol className="mt-3 grid gap-2">
+                {stufen.map((rolle, i) => {
+                    const vorher = i > 0 ? stufen[i - 1].rechte : [];
+                    const dazu = rechte.filter(
+                        (r) =>
+                            rolle.rechte.includes(r.key) &&
+                            !vorher.includes(r.key),
+                    );
+                    const ohne = vorher.filter(
+                        (k) => !rolle.rechte.includes(k),
+                    );
+
+                    return (
+                        <li
+                            key={rolle.id}
+                            className="grid gap-2 rounded-lg border border-border p-3 sm:grid-cols-[12rem_1fr]"
+                        >
+                            <div className="font-medium">
+                                <span className="text-muted-foreground">
+                                    {i + 1}.
+                                </span>{' '}
+                                {rolle.name}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1 text-sm">
+                                {i === 0 && dazu.length === 0 ? (
+                                    <span className="text-muted-foreground">
+                                        nur lesen
+                                    </span>
+                                ) : null}
+                                {i > 0 && dazu.length === 0 ? (
+                                    <span className="text-muted-foreground">
+                                        keine weiteren Rechte
+                                    </span>
+                                ) : null}
+                                {dazu.map((r) => (
+                                    <Badge
+                                        key={r.key}
+                                        variant="outline"
+                                        className={cn(KLASSE_FARBE[r.klasse])}
+                                        title={KLASSE[r.klasse]}
+                                    >
+                                        + {r.label}
+                                    </Badge>
+                                ))}
+                                {ohne.map((k) => (
+                                    <Badge
+                                        key={k}
+                                        variant="outline"
+                                        className="text-muted-foreground line-through"
+                                        title="hat diese Stufe nicht"
+                                    >
+                                        ohne {recht(k)?.label ?? k}
+                                    </Badge>
+                                ))}
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
+        </section>
     );
 }
 
