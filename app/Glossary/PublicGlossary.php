@@ -5,6 +5,7 @@ namespace App\Glossary;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
+use App\Models\TermRevision;
 use App\Models\TermUserOverride;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -23,7 +24,7 @@ final class PublicGlossary
     public const PUBLIC_DETAIL_FIELDS = [
         'slug', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase', 'kurz',
         'beschreibung', 'url', 'kategorien', 'herkunft', 'status', 'gueltig_ab', 'gueltig_bis', 'revision',
-        'veroeffentlicht', 'andere', 'mehrdeutig',
+        'veroeffentlicht', 'andere', 'mehrdeutig', 'verlauf',
     ];
 
     /** Zusätzliche Felder nur für das angemeldete Konto selbst (nie öffentlich). */
@@ -122,6 +123,10 @@ final class PublicGlossary
             'veroeffentlicht' => $revision->published_at?->toDateString(),
             'andere' => array_map(fn (array $t): array => ['slug' => $t['slug'], 'bezeichnung' => $t['bezeichnung']], $others),
             'mehrdeutig' => (new GlossaryDisplay($this->published()))->isAmbiguous($s),
+            // Verlauf (#68): nur veröffentlichte Revisionen mit Datum – ohne Personen, Entwürfe oder Inhalte
+            'verlauf' => $term->revisions()->whereNotNull('published_at')->orderByDesc('revision')->get(['revision', 'published_at'])
+                ->map(fn (TermRevision $r): array => ['revision' => $r->revision, 'am' => $r->published_at?->toDateString()])
+                ->values()->all(),
         ];
         $detail = array_intersect_key($detail, array_flip(self::PUBLIC_DETAIL_FIELDS));
 

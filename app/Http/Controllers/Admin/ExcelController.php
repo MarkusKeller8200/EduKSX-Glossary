@@ -7,6 +7,7 @@ use App\Glossary\GlossaryImporter;
 use App\Http\Controllers\Controller;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\Csv;
 use App\Support\SpreadsheetReader;
 use App\Support\SpreadsheetWriter;
 use Illuminate\Http\RedirectResponse;
@@ -30,7 +31,7 @@ class ExcelController extends Controller
 
     public function __construct(private readonly GlossaryImporter $importer) {}
 
-    /** Alle Begriffe (Arbeitsstand) bzw. leere Vorlage als .xlsx (Format Version 2). */
+    /** Alle Begriffe (Arbeitsstand) bzw. leere Vorlage als .xlsx oder mit ?format=csv als CSV (Format Version 2). */
     public function export(Request $request): HttpResponse
     {
         $template = $request->boolean('vorlage');
@@ -43,6 +44,14 @@ class ExcelController extends Controller
             usort($rows, fn (array $a, array $b): int => strcasecmp($a[2] ?: $a[5], $b[2] ?: $b[5]));
         }
         $name = $template ? 'glossary-vorlage' : 'glossary-'.date('Y-m-d');
+
+        // CSV (#71): gleiche Spalten, UTF-8 mit BOM, Semikolon, Formeln als Text
+        if ($request->query('format') === 'csv') {
+            return response(Csv::make(ExcelFormat::header(), $rows), 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="'.$name.'.csv"',
+            ]);
+        }
 
         return response(SpreadsheetWriter::xlsx(ExcelFormat::header(), $rows, 'Glossary'), 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

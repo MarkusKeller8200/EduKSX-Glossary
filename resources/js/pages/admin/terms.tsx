@@ -120,6 +120,11 @@ export default function Terms({
                                 <a href="/admin/export">Excel-Export</a>
                             </Button>
                             <Button asChild variant="outline">
+                                <a href="/admin/export?format=csv">
+                                    CSV-Export
+                                </a>
+                            </Button>
+                            <Button asChild variant="outline">
                                 <Link href="/admin/import">Excel-Import</Link>
                             </Button>
                         </>

@@ -140,6 +140,11 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
 | Developer           | `docker compose exec app php artisan glossary:developer E-MAIL` (`--entziehen`)        |
 | Sicherungen ansehen | `docker compose exec app ls storage/app/backups`                                       |
 
+- **Logs (#60):** Die Dienste `app`, `worker` und `scheduler` schreiben nach stderr; Docker rotiert je Dienst nach
+  Grösse (höchstens 3 Dateien à 10 MB, `x-logging` in `compose.prod.yaml`). Damit die Frist von 14 Tagen sicher
+  gilt, alte Container-Logs auf dem Host täglich entfernen, z. B. mit einem Cronjob
+  `find /var/lib/docker/containers -name '*-json.log.*' -mtime +14 -delete` oder mit dem Log-Treiber `journald`
+  und `MaxRetentionSec=14day` in `/etc/systemd/journald.conf`. Prüfen: `docker compose config | grep -A4 logging`.
 - Vor jedem Start sichert der Container die SQLite-Datei nach `storage/app/backups` (die letzten 10). Eine Sicherung
   ausser Haus folgt (offener Punkt im Hosting-Konzept).
 - Daten liegen im Volumen `glossary_glossary-storage`; es bleibt bei jedem Deployment erhalten.
