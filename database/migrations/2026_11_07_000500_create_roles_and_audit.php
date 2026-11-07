@@ -72,10 +72,11 @@ return new class extends Migration
         }
 
         // Bisherige Admins → Rolle Admin (Developer nur ausdrücklich über glossary:developer)
+        $adminId = (string) DB::table('roles')->where('key', 'admin')->value('id');
         foreach (DB::table('users')->where('is_admin', true)->pluck('id') as $userId) {
-            DB::table('user_roles')->insert(['user_id' => $userId, 'role_id' => $ids['admin']]);
+            DB::table('user_roles')->insert(['user_id' => $userId, 'role_id' => $adminId]);
             DB::table('user_audit')->insert([
-                'actor_label' => 'Migration', 'target_user_id' => $userId, 'target_role_id' => $ids['admin'],
+                'actor_label' => 'Migration', 'target_user_id' => $userId, 'target_role_id' => $adminId,
                 'action' => 'role.assigned', 'new' => json_encode(['role' => 'admin']), 'result' => 'ok', 'created_at' => $now,
             ]);
         }
