@@ -4,7 +4,7 @@
  * Nur Node-Standardbibliothek. Aufruf (nach composer install und npm ci):
  *
  *   composer licenses --no-dev --format=json > composer-licenses.json
- *   npm ls --omit=dev --all --json > npm-tree.json
+ *   npm ls --omit=dev --all --json --long > npm-tree.json
  *   node scripts/license-report.mjs composer-licenses.json npm-tree.json > license-report.md
  *
  * Bedenkliche Lizenzen (starkes Copyleft, nicht kommerziell, ohne Angabe) erscheinen als Warnung im Bericht und als
@@ -53,8 +53,10 @@ for (const [name, info] of Object.entries(composer?.dependencies ?? {})) {
     });
 }
 
-const licenseOf = (name) => {
-    const file = join('node_modules', name, 'package.json');
+const licenseOf = (name) =>
+    licenseAt(join('node_modules', name, 'package.json'));
+
+const licenseAt = (file) => {
     if (!existsSync(file)) {
         return 'unbekannt';
     }
@@ -75,14 +77,24 @@ const licenseOf = (name) => {
 const seen = new Set();
 const walk = (deps) => {
     for (const [name, node] of Object.entries(deps ?? {})) {
-        const key = `${name}@${node.version ?? ''}`;
+        // nicht installierte optionale bzw. Peer-Abhängigkeiten (ohne Version) überspringen
+        if (!node.version || node.missing) {
+            continue;
+        }
+        const key = `${name}@${node.version}`;
         if (!seen.has(key)) {
             seen.add(key);
+            const license =
+                typeof node.license === 'string'
+                    ? node.license
+                    : node.path
+                      ? licenseAt(join(node.path, 'package.json'))
+                      : licenseOf(name);
             packages.push({
                 source: 'npm',
                 name,
-                version: String(node.version ?? ''),
-                license: licenseOf(name),
+                version: String(node.version),
+                license,
             });
         }
         walk(node.dependencies);
@@ -93,7 +105,13 @@ walk(readJson(npmTreeFile)?.dependencies);
 packages.sort((a, b) =>
     `${a.source} ${a.name}`.localeCompare(`${b.source} ${b.name}`),
 );
-const flagged = packages.filter((p) => REVIEW.some((r) => r.test(p.license)));
+/** Bei Wahl-Lizenzen («A OR B») genügt eine unbedenkliche Alternative. */
+const needsReview = (license) =>
+    license
+        .replace(/[()]/g, '')
+        .split(/\s+OR\s+/i)
+        .every((part) => REVIEW.some((r) => r.test(part.trim())));
+const flagged = packages.filter((p) => needsReview(p.license));
 const count = {};
 for (const p of packages) {
     count[p.license] = (count[p.license] ?? 0) + 1;

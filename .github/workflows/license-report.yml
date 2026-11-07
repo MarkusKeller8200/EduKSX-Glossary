@@ -64,6 +64,6 @@ jobs:
           composer install --no-dev --no-scripts --no-interaction --prefer-dist
           npm ci --ignore-scripts
           composer licenses --no-dev --format=json > composer-licenses.json
-          npm ls --omit=dev --all --json > npm-tree.json || true
+          npm ls --omit=dev --all --json --long > npm-tree.json || true
           node scripts/license-report.mjs composer-licenses.json npm-tree.json > license-report.md
           gh release upload "$TAG" license-report.md --repo "$GITHUB_REPOSITORY" --clobber
