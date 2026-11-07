@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Rollen Gast, Benutzer, Organisations-Admin (#110):** neue Rechte «Exportieren», «Persönliche Darstellung» und
+  «Servicekonten und Token». Vorschläge einreichen kommt aus der Rolle statt fest für jedes Konto; neue Konten und
+  bisherige Konten ohne Rolle sind Benutzer.
+
 ### Geändert
 
 - **Farbwahl (#107):** Farben in «Listen» als farbige Labels wählbar, neu mit den CI-Farben Violett, Orange und Blau.

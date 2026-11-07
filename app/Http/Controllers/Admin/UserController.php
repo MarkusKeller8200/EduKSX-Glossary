@@ -83,8 +83,9 @@ class UserController extends Controller
             'email' => strtolower((string) $data['email']), 'password' => $data['password'],
         ]);
         Audit::log($this->actor($request), $user, 'account.created');
+        $this->roles->assignDefault($user, 'Kontoanlage');
 
-        return redirect("/admin/benutzer/{$user->id}")->with('status', 'Konto angelegt (Community). Rollen jetzt zuweisen.');
+        return redirect("/admin/benutzer/{$user->id}")->with('status', 'Konto angelegt (Rolle Benutzer). Weitere Rollen jetzt zuweisen.');
     }
 
     public function show(Request $request, User $user): Response

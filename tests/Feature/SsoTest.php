@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Access\Permission;
 use App\Access\Sso\MicrosoftLogin;
 use App\Models\Role;
 use App\Models\User;
@@ -44,7 +45,7 @@ class SsoTest extends TestCase
         $this->get('/anmelden')->assertInertia(fn (Assert $p) => $p->where('microsoft', false));
     }
 
-    public function test_neues_konto_nur_mit_community_rechten(): void
+    public function test_neues_konto_erhaelt_rolle_benutzer(): void
     {
         $this->microsoft($this->claims());
         $this->get('/anmelden')->assertInertia(fn (Assert $p) => $p->where('microsoft', true));
@@ -56,7 +57,8 @@ class SsoTest extends TestCase
         $this->assertAuthenticatedAs($user);
         $this->assertSame('Anna Muster', $user->name);
         $this->assertFalse($user->password_set);
-        $this->assertSame(['propose'], $user->permissions());
+        $this->assertSame([Role::USER], $user->roleKeys());
+        $this->assertSame(Permission::BASIC, $user->permissions());
         $this->assertSame(1, UserIdentity::query()->where('issuer', self::ISSUER)->where('subject', 'sub-anna')->count());
     }
 

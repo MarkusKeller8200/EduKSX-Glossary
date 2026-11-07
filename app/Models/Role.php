@@ -31,6 +31,18 @@ class Role extends Model
 
     public const MODERATOR = 'moderator';
 
+    /** Organisations-Admin (#110): wie Benutzer, dazu Servicekonten; Mandanten und Mitglieder folgen später. */
+    public const ORG_ADMIN = 'org-admin';
+
+    /** Benutzer (#110): exportieren, Vorschläge einreichen, persönliche Darstellung. */
+    public const USER = 'benutzer';
+
+    /** Gast (#110): angemeldet, nur lesen. */
+    public const GUEST = 'gast';
+
+    /** Rolle neuer Konten (Registrierung, Microsoft, administrativ angelegt), bestätigt am 08.11.2026 (#110). */
+    public const DEFAULT_FOR_NEW = self::USER;
+
     /** @var list<string> */
     protected $fillable = ['key', 'name', 'description', 'is_system', 'sort_order'];
 

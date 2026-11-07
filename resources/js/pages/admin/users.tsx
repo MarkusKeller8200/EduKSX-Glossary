@@ -134,7 +134,7 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                                     <div className="flex flex-wrap gap-1">
                                         {b.rollen.length === 0 ? (
                                             <span className="text-muted-foreground">
-                                                Community
+                                                ohne Rolle
                                             </span>
                                         ) : (
                                             b.rollen.map((r) => (
@@ -201,9 +201,9 @@ function NeuesKonto({ onDone }: { onDone: () => void }) {
             className="mt-6 grid max-w-xl gap-4 rounded-lg border border-border p-4"
         >
             <p className="text-sm text-muted-foreground">
-                Neues Konto ohne Rolle (Community). Rollen danach im Detail
-                vergeben. Das Passwort der Person mitteilen; sie kann es nach
-                der Anmeldung ändern.
+                Neues Konto mit der Rolle Benutzer. Weitere Rollen danach im
+                Detail vergeben. Das Passwort der Person mitteilen; sie kann es
+                nach der Anmeldung ändern.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2">

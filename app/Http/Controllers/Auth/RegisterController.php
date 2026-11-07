@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Access\Audit;
+use App\Access\RoleManager;
 use App\Http\Controllers\Controller;
 use App\Mail\ConfirmRegistration;
 use App\Models\User;
@@ -28,6 +29,8 @@ class RegisterController extends Controller
 {
     /** Gleiche Meldung für neue und bekannte Adressen. */
     private const SENT = 'Fast geschafft: Wir haben einen Bestätigungslink an die angegebene Adresse gesendet (60 Minuten gültig).';
+
+    public function __construct(private readonly RoleManager $roles) {}
 
     public function create(): Response
     {
@@ -69,6 +72,7 @@ class RegisterController extends Controller
                 'privacy_notice_acknowledged_at' => now(),
             ])->save();
             Audit::log($user, $user, 'account.registered');
+            $this->roles->assignDefault($user, 'Registrierung');
             $this->sendConfirmation($user);
         } elseif ($user->isPending()) {
             $this->sendConfirmation($user);   // Link erneut senden, Angaben nicht überschreiben
