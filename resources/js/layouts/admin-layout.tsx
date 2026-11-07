@@ -13,6 +13,7 @@ const NAV = [
     { href: '/admin/doppelte', label: 'Doppelte', recht: 'edit-terms' },
     { href: '/admin/listen', label: 'Listen', recht: 'lists' },
     { href: '/admin/import', label: 'Excel-Import', recht: 'import' },
+    { href: '/admin/benutzer', label: 'Benutzer', recht: 'manage-users' },
 ];
 
 /** Rahmen der Administration (nur angemeldet). Seitenleiste aus dem Intranet folgt mit der Redaktion (#14). */
