@@ -3,86 +3,141 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EduKSX-Glossary</title>
+  <title>EduKSX-Glossary – Lesefassung</title>
+  <meta name="description" content="Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden – reduzierte Lesefassung des EduKSX-Glossary.">
   <style>
-    :root { --bg: #ffffff; --fg: #1d2330; --muted: #5f6b7a; --line: #dfe3e8; --accent: #0b3d63; --mark: #f2b705; }
+    /* Farben nach CI MarKusSXCH (docs/KONZEPT-DESIGN.md) */
+    :root { --bg: #ffffff; --fg: #222222; --muted: #5a6678; --line: #e2e8f0; --link: #0272ad; --chip: #fff3e5; --chip-fg: #5c3200;
+      --violet: #7952b3; --orange: #ff8a00; --blue: #007ebb; }
     @media (prefers-color-scheme: dark) {
-      :root { --bg: #11161d; --fg: #e6e9ee; --muted: #9aa5b1; --line: #2a323c; --accent: #7fb6e6; }
+      :root { --bg: #151b24; --fg: #f2f5f8; --muted: #aab6c7; --line: #2d3746; --link: #32b8f2; --chip: #3a2a10; --chip-fg: #ffd9a8;
+        --violet: #b59aff; --blue: #32b8f2; }
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
-    main { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
-    h1 { margin: 0 0 .25rem; color: var(--accent); }
-    .lead { margin: 0 0 1.5rem; color: var(--muted); }
-    input[type=search] { width: 100%; padding: .7rem .9rem; font: inherit; color: inherit; background: transparent;
+    body { margin: 0; font: 16px/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 820px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    a { color: var(--link); }
+    .wm { font-weight: 650; font-size: 1.6rem; margin: 0; }
+    .wm .v { color: var(--violet); } .wm .o { color: var(--orange); } .wm .b { color: var(--blue); }
+    .lead { margin: .25rem 0 1rem; color: var(--muted); }
+    .hint { padding: .6rem .9rem; border-radius: 8px; background: var(--chip); color: var(--chip-fg); font-size: .9rem; }
+    input[type=search] { width: 100%; max-width: 32rem; padding: .65rem .9rem; font: inherit; color: inherit; background: transparent;
       border: 1px solid var(--line); border-radius: 8px; }
-    input[type=search]:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-    .count { margin: .75rem 0 1rem; color: var(--muted); font-size: .9rem; }
-    dl { margin: 0; }
-    .eintrag { padding: 1rem 0; border-top: 1px solid var(--line); }
-    dt { font-weight: 650; font-size: 1.1rem; }
-    dt .kat { margin-left: .5rem; font-weight: 400; font-size: .8rem; color: var(--muted); }
-    dd { margin: .25rem 0 0; }
+    input[type=search]:focus, button:focus-visible, a:focus-visible { outline: 3px solid color-mix(in srgb, var(--link) 50%, transparent); outline-offset: 1px; }
+    .az, .cats { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .75rem; }
+    .az button, .cats button { font: inherit; font-size: .9rem; color: inherit; background: transparent; border: 1px solid transparent;
+      border-radius: 6px; padding: .2rem .5rem; cursor: pointer; }
+    .cats button { border-color: var(--line); border-radius: 999px; padding: .2rem .7rem; }
+    .az button[aria-pressed=true], .cats button[aria-pressed=true] { background: var(--orange); color: #222222; }
+    .az button:disabled { opacity: .35; cursor: default; }
+    .count { margin: 1rem 0 .25rem; color: var(--muted); font-size: .9rem; }
+    ul.terms { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+    ul.terms li { padding: .75rem .1rem; border-bottom: 1px solid var(--line); }
+    .abk { font-weight: 650; margin-right: .5rem; }
+    .tag { display: inline-block; margin-left: .4rem; font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 .5rem; }
+    .short { display: block; margin-top: .2rem; color: var(--muted); font-size: .95rem; }
     footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
-    footer a { color: var(--accent); }
   </style>
 </head>
 <body>
 <main>
-  <h1>EduKSX-Glossary</h1>
+  <p class="wm" aria-label="EduKSX-Glossary"><span aria-hidden="true"><span class="v">E</span>du<span class="o">K</span><span class="b">SX</span>-Glossary</span></p>
   <p class="lead">Begriffe und Abkürzungen – reduzierte Lesefassung.</p>
+  <p class="hint">Vollständige Fassung mit Detailseiten, Quellen und API: <a href="https://glossary.eduksx.ch">glossary.eduksx.ch</a></p>
 
-  <input id="suche" type="search" placeholder="Begriff suchen …" aria-label="Begriff suchen" autocomplete="off">
+  <input id="suche" type="search" placeholder="Begriff oder Abkürzung suchen …" aria-label="Begriff suchen" autocomplete="off">
+  <nav class="az" id="az" aria-label="Index A–Z"></nav>
+  <div class="cats" id="cats" role="group" aria-label="Kategorie"></div>
   <p class="count" id="anzahl" aria-live="polite"></p>
-  <dl id="liste"></dl>
+  <ul class="terms" id="liste"></ul>
 
   <footer>
-    Version <span id="version">–</span> ·
+    Datenstand <span id="stand">–</span> · Version <span id="version">–</span> ·
     <a href="https://github.com/MarkusKeller8200/EduKSX-Glossary/issues/new/choose">Begriff vorschlagen oder Fehler melden</a> ·
-    Vollständige Fassung: <a href="https://glossary.eduksx.ch">glossary.eduksx.ch</a>
+    Developed by <a href="https://markussx.ch/eduksx">MarKusSXCH</a>
   </footer>
 </main>
 <script>
-  const liste = document.getElementById("liste");
-  const anzahl = document.getElementById("anzahl");
-  const suche = document.getElementById("suche");
-  let begriffe = [];
+  // Daten: site/begriffe.json, erzeugt mit «php artisan glossary:export-pages» aus dem veröffentlichten Stand (#27)
+  const el = (id) => document.getElementById(id);
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  let begriffe = [], full = 'https://glossary.eduksx.ch', buchstabe = null, kategorie = null;
 
-  function zeige(filter) {
-    const f = filter.trim().toLowerCase();
-    const treffer = begriffe.filter(b => !f || (b.begriff + " " + b.definition + " " + (b.kategorie || "")).toLowerCase().includes(f));
-    liste.replaceChildren(...treffer.map(b => {
-      const div = document.createElement("div");
-      div.className = "eintrag";
-      const dt = document.createElement("dt");
-      dt.textContent = b.begriff;
-      if (b.kategorie) {
-        const kat = document.createElement("span");
-        kat.className = "kat";
-        kat.textContent = b.kategorie;
-        dt.append(kat);
-      }
-      const dd = document.createElement("dd");
-      dd.textContent = b.definition;
-      div.append(dt, dd);
-      return div;
-    }));
-    anzahl.textContent = treffer.length === 1 ? "1 Begriff" : treffer.length + " Begriffe";
+  const initial = (t) => {
+    const c = (t.abbreviation || t.name || '').normalize('NFD').replace(/[̀-ͯ]/g, '').charAt(0).toUpperCase();
+    return ALPHABET.includes(c) ? c : '#';
+  };
+  const cats = (t) => (t.categories || []).map((c) => c.label || c.name || c.key);
+
+  function knopf(text, gedrueckt, onClick, disabled) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = text;
+    b.setAttribute('aria-pressed', gedrueckt ? 'true' : 'false');
+    b.disabled = !!disabled;
+    b.addEventListener('click', onClick);
+    return b;
   }
 
-  fetch("begriffe.json")
-    .then(r => r.json())
-    .then(daten => {
-      begriffe = daten.sort((a, b) => a.begriff.localeCompare(b.begriff, "de-CH"));
-      zeige("");
+  function zeige() {
+    const q = el('suche').value.trim().toLowerCase();
+    const treffer = begriffe.filter((t) =>
+      (!q || [t.abbreviation, t.name, t.short_description, ...(t.aliases || [])].join(' ').toLowerCase().includes(q)) &&
+      (!buchstabe || initial(t) === buchstabe) &&
+      (!kategorie || cats(t).includes(kategorie)));
+
+    const vorhanden = new Set(begriffe.map(initial));
+    el('az').replaceChildren(...[...ALPHABET, '#'].map((l) =>
+      knopf(l, buchstabe === l, () => { buchstabe = buchstabe === l ? null : l; zeige(); }, !vorhanden.has(l))));
+    const alle = [...new Set(begriffe.flatMap(cats))].sort((a, b) => a.localeCompare(b, 'de-CH'));
+    el('cats').replaceChildren(...alle.map((k) =>
+      knopf(k, kategorie === k, () => { kategorie = kategorie === k ? null : k; zeige(); })));
+
+    el('liste').replaceChildren(...treffer.map((t) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = full.replace(/\/$/, '') + '/begriffe/' + encodeURIComponent(t.slug);
+      if (t.abbreviation) {
+        const abk = document.createElement('span');
+        abk.className = 'abk';
+        abk.textContent = t.abbreviation;
+        a.append(abk);
+      }
+      a.append(document.createTextNode(t.name || ''));
+      li.append(a);
+      cats(t).forEach((c) => { const s = document.createElement('span'); s.className = 'tag'; s.textContent = c; li.append(s); });
+      if (t.short_description) {
+        const s = document.createElement('span');
+        s.className = 'short';
+        s.textContent = t.short_description;
+        li.append(s);
+      }
+      return li;
+    }));
+    el('anzahl').textContent = begriffe.length === 0
+      ? 'Noch keine Begriffe exportiert.'
+      : (treffer.length === 1 ? '1 Begriff' : treffer.length + ' Begriffe') + (treffer.length !== begriffe.length ? ' von ' + begriffe.length : '');
+  }
+
+  el('suche').addEventListener('input', zeige);
+
+  fetch('begriffe.json')
+    .then((r) => r.json())
+    .then((daten) => {
+      begriffe = Array.isArray(daten) ? [] : (daten.terms || []);
+      full = (!Array.isArray(daten) && daten.full_url) || full;
+      if (!Array.isArray(daten)) {
+        el('stand').textContent = daten.release ?? '–';
+        if (daten.version) el('version').textContent = daten.version;
+      }
+      begriffe.sort((a, b) => (a.abbreviation || a.name || '').localeCompare(b.abbreviation || b.name || '', 'de-CH'));
+      zeige();
     })
-    .catch(() => { anzahl.textContent = "Begriffe konnten nicht geladen werden."; });
+    .catch(() => { el('anzahl').textContent = 'Begriffe konnten nicht geladen werden.'; });
 
-  suche.addEventListener("input", e => zeige(e.target.value));
-
-  fetch("VERSION")
-    .then(r => r.ok ? r.text() : "")
-    .then(v => { if (v.trim()) document.getElementById("version").textContent = v.trim(); })
+  fetch('VERSION')
+    .then((r) => (r.ok ? r.text() : ''))
+    .then((v) => { if (v.trim() && el('version').textContent === '–') el('version').textContent = v.trim(); })
     .catch(() => {});
 </script>
 </body>

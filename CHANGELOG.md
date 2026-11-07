@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **GitHub Pages (#27):** reduzierte Lesefassung mit Suche, Index A–Z und Kategorienfilter; jeder Begriff verweist
+  auf seine Detailseite auf glossary.eduksx.ch. Daten aus dem veröffentlichten Stand mit
+  `php artisan glossary:export-pages` (schreibt `site/begriffe.json`, ohne interne Felder).
 - **Zweiter Faktor (#11):** Anmeldung in der Administration mit Passwort und sechsstelligem Code aus einer
   Authenticator-App (TOTP). Pflicht: ohne eingerichteten zweiten Faktor führt jede Seite der Administration zur
   Einrichtung (Schlüssel zum Abtippen oder als Link fürs Handy). Acht Wiederherstellungscodes, jeder einmal gültig;

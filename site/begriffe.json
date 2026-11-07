@@ -1,7 +1,9 @@
-[
-  {
-    "begriff": "Glossar",
-    "kategorie": "Allgemein",
-    "definition": "Verzeichnis von Fachbegriffen mit kurzen Erklärungen. Dieser Eintrag ist ein Beispiel und kann ersetzt werden."
-  }
-]
+{
+    "release": 0,
+    "checksum": "",
+    "published_at": null,
+    "version": "",
+    "full_url": "https://glossary.eduksx.ch",
+    "categories": [],
+    "terms": []
+}
