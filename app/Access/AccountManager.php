@@ -51,6 +51,38 @@ final class AccountManager
         $this->endSessions($target);
     }
 
+    /**
+     * Konto löschen (#39): selbst (Konto löschen) oder durch die Verwaltung. Sitzungen enden sofort, Rollen und
+     * Anmeldedienste werden entfernt; das Protokoll behält den Eintrag mit der ID.
+     */
+    public function delete(?User $actor, User $target): void
+    {
+        $self = $actor !== null && $actor->id === $target->id;
+        $rules = function () use ($target): void {
+            if ($target->isDeveloper() && ! $this->othersActive(fn (User $u): bool => $u->isDeveloper(), $target)) {
+                throw new AccessDenied('Das letzte aktive Developer-Konto kann nicht gelöscht werden.');
+            }
+            if ($target->hasPermission('manage-users') && ! $this->othersActive(fn (User $u): bool => $u->hasPermission('manage-users'), $target)) {
+                throw new AccessDenied('Das letzte aktive Konto mit «Benutzer und Rollen verwalten» kann nicht gelöscht werden.');
+            }
+        };
+        if ($self) {
+            try {
+                $rules();
+            } catch (AccessDenied $e) {
+                Audit::log($actor, $target, 'account.deleted', ['reason' => $e->getMessage()], 'denied');
+
+                throw $e;
+            }
+            Audit::log($actor, $target, 'account.deleted', ['self' => true]);
+        } else {
+            $this->authorize($actor, $target, 'account.deleted', $rules);
+        }
+
+        $this->endSessions($target);
+        $target->delete();
+    }
+
     /** Alle Sitzungen eines Kontos sofort beenden (Datenbank-Sitzungen). */
     public function endSessions(User $user): void
     {

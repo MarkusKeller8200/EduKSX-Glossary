@@ -35,8 +35,20 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                             Versionen
                         </Link>
                         <Button asChild size="sm" variant="outline">
-                            <Link href={admin ? '/admin' : '/anmelden'}>
-                                {admin ? 'Administration' : 'Anmelden'}
+                            <Link
+                                href={
+                                    admin
+                                        ? '/admin'
+                                        : auth.user
+                                          ? '/konto'
+                                          : '/anmelden'
+                                }
+                            >
+                                {admin
+                                    ? 'Administration'
+                                    : auth.user
+                                      ? 'Mein Konto'
+                                      : 'Anmelden'}
                             </Link>
                         </Button>
                         <AppearanceToggleTab />

@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 type Konto = {
     id: string;
     name: string;
+    community_name: string | null;
+    einrichtung: string;
     email: string;
     rollen: string[];
     status: string;
@@ -27,7 +29,7 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
     const liste = benutzer.filter(
         (b) =>
             (!q ||
-                `${b.name} ${b.email} ${b.rollen.join(' ')}`
+                `${b.name} ${b.community_name ?? ''} ${b.email} ${b.einrichtung} ${b.rollen.join(' ')}`
                     .toLowerCase()
                     .includes(q)) &&
             (filter === 'alle' ||
@@ -121,6 +123,11 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                                     >
                                         {b.name}
                                     </Link>
+                                    {b.einrichtung ? (
+                                        <span className="block text-muted-foreground">
+                                            {b.einrichtung}
+                                        </span>
+                                    ) : null}
                                 </td>
                                 <td className="px-3 py-2">{b.email}</td>
                                 <td className="px-3 py-2">
@@ -177,7 +184,12 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
 }
 
 function NeuesKonto({ onDone }: { onDone: () => void }) {
-    const form = useForm({ name: '', email: '', password: '' });
+    const form = useForm({
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+    });
     const submit = (e: FormEvent) => {
         e.preventDefault();
         form.post('/admin/benutzer', { onSuccess: onDone });
@@ -193,15 +205,31 @@ function NeuesKonto({ onDone }: { onDone: () => void }) {
                 vergeben. Das Passwort der Person mitteilen; sie kann es nach
                 der Anmeldung ändern.
             </p>
-            <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                    id="name"
-                    value={form.data.name}
-                    onChange={(e) => form.setData('name', e.target.value)}
-                    required
-                />
-                <InputError message={form.errors.name} />
+            <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-2">
+                    <Label htmlFor="first_name">Vorname</Label>
+                    <Input
+                        id="first_name"
+                        value={form.data.first_name}
+                        onChange={(e) =>
+                            form.setData('first_name', e.target.value)
+                        }
+                        required
+                    />
+                    <InputError message={form.errors.first_name} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="last_name">Nachname</Label>
+                    <Input
+                        id="last_name"
+                        value={form.data.last_name}
+                        onChange={(e) =>
+                            form.setData('last_name', e.target.value)
+                        }
+                        required
+                    />
+                    <InputError message={form.errors.last_name} />
+                </div>
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="email">E-Mail</Label>

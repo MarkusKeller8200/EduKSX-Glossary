@@ -59,6 +59,7 @@ class TwoFactorController extends Controller
         $request->session()->forget('login.id');
         Auth::login($user, $remember);
         $request->session()->regenerate();
+        $user->forceFill(['last_login_on' => today()])->save();   // nur das Datum (Löschfristen, #39)
 
         return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
     }
@@ -73,7 +74,8 @@ class TwoFactorController extends Controller
             $secret = $user->two_factor_secret ?? $this->twoFactor->start($user);
         }
 
-        return Inertia::render('admin/two-factor', [
+        return Inertia::render('account/two-factor', [
+            'pflicht' => $user->needsTwoFactor(),
             'eingerichtet' => $user->hasTwoFactor(),
             'schluessel' => $secret !== null ? trim(chunk_split($secret, 4, ' ')) : null,
             'uri' => $secret !== null ? Totp::uri($secret, $user->email) : null,
@@ -94,7 +96,7 @@ class TwoFactorController extends Controller
 
         Audit::log($user, $user, 'mfa.enabled');
 
-        return redirect()->route('admin.two-factor')
+        return redirect()->route('account.two-factor')
             ->with('recovery_codes', $codes)
             ->with('status', 'Zweiter Faktor eingerichtet. Wiederherstellungscodes jetzt sicher aufbewahren.');
     }
@@ -107,7 +109,7 @@ class TwoFactorController extends Controller
         $codes = $this->twoFactor->newRecoveryCodes($user);
         Audit::log($user, $user, 'mfa.recovery_codes');
 
-        return redirect()->route('admin.two-factor')
+        return redirect()->route('account.two-factor')
             ->with('recovery_codes', $codes)
             ->with('status', 'Neue Wiederherstellungscodes erzeugt – die alten gelten nicht mehr.');
     }

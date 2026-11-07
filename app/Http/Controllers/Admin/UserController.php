@@ -46,9 +46,11 @@ class UserController extends Controller
         $roleNames = Role::query()->pluck('name', 'id');
         $assignments = DB::table('user_roles')->get()->groupBy('user_id');
 
-        $users = User::query()->orderBy('name')->get()->map(fn (User $u): array => [
+        $users = User::query()->orderBy('last_name')->orderBy('first_name')->get()->map(fn (User $u): array => [
             'id' => $u->id,
             'name' => $u->name,
+            'community_name' => $u->community_name,
+            'einrichtung' => trim(($u->institution_name ?? '').($u->institution_type !== null ? ' ('.(User::INSTITUTION_TYPES[$u->institution_type] ?? $u->institution_type).')' : '')),
             'email' => $u->email,
             'rollen' => ($assignments[$u->id] ?? collect())->map(fn ($a): string => (string) ($roleNames[$a->role_id] ?? ''))->values()->all(),
             'status' => $u->status,
@@ -62,12 +64,14 @@ class UserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:100'],
+            'first_name' => ['required', 'string', 'max:80'],
+            'last_name' => ['required', 'string', 'max:80'],
             'email' => ['required', 'email', 'max:190', 'unique:users,email'],
             'password' => ['required', Password::defaults()],
         ]);
         $user = User::query()->create([
-            'name' => $data['name'], 'email' => strtolower((string) $data['email']), 'password' => $data['password'],
+            'first_name' => $data['first_name'], 'last_name' => $data['last_name'],
+            'email' => strtolower((string) $data['email']), 'password' => $data['password'],
         ]);
         Audit::log($this->actor($request), $user, 'account.created');
 
@@ -107,6 +111,10 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'community_name' => $user->community_name,
+                'funktion' => $user->function,
+                'einrichtung' => trim(($user->institution_name ?? '').($user->institution_type !== null ? ' ('.(User::INSTITUTION_TYPES[$user->institution_type] ?? $user->institution_type).')' : '')),
+                'letzte_anmeldung' => $user->last_login_on?->toDateString(),
                 'status' => $user->status,
                 'gesperrt_am' => $user->blocked_at?->toIso8601String(),
                 'zweiter_faktor' => $user->hasTwoFactor(),

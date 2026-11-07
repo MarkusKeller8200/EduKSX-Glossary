@@ -16,7 +16,14 @@ use Illuminate\Support\Facades\DB;
  * serverseitig über Gates. Rollen ändern nur über App\Access\RoleManager (Schutzregeln, Audit).
  *
  * @property string $id
- * @property string $name
+ * @property string $name Anzeigename (Vor- und Nachname, vom Model nachgeführt)
+ * @property string $first_name
+ * @property string $last_name
+ * @property string|null $community_name
+ * @property string|null $function
+ * @property string|null $institution_type
+ * @property string|null $institution_name
+ * @property CarbonImmutable|null $last_login_on
  * @property string $email
  * @property string|null $two_factor_secret
  * @property list<string>|null $two_factor_recovery_codes Hashes
@@ -30,8 +37,17 @@ class User extends Authenticatable
 {
     use HasUuids, Notifiable;
 
+    /** Arten öffentlicher Einrichtungen (docs/KONZEPT-BENUTZER.md 4). */
+    public const INSTITUTION_TYPES = [
+        'schule' => 'Schule', 'schulgemeinde' => 'Schulgemeinde', 'gemeinde' => 'Gemeinde', 'kanton' => 'Kanton',
+        'andere' => 'andere',
+    ];
+
     /** @var list<string> */
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = [
+        'name', 'first_name', 'last_name', 'email', 'password', 'community_name', 'function', 'institution_type',
+        'institution_name',
+    ];
 
     /** @var array<string, mixed> */
     protected $attributes = ['status' => 'active'];
@@ -55,7 +71,21 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'immutable_datetime',
             'two_factor_last_step' => 'integer',
             'blocked_at' => 'immutable_datetime',
+            'last_login_on' => 'immutable_date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Anzeigename aus Vor- und Nachname; ohne diese (z. B. ältere Aufrufe mit «name») den Namen aufteilen
+        static::saving(function (User $user): void {
+            if (($user->first_name ?? '') === '' && ($user->last_name ?? '') === '' && ($user->name ?? '') !== '') {
+                $parts = preg_split('/\s+/', trim($user->name)) ?: [];
+                $user->last_name = count($parts) > 1 ? (string) array_pop($parts) : '';
+                $user->first_name = implode(' ', $parts);
+            }
+            $user->name = trim($user->first_name.' '.$user->last_name);
+        });
     }
 
     /** Zweiter Faktor eingerichtet und bestätigt (#11). */
