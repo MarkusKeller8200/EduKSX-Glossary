@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.5.0] – 2026-11-07
+
 ### Geändert
 
 - **Gemeinsame und persönliche Daten (DEC-020, #80–#83):** Begriffe enthalten nur noch gemeinsame Fachdaten.
