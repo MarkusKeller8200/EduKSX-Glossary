@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
+import QrCode from '@/components/qr-code';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,9 +88,22 @@ export default function TwoFactorSetup({
                         Google Authenticator, 1Password, Bitwarden) einrichten:
                     </p>
                     <ol className="list-decimal space-y-3 pl-6">
+                        {uri ? (
+                            <li>
+                                In der App ein neues Konto hinzufügen und diesen
+                                QR-Code scannen:
+                                <div className="mt-2">
+                                    <QrCode
+                                        value={uri}
+                                        label="QR-Code für die Authenticator-App"
+                                    />
+                                </div>
+                            </li>
+                        ) : null}
                         <li>
-                            In der App ein neues Konto hinzufügen und diesen
-                            Schlüssel eingeben (Typ: zeitbasiert):
+                            {uri
+                                ? 'Oder den Schlüssel von Hand eingeben (Typ: zeitbasiert):'
+                                : 'In der App ein neues Konto hinzufügen und diesen Schlüssel eingeben (Typ: zeitbasiert):'}
                             <p
                                 className="mt-2 rounded-md bg-muted px-3 py-2 font-mono text-base tracking-wider"
                                 translate="no"

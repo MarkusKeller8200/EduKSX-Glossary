@@ -19,6 +19,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **PDF-Export (#112):** wie im Intranet über die Druckansicht des Browsers – A4 hoch/quer, Umfang kompakt bis
   vollständig, gruppiert, farbige Labels, Link-Spalte, Auswahl alle/gefiltert/ausgewählt, mit Lizenzhinweis
   CC BY 4.0. Auf der Website (veröffentlicht, ab Benutzer) und in der Redaktion (Arbeitsstand mit Notiz).
+- **QR-Code für den zweiten Faktor (#70):** beim Einrichten scannen statt den Schlüssel abtippen (Paket `qrcode`, MIT).
 - **Hierarchie der Rollen (#115):** «Rollen und Rechte» zeigt die Stufen Gast bis Developer mit den Rechten, die jede
   Stufe dazubekommt, farbig nach Schutzklasse.
 
