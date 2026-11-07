@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.3.0] – 2026-11-07
+
 ### Neu
 
 - **Nutzung und Stabilität der API (#30, DEC-016):** Die API ist bis zum öffentlichen Betrieb eine Vorschau
