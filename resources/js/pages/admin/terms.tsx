@@ -1,9 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { can } from '@/lib/access';
 
 type Begriff = {
     id: string;
@@ -18,6 +19,9 @@ type Begriff = {
 
 /** Begriffe (Arbeitsstand). Bearbeiten in der Tabelle wie im Intranet folgt mit #14. */
 export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
+    const { auth } = usePage().props;
+    const darfVeroeffentlichen = can(auth, 'publish');
+    const darfExcel = can(auth, 'import');
     const [suche, setSuche] = useState('');
     const q = suche.trim().toLowerCase();
     const liste = q
@@ -87,12 +91,16 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                     <Button asChild variant="outline">
                         <Link href="/admin/doppelte">Doppelte prüfen</Link>
                     </Button>
-                    <Button asChild variant="outline">
-                        <a href="/admin/export">Excel-Export</a>
-                    </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/admin/import">Excel-Import</Link>
-                    </Button>
+                    {darfExcel ? (
+                        <>
+                            <Button asChild variant="outline">
+                                <a href="/admin/export">Excel-Export</a>
+                            </Button>
+                            <Button asChild variant="outline">
+                                <Link href="/admin/import">Excel-Import</Link>
+                            </Button>
+                        </>
+                    ) : null}
                     <Button asChild>
                         <Link href="/admin/begriffe/neu">Neuer Begriff</Link>
                     </Button>
@@ -112,15 +120,19 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                         onChange={(e) => setSuche(e.target.value)}
                     />
                 </div>
-                <Button variant="outline" onClick={entwuerfeWaehlen}>
-                    Alle Entwürfe auswählen
-                </Button>
-                <Button
-                    onClick={veroeffentlichen}
-                    disabled={auswahl.size === 0 || sending}
-                >
-                    Ausgewählte veröffentlichen ({auswahl.size})
-                </Button>
+                {darfVeroeffentlichen ? (
+                    <>
+                        <Button variant="outline" onClick={entwuerfeWaehlen}>
+                            Alle Entwürfe auswählen
+                        </Button>
+                        <Button
+                            onClick={veroeffentlichen}
+                            disabled={auswahl.size === 0 || sending}
+                        >
+                            Ausgewählte veröffentlichen ({auswahl.size})
+                        </Button>
+                    </>
+                ) : null}
             </div>
 
             <div className="mt-4 overflow-x-auto rounded-lg border border-border">

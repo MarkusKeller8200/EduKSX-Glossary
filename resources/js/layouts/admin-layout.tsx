@@ -3,14 +3,16 @@ import type { ReactNode } from 'react';
 import BrandWordmark from '@/components/brand-wordmark';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { can } from '@/lib/access';
 import { cn } from '@/lib/utils';
 
+/** Navigation; Einträge nur mit dem nötigen Recht (#36). */
 const NAV = [
-    { href: '/admin', label: 'Übersicht' },
-    { href: '/admin/begriffe', label: 'Begriffe' },
-    { href: '/admin/doppelte', label: 'Doppelte' },
-    { href: '/admin/listen', label: 'Listen' },
-    { href: '/admin/import', label: 'Excel-Import' },
+    { href: '/admin', label: 'Übersicht', recht: null },
+    { href: '/admin/begriffe', label: 'Begriffe', recht: 'edit-terms' },
+    { href: '/admin/doppelte', label: 'Doppelte', recht: 'edit-terms' },
+    { href: '/admin/listen', label: 'Listen', recht: 'lists' },
+    { href: '/admin/import', label: 'Excel-Import', recht: 'import' },
 ];
 
 /** Rahmen der Administration (nur angemeldet). Seitenleiste aus dem Intranet folgt mit der Redaktion (#14). */
@@ -32,7 +34,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         aria-label="Administration"
                         className="flex items-center gap-1 text-sm"
                     >
-                        {NAV.map((item) => (
+                        {NAV.filter(
+                            (item) =>
+                                item.recht === null || can(auth, item.recht),
+                        ).map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}

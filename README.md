@@ -20,6 +20,7 @@ Stand des aktuellen Branches, richtet ein und startet. `start.bat BRANCH` checkt
 ```bash
 composer setup              # Pakete, .env, Schlüssel, SQLite, Migrationen, Build
 php artisan glossary:admin  # ersten Admin anlegen – ohne Anmeldung lassen sich keine Daten ändern
+php artisan glossary:developer E-MAIL  # Rolle Developer (nur per Befehl, protokolliert)
 composer dev                # http://localhost:8000
 composer ci:check           # Prüfungen wie in der CI
 ```

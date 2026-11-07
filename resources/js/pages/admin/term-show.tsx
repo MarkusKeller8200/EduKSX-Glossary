@@ -1,8 +1,9 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { can } from '@/lib/access';
 
 type Begriff = Record<string, unknown> & {
     id: string;
@@ -81,6 +82,8 @@ export default function TermShow({
     };
 }) {
     const [sending, setSending] = useState(false);
+    const { auth } = usePage().props;
+    const darfVeroeffentlichen = can(auth, 'publish');
     const titel = [
         b.own_abbreviation || b.official_abbreviation,
         b.own_name || b.official_name,
@@ -179,23 +182,25 @@ export default function TermShow({
                                         Auf der Website
                                     </a>
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    disabled={sending}
-                                    onClick={() => {
-                                        if (
-                                            window.confirm(
-                                                'Veröffentlichung zurückziehen? Der Begriff ist danach nicht mehr öffentlich.',
-                                            )
-                                        ) {
-                                            post(
-                                                `/admin/begriffe/${b.id}/zurueckziehen`,
-                                            );
-                                        }
-                                    }}
-                                >
-                                    Zurückziehen
-                                </Button>
+                                {darfVeroeffentlichen ? (
+                                    <Button
+                                        variant="outline"
+                                        disabled={sending}
+                                        onClick={() => {
+                                            if (
+                                                window.confirm(
+                                                    'Veröffentlichung zurückziehen? Der Begriff ist danach nicht mehr öffentlich.',
+                                                )
+                                            ) {
+                                                post(
+                                                    `/admin/begriffe/${b.id}/zurueckziehen`,
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        Zurückziehen
+                                    </Button>
+                                ) : null}
                             </>
                         ) : null}
                     </div>

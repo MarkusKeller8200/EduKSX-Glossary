@@ -6,6 +6,19 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Rollen und Rechte (#36):** Rollen Moderator, Admin und Developer mit einstellbaren Rechten (Vorschläge
+  einreichen, prüfen, Begriffe bearbeiten, veröffentlichen, offizielle Felder, Benutzer verwalten, Import, Listen,
+  System). Jede Aktion der Administration prüft ihr Recht; Navigation und Knöpfe zeigen nur, was erlaubt ist.
+  Moderatoren bearbeiten Begriffe, veröffentlichen aber nicht. Schutzregeln: niemand erhöht eigene Rechte,
+  Developer nur per `php artisan glossary:developer E-MAIL`, das letzte Developer-Konto und die letzte
+  Verwaltungsberechtigung bleiben erhalten. Jede Änderung steht im Protokoll.
+
+### Geändert
+
+- Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.
+
 ## [0.3.0] – 2026-11-07
 
 ### Neu

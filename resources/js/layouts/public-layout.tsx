@@ -4,6 +4,7 @@ import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
 import { Button } from '@/components/ui/button';
 import { versionLabel } from '@/components/version-label';
+import { hasAdminArea } from '@/lib/access';
 
 /**
  * Öffentlicher Rahmen: Kopf mit Wortmarke, Inhalt, Fuss mit Version und Signatur (CI-Manual Abschnitt 9).
@@ -11,6 +12,7 @@ import { versionLabel } from '@/components/version-label';
  */
 export default function PublicLayout({ children }: { children: ReactNode }) {
     const { appVersion, auth, links } = usePage().props;
+    const admin = hasAdminArea(auth);
 
     return (
         <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -33,8 +35,8 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                             Versionen
                         </Link>
                         <Button asChild size="sm" variant="outline">
-                            <Link href={auth.user ? '/admin' : '/anmelden'}>
-                                {auth.user ? 'Administration' : 'Anmelden'}
+                            <Link href={admin ? '/admin' : '/anmelden'}>
+                                {admin ? 'Administration' : 'Anmelden'}
                             </Link>
                         </Button>
                         <AppearanceToggleTab />
@@ -77,7 +79,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         </a>
                         {' · '}
                         <Link
-                            href={auth.user ? '/admin' : '/anmelden'}
+                            href={admin ? '/admin' : '/anmelden'}
                             className="text-link underline-offset-4 hover:underline"
                         >
                             Administration

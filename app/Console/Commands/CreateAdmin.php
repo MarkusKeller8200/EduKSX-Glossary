@@ -2,15 +2,18 @@
 
 namespace App\Console\Commands;
 
+use App\Access\RoleManager;
 use App\Glossary\TwoFactor;
+use App\Models\Role;
 use App\Models\User;
+use App\Models\UserAudit;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 
 /**
- * Lokalen Admin anlegen oder dessen Passwort neu setzen (DEC-014). Einziger Weg zu einem Konto: Die Website hat
- * keine Registrierung. Das Passwort wird nur als Hash gespeichert und nie ausgegeben.
+ * Lokalen Admin anlegen oder dessen Passwort neu setzen (DEC-014). Das Konto erhält die Rolle Admin (nie Developer,
+ * dafür glossary:developer). Das Passwort wird nur als Hash gespeichert und nie ausgegeben.
  */
 class CreateAdmin extends Command
 {
@@ -22,7 +25,7 @@ class CreateAdmin extends Command
 
     protected $description = 'Lokalen Admin anlegen bzw. Passwort neu setzen';
 
-    public function handle(TwoFactor $twoFactor): int
+    public function handle(TwoFactor $twoFactor, RoleManager $roles): int
     {
         $email = (string) ($this->argument('email') ?? $this->ask('E-Mail'));
         if ($this->option('reset-2fa')) {
@@ -33,6 +36,9 @@ class CreateAdmin extends Command
                 return self::FAILURE;
             }
             $twoFactor->reset($user);
+            UserAudit::query()->create([
+                'actor_label' => RoleManager::SERVER, 'target_user_id' => $user->id, 'action' => 'mfa.reset', 'result' => 'ok',
+            ]);
             $this->info("Zweiter Faktor für {$user->email} zurückgesetzt – bei der nächsten Anmeldung neu einrichten.");
 
             return self::SUCCESS;
@@ -62,7 +68,8 @@ class CreateAdmin extends Command
 
         $user = User::query()->firstOrNew(['email' => strtolower($email)]);
         $exists = $user->exists;
-        $user->fill(['name' => $name, 'password' => $password, 'is_admin' => true])->save();
+        $user->fill(['name' => $name, 'password' => $password])->save();
+        $roles->assign(null, $user, Role::byKey(Role::ADMIN));
 
         $this->info($exists ? "Passwort und Rechte für {$user->email} aktualisiert." : "Admin {$user->email} angelegt.");
 
