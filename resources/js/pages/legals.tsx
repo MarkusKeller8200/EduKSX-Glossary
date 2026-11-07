@@ -61,18 +61,26 @@ export default function Legals() {
                 <strong>Lizenzprüfung im Aufbau.</strong> Die Aufstellung ist
                 noch kein vollständiges Lizenzinventar und keine abschliessende
                 rechtliche Freigabe. Insbesondere die Lizenzpflichten fremder
-                Bestandteile in übernommenem Code und die Softwarelizenz für
-                eigene EduKSX-Glossary-Programmteile müssen noch geklärt werden.
+                Bestandteile in übernommenem Code sind noch abschliessend zu
+                prüfen.
             </div>
             <section className="mt-8 space-y-3">
                 <h2 className="text-xl font-semibold">
                     Lizenzierung des Projekts
                 </h2>
                 <p>
-                    Für den eigenen Anwendungscode ist noch keine endgültige
-                    Softwarelizenz festgelegt. Der öffentliche GitHub-Code ist
-                    dadurch nicht automatisch zur beliebigen Weiterverwendung
-                    freigegeben.
+                    Der eigene Anwendungscode steht unter der{' '}
+                    <a
+                        href="https://github.com/MarkusKeller8200/EduKSX-Glossary/blob/main/LICENSE"
+                        className="text-link underline underline-offset-4"
+                    >
+                        MIT-Lizenz
+                    </a>{' '}
+                    (Copyright Markus Keller). Er darf frei genutzt, geändert
+                    und weitergegeben werden, solange der Copyright- und
+                    Lizenzhinweis erhalten bleibt. Fremde Bestandteile behalten
+                    ihre eigenen Lizenzen; Marke und Wortmarke MarKusSXCH /
+                    EduKSX sind nicht Teil der Lizenz.
                 </p>
                 <p>
                     Für selbst erstellte und entsprechend lizenzierbare

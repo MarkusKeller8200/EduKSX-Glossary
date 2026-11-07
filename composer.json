@@ -1,6 +1,7 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
     "name": "markussxch/eduksx-glossary",
+    "license": "MIT",
     "type": "project",
     "description": "EduKSX-Glossary – öffentliches Glossar mit API (Stack wie sek-intranet, SQLite)",
     "keywords": [

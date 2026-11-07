@@ -8,6 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Softwarelizenz (#65, DEC-021):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf
+  `/legals`).
+
+### Neu
+
 - **Farbige Labels (#77, #91, #92):** Kategorien und Herkunft in der Farbe, die unter «Listen» gewählt wird (Palette
   aus dem Intranet, hell und dunkel mit Kontrast AA). Status der Begriffe als Label (aktuell grün, zu prüfen orange,
   historisch grau), Veröffentlichung als «V1», «V2» … und «Entwurf V…», inaktiv und zusammengeführt eigens markiert.

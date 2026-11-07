@@ -9,7 +9,7 @@
 
 | Bereich                                                                                                  | Status / Regel                                                                                                                                                                                                                                                                                                                    |
 | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| EduKSX-Glossary: eigener Anwendungscode                                                                  | **Softwarelizenz noch nicht festgelegt.** Eine öffentliche GitHub-Ablage ersetzt keine ausdrückliche Nutzungslizenz. Urheber- und Mitwirkendenrechte prüfen.                                                                                                                                                                      |
+| EduKSX-Glossary: eigener Anwendungscode                                                                  | **MIT** (DEC-021, Datei `LICENSE`). Beiträge Dritter fallen unter dieselbe Lizenz (CONTRIBUTING); Urheber- und Mitwirkendenrechte prüfen.                                                                                                                                                                                         |
 | Glossary-Daten                                                                                           | **CC BY 4.0 vorläufig beschlossen** (DEC-016); nur eigene oder rechtmässig entsprechend lizenzierbare Texte. Quellenhinweise und Lizenzangabe bei Nachnutzung.                                                                                                                                                                    |
 | Übernommener eigener Code aus `MarkusKeller8200/sek-intranet` und `MarkusKeller8200/my-github-blueprint` | **Eigene Quell-Repositories des Projektverantwortlichen.** Für selbst entwickelte Bestandteile ist keine zusätzliche Fremdcode-Lizenzfreigabe nötig. Zu prüfen sind ausschliesslich enthaltene oder daraus weiter übernommene **fremde Codeanteile, Bibliotheken, Vorlagen, Schriften und Assets** sowie deren Lizenzbedingungen. |
 | Drittbibliotheken und kopierte Komponenten                                                               | Unter den jeweiligen Originalbedingungen; nicht durch spätere eigene Softwarelizenz ersetzen oder Einschränkungen auf fremden Code ausweiten.                                                                                                                                                                                     |
@@ -89,3 +89,23 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 Die CI erzeugt den Bericht bei jeder Prüfung und warnt bei starkem Copyleft, nicht-kommerziellen oder fehlenden
 Lizenzangaben. Jedes Release erhält ihn als Anhang `license-report.md` (Workflow `license-report`, täglich bzw. von Hand). Offen: den
 Lizenztext der SIL OFL 1.1 für die Schrift Inter als Datei beilegen.
+
+## Softwarelizenz (DEC-021)
+
+**Status: beschlossen am 07.11.2026 – MIT (#65),** Datei [`LICENSE`](../LICENSE). Gilt nur für den eigenen Anwendungscode. Drittkomponenten behalten ihre
+Lizenz, die Daten bleiben unter CC BY 4.0 (DEC-016), Marke und Wortmarke MarKusSXCH/EduKSX sind nicht Teil der
+Softwarelizenz.
+
+| Option              | Kurz                                                                                                         | Passt, wenn …                                                                                                 | Nachteil                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **MIT** (empfohlen) | Freie Nutzung, Änderung, Weitergabe; nur Copyright- und Lizenzhinweis behalten                               | Schulen, Gemeinden und Dienstleister den Code ohne Hürden übernehmen sollen; gleich wie Laravel und shadcn/ui | Änderungen an betriebenen Kopien müssen nicht zurückfliessen; kein ausdrückliches Patentrecht                |
+| Apache-2.0          | wie MIT, dazu ausdrückliche Patentlizenz und NOTICE-Datei                                                    | Patentfragen eine Rolle spielen oder grössere Organisationen beitragen                                        | etwas mehr Pflichten (Änderungsvermerk, NOTICE)                                                              |
+| AGPL-3.0-or-later   | starkes Copyleft auch beim Betrieb übers Netz: wer eine geänderte Fassung anbietet, muss den Code offenlegen | Verbesserungen gehosteter Varianten zwingend öffentlich werden sollen                                         | schreckt kommerzielle und manche öffentliche Betreiber ab; eigene kommerzielle Angebote nur mit Doppellizenz |
+
+**Begründung:** Das Glossary soll als offene Referenz von möglichst vielen Schulen, Gemeinden und
+Anbietern genutzt werden; der Wert liegt in den gemeinsam gepflegten Daten (CC BY 4.0) und im Betrieb, nicht in der
+Exklusivität des Codes. MIT ist mit allen eingesetzten Paketen verträglich (Bericht #73) und für öffentliche Stellen
+leicht zu prüfen.
+
+**Umgesetzt:** Datei `LICENSE` (MIT, Copyright Markus Keller), `license` in `composer.json` und `package.json`,
+Hinweis auf `/legals` und in der README.
