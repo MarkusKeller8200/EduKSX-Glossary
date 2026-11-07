@@ -25,12 +25,16 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        // Rechte aus Rollen (#36, DEC-017): je Recht ein Gate; Prüfung immer serverseitig
+        // Rechte aus Rollen (#36, DEC-017): je Recht ein Gate; Prüfung immer serverseitig. Privilegierte Rechte nur
+        // mit bestätigtem zweitem Faktor und aktivem Konto (#37, KONZEPT-BENUTZER 5.3)
         foreach (Permission::keys() as $permission) {
-            Gate::define($permission, fn (User $user): bool => $user->hasPermission($permission));
+            Gate::define($permission, fn (User $user): bool => $user->isActive()
+                && $user->hasPermission($permission)
+                && ($permission === 'propose' || $user->hasTwoFactor()));
         }
-        // Zugang zur Administration: irgendein Recht ausser «Vorschläge einreichen»
-        Gate::define('administer', fn (User $user): bool => $user->needsTwoFactor());
+        // Zugang zur Administration: irgendein Recht ausser «Vorschläge einreichen» (Einrichtung des zweiten Faktors
+        // ist dort möglich; die einzelnen Aktionen verlangen ihn)
+        Gate::define('administer', fn (User $user): bool => $user->isActive() && $user->needsTwoFactor());
 
         // Öffentliche Lese-API: 120 Abrufe pro Minute und Adresse
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));

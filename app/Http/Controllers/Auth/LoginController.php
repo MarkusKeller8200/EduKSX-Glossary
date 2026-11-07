@@ -47,6 +47,9 @@ class LoginController extends Controller
             throw ValidationException::withMessages(['email' => 'E-Mail oder Passwort stimmt nicht.']);
         }
         RateLimiter::clear($key);
+        if (! $user->isActive()) {
+            throw ValidationException::withMessages(['email' => 'Anmeldung nicht möglich. Bitte an die Administration wenden.']);
+        }
 
         // Zweiter Faktor eingerichtet → erst nach dem Code anmelden (#11)
         if ($user->hasTwoFactor()) {
@@ -56,11 +59,11 @@ class LoginController extends Controller
             return redirect('/anmelden/code');
         }
 
-        // Noch ohne zweiten Faktor: anmelden, die Administration verlangt danach die Einrichtung
+        // Noch ohne zweiten Faktor: anmelden; wer privilegierte Rechte hat, muss ihn danach einrichten (#37)
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        return redirect()->intended('/admin');
+        return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
     }
 
     public function destroy(Request $request): RedirectResponse

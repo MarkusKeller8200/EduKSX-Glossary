@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Access\Audit;
 use App\Glossary\TwoFactor;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -37,7 +38,9 @@ class TwoFactorController extends Controller
         $data = $request->validate(['code' => ['required', 'string', 'max:20']]);
         $id = $request->session()->get('login.id');
         $user = is_string($id) ? User::query()->find($id) : null;
-        if ($user === null) {
+        if ($user === null || ! $user->isActive()) {
+            $request->session()->forget('login.id');
+
             return redirect('/anmelden');
         }
 
@@ -57,7 +60,7 @@ class TwoFactorController extends Controller
         Auth::login($user, $remember);
         $request->session()->regenerate();
 
-        return redirect()->intended('/admin');
+        return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
     }
 
     /** Einrichtung (Pflicht vor der Administration) bzw. Übersicht, wenn schon eingerichtet. */
@@ -89,6 +92,8 @@ class TwoFactorController extends Controller
             throw ValidationException::withMessages(['code' => 'Der Code stimmt nicht. Uhrzeit des Handys prüfen und den aktuellen Code eingeben.']);
         }
 
+        Audit::log($user, $user, 'mfa.enabled');
+
         return redirect()->route('admin.two-factor')
             ->with('recovery_codes', $codes)
             ->with('status', 'Zweiter Faktor eingerichtet. Wiederherstellungscodes jetzt sicher aufbewahren.');
@@ -99,8 +104,11 @@ class TwoFactorController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        $codes = $this->twoFactor->newRecoveryCodes($user);
+        Audit::log($user, $user, 'mfa.recovery_codes');
+
         return redirect()->route('admin.two-factor')
-            ->with('recovery_codes', $this->twoFactor->newRecoveryCodes($user))
+            ->with('recovery_codes', $codes)
             ->with('status', 'Neue Wiederherstellungscodes erzeugt – die alten gelten nicht mehr.');
     }
 }
