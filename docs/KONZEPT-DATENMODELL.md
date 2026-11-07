@@ -212,3 +212,56 @@ Nicht gespeichert, eine Regel für Website und API:
   Vorschau je Zeile gemeldet und beim Übernehmen als Altwerte gesichert (kein stiller Verlust, kein Raten). Eine
   neue Zeile nur mit eigener Abkürzung/Bezeichnung ist ein Fehler.
 - Persönliche Darstellungen werden nicht über Excel importiert oder exportiert.
+
+## Freigabe und Rücknahme von Revisionen (DEC-022)
+
+**Vorschlag 07.11.2026 (#74), Umsetzung freigegeben.** Ergänzt die drei Statusachsen und das Journal (DEC-020).
+
+### Grundsätze
+
+- **Revisionen sind unveränderlich und werden nie gelöscht.** Jede Änderung, auch eine Rücknahme, ist eine neue
+  Revision mit fortlaufender Nummer. Einzige Ausnahme bleibt die Pseudonymisierung bei Kontolöschung (DEC-020).
+- **Öffentlich ist genau eine Revision je Begriff** (`terms.published_revision_id`). Website, API, Vollstand,
+  Change-Feed und GitHub Pages lesen nur sie; angezeigt als «V<Revision>».
+- **Entwurf** heisst: Der Arbeitsstand weicht **inhaltlich** von der veröffentlichten Revision ab. Gleicher Inhalt
+  mit höherer Nummer (z. B. nach «Entwurf verwerfen») ist kein Entwurf und wird nicht nochmals veröffentlicht.
+- **Freigeben** (Recht `publish`): veröffentlicht immer die neueste Revision. Ohne inhaltliche Änderung gegenüber
+  dem öffentlichen Stand geschieht nichts (kein Ereignis, kein Datenstand).
+- **Vier-Augen-Prinzip:** vorerst nicht verlangt (kleine Redaktion); Freigabe und Autor stehen im Journal.
+  Später als Einstellung möglich (Freigabe nicht durch die Person der letzten Änderung).
+
+### Rücknahme
+
+| Aktion                                   | Recht                      | Wirkung                                                                                                                   |
+| ---------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Zurückziehen**                         | `publish`                  | Begriff nicht mehr öffentlich (Tombstone «unpublished» im Change-Feed); Revisionen bleiben                                |
+| **Revision wiederherstellen**            | `edit-terms`               | neue Revision mit dem Inhalt einer früheren (`change_type` `restored`, `context.restored_from`); Ergebnis ist ein Entwurf |
+| **Wiederherstellen und veröffentlichen** | `edit-terms` und `publish` | wie oben, gleich veröffentlicht – ein Datenstand, Ereignis «published» (z. B. fehlerhafte Freigabe rückgängig machen)     |
+| **Entwurf verwerfen**                    | `edit-terms`               | stellt die veröffentlichte Revision als neue Revision her; danach kein Entwurf mehr                                       |
+
+- Wiederhergestellt werden nur **gemeinsame Felder** (DEC-020). Altfelder in alten Abbildern (`own_*`, `used_in`)
+  werden nie zurückgeholt.
+- Offizielle Felder: Weicht die Wiederherstellung dort vom Arbeitsstand ab, braucht sie das Recht `edit-official`
+  (gleiche Regel wie beim Bearbeiten).
+- Kategorien und Herkünfte, die es nicht mehr gibt, verhindern die Wiederherstellung mit einer Meldung (nichts wird
+  still weggelassen).
+- Zusammengeführte Begriffe (Weiterleitung) können nicht wiederhergestellt werden; ein Zusammenführen wird nicht
+  automatisch rückgängig gemacht.
+
+### Vorschläge (Meilenstein 0.7.0)
+
+- Ein Vorschlag nennt die **Basisrevision**. Bei der Annahme prüft die Moderation feldweise, ob sich die
+  vorgeschlagenen Felder seit der Basis geändert haben (Konflikt anzeigen, nie still überschreiben).
+- Angenommene Vorschläge ergeben eine neue Revision (Kontext mit Vorschlags-ID, Bezeichnung der einreichenden
+  Person als Text). Veröffentlicht wird getrennt mit dem Recht `publish`.
+- Rücknahme eines angenommenen Vorschlags = Revision wiederherstellen.
+
+### Abnahmetests
+
+1. Wiederherstellen erzeugt eine neue Revision mit dem Inhalt der gewählten, die alte bleibt unverändert.
+2. Wiederherstellen und veröffentlichen: ein Datenstand, Ereignis «published», API zeigt den alten Inhalt mit neuer
+   Revisionsnummer.
+3. Entwurf verwerfen: danach kein Entwurf; Freigeben tut nichts.
+4. Ohne `edit-official` keine Wiederherstellung, die offizielle Felder ändert; ohne `publish` kein direktes
+   Veröffentlichen.
+5. Fehlende Kategorie bzw. Herkunft → Meldung, keine Revision.
