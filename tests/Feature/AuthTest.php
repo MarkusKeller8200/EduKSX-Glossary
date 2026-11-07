@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /** Lokaler Admin von Beginn an (DEC-014): ohne Anmeldung keine Administration. */
@@ -27,7 +28,8 @@ class AuthTest extends TestCase
         $this->post('/anmelden', ['email' => 'Admin@Example.org', 'password' => 'ein-langes-Test-Passwort-1'])
             ->assertRedirect('/admin');
         $this->assertAuthenticated();
-        $this->get('/admin')->assertOk();
+        $this->get('/admin')->assertOk()->assertInertia(fn (Assert $page) => $page->component('admin/dashboard')
+            ->where('stats.terms', 0)->where('stats.published', 0));
 
         $this->post('/abmelden')->assertRedirect('/');
         $this->assertGuest();
