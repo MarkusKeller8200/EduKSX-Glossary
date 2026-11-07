@@ -12,7 +12,7 @@ noch zu klären.
 
 Ein öffentliches, durchsuchbares Glossar für Schweizer Volksschulen, Schulgemeinden und Gemeinden: Abkürzungen und
 Begriffe mit Erklärung, Quelle und Gültigkeit. Teil der Produktfamilie **EduKSX** (Dachmarke MarKusSXCH), erreichbar
-unter `glossar.eduksx.ch`.
+unter `glossary.eduksx.ch`.
 
 - **Entscheid:** Eigenständige Webanwendung, lesen ohne Anmeldung (DEC-001).
 - **Entscheid:** Das Glossar ist das **führende System**. Intranet, Confluence und weitere Systeme erhalten nur
@@ -89,6 +89,8 @@ Regeln wie im Intranet (**Entscheid**):
 - Schutz vor Missbrauch: Rate-Limit, Spam-Schutz (z. B. Cloudflare Turnstile), keine öffentliche Anzeige von
   E-Mail oder IP.
 - Bis zur Umsetzung bleiben die **GitHub-Issue-Formulare** der Weg für Vorschläge.
+- **GitHub Pages** bleibt dauerhaft als reduzierte, statische Lesefassung (Export des veröffentlichten Datenstands,
+  [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)).
 
 ## Rollen (Vorschlag)
 
@@ -127,7 +129,8 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 ## Betrieb
 
-- Hosting: [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (Entscheid DEC-013).
+- Hosting: [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (Entscheid DEC-013): Hostinger-VPS, `glossary.eduksx.ch`,
+  GitHub Pages als reduzierte Fassung.
 - Stack: [KONZEPT-STACK.md](KONZEPT-STACK.md) (Entwurf).
 - Auftritt und GUI-Bausteine: [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md) (Entwurf) – Auftritt nach CI MarKusSXCH,
   Bausteine aus dem Intranet übernommen, nicht neu entwickelt.
@@ -153,7 +156,7 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 | Etappe | Inhalt                                                                      | Abnahme                                           |
 | ------ | --------------------------------------------------------------------------- | ------------------------------------------------- |
-| 0.1    | Konzept, Hosting, Stack, Versionierung; Programmiergerüst und Deployment    | Gerüst läuft auf `glossar.eduksx.ch`              |
+| 0.1    | Konzept, Hosting, Stack, Versionierung; Programmiergerüst und Deployment    | Gerüst läuft auf `glossary.eduksx.ch`              |
 | 0.2    | Datenmodell, Übernahme der Intranet-Daten, Import/Export                    | Startinhalt importiert, nichts still gelöscht     |
 | 0.3    | Öffentliche Website und API `/api/v1` mit OpenAPI und Sync                  | Sync mit dem Intranet automatisch getestet        |
 | 0.4    | Community: Vorschläge, Moderation, Verlauf                                  | kein Vorschlag ohne Freigabe öffentlich           |

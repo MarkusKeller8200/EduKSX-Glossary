@@ -39,7 +39,7 @@ routes/         web.php (Website, Redaktion), api.php (/api/v1)
 openapi/        glossary-v1.yaml
 docker/         compose.prod.yaml, entrypoint.sh
 tests/          Feature-, API- und Sync-Tests
-site/           statische Übergangsseite (GitHub Pages) bis zum Wechsel
+site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Export
 ```
 
 ## Varianten
