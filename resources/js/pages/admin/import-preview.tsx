@@ -52,11 +52,6 @@ export default function ImportPreview({
                     <h1 className="text-3xl font-semibold tracking-tight">
                         Excel-Import prüfen
                     </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        {datei}: {neu} neu, {geaendert} geändert, {fehler}{' '}
-                        Fehler. Unveränderte Zeilen werden nicht angezeigt. Es
-                        wird nie etwas gelöscht.
-                    </p>
                 </div>
                 <div className="flex gap-2">
                     <Button
@@ -77,6 +72,11 @@ export default function ImportPreview({
                     </Button>
                 </div>
             </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+                {datei}: {neu} neu, {geaendert} geändert, {fehler} Fehler.
+                Unveränderte Zeilen werden nicht angezeigt. Es wird nie etwas
+                gelöscht.
+            </p>
 
             {altesFormat ? (
                 <Alert className="mt-6">

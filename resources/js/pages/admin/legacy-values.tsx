@@ -70,19 +70,6 @@ export default function LegacyValues({
                     <h1 className="text-3xl font-semibold tracking-tight">
                         Altwerte zuordnen
                     </h1>
-                    <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                        {offen === 1
-                            ? '1 offener Wert'
-                            : `${offen} offene Werte`}{' '}
-                        aus dem Intranet-Format. Eigene Bezeichnungen und
-                        «Intern genutzt in» sind keine gemeinsamen Daten mehr.
-                        Übernehmen als offizielle Angabe (nur wenn das Feld leer
-                        ist), als alternative Schreibweise oder als Suchbegriff
-                        – oder verwerfen. Übernahmen ergeben einen Entwurf, der
-                        wie jede Änderung zu veröffentlichen ist. Persönliche
-                        Formen setzt jede Person selbst unter «Meine
-                        Darstellung».
-                    </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Button asChild variant="outline">
@@ -100,6 +87,16 @@ export default function LegacyValues({
                     </Button>
                 </div>
             </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+                {offen === 1 ? '1 offener Wert' : `${offen} offene Werte`} aus
+                dem Intranet-Format. Eigene Bezeichnungen und «Intern genutzt
+                in» sind keine gemeinsamen Daten mehr. Übernehmen als offizielle
+                Angabe (nur wenn das Feld leer ist), als alternative
+                Schreibweise oder als Suchbegriff – oder verwerfen. Übernahmen
+                ergeben einen Entwurf, der wie jede Änderung zu veröffentlichen
+                ist. Persönliche Formen setzt jede Person selbst unter «Meine
+                Darstellung».
+            </p>
 
             <div className="mt-6 flex flex-wrap items-end gap-3 text-sm">
                 <label className="grid gap-1">

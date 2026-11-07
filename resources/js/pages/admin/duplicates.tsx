@@ -60,15 +60,6 @@ export default function Duplicates({
                     <h1 className="text-3xl font-semibold tracking-tight">
                         Doppelte Abkürzungen oder Begriffe
                     </h1>
-                    <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-                        {gruppen.length === 1
-                            ? '1 Gruppe'
-                            : `${gruppen.length} Gruppen`}{' '}
-                        mit gleicher Abkürzung oder Bezeichnung. Gleiche
-                        Abkürzungen mit verschiedener Bedeutung sind erlaubt –
-                        dann «Mehrdeutig belassen». Zusammenführen nur bei
-                        gleicher Bedeutung; alte Adressen leiten danach weiter.
-                    </p>
                 </div>
                 {belassen > 0 ? (
                     <Button
@@ -88,6 +79,15 @@ export default function Duplicates({
                     </Button>
                 ) : null}
             </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+                {gruppen.length === 1
+                    ? '1 Gruppe'
+                    : `${gruppen.length} Gruppen`}{' '}
+                mit gleicher Abkürzung oder Bezeichnung. Gleiche Abkürzungen mit
+                verschiedener Bedeutung sind erlaubt – dann «Mehrdeutig
+                belassen». Zusammenführen nur bei gleicher Bedeutung; alte
+                Adressen leiten danach weiter.
+            </p>
 
             {gruppen.length === 0 ? (
                 <p className="mt-8 text-muted-foreground">

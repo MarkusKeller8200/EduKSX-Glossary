@@ -64,7 +64,7 @@ export default function Lists({
         <>
             <Head title="Listen" />
             <h1 className="text-3xl font-semibold tracking-tight">Listen</h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
                 Kategorien und Herkunft der Begriffe. Der Schlüssel bleibt nach
                 dem Anlegen fest (API, Excel-Import); gelöscht werden kann nur,
                 was kein Begriff verwendet.

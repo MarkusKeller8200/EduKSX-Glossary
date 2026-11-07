@@ -85,12 +85,6 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                     <h1 className="text-3xl font-semibold tracking-tight">
                         Begriffe
                     </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        {begriffe.length} Begriffe, davon{' '}
-                        {begriffe.filter((b) => b.veroeffentlicht).length}{' '}
-                        veröffentlicht. Neue und geänderte Begriffe sind
-                        Entwürfe, bis sie freigegeben werden.
-                    </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <Button asChild variant="outline">
@@ -111,6 +105,12 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                     </Button>
                 </div>
             </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+                {begriffe.length} Begriffe, davon{' '}
+                {begriffe.filter((b) => b.veroeffentlicht).length}{' '}
+                veröffentlicht. Neue und geänderte Begriffe sind Entwürfe, bis
+                sie freigegeben werden.
+            </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
                 <div className="w-full max-w-sm">
