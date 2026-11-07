@@ -19,6 +19,8 @@ services:
             APP_NAME: EduKSX-Glossary
             # Sitzungs-Cookie nur über HTTPS (#37)
             SESSION_SECURE_COOKIE: 'true'
+            # Mails über die Warteschlange mit Wiederholung (#40); abgearbeitet vom Dienst «worker»
+            QUEUE_CONNECTION: database
         volumes:
             - glossary-storage:/var/www/html/storage
         labels:
@@ -27,6 +29,52 @@ services:
             - traefik.http.routers.glossary.entrypoints=websecure
             - traefik.http.routers.glossary.tls.certresolver=letsencrypt
             - traefik.http.services.glossary.loadbalancer.server.port=80
+
+    # Warteschlange (Mails mit Wiederholung, #40); gleiches Image, ohne Migration (GLOSSARY_ROLE)
+    worker:
+        build:
+            context: ./src
+        image: eduksx-glossary:latest
+        restart: unless-stopped
+        user: www-data
+        depends_on:
+            - app
+        env_file:
+            - path: ./.env
+              required: false
+        environment:
+            APP_URL: https://${GLOSSARY_HOST:-glossary.eduksx.ch}
+            APP_NAME: EduKSX-Glossary
+            QUEUE_CONNECTION: database
+            GLOSSARY_ROLE: worker
+        command: ['php', 'artisan', 'queue:work', '--tries=3', '--backoff=60', '--max-time=3600']
+        volumes:
+            - glossary-storage:/var/www/html/storage
+        healthcheck:
+            disable: true
+
+    # Geplante Aufgaben (z. B. Löschfristen, #41/#42)
+    scheduler:
+        build:
+            context: ./src
+        image: eduksx-glossary:latest
+        restart: unless-stopped
+        user: www-data
+        depends_on:
+            - app
+        env_file:
+            - path: ./.env
+              required: false
+        environment:
+            APP_URL: https://${GLOSSARY_HOST:-glossary.eduksx.ch}
+            APP_NAME: EduKSX-Glossary
+            QUEUE_CONNECTION: database
+            GLOSSARY_ROLE: scheduler
+        command: ['php', 'artisan', 'schedule:work']
+        volumes:
+            - glossary-storage:/var/www/html/storage
+        healthcheck:
+            disable: true
 
 volumes:
     glossary-storage:

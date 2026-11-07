@@ -89,15 +89,56 @@ docker compose exec app php artisan glossary:developer E-MAIL --grund="Erstes Se
 
 3. Prüfen: `https://glossary.eduksx.ch/up`, `https://glossary.eduksx.ch/versionen`, Anmelden unter `/anmelden`.
 
+## 6. E-Mail-Versand (#40)
+
+Der Versand ist an keinen Anbieter gebunden. Eingestellt wird er in `/docker/glossary/.env` auf dem Server;
+Zugangsdaten nie ins Repository. Danach `docker compose up -d` und in der Administration unter **System** eine
+Testmail senden (Recht «System», d. h. Developer). Ohne echten Versand (`MAIL_MAILER=log`) bleibt die
+Selbstregistrierung ausgeschaltet.
+
+```dotenv
+# gemeinsam
+MAIL_FROM_ADDRESS=noreply@eduksx.ch
+MAIL_FROM_NAME="EduKSX-Glossary"
+
+# Microsoft 365 / Exchange Online (Postfach mit SMTP AUTH)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.office365.com
+MAIL_PORT=587
+MAIL_USERNAME=noreply@eduksx.ch
+MAIL_PASSWORD=…
+
+# Google Workspace / Gmail (App-Passwort oder SMTP-Relay)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=…
+MAIL_PASSWORD=…
+
+# Infomaniak bzw. Hostinger (SMTP des Anbieters)
+MAIL_MAILER=smtp
+MAIL_HOST=mail.infomaniak.com      # bzw. smtp.hostinger.com
+MAIL_PORT=465
+MAIL_SCHEME=smtps
+MAIL_USERNAME=…
+MAIL_PASSWORD=…
+```
+
+Versanddienste (Postmark, Amazon SES, Resend, Mailgun) gehen über die Treiber von Laravel; manche brauchen ein
+Paket. Mails laufen über die Warteschlange: Der Dienst `worker` arbeitet sie ab und wiederholt fehlgeschlagene
+Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt die Systemseite; erneut senden mit
+`docker compose exec worker php artisan queue:retry all`.
+
 ## Betrieb
 
-| Aufgabe             | Befehl auf dem Server (`cd /docker/glossary`)                                   |
-| ------------------- | ------------------------------------------------------------------------------- |
-| Status              | `docker compose ps`                                                             |
-| Logs                | `docker compose logs -f app`                                                    |
-| Admin/Passwort      | `docker compose exec app php artisan glossary:admin`                            |
-| Developer           | `docker compose exec app php artisan glossary:developer E-MAIL` (`--entziehen`) |
-| Sicherungen ansehen | `docker compose exec app ls storage/app/backups`                                |
+| Aufgabe             | Befehl auf dem Server (`cd /docker/glossary`)                                          |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| Status              | `docker compose ps`                                                                    |
+| Logs                | `docker compose logs -f app`                                                           |
+| Admin/Passwort      | `docker compose exec app php artisan glossary:admin`                                   |
+| Warteschlange/Mails | `docker compose logs -f worker`, `docker compose exec worker php artisan queue:failed` |
+| Developer           | `docker compose exec app php artisan glossary:developer E-MAIL` (`--entziehen`)        |
+| Sicherungen ansehen | `docker compose exec app ls storage/app/backups`                                       |
 
 - Vor jedem Start sichert der Container die SQLite-Datei nach `storage/app/backups` (die letzten 10). Eine Sicherung
   ausser Haus folgt (offener Punkt im Hosting-Konzept).
