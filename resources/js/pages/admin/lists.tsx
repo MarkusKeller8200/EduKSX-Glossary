@@ -2,9 +2,12 @@ import { Head, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
+import { isColorName, palette } from '@/lib/colors';
 
 type Eintrag = {
     id: string;
@@ -15,6 +18,7 @@ type Eintrag = {
     description: string | null;
     url: string | null;
     note: string | null;
+    color: string | null;
     sort_order: number;
     begriffe: number;
 };
@@ -24,18 +28,37 @@ type Werte = {
     abbreviation: string;
     name: string;
     label: string;
+    description: string;
     url: string;
+    color: string;
     sort_order: string;
 };
 
 const TITEL = { kategorien: 'Kategorien', herkunft: 'Herkunft' } as const;
+
+/** Anzeigenamen der Palette (#77). */
+const FARBNAMEN: Record<string, string> = {
+    brand: 'Marke (Blau)',
+    slate: 'Grau',
+    sky: 'Himmelblau',
+    cyan: 'Cyan',
+    teal: 'Petrol',
+    emerald: 'Grün',
+    amber: 'Bernstein',
+    orange: 'Orange',
+    rose: 'Rosa',
+    violet: 'Violett',
+    indigo: 'Indigo',
+};
 type Liste = keyof typeof TITEL;
 
 /** Listen pflegen (#14): Kategorien und Herkunft wie im Intranet. Schlüssel bleiben stabil (API, Excel). */
 export default function Lists({
     listen,
+    farbwahl: farben,
 }: {
     listen: Record<Liste, Eintrag[]>;
+    farbwahl: string[];
 }) {
     return (
         <>
@@ -47,13 +70,26 @@ export default function Lists({
                 was kein Begriff verwendet.
             </p>
             {(Object.keys(TITEL) as Liste[]).map((liste) => (
-                <Tabelle key={liste} liste={liste} eintraege={listen[liste]} />
+                <Tabelle
+                    key={liste}
+                    liste={liste}
+                    eintraege={listen[liste]}
+                    farben={farben}
+                />
             ))}
         </>
     );
 }
 
-function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
+function Tabelle({
+    liste,
+    eintraege,
+    farben,
+}: {
+    liste: Liste;
+    eintraege: Eintrag[];
+    farben: string[];
+}) {
     const [bearbeiten, setBearbeiten] = useState<string | null>(null);
 
     return (
@@ -76,6 +112,9 @@ function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
                                 Label
                             </th>
                             <th scope="col" className="px-3 py-2 font-medium">
+                                Farbe
+                            </th>
+                            <th scope="col" className="px-3 py-2 font-medium">
                                 URL
                             </th>
                             <th scope="col" className="px-3 py-2 font-medium">
@@ -93,9 +132,10 @@ function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
                                     key={e.id}
                                     className="border-t border-border"
                                 >
-                                    <td colSpan={7} className="px-3 py-3">
+                                    <td colSpan={8} className="px-3 py-3">
                                         <Formular
                                             liste={liste}
+                                            farben={farben}
                                             eintrag={e}
                                             onFertig={() => setBearbeiten(null)}
                                         />
@@ -114,6 +154,26 @@ function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
                                     </td>
                                     <td className="px-3 py-2">{e.name}</td>
                                     <td className="px-3 py-2">{e.label}</td>
+                                    <td className="px-3 py-2">
+                                        <Badge
+                                            variant="outline"
+                                            className={
+                                                palette[
+                                                    isColorName(e.color)
+                                                        ? e.color
+                                                        : 'slate'
+                                                ].badge
+                                            }
+                                        >
+                                            {e.label ||
+                                                e.abbreviation ||
+                                                e.name}
+                                        </Badge>
+                                        <span className="sr-only">
+                                            {' '}
+                                            Farbe {e.color ?? 'keine'}
+                                        </span>
+                                    </td>
                                     <td className="px-3 py-2 break-all">
                                         {e.url}
                                     </td>
@@ -161,7 +221,7 @@ function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
                         {eintraege.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={7}
+                                    colSpan={8}
                                     className="px-3 py-4 text-center text-muted-foreground"
                                 >
                                     Noch keine Einträge.
@@ -178,6 +238,7 @@ function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
                 <div className="mt-3">
                     <Formular
                         liste={liste}
+                        farben={farben}
                         eintrag={null}
                         onFertig={() => {}}
                     />
@@ -189,10 +250,12 @@ function Tabelle({ liste, eintraege }: { liste: Liste; eintraege: Eintrag[] }) {
 
 function Formular({
     liste,
+    farben,
     eintrag,
     onFertig,
 }: {
     liste: Liste;
+    farben: string[];
     eintrag: Eintrag | null;
     onFertig: () => void;
 }) {
@@ -201,7 +264,9 @@ function Formular({
         abbreviation: eintrag?.abbreviation ?? '',
         name: eintrag?.name ?? '',
         label: eintrag?.label ?? '',
+        description: eintrag?.description ?? '',
         url: eintrag?.url ?? '',
+        color: eintrag?.color ?? '',
         sort_order: String(eintrag?.sort_order ?? ''),
     });
     const submit = (ev: FormEvent) => {
@@ -244,6 +309,37 @@ function Formular({
             {feld('label', 'Label (kurz)')}
             {feld('url', 'URL')}
             {feld('sort_order', 'Reihenfolge')}
+            <div className="space-y-1">
+                <Label htmlFor={`${liste}-${eintrag?.id ?? 'neu'}-color`}>
+                    Farbe
+                </Label>
+                <NativeSelect
+                    id={`${liste}-${eintrag?.id ?? 'neu'}-color`}
+                    value={form.data.color}
+                    onChange={(e) => form.setData('color', e.target.value)}
+                >
+                    <option value="">keine (grau)</option>
+                    {farben.map((f) => (
+                        <option key={f} value={f}>
+                            {FARBNAMEN[f] ?? f}
+                        </option>
+                    ))}
+                </NativeSelect>
+                <InputError message={form.errors.color} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+                <Label htmlFor={`${liste}-${eintrag?.id ?? 'neu'}-description`}>
+                    Beschreibung (öffentlich)
+                </Label>
+                <Input
+                    id={`${liste}-${eintrag?.id ?? 'neu'}-description`}
+                    value={form.data.description}
+                    onChange={(e) =>
+                        form.setData('description', e.target.value)
+                    }
+                />
+                <InputError message={form.errors.description} />
+            </div>
             <div className="flex gap-2 sm:col-span-3">
                 <Button type="submit" size="sm" disabled={form.processing}>
                     Speichern

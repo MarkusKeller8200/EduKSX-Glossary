@@ -1,8 +1,8 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ListBadge } from '@/components/tags';
 
 type Mitglied = {
     id: string;
@@ -144,9 +144,11 @@ export default function Duplicates({
                                                 .join(' – ')}
                                         </Link>
                                         {b.kategorien.map((k) => (
-                                            <Badge key={k} variant="outline">
-                                                {k}
-                                            </Badge>
+                                            <ListBadge
+                                                key={k}
+                                                list="kategorien"
+                                                label={k}
+                                            />
                                         ))}
                                         <span className="text-muted-foreground">
                                             {b.veroeffentlicht

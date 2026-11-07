@@ -1,10 +1,15 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { can } from '@/lib/access';
+import {
+    ListBadge,
+    RevisionBadges,
+    StateBadge,
+    StatusBadge,
+} from '@/components/tags';
 
 type Begriff = {
     id: string;
@@ -194,31 +199,32 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                                 <td className="px-3 py-2" translate="no">
                                     {b.bezeichnung}
                                     {!b.aktiv ? (
-                                        <span className="ml-2 text-muted-foreground">
-                                            (inaktiv)
+                                        <span className="ml-2">
+                                            <StateBadge state="inactive">
+                                                inaktiv
+                                            </StateBadge>
                                         </span>
                                     ) : null}
                                 </td>
                                 <td className="px-3 py-2">
                                     <div className="flex flex-wrap gap-1">
                                         {b.kategorien.map((k) => (
-                                            <Badge key={k} variant="outline">
-                                                {k}
-                                            </Badge>
+                                            <ListBadge
+                                                key={k}
+                                                list="kategorien"
+                                                label={k}
+                                            />
                                         ))}
                                     </div>
                                 </td>
-                                <td className="px-3 py-2">{b.status}</td>
                                 <td className="px-3 py-2">
-                                    {b.veroeffentlicht === null ? (
-                                        <Badge variant="secondary">
-                                            Entwurf
-                                        </Badge>
-                                    ) : b.veroeffentlicht === b.revision ? (
-                                        `Revision ${b.revision}`
-                                    ) : (
-                                        `Revision ${b.veroeffentlicht} (Entwurf ${b.revision})`
-                                    )}
+                                    <StatusBadge status={b.status} />
+                                </td>
+                                <td className="px-3 py-2">
+                                    <RevisionBadges
+                                        published={b.veroeffentlicht}
+                                        revision={b.revision}
+                                    />
                                 </td>
                             </tr>
                         ))}

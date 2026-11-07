@@ -25,6 +25,8 @@ noch festzulegen (KONZEPT, Lizenzen).
 
 | Datei                                                            | Abweichung                                                                                                                                                       |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resources/js/lib/colors.ts`                                     | nur `palette`, `isColorName`, `statusClasses`; ohne Listen des Intranets und Druckfarben; dazu Farben für Status und Veröffentlichung (#77, #91, #92)            |
+| `resources/js/components/tags.tsx`                               | nach `option-badge.tsx`: Farbe je Label über die geteilte Angabe `farben` statt `use-options` (#77)                                                              |
 | `resources/js/components/ui/button.tsx`                          | Variante `link` in `text-link` statt `text-primary` (Orange als Schrift hat zu wenig Kontrast)                                                                   |
 | `resources/css/app.css`                                          | Farbwerte nach CI MarKusSXCH, Schrift Inter, neue Werte `--brand-*`, `--link`; ohne Zeiterfassung                                                                |
 | `app/Http/Middleware/SecurityHeaders.php`                        | ohne Einbindungen von Fachanwendungen (`frame-src 'self'`)                                                                                                       |

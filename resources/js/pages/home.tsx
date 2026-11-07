@@ -1,8 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { ListBadge, StatusBadge } from '@/components/tags';
 
 type Begriff = {
     slug: string;
@@ -155,14 +155,14 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                 ) : null}
                                 <span translate="no">{b.bezeichnung}</span>
                                 {b.kategorien.map((k) => (
-                                    <Badge key={k} variant="outline">
-                                        {k}
-                                    </Badge>
+                                    <ListBadge
+                                        key={k}
+                                        list="kategorien"
+                                        label={k}
+                                    />
                                 ))}
                                 {b.status !== 'aktuell' ? (
-                                    <Badge variant="secondary">
-                                        {b.status}
-                                    </Badge>
+                                    <StatusBadge status={b.status} />
                                 ) : null}
                             </span>
                             {b.kurz ? (

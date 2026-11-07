@@ -4,6 +4,7 @@ import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { stateClasses } from '@/lib/colors';
 
 type Begriff = {
     id: string;
@@ -136,10 +137,11 @@ export default function Merge({
                                         <span translate="no">{b.titel}</span>
                                         <span className="mt-1 block">
                                             <Badge
-                                                variant={
+                                                variant="outline"
+                                                className={
                                                     b.veroeffentlicht
-                                                        ? 'default'
-                                                        : 'secondary'
+                                                        ? stateClasses.published
+                                                        : stateClasses.draft
                                                 }
                                             >
                                                 {b.veroeffentlicht

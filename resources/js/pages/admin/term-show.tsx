@@ -4,6 +4,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { can } from '@/lib/access';
+import { RevisionBadges, StateBadge, StatusBadge } from '@/components/tags';
+import { stateClasses } from '@/lib/colors';
 
 type Begriff = Record<string, unknown> & {
     id: string;
@@ -148,24 +150,26 @@ export default function TermShow({
                         {titel}
                     </h1>
                     <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                        {b.veroeffentlicht === null ? (
-                            <Badge variant="secondary">
-                                Entwurf – nicht öffentlich
-                            </Badge>
-                        ) : (
-                            <Badge>
-                                Veröffentlicht: Revision {b.veroeffentlicht}
-                            </Badge>
-                        )}
-                        {b.veroeffentlicht !== null && b.ungespeichert ? (
-                            <Badge variant="secondary">
-                                Entwurf Revision {b.revision} noch nicht
-                                veröffentlicht
-                            </Badge>
-                        ) : null}
+                        <RevisionBadges
+                            published={b.veroeffentlicht}
+                            revision={b.revision}
+                        />
+                        <StatusBadge status={b.lifecycle_status} />
                         {!b.is_active ? (
-                            <Badge variant="outline">inaktiv</Badge>
+                            <StateBadge state="inactive">inaktiv</StateBadge>
                         ) : null}
+                        {b.zusammengefuehrt_in ? (
+                            <StateBadge state="merged">
+                                zusammengeführt
+                            </StateBadge>
+                        ) : null}
+                        <span className="text-muted-foreground">
+                            {b.veroeffentlicht === null
+                                ? 'nicht öffentlich'
+                                : b.ungespeichert
+                                  ? `öffentlich ist V${b.veroeffentlicht}`
+                                  : 'öffentlich'}
+                        </span>
                     </p>
                 </div>
                 {b.zusammengefuehrt_in ? null : (
@@ -281,9 +285,7 @@ export default function TermShow({
                         className="rounded-lg border border-border p-3"
                     >
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-medium">
-                                Revision {e.revision}
-                            </span>
+                            <span className="font-medium">V{e.revision}</span>
                             <span>{ART[e.art] ?? e.art}</span>
                             <span className="text-muted-foreground">
                                 {datum(e.am)}
@@ -296,8 +298,13 @@ export default function TermShow({
                                     : ''}
                             </span>
                             {e.veroeffentlicht_am ? (
-                                <Badge>
-                                    veröffentlicht {datum(e.veroeffentlicht_am)}
+                                <Badge
+                                    variant="outline"
+                                    className={stateClasses.published}
+                                    title={`veröffentlicht ${datum(e.veroeffentlicht_am)}`}
+                                >
+                                    V{e.revision} ·{' '}
+                                    {datum(e.veroeffentlicht_am)}
                                 </Badge>
                             ) : null}
                         </div>

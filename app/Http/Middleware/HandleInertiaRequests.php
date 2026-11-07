@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\User;
 use App\Support\AppVersion;
+use App\Support\Palette;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,6 +39,8 @@ class HandleInertiaRequests extends Middleware
                 'githubRepo' => config('glossary.github_repo'),
                 'pages' => config('glossary.pages_url'),
             ],
+            // Farben der Kategorien und Herkunft je Label (#77), für die farbigen Tags
+            'farben' => fn (): array => Palette::listColors(),
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
             ],
