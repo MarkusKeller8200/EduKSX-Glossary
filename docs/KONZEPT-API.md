@@ -103,24 +103,28 @@ Beispiel-URL und -Datum sind Platzhalter.
 - **CORS:** `GET` von jeder Herkunft, ohne Cookies (`config/cors.php`).
 - Rate-Limit 120 Abrufe pro Minute und Adresse.
 
-## Nutzungsbedingungen und Stabilität (Entwurf, #30)
+## Nutzungsbedingungen und Stabilität (#30, beschlossen 07.11.2026)
 
-Vorschlag zum offenen Entscheid 5 aus [KONZEPT.md](KONZEPT.md). Wird erst nach Abnahme verbindlich (DEC-016).
+Entscheid zum offenen Punkt 5 aus [KONZEPT.md](KONZEPT.md) (DEC-016).
 
-### Stabilitätszusage v1
+### Stabilitätszusage v1 – erst ab öffentlichem Betrieb
 
-- **Was bleibt:** Pfade, Parameter und Felder von `/api/v1` werden weder entfernt noch umbenannt. Ihre Bedeutung
-  ändert sich nicht. IDs (UUID) und Slugs bleiben stabil; nach einer Zusammenführung leitet die alte Adresse mit
-  `301` weiter.
-- **Was dazukommen darf:** neue Felder, neue Endpunkte, neue Werte bei Aufzählungen (z. B. Ereignisarten im
-  Change-Feed, Status). Abnehmer ignorieren Unbekanntes.
-- **Brechende Änderungen** gibt es nur in einer neuen Version `/api/v2`. v1 läuft danach mindestens **12 Monate**
-  parallel weiter. Die Ankündigung erfolgt im CHANGELOG, auf `/api/docs` und mit der Kopfzeile
-  `Deprecation`/`Sunset` (RFC 8594, RFC 9745).
-- **Version der Beschreibung:** `info.version` in `openapi/glossary-v1.json` folgt der App-Version. Erweiterungen
-  erhöhen MINOR.
+- **Bis zum öffentlichen Betrieb (Etappe 1.0)** ist die API eine **Vorschau**: Felder und Endpunkte können sich
+  ändern. Änderungen stehen im CHANGELOG; Abnehmer (das Intranet) passen sich an. Auf `/api/docs` und in der
+  OpenAPI-Beschreibung steht der Hinweis «Vorschau».
+- **Ab dem öffentlichen Betrieb** gilt die folgende Zusage (Entscheid Projektverantwortliche:r, 07.11.2026):
+    - **Was bleibt:** Pfade, Parameter und Felder von `/api/v1` werden weder entfernt noch umbenannt. Ihre Bedeutung
+      ändert sich nicht. IDs (UUID) und Slugs bleiben stabil; nach einer Zusammenführung leitet die alte Adresse mit
+      `301` weiter.
+    - **Was dazukommen darf:** neue Felder, neue Endpunkte, neue Werte bei Aufzählungen (z. B. Ereignisarten im
+      Change-Feed, Status). Abnehmer ignorieren Unbekanntes.
+    - **Brechende Änderungen** gibt es nur in einer neuen Version `/api/v2`. v1 läuft danach mindestens **12 Monate**
+      parallel weiter. Die Ankündigung erfolgt im CHANGELOG, auf `/api/docs` und mit der Kopfzeile
+      `Deprecation`/`Sunset` (RFC 8594, RFC 9745).
+    - **Version der Beschreibung:** `info.version` in `openapi/glossary-v1.json` folgt der App-Version. Erweiterungen
+      erhöhen MINOR.
 
-### Zugang und Grenzen
+### Zugang und Grenzen (beschlossen 07.11.2026)
 
 - **Ohne Anmeldung und ohne Schlüssel:** Die API liefert nur veröffentlichte Daten.
 - **Rate-Limit:** 120 Abrufe pro Minute und Adresse. Darüber kommt `429` mit `Retry-After`. Für den Sync reicht
