@@ -8,9 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
-- **Startdatei `start.bat` (#20):** lokaler Start unter Windows per Doppelklick – richtet beim ersten Start alles
-  ein und fragt nach dem Admin, sonst Pakete und Datenbank nachführen; `start.bat --pull` holt zuerst den neuesten
-  Stand.
+- **Startdatei `start.bat` (#20):** lokaler Start unter Windows per Doppelklick – holt zuerst den neuesten Stand
+  des Branches (`start.bat BRANCH` checkt einen anderen Branch aus, `--ohne-pull` startet ohne GitHub), bricht bei
+  lokalen Änderungen ab, richtet beim ersten Start alles ein und fragt nach dem Admin, sonst Pakete und Datenbank
+  nachführen.
 
 ### Behoben
 
