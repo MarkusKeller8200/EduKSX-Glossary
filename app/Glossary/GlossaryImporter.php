@@ -5,6 +5,7 @@ namespace App\Glossary;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
+use App\Models\TermLegacyValue;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,6 +18,9 @@ use Throwable;
  *
  * Vorschau und Übernahme laufen durch denselben Code: Die Vorschau führt den Import in einer Transaktion aus und
  * nimmt sie zurück – so meldet sie genau die Fehler und Änderungen, die beim Übernehmen entstehen.
+ *
+ * Altes Format (Intranet, DEC-020): eigene Abkürzung/Bezeichnung/Alias und «Intern genutzt in» werden nicht
+ * übernommen, sondern als Altwerte gesichert (Seite «Altwerte») und je Zeile gemeldet – kein stiller Verlust.
  */
 final class GlossaryImporter
 {
@@ -24,11 +28,12 @@ final class GlossaryImporter
 
     /**
      * @param  list<array<string, string>>  $rows  Zeilen mit Spaltennamen (SpreadsheetReader)
-     * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>}>, neu: int, geaendert: int, fehler: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
+     * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>}>, neu: int, geaendert: int, fehler: int, altwerte: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
      */
     public function run(array $rows, bool $createLists, ?User $user, bool $canEditOfficial, bool $dryRun): array
     {
         $plan = [];
+        $legacyCount = 0;
         $created = ['Kategorien' => [], 'Herkunft' => []];
 
         DB::beginTransaction();
@@ -37,14 +42,22 @@ final class GlossaryImporter
                 $line = $n + 2;   // Zeile 1 = Überschrift
                 $id = trim($row['ID'] ?? '');
                 $data = ExcelFormat::data($row);
-                $abk = (string) (($data['own_abbreviation'] ?? '') ?: ($data['official_abbreviation'] ?? ''));
-                $bez = (string) (($data['own_name'] ?? '') ?: ($data['official_name'] ?? ''));
+                $legacy = ExcelFormat::legacy($row);
+                $abk = (string) ($data['official_abbreviation'] ?? '');
+                $bez = (string) ($data['official_name'] ?? '');
                 $titel = trim($abk.' – '.$bez, ' –');
+                if ($titel === '' && $legacy !== []) {
+                    $titel = trim(($legacy['own_abbreviation'][0] ?? '').' – '.($legacy['own_name'][0] ?? ''), ' –');
+                }
 
                 try {
                     $missing = $this->missingLists($data);
                     if ($missing !== [] && ! $createLists) {
                         throw new InvalidArgumentException('Unbekannt: '.implode(', ', $missing).' (beim Import neu anlegen lassen oder zuerst die Liste ergänzen).');
+                    }
+
+                    if ($id === '' && $legacy !== [] && trim($abk.$bez) === '') {
+                        throw new InvalidArgumentException('Nur eigene Abkürzung bzw. Bezeichnung – eigene Werte sind keine gemeinsamen Daten mehr; «Abkürzung offiziell» oder «Bezeichnung offiziell» angeben.');
                     }
 
                     $result = DB::transaction(function () use ($data, $id, $user, $canEditOfficial, &$created): array {
@@ -54,13 +67,13 @@ final class GlossaryImporter
                         $term = $id !== '' ? Term::query()->find($id) : null;
                         if ($term?->merged_into_id !== null) {
                             $target = $term->mergeTarget();
-                            throw new InvalidArgumentException('Begriff wurde zusammengeführt in «'.trim(($target?->displayAbbreviation() ?? '').' – '.($target?->displayName() ?? ''), ' –').'» (ID '.($target->id ?? $term->merged_into_id).') – Zeile mit dieser ID anpassen.');
+                            throw new InvalidArgumentException('Begriff wurde zusammengeführt in «'.($target?->title() ?? '').'» (ID '.($target->id ?? $term->merged_into_id).') – Zeile mit dieser ID anpassen.');
                         }
                         $before = $term !== null ? ExcelFormat::normalize(ExcelFormat::row($term)) : [];
                         if ($term === null && $id !== '') {
                             $data['id'] = $id;
                         }
-                        $saved = $this->glossary->save($term, $data, $user, $canEditOfficial || $term === null, 'Excel-Import');
+                        $saved = $this->glossary->save($term, $data, $user, $canEditOfficial || $term === null, null, 'updated', ['via' => 'excel']);
                         $after = ExcelFormat::normalize(ExcelFormat::row($saved->refresh()));
 
                         $changes = array_diff_assoc($after, $before);
@@ -71,10 +84,20 @@ final class GlossaryImporter
                         return [$term === null ? 'neu' : 'geaendert', $changes, $saved->id];
                     });
                     [$art, $changes, $savedId] = $result;
-                    if ($art === 'geaendert' && $changes === []) {
+                    $messages = [];
+                    foreach ($legacy as $field => $values) {
+                        $new = 0;
+                        foreach ($values as $value) {
+                            $new += TermLegacyValue::remember($savedId, $field, $value, 'import') ? 1 : 0;
+                        }
+                        $legacyCount += $new;
+                        $messages[] = TermLegacyValue::FIELDS[$field].' «'.implode('; ', $values).'»: nicht zentral übernommen'
+                            .($new > 0 ? ' – als Altwert zur Zuordnung gesichert.' : ' – Altwert schon gesichert.');
+                    }
+                    if ($art === 'geaendert' && $changes === [] && $messages === []) {
                         continue;   // unverändert → nicht anzeigen
                     }
-                    $plan[] = ['zeile' => $line, 'art' => $art, 'id' => $savedId, 'titel' => $titel, 'meldungen' => [], 'aenderungen' => $changes];
+                    $plan[] = ['zeile' => $line, 'art' => $art, 'id' => $savedId, 'titel' => $titel, 'meldungen' => $messages, 'aenderungen' => $changes];
                 } catch (OfficialFieldLocked $e) {
                     $plan[] = ['zeile' => $line, 'art' => 'fehler', 'id' => $id, 'titel' => $titel, 'meldungen' => [$e->getMessage()], 'aenderungen' => []];
                 } catch (InvalidArgumentException $e) {
@@ -94,6 +117,7 @@ final class GlossaryImporter
             'neu' => $count('neu'),
             'geaendert' => $count('geaendert'),
             'fehler' => $count('fehler'),
+            'altwerte' => $legacyCount,
             'listen' => ['Kategorien' => array_values(array_unique($created['Kategorien'])), 'Herkunft' => array_values(array_unique($created['Herkunft']))],
         ];
     }

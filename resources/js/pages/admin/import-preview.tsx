@@ -25,6 +25,9 @@ export default function ImportPreview({
     fehler,
     listen,
     fehlendeSpalten,
+    altwerte,
+    altesFormat,
+    altSpalten,
 }: {
     token: string;
     datei: string;
@@ -34,6 +37,9 @@ export default function ImportPreview({
     fehler: number;
     listen: { Kategorien: string[]; Herkunft: string[] };
     fehlendeSpalten: string[];
+    altwerte: number;
+    altesFormat: boolean;
+    altSpalten: string[];
 }) {
     const [sending, setSending] = useState(false);
     const neueListen = [...listen.Kategorien, ...listen.Herkunft];
@@ -54,7 +60,7 @@ export default function ImportPreview({
                 </div>
                 <div className="flex gap-2">
                     <Button
-                        disabled={neu + geaendert === 0 || sending}
+                        disabled={neu + geaendert + altwerte === 0 || sending}
                         onClick={() => {
                             setSending(true);
                             router.post(
@@ -72,6 +78,17 @@ export default function ImportPreview({
                 </div>
             </div>
 
+            {altesFormat ? (
+                <Alert className="mt-6">
+                    <AlertDescription>
+                        Altes Format (Intranet): {altSpalten.join(', ')} sind
+                        keine gemeinsamen Daten mehr und werden nicht zentral
+                        übernommen. Die Werte werden als Altwerte gesichert (
+                        {altwerte} neu) und können unter «Altwerte» zugeordnet
+                        werden.
+                    </AlertDescription>
+                </Alert>
+            ) : null}
             {fehlendeSpalten.length > 0 ? (
                 <Alert className="mt-6">
                     <AlertDescription>
@@ -145,9 +162,11 @@ export default function ImportPreview({
                                             ))}
                                         </ul>
                                     ) : (
-                                        <dl className="grid gap-0.5 text-xs">
-                                            {Object.entries(p.aenderungen).map(
-                                                ([f, v]) => (
+                                        <>
+                                            <dl className="grid gap-0.5 text-xs">
+                                                {Object.entries(
+                                                    p.aenderungen,
+                                                ).map(([f, v]) => (
                                                     <div
                                                         key={f}
                                                         className="flex gap-2"
@@ -159,9 +178,16 @@ export default function ImportPreview({
                                                             {v}
                                                         </dd>
                                                     </div>
-                                                ),
-                                            )}
-                                        </dl>
+                                                ))}
+                                            </dl>
+                                            {p.meldungen.length > 0 ? (
+                                                <ul className="mt-1 list-disc pl-4 text-xs text-muted-foreground">
+                                                    {p.meldungen.map((m) => (
+                                                        <li key={m}>{m}</li>
+                                                    ))}
+                                                </ul>
+                                            ) : null}
+                                        </>
                                     )}
                                 </td>
                             </tr>

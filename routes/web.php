@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
+use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SystemController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +32,11 @@ Route::middleware('auth')->group(function () {
     Route::post('datenschutz/kenntnisnahme', [PrivacyController::class, 'store'])->name('privacy.store');
 });
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
+// Meine Darstellung (DEC-020): persönliche Anpassung eines Begriffs, nur für das eigene Konto
+Route::middleware(['auth', 'throttle:30,1'])->group(function () {
+    Route::put('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.personal');
+    Route::delete('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'destroy'])->where('slug', '[a-z0-9-]+')->name('term.personal.destroy');
+});
 
 // Interaktive Doku der öffentlichen API (OpenAPI 3.1, #26)
 Route::view('api/docs', 'api-docs')->name('api.docs');
@@ -96,6 +103,11 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('doppelte/zuruecksetzen', [DuplicateController::class, 'reset'])->name('admin.duplicates.reset');
         Route::get('doppelte/zusammenfuehren', [DuplicateController::class, 'create'])->name('admin.duplicates.merge');
         Route::post('doppelte/zusammenfuehren', [DuplicateController::class, 'store'])->name('admin.duplicates.merge.store');
+
+        // Altwerte aus dem Intranet-Format zuordnen (DEC-020)
+        Route::get('altwerte', [LegacyValueController::class, 'index'])->name('admin.legacy');
+        Route::post('altwerte', [LegacyValueController::class, 'resolve'])->name('admin.legacy.resolve');
+        Route::get('altwerte/intern-genutzt-in.csv', [LegacyValueController::class, 'exportUsedIn'])->name('admin.legacy.used-in');
     });
 
     // Listen: Kategorien und Herkunft

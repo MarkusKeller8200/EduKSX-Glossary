@@ -1,5 +1,19 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import type { FormEvent } from 'react';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+
+type Meine = {
+    abbreviation_override: string;
+    name_override: string;
+    short_description_override: string;
+    description_override: string;
+    aliases_override: string;
+};
 
 type Begriff = {
     slug: string;
@@ -19,6 +33,16 @@ type Begriff = {
     revision: number;
     veroeffentlicht: string | null;
     andere: { slug: string; bezeichnung: string }[];
+    mehrdeutig: boolean;
+    // nur angemeldet (DEC-020): persönliche Darstellung des eigenen Kontos
+    persoenlich?: boolean;
+    gemeinsam?: {
+        abkuerzung: string;
+        bezeichnung: string;
+        kurz: string | null;
+        beschreibung: string | null;
+    };
+    meine?: Meine;
 };
 
 /** Detailseite eines veröffentlichten Begriffs (#24, PUB-03/04/05/07). */
@@ -62,6 +86,18 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                         <Badge variant="secondary">{b.status}</Badge>
                     ) : null}
                 </div>
+
+                {b.persoenlich && b.gemeinsam ? (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                        <Badge variant="secondary">Meine Darstellung</Badge>{' '}
+                        Gemeinsame Form:{' '}
+                        <span translate="no">
+                            {[b.gemeinsam.abkuerzung, b.gemeinsam.bezeichnung]
+                                .filter(Boolean)
+                                .join(' – ')}
+                        </span>
+                    </p>
+                ) : null}
 
                 {b.kurz ? <p className="mt-6 text-lg">{b.kurz}</p> : null}
                 {b.beschreibung ? (
@@ -163,11 +199,134 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     </section>
                 ) : null}
 
+                {b.meine ? (
+                    <MeineDarstellung
+                        slug={b.slug}
+                        werte={b.meine}
+                        gesetzt={b.persoenlich === true}
+                    />
+                ) : null}
+
                 <p className="mt-10 text-xs text-muted-foreground">
                     Erklärungen ohne amtliche Verbindlichkeit; massgebend sind
                     die genannten Quellen.
                 </p>
             </article>
         </>
+    );
+}
+
+/** «Meine Darstellung» (DEC-020): nur für das eigene Konto sichtbar, keine Moderation, nie öffentlich. */
+function MeineDarstellung({
+    slug,
+    werte,
+    gesetzt,
+}: {
+    slug: string;
+    werte: Meine;
+    gesetzt: boolean;
+}) {
+    const form = useForm<Meine>(werte);
+    const { flash } = usePage().props;
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.put(`/begriffe/${slug}/meine-darstellung`, {
+            preserveScroll: true,
+        });
+    };
+    const feld = (
+        key: keyof Meine,
+        label: string,
+        hint?: string,
+        lang = false,
+    ) => (
+        <div className="grid gap-1.5">
+            <Label htmlFor={key}>{label}</Label>
+            {lang ? (
+                <Textarea
+                    id={key}
+                    rows={4}
+                    value={form.data[key]}
+                    onChange={(e) => form.setData(key, e.target.value)}
+                />
+            ) : (
+                <Input
+                    id={key}
+                    value={form.data[key]}
+                    onChange={(e) => form.setData(key, e.target.value)}
+                />
+            )}
+            {hint ? (
+                <p className="text-xs text-muted-foreground">{hint}</p>
+            ) : null}
+            <InputError message={form.errors[key]} />
+        </div>
+    );
+
+    return (
+        <details
+            className="mt-10 rounded-lg border border-border p-4"
+            open={gesetzt}
+        >
+            <summary className="cursor-pointer font-semibold">
+                Meine Darstellung
+            </summary>
+            {flash.status ? (
+                <p className="mt-2 text-sm font-medium" role="status">
+                    {flash.status}
+                </p>
+            ) : null}
+            <p className="mt-2 text-sm text-muted-foreground">
+                Nur für dich sichtbar, wenn du angemeldet bist. Leere Felder
+                zeigen die gemeinsame Form. Wird nicht veröffentlicht und nicht
+                über die API weitergegeben; mit deinem Konto gelöscht.
+            </p>
+            <form onSubmit={submit} className="mt-4 grid gap-4 sm:grid-cols-2">
+                {feld('abbreviation_override', 'Abkürzung')}
+                {feld('name_override', 'Bezeichnung')}
+                <div className="sm:col-span-2">
+                    {feld(
+                        'short_description_override',
+                        'Kurzbeschreibung',
+                        `Höchstens 160 Zeichen (${form.data.short_description_override.length}/160)`,
+                    )}
+                </div>
+                <div className="sm:col-span-2">
+                    {feld(
+                        'description_override',
+                        'Beschreibung',
+                        undefined,
+                        true,
+                    )}
+                </div>
+                <div className="sm:col-span-2">
+                    {feld(
+                        'aliases_override',
+                        'Eigene Schreibweisen',
+                        'Mehrere mit «;» trennen; auch in der Suche',
+                    )}
+                </div>
+                <div className="flex flex-wrap gap-2 sm:col-span-2">
+                    <Button type="submit" disabled={form.processing}>
+                        Speichern
+                    </Button>
+                    {gesetzt ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            disabled={form.processing}
+                            onClick={() =>
+                                router.delete(
+                                    `/begriffe/${slug}/meine-darstellung`,
+                                    { preserveScroll: true },
+                                )
+                            }
+                        >
+                            Entfernen
+                        </Button>
+                    ) : null}
+                </div>
+            </form>
+        </details>
     );
 }

@@ -12,17 +12,14 @@ import { Textarea } from '@/components/ui/textarea';
 type Werte = {
     official_abbreviation: string;
     official_aliases: string;
-    own_abbreviation: string;
-    own_alias: string;
+    alternative_aliases: string;
     official_name: string;
-    own_name: string;
     short_description: string;
     description: string;
     url: string;
     note: string;
     categories: string[];
     sources: string[];
-    used_in: string;
     lifecycle_status: string;
     search_terms: string;
     valid_from: string;
@@ -145,15 +142,15 @@ export default function TermForm({
                     )}
                 </fieldset>
 
-                <fieldset className="grid gap-4 sm:grid-cols-2">
-                    <legend className="mb-2 font-semibold">Eigene Form</legend>
-                    {text('own_abbreviation', 'Abkürzung eigene')}
+                <fieldset className="grid gap-4">
+                    <legend className="mb-2 font-semibold">
+                        Alternative Schreibweisen
+                    </legend>
                     {text(
-                        'own_name',
-                        'Bezeichnung eigene',
-                        'Wird angezeigt; leer = offizielle',
+                        'alternative_aliases',
+                        'Alternative Schreibweisen',
+                        'Gemeinsam gültig und öffentlich; mehrere mit «;» trennen. Persönliche Formen unter «Meine Darstellung» auf der Begriffsseite.',
                     )}
-                    {text('own_alias', 'Alias eigene')}
                 </fieldset>
 
                 <fieldset className="grid gap-4">
@@ -248,11 +245,6 @@ export default function TermForm({
                         'search_terms',
                         'Suchbegriffe',
                         'Mit «;» oder «,» trennen',
-                    )}
-                    {text(
-                        'used_in',
-                        'Intern genutzt in',
-                        'Mit «;» trennen (nicht öffentlich)',
                     )}
                     {text('valid_from', 'Gültig ab', undefined, {
                         type: 'date',

@@ -11,6 +11,7 @@ const NAV = [
     { href: '/admin', label: 'Übersicht', recht: null },
     { href: '/admin/begriffe', label: 'Begriffe', recht: 'edit-terms' },
     { href: '/admin/doppelte', label: 'Doppelte', recht: 'edit-terms' },
+    { href: '/admin/altwerte', label: 'Altwerte', recht: 'edit-terms' },
     { href: '/admin/listen', label: 'Listen', recht: 'lists' },
     { href: '/admin/import', label: 'Excel-Import', recht: 'import' },
     { href: '/admin/benutzer', label: 'Benutzer', recht: 'manage-users' },
