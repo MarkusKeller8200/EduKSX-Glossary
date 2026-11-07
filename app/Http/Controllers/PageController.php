@@ -35,6 +35,12 @@ class PageController extends Controller
         return Inertia::render('term', ['begriff' => $term]);
     }
 
+    /** Rechtliches, verwendete Quellprojekte und Drittlizenzen (Prüfstand). */
+    public function legals(): Response
+    {
+        return Inertia::render('legals');
+    }
+
     /** Versionshistorie aus CHANGELOG.md (docs/KONZEPT-VERSIONIERUNG.md, #6). */
     public function versions(): Response
     {

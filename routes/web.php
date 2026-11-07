@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 // Öffentlich: nur lesen (PUB-01)
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
+Route::get('legals', [PageController::class, 'legals'])->name('legals');
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
 
 // Interaktive Doku der öffentlichen API (OpenAPI 3.1, #26)
