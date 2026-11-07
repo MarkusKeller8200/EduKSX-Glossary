@@ -23,28 +23,31 @@ noch festzulegen (KONZEPT, Lizenzen).
 
 ## Angepasst
 
-| Datei                                                            | Abweichung                                                                                               |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `resources/js/components/ui/button.tsx`                          | Variante `link` in `text-link` statt `text-primary` (Orange als Schrift hat zu wenig Kontrast)           |
-| `resources/css/app.css`                                          | Farbwerte nach CI MarKusSXCH, Schrift Inter, neue Werte `--brand-*`, `--link`; ohne Zeiterfassung        |
-| `app/Http/Middleware/SecurityHeaders.php`                        | ohne Einbindungen von Fachanwendungen (`frame-src 'self'`)                                               |
-| `app/Http/Middleware/HandleInertiaRequests.php`                  | nur Konto, Version, Links                                                                                |
-| `app/Support/AppVersion.php`                                     | Konfiguration `glossary.*`, `planned` aus `Release.php` übernommen, ohne Mitteilungen                    |
-| `app/Providers/AppServiceProvider.php`                           | Recht `administer`, Rate-Limit der API, Passwort ≥ 12 Zeichen auch lokal                                 |
-| `bootstrap/app.php`, `config/{app,auth,database,inertia}.php`    | ohne Intranet-Middleware; Konten in SQLite (Eloquent); SQLite-Datei im Volumen; SSR aus                  |
-| `composer.json`, `package.json`, `vite.config.ts`                | Name; ohne Module/Plugins; nur Schrift Inter; ohne dnd-kit, Scalar, TanStack (kommen mit den Bausteinen) |
-| `Dockerfile`, `docker/entrypoint.sh`, `docker/compose.prod.yaml` | SQLite mit Sicherung vor dem Start, `migrate --force`, ohne `noindex`, Namen «glossary»                  |
-| `.github/workflows/{ci,deploy}.yml`                              | aus `tests.yml`, `deploy.yml`, `_deploy.yml`; Deployment nur mit `DEPLOY_ENABLED`                        |
-| `resources/views/app.blade.php`                                  | ohne Themes, PWA, Sprachen, Schriftwahl                                                                  |
-| `tests/TestCase.php`                                             | SQLite im Speicher statt JSON-Demodaten                                                                  |
+| Datei                                                            | Abweichung                                                                                                                                                       |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resources/js/components/ui/button.tsx`                          | Variante `link` in `text-link` statt `text-primary` (Orange als Schrift hat zu wenig Kontrast)                                                                   |
+| `resources/css/app.css`                                          | Farbwerte nach CI MarKusSXCH, Schrift Inter, neue Werte `--brand-*`, `--link`; ohne Zeiterfassung                                                                |
+| `app/Http/Middleware/SecurityHeaders.php`                        | ohne Einbindungen von Fachanwendungen (`frame-src 'self'`)                                                                                                       |
+| `app/Http/Middleware/HandleInertiaRequests.php`                  | nur Konto, Version, Links                                                                                                                                        |
+| `app/Support/AppVersion.php`                                     | Konfiguration `glossary.*`, `planned` aus `Release.php` übernommen, ohne Mitteilungen                                                                            |
+| `app/Providers/AppServiceProvider.php`                           | Recht `administer`, Rate-Limit der API, Passwort ≥ 12 Zeichen auch lokal                                                                                         |
+| `bootstrap/app.php`, `config/{app,auth,database,inertia}.php`    | ohne Intranet-Middleware; Konten in SQLite (Eloquent); SQLite-Datei im Volumen; SSR aus                                                                          |
+| `composer.json`, `package.json`, `vite.config.ts`                | Name; ohne Module/Plugins; nur Schrift Inter; Scalar als Paket mit eigenem Vite-Einstieg (#44); Socialite (#45); ohne dnd-kit, TanStack (kommen mit der Tabelle) |
+| `Dockerfile`, `docker/entrypoint.sh`, `docker/compose.prod.yaml` | SQLite mit Sicherung vor dem Start, `migrate --force`, ohne `noindex`, Namen «glossary»                                                                          |
+| `.github/workflows/{ci,deploy}.yml`                              | aus `tests.yml`, `deploy.yml`, `_deploy.yml`; Deployment nur mit `DEPLOY_ENABLED`                                                                                |
+| `resources/views/app.blade.php`                                  | ohne Themes, PWA, Sprachen, Schriftwahl                                                                                                                          |
+| `tests/TestCase.php`                                             | SQLite im Speicher statt JSON-Demodaten                                                                                                                          |
 
 ## Neu im Glossary
 
 `BrandWordmark` (`resources/js/components/brand-wordmark.tsx`, an die GUI-Prototypen des Intranets zurückmelden),
-Layouts `public-layout`/`admin-layout`, Seiten `home`, `versions`, `auth/login`, `admin/dashboard`, Befehl
-`glossary:admin`, `routes/api.php` mit `/api/v1`, `openapi/glossary-v1.yaml`.
+Layouts `public-layout`/`admin-layout`, Seiten `home`, `term`, `versions`, `privacy`, `legals`, `auth/*`
+(Anmelden, Code, Registrieren, Passwort), `account/*` (Mein Konto, zweiter Faktor) und `admin/*` (Begriffe,
+Doppelte, Listen, Excel, Benutzer, Rollen, System); Bausteine `checkbox`, `textarea`, `native-select`; Befehle
+`glossary:admin`, `glossary:developer`, `glossary:export-pages`, `glossary:sync-check`, `glossary:loeschfristen`;
+`routes/api.php` mit `/api/v1`, `openapi/glossary-v1.json`; Rechte und Konten unter `app/Access`. Eigene
+Umsetzungen ohne Paket: TOTP (`App\Support\Totp`), Excel lesen/schreiben (`App\Support\Spreadsheet*`).
 
 ## Als Nächstes (mit den jeweiligen Issues)
 
-`data-grid` (Tabelle) mit `@tanstack/react-table`, `term.tsx`/`term-text.tsx`, Glossar-Seiten
-(`pages/glossary/*`), `Glossary.php` (Regeln, Import, Doppelte), Seitenleiste.
+`data-grid` (Tabelle) mit `@tanstack/react-table` (eigenes Issue), `term.tsx`/`term-text.tsx`, Seitenleiste.

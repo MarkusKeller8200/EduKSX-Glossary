@@ -172,25 +172,26 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 ## Etappen
 
-| Etappe | Inhalt                                                                   | Abnahme                                        |
-| ------ | ------------------------------------------------------------------------ | ---------------------------------------------- |
-| 0.1    | Konzept, Hosting, Stack, Versionierung; Programmiergerüst und Deployment | Gerüst läuft auf `glossary.eduksx.ch`          |
-| 0.2    | Datenmodell, Übernahme der Intranet-Daten, Import/Export                 | Startinhalt importiert, nichts still gelöscht  |
-| 0.3    | Öffentliche Website und API `/api/v1` mit OpenAPI und Sync               | Sync mit dem Intranet automatisch getestet     |
-| 0.4    | Community: Vorschläge, Moderation, Verlauf                               | kein Vorschlag ohne Freigabe öffentlich        |
-| 0.5    | Intranet als Abnehmer (Adapter, Cache, Fallback)                         | Sync inkl. Rückzug und Wiederaufnahme getestet |
-| 1.0    | erster öffentlicher Betrieb (Datenschutz, Sicherung, Überwachung)        | Freigabe für den Betrieb                       |
-| später | Confluence-Publisher, MCP für Rovo, Mandanten                            | eigene Konzepte                                |
+| Etappe | Inhalt                                                                                        | Abnahme                                        |
+| ------ | --------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 0.1    | Konzept, Hosting, Stack, Versionierung; Programmiergerüst und Deployment                      | Gerüst läuft auf `glossary.eduksx.ch`          |
+| 0.2    | Datenmodell, Übernahme der Intranet-Daten, Import/Export                                      | Startinhalt importiert, nichts still gelöscht  |
+| 0.3    | Öffentliche Website und API `/api/v1` mit OpenAPI und Sync                                    | Sync mit dem Intranet automatisch getestet     |
+| 0.4    | Benutzerverwaltung, Anmeldung (Registrierung, Microsoft), Datenschutz                         | erledigt mit Release 0.4.0 (07.11.2026)        |
+| offen  | Community: Vorschläge, Moderation, Verlauf (Version folgt nach Prüfung der Datenbankstruktur) | kein Vorschlag ohne Freigabe öffentlich        |
+| danach | Intranet als Abnehmer (Adapter, Cache, Fallback)                                              | Sync inkl. Rückzug und Wiederaufnahme getestet |
+| 1.0    | erster öffentlicher Betrieb (Datenschutz, Sicherung, Überwachung)                             | Freigabe für den Betrieb                       |
+| später | Confluence-Publisher, MCP für Rovo, Mandanten                                                 | eigene Konzepte                                |
 
 Termine erst mit Ressourcenplanung.
 
 ## Offene Entscheide
 
 1. Stack und Datenbank ([KONZEPT-STACK.md](KONZEPT-STACK.md)).
-2. Community-Anmeldung mit bestätigtem Konto entschieden (DEC-017), Admin ab Deployment bereits entschieden (DEC-014); technische SSO-Anbindung, Microsoft-App-Registrierung und Edulog-Aufnahme bleiben umzusetzen.
+2. Community-Anmeldung entschieden (DEC-017) und mit 0.4.0 umgesetzt (Registrierung mit Double-Opt-in, Microsoft). Offen: Microsoft-App-Tenant für den Betrieb und Edulog-Aufnahme (#46).
 3. Rechte- und Lizenzprüfung bei Übernahme aus dem Intranet; Software- und Datenlizenz.
 4. Freigabe-, Versions- und Rollback-Regeln für Revisionen.
-5. API: Nutzungsbedingungen, Gesamt-Export, Rate-Limits, Stabilitätszusage.
+5. ~~API: Nutzungsbedingungen, Gesamt-Export, Rate-Limits, Stabilitätszusage.~~ Entschieden mit DEC-016 (#30).
 6. Mandanten-Bezeichnungen und -Notizen.
 7. Umgang mit bestehenden GitHub-Issues beim Start der Vorschlagsfunktion.
 8. Confluence-Format und Mehrfachziele; Rovo-MCP (Transport, Identität, Rechte).

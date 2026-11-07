@@ -14,7 +14,7 @@ Datenmenge reicht SQLite vollauf.
 | Build         | Vite (Vite Plus wie im Intranet)                                                                                                          | ja                                         |
 | Datenbank     | **SQLite**, eine Datei im Docker-Volumen, Laravel-Migrationen; Tests mit SQLite im Speicher                                               | Intranet: JSON, SQLite vorgesehen          |
 | Austausch     | JSON (Übernahme aus dem Intranet, Export, GitHub Pages), Excel (XLSX)                                                                     | ja                                         |
-| API           | Laravel-Routen `/api/v1`, OpenAPI 3.1 (`openapi/glossary-v1.yaml`), Doku mit Scalar                                                       | ja                                         |
+| API           | Laravel-Routen `/api/v1`, OpenAPI 3.1 (`openapi/glossary-v1.json`), Doku mit Scalar                                                       | ja                                         |
 | Anmeldung     | **lokaler Admin ab dem ersten Deployment** (Session, Passwort, zweiter Faktor)                                                            | anders (Intranet: Demo-Login, später OIDC) |
 | Tests         | PHPUnit, PHPStan Level 7 (Larastan), Pint, `vp check`                                                                                     | ja                                         |
 | Prüfbefehl    | `composer ci:check` (inkl. `release.py check`)                                                                                            | ja                                         |
@@ -38,7 +38,8 @@ Damit keine ungewollten Datenänderungen entstehen, gibt es **ab dem ersten Depl
 - Öffentlich ist nur **Lesen** (Website, `GET /api/v1/...`). Alles, was Daten ändert (Redaktion, Import,
   Vorschläge freigeben), verlangt eine Anmeldung mit Recht; es gibt keinen Demo-Login und kein gemeinsames Passwort.
 - Erster Admin wird auf dem Server per Befehl angelegt: `php artisan glossary:admin` (fragt E-Mail und Passwort,
-  speichert nur den Hash). Keine Registrierung über die Website.
+  speichert nur den Hash); Developer nur mit `php artisan glossary:developer` (#36). Community-Konten registrieren
+  sich selbst mit Double-Opt-in oder melden sich mit Microsoft an (#41, #45).
 - Passwort mindestens 12 Zeichen, Begrenzung der Anmeldeversuche, Sitzung nur über HTTPS (Cookie `secure`,
   `httponly`, `samesite=lax`).
 - **Zweiter Faktor (TOTP)** für Admins, umgesetzt 07.11.2026 (#11): **ohne Laravel Fortify** (Zusatzpakete waren
@@ -46,7 +47,7 @@ Damit keine ungewollten Datenänderungen entstehen, gibt es **ab dem ersten Depl
   RFC-Testwerten), Schlüssel verschlüsselt, 8 Wiederherstellungscodes nur als Hash, jeder Code nur einmal. Pflicht:
   Ohne bestätigten zweiten Faktor führt jede Seite der Administration zur Einrichtung. Zurücksetzen auf dem Server
   mit `php artisan glossary:admin E-MAIL --reset-2fa`. QR-Code folgt, sobald ein Paket dafür möglich ist.
-- Community-Anmeldung: wird geklärt, wenn die Vorschlagsfunktion umgesetzt wird.
+- Community-Anmeldung: umgesetzt mit 0.4.0 (siehe [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md)).
 
 ## Aufbau im Repository
 
@@ -55,7 +56,7 @@ app/            Laravel (Services unter app/Glossary, Controller, Models)
 database/       Migrationen, Seeder (Startinhalt aus dem Intranet als JSON)
 resources/js/   React-Seiten und Komponenten (Bausteine aus dem Intranet)
 routes/         web.php (Website, Anmeldung, Redaktion), api.php (/api/v1)
-openapi/        glossary-v1.yaml
+openapi/        glossary-v1.json (auch als /api/openapi.yaml ausgeliefert)
 docker/         compose.prod.yaml, entrypoint.sh
 tests/          Feature-, API- und Sync-Tests
 site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Export
@@ -71,7 +72,7 @@ site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Expor
 
 ## Offen (wird geklärt, wenn benötigt)
 
-- Community-Anmeldung fachlich entschieden: bestätigtes persönliches Konto mit Double-Opt-in bzw. verlässlich bestätigter föderierter Anmeldung; Umsetzung noch ausstehend. Microsoft-App-Tenant und Edulog-Aufnahme sind weiterhin offen.
+- Community-Anmeldung entschieden und umgesetzt (0.4.0): bestätigtes persönliches Konto mit Double-Opt-in bzw. Anmeldung mit Microsoft. Microsoft-App-Tenant für den Betrieb und Edulog-Aufnahme (#46) sind weiterhin offen.
 - Lizenz für Software und Daten (vor dem Übernehmen von Code aus dem privaten Intranet).
 - Versionen beim Start auf Support prüfen (Laravel, PHP, Node).
 - Sicherung der SQLite-Datei (Ziel, Intervall, Wiederherstellungstest).
