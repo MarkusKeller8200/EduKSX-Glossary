@@ -71,7 +71,15 @@ site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Expor
 
 ## Offen (wird geklärt, wenn benötigt)
 
-- Community-Anmeldung (ohne Konto mit Bestätigung, GitHub, Microsoft, Edulog).
+- Community-Anmeldung fachlich entschieden: bestätigtes persönliches Konto mit Double-Opt-in bzw. verlässlich bestätigter föderierter Anmeldung; Umsetzung noch ausstehend. Microsoft-App-Tenant und Edulog-Aufnahme sind weiterhin offen.
 - Lizenz für Software und Daten (vor dem Übernehmen von Code aus dem privaten Intranet).
 - Versionen beim Start auf Support prüfen (Laravel, PHP, Node).
 - Sicherung der SQLite-Datei (Ziel, Intervall, Wiederherstellungstest).
+
+## Geschützter Ausbau der Benutzerverwaltung (DEC-017)
+
+- Der bestehende lokale Admin und die implementierte TOTP-Absicherung bleiben der technische Ausgangspunkt; sie werden **nicht** als bloss geplant bezeichnet.
+- Der detaillierte Rollen- und Identitätsausbau folgt [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md). Bestehende `is_admin`-Konten werden ausschliesslich nach Admin migriert. Die Developer-Vergabe erfolgt gesichert und auditierbar durch Developer oder einen geschützten Serverprozess.
+- MFA ist für alle Personen mit effektiv privilegierten Berechtigungen obligatorisch und kann nicht über die Rollenmatrix deaktiviert werden.
+- Persönliche Konten und technische Servicekonten sind getrennt. Die öffentliche Lese-API bleibt ohne Anmeldung zugänglich.
+- Community-Registrierung, Microsoft und später Edulog werden stufenweise integriert. Der Maildienst, die Microsoft-App-Registrierung und die Edulog-Vertrags- und Attributprüfung sind vor der jeweiligen Freischaltung zu klären.
