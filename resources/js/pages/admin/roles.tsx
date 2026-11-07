@@ -56,7 +56,7 @@ export default function Roles({
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">
                 Rollen und Rechte
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
                 Rechte je Rolle einstellen. Privilegierte Rechte nur innerhalb
                 der eigenen Befugnis, einer eigenen Rolle keine Rechte
                 hinzufügen; systemkritische Rechte hat nur die Rolle Developer.

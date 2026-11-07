@@ -47,3 +47,8 @@ yarn-error.log
 # Excel-/CSV-Dateien im Projektordner (z. B. Export aus dem Intranet) nicht einchecken
 /*.xlsx
 /*.csv
+
+# Lizenzbericht (#73), in CI und Release erzeugt
+/composer-licenses.json
+/npm-tree.json
+/license-report.md

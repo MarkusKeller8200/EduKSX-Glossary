@@ -6,6 +6,31 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Farbige Labels (#77, #91, #92):** Kategorien und Herkunft in der Farbe, die unter «Listen» gewählt wird (Palette
+  aus dem Intranet, hell und dunkel mit Kontrast AA). Status der Begriffe als Label (aktuell grün, zu prüfen orange,
+  historisch grau), Veröffentlichung als «V1», «V2» … und «Entwurf V…», inaktiv und zusammengeführt eigens markiert.
+- **Redaktionstabelle (#67):** Begriffe nach Kategorie, Status oder Veröffentlichung gruppieren; Abkürzung,
+  Bezeichnung und Kurzbeschreibung direkt in der Zelle ändern (neue Revision, offizielle Felder nur mit Recht).
+- **Ansicht wählen (#76):** Neben Hell/Dunkel die Ansicht Mobil, Desktop schmal oder ganze Breite – für Website und
+  Administration, gespeichert im Browser.
+- **Cookie-Hinweis (#78):** beim ersten Besuch, mit Liste der Cookies in der Datenschutzerklärung.
+- **API (#62):** `updated_at` je Begriff (Zeitpunkt der veröffentlichten Revision).
+- **Lizenzbericht (#73):** Die CI listet alle Pakete mit Lizenz und warnt bei bedenklichen Lizenzen; jedes Release
+  erhält den Bericht als Anhang.
+- **Kontrastprüfung (#63):** Ein Test prüft die Farbwerte hell und dunkel; die PR-Vorlage enthält die
+  Gestaltungspunkte des CI-Manuals.
+
+### Geändert
+
+- **Administration (#89, #90):** Kopf in zwei Zeilen – Titel, Person und Abmelden oben, alle Menüpunkte darunter;
+  Beschreibungen unter den Seitentiteln in voller Breite.
+
+### Behoben
+
+- **Verknüpfung lösen (#59):** Das Passwort wird in einem Passwortfeld abgefragt statt im Klartext-Dialog.
+
 ## [0.5.0] – 2026-11-07
 
 ### Geändert

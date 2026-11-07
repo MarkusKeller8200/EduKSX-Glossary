@@ -45,10 +45,6 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                     <h1 className="text-3xl font-semibold tracking-tight">
                         Benutzer
                     </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        {benutzer.length} Konten. Rollen und Sperren im Detail
-                        eines Kontos; jede Änderung steht im Protokoll.
-                    </p>
                 </div>
                 <div className="flex gap-2">
                     <Button asChild variant="outline">
@@ -57,6 +53,10 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                     <Button onClick={() => setNeu(!neu)}>Konto anlegen</Button>
                 </div>
             </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+                {benutzer.length} Konten. Rollen und Sperren im Detail eines
+                Kontos; jede Änderung steht im Protokoll.
+            </p>
 
             {neu ? <NeuesKonto onDone={() => setNeu(false)} /> : null}
 
