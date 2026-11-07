@@ -78,4 +78,21 @@ class PublicExportTest extends TestCase
         // Moderator hat kein Import-Recht
         $this->get('/admin/import')->assertForbidden();
     }
+
+    public function test_pdf_zeilen_veroeffentlicht_und_arbeitsstand(): void
+    {
+        $this->daten();
+        $this->actingAs($this->userWithRoles([Role::USER], 'b@example.org', twoFactor: false));
+        $this->getJson('/export?format=json')->assertOk()
+            ->assertJsonCount(1, 'zeilen')
+            ->assertJsonPath('zeilen.0.abk', 'SL')
+            ->assertJsonPath('zeilen.0.kurz', 'Leitet die Schule')
+            ->assertJsonMissingPath('zeilen.0.notiz');
+
+        $this->actingAs($this->userWithRoles([Role::MODERATOR], 'm@example.org'));
+        $zeilen = $this->getJson('/admin/export?format=json')->assertOk()->json('zeilen');
+        $this->assertCount(2, $zeilen);
+        $this->assertContains('Geheime Notiz', array_column($zeilen, 'notiz'));
+        $this->assertContains('Entwurfstext', array_column($zeilen, 'kurz'));
+    }
 }

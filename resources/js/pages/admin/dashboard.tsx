@@ -3,6 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { versionLabel } from '@/components/version-label';
+import { can } from '@/lib/access';
 
 /** Startseite der Administration. Redaktion, Import und Moderation folgen ab 0.2. */
 type Stats = {
@@ -61,15 +62,19 @@ export default function Dashboard({
                 </Card>
             </div>
             <div className="mt-6 flex flex-wrap gap-3">
-                <Button asChild>
-                    <Link href="/admin/import">Excel-Import</Link>
-                </Button>
+                {can(auth, 'import') ? (
+                    <Button asChild>
+                        <Link href="/admin/import">Excel-Import</Link>
+                    </Button>
+                ) : null}
                 <Button asChild variant="outline">
                     <Link href="/admin/begriffe">Begriffe anzeigen</Link>
                 </Button>
-                <Button asChild variant="outline">
-                    <a href="/admin/export">Excel-Export</a>
-                </Button>
+                {can(auth, 'export') && can(auth, 'edit-terms') ? (
+                    <Button asChild variant="outline">
+                        <a href="/admin/export">Excel-Export</a>
+                    </Button>
+                ) : null}
             </div>
             <Alert className="mt-6">
                 <AlertTitle>Nächste Schritte</AlertTitle>

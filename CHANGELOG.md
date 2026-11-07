@@ -16,6 +16,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Export für Benutzer (#111):** Excel und CSV der veröffentlichten Begriffe unter «Mein Konto» und auf der
   Startseite (Recht «Exportieren», ohne Entwürfe und Notizen). Die Redaktion exportiert den Arbeitsstand weiterhin in
   der Administration; der Import ist ein eigenes Recht.
+- **PDF-Export (#112):** wie im Intranet über die Druckansicht des Browsers – A4 hoch/quer, Umfang kompakt bis
+  vollständig, gruppiert, farbige Labels, Link-Spalte, Auswahl alle/gefiltert/ausgewählt, mit Lizenzhinweis
+  CC BY 4.0. Auf der Website (veröffentlicht, ab Benutzer) und in der Redaktion (Arbeitsstand mit Notiz).
 - **Hierarchie der Rollen (#115):** «Rollen und Rechte» zeigt die Stufen Gast bis Developer mit den Rechten, die jede
   Stufe dazubekommt, farbig nach Schutzklasse.
 

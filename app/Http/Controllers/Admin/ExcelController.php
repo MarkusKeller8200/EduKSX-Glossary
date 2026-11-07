@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Glossary\ExcelFormat;
 use App\Glossary\GlossaryImporter;
 use App\Glossary\Journal;
+use App\Glossary\PrintRow;
 use App\Http\Controllers\Controller;
 use App\Models\ImportBatch;
 use App\Models\Term;
@@ -36,6 +37,14 @@ class ExcelController extends Controller
     /** Alle Begriffe (Arbeitsstand) bzw. leere Vorlage als .xlsx oder mit ?format=csv als CSV (Format Version 2). */
     public function export(Request $request): HttpResponse
     {
+        // Zeilen für den PDF-Export der Redaktion (#112): Arbeitsstand mit Notiz
+        if ($request->query('format') === 'json') {
+            $terms = Term::query()->current()->with(['categories', 'sources', 'aliases'])->get();
+
+            return response()->json(['zeilen' => $terms->map(fn (Term $t): array => PrintRow::fromTerm($t))->values()->all()])
+                ->header('Cache-Control', 'private, no-store');
+        }
+
         $template = $request->boolean('vorlage');
         $rows = [];
         if (! $template) {

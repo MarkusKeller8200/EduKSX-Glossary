@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
@@ -31,6 +32,7 @@ function initial(b: Begriff): string {
 export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     const { links, auth } = usePage().props;
     const [suche, setSuche] = useState('');
+    const [pdf, setPdf] = useState(false);
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
     const [kategorie, setKategorie] = useState<string | null>(null);
 
@@ -194,7 +196,23 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                     >
                         CSV
                     </a>
+                    {' · '}
+                    <button
+                        type="button"
+                        onClick={() => setPdf(true)}
+                        className="text-link underline underline-offset-4"
+                    >
+                        PDF
+                    </button>
                 </p>
+            ) : null}
+            {pdf ? (
+                <GlossaryPdfDialog
+                    open={pdf}
+                    onOpenChange={setPdf}
+                    quelle="/export?format=json"
+                    gefiltert={liste.map((b) => b.slug)}
+                />
             ) : null}
 
             {links.githubRepo ? (
