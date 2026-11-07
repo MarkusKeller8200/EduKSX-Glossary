@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Term;
 use App\Models\TermLegacyValue;
 use App\Models\User;
+use App\Support\Csv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -128,8 +129,8 @@ class LegacyValueController extends Controller
             fputcsv($out, ['ID', 'Slug', 'Abkürzung offiziell', 'Bezeichnung offiziell', 'Intern genutzt in', 'Zuordnung'], ';', '"', '');
             foreach ($values as $v) {
                 fputcsv($out, [
-                    $v->term_id, $v->term->slug, self::cell((string) $v->term->official_abbreviation),
-                    self::cell((string) $v->term->official_name), self::cell($v->value), (string) $v->resolution,
+                    $v->term_id, $v->term->slug, Csv::safe((string) $v->term->official_abbreviation),
+                    Csv::safe((string) $v->term->official_name), Csv::safe($v->value), (string) $v->resolution,
                 ], ';', '"', '');
             }
             fclose($out);
@@ -174,12 +175,6 @@ class LegacyValueController extends Controller
             'search' => ['search_terms' => $search],
             default => ['official_aliases' => $official],
         };
-    }
-
-    /** Formeln in CSV-Zellen entschärfen (CSV-Injection). */
-    private static function cell(string $value): string
-    {
-        return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
     }
 
     private function user(Request $request): ?User

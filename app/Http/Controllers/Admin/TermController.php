@@ -10,6 +10,7 @@ use App\Models\Source;
 use App\Models\Term;
 use App\Models\TermRevision;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -104,10 +105,25 @@ class TermController extends Controller
                     ? ['id' => $target->id, 'titel' => $target->title()]
                     : null,
                 'altwerte' => $term->legacyValues()->open()->count(),
+                // Quellenprüfung (#69): redaktionell, ohne Revision
+                'herkunft_pruefung' => $term->sources()->orderBy('sort_order')->get()->map(function (Source $src): array {
+                    $pivot = $src->getRelationValue('pivot');
+                    $get = fn (string $key): string => $pivot instanceof Pivot && is_scalar($pivot->getAttribute($key)) ? (string) $pivot->getAttribute($key) : '';
+
+                    return [
+                        'source_id' => $src->id,
+                        'label' => $src->displayLabel(),
+                        'name' => $src->name,
+                        'retrieved_at' => substr($get('retrieved_at'), 0, 10),
+                        'evidence' => $get('evidence'),
+                        'note' => $get('note'),
+                    ];
+                })->all(),
             ],
             'verlauf' => array_reverse($history),
             'labels' => self::LABELS,
             'listen' => $this->lists(),
+            'belegstatus' => SourceCheckController::EVIDENCE,
         ]);
     }
 

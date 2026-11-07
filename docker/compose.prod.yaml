@@ -5,8 +5,17 @@
 
 name: glossary
 
+# Log-Rotation (#60, docs/LOESCHKONZEPT.md): je Dienst höchstens 3 Dateien à 10 MB. Die Rotation geht nach Grösse;
+# die Frist von 14 Tagen gilt als Obergrenze nur zusammen mit der Einstellung des Hosts (DEPLOY.md, Abschnitt Logs).
+x-logging: &logging
+    driver: json-file
+    options:
+        max-size: 10m
+        max-file: '3'
+
 services:
     app:
+        logging: *logging
         build:
             context: ./src
         image: eduksx-glossary:latest
@@ -32,6 +41,7 @@ services:
 
     # Warteschlange (Mails mit Wiederholung, #40); gleiches Image, ohne Migration (GLOSSARY_ROLE)
     worker:
+        logging: *logging
         build:
             context: ./src
         image: eduksx-glossary:latest
@@ -55,6 +65,7 @@ services:
 
     # Geplante Aufgaben (z. B. Löschfristen, #41/#42)
     scheduler:
+        logging: *logging
         build:
             context: ./src
         image: eduksx-glossary:latest

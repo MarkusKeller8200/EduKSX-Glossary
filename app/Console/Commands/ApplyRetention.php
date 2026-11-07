@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Access\Audit;
 use App\Mail\InactivityNotice;
+use App\Models\ImportBatch;
 use App\Models\User;
 use App\Support\MailSetup;
 use DateTimeInterface;
@@ -63,9 +64,13 @@ class ApplyRetention extends Command
         $auditQuery = DB::table('user_audit')->where('created_at', '<', now()->subYears($auditYears));
         $audit = $dry ? $auditQuery->count() : $auditQuery->delete();
 
+        // 4. Import-Protokoll (#64): 12 Monate
+        $importQuery = ImportBatch::query()->where('created_at', '<', now()->subMonths(ImportBatch::RETENTION_MONTHS));
+        $imports = $dry ? $importQuery->count() : $importQuery->delete();
+
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
-            ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge entfernt.");
+            ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt.");
 
         return self::SUCCESS;
     }

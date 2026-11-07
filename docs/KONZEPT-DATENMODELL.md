@@ -102,8 +102,8 @@ Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht ab
   noch Weiterleitung (Website und API 301, Excel-Import meldet die neue ID). War einer veröffentlicht, wird das
   Ergebnis gleich veröffentlicht – ein Datenstand.
 - Noch nicht umgesetzt: `proposals`/`proposal_events` (Meilenstein «Vorschläge und Moderation», Datenbankstruktur
-  wird vorher nochmals geprüft), `term_relations` (später). Die Import-Vorschau liegt bisher nur befristet im
-  Zwischenspeicher statt in `import_batches` (eigenes Issue).
+  wird vorher nochmals geprüft), `term_relations` (später). Die Import-Vorschau liegt befristet im Zwischenspeicher;
+  übernommene Importe protokolliert `import_batches` (#64).
 
 ## Identitätsmodell, Datenschutz und Veröffentlichungsgrenze (DEC-017 bis DEC-019)
 
@@ -265,3 +265,14 @@ Nicht gespeichert, eine Regel für Website und API:
 4. Ohne `edit-official` keine Wiederherstellung, die offizielle Felder ändert; ohne `publish` kein direktes
    Veröffentlichen.
 5. Fehlende Kategorie bzw. Herkunft → Meldung, keine Revision.
+
+## Import-Protokoll und Quellenprüfung (#64, #69)
+
+- **Entscheid #64:** `import_batches` statt `import_rows`. Je übernommener Datei: Person (Text, bei Kontolöschung
+  ersetzt), Dateiname, Format, Anzahl Zeilen, neu, geändert, Fehler, Altwerte und bis 100 Fehlermeldungen. Ohne
+  Zeileninhalte – die Änderungen stehen feldgenau im Journal der Revisionen (Kontext `excel`). Aufbewahrung 12 Monate
+  (`glossary:loeschfristen`). Die Vorschau bleibt befristet im Zwischenspeicher (30 Minuten).
+- **Quellenprüfung #69:** `term_sources.retrieved_at` ist das Prüfdatum, neu `term_sources.evidence` (amtlich,
+  belegt, sekundär, offen). Redaktionelle Angaben ohne Revision und nicht öffentlich. Die Seite «Prüfung» zeigt
+  Begriffe zur Wiedervorlage: Herkunft nie oder vor mehr als 12 Monaten geprüft, Status «zu prüfen», ohne Herkunft
+  oder mit offizieller Form ohne amtlichen Beleg.

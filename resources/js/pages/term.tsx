@@ -35,6 +35,7 @@ type Begriff = {
     veroeffentlicht: string | null;
     andere: { slug: string; bezeichnung: string }[];
     mehrdeutig: boolean;
+    verlauf: { revision: number; am: string | null }[];
     // nur angemeldet (DEC-020): persönliche Darstellung des eigenen Kontos
     persoenlich?: boolean;
     gemeinsam?: {
@@ -171,11 +172,26 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     ) : null}
                     <dt className="text-muted-foreground">Stand</dt>
                     <dd>
-                        Revision {b.revision}
+                        V{b.revision}
                         {b.veroeffentlicht
                             ? `, veröffentlicht am ${b.veroeffentlicht}`
                             : ''}
                     </dd>
+                    {b.verlauf.length > 1 ? (
+                        <>
+                            <dt className="text-muted-foreground">Verlauf</dt>
+                            <dd>
+                                <ol className="flex flex-wrap gap-x-3 gap-y-1">
+                                    {b.verlauf.map((v) => (
+                                        <li key={v.revision}>
+                                            V{v.revision}
+                                            {v.am ? ` (${v.am})` : ''}
+                                        </li>
+                                    ))}
+                                </ol>
+                            </dd>
+                        </>
+                    ) : null}
                 </dl>
 
                 {b.andere.length > 0 ? (
