@@ -11,11 +11,12 @@
 
 ## Konventionen (Vorschlag)
 
-- HTTPS, JSON UTF-8, REST, **OpenAPI 3.1** (`openapi/glossary-v1.yaml`, ausgeliefert unter `/api/openapi.json`,
+- HTTPS, JSON UTF-8, REST, **OpenAPI 3.1** (`openapi/glossary-v1.json`, ausgeliefert unter `/api/openapi.json`,
   Doku mit Scalar).
 - Version im Pfad: `/api/v1`. Felder nur hinzufügen; was bricht, kommt in `/api/v2` (KONZEPT-VERSIONIERUNG).
 - Stabile UUID und Slug je Begriff; Fehler als `application/problem+json`; Filter, Pagination, ETag/If-None-Match,
-  Cache-Control, Rate-Limits, CORS über eine Liste erlaubter Herkünfte.
+  Cache-Control, Rate-Limits, CORS für Lesezugriffe von jeder Herkunft (`*`, nur GET); schreibende Endpunkte
+  bekommen eine Liste erlaubter Herkünfte.
 - Lesen ohne Schlüssel; Schreiben (Vorschläge) und Moderation nur authentisiert und mit Recht.
 
 ## Endpunkte (Vorschlag)
@@ -61,7 +62,7 @@ Beispiel-URL und -Datum sind Platzhalter.
 - Schlägt ein Abruf fehl, bleibt der letzte gültige lokale Stand erhalten; danach wird lückenlos nachgezogen.
 - Keine unveröffentlichten Entwürfe, Vorschläge oder redaktionellen Personendaten.
 - Intervall, Anmeldung für Abnehmer und Aufbewahrung der Änderungen: werden geklärt, wenn benötigt (Vorschlag für den
-  Start: Abruf alle 15–60 Minuten).
+  Start: Abruf alle 5–15 Minuten, siehe «Zugang und Grenzen»).
 
 ## Intranet als Abnehmer
 

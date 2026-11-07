@@ -97,7 +97,9 @@ Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht ab
   Abkürzungen und Bezeichnungen der anderen werden Suchbegriffe. Die anderen erhalten `merged_into_id` und sind nur
   noch Weiterleitung (Website und API 301, Excel-Import meldet die neue ID). War einer veröffentlicht, wird das
   Ergebnis gleich veröffentlicht – ein Datenstand.
-- Noch nicht umgesetzt: `proposals`, `import_batches` (mit #15), `term_relations` (später).
+- Noch nicht umgesetzt: `proposals`/`proposal_events` (Meilenstein «Vorschläge und Moderation», Datenbankstruktur
+  wird vorher nochmals geprüft), `term_relations` (später). Die Import-Vorschau liegt bisher nur befristet im
+  Zwischenspeicher statt in `import_batches` (eigenes Issue).
 
 ## Identitätsmodell, Datenschutz und Veröffentlichungsgrenze (DEC-017 bis DEC-019)
 
