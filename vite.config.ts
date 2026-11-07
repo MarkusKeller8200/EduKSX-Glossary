@@ -72,6 +72,15 @@ export default defineConfig({
             'resources/js/components/ui/*',
             'resources/views/mail/*',
             'openapi/**',
+            // Vom Blueprint erzeugt bzw. überschrieben (apply.py, release.py) – nicht umformatieren
+            'CONTRIBUTING.md',
+            'SECURITY.md',
+            'CHANGELOG.md',
+            'AGENTS.md',
+            'docs/GITHUB-ABLAUF.md',
+            'docs/UNTERSTUETZEN.md',
+            // Reduzierte Lesefassung für GitHub Pages (Daten werden exportiert)
+            'site/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],
