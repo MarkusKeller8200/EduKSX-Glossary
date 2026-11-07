@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Glossary\ApiPresenter;
 use Tests\TestCase;
 
 /** Öffentliche API: Einstieg, OpenAPI, Doku-Seite, Fehlerformat (#25, #26). */
@@ -40,6 +41,26 @@ class ApiTest extends TestCase
             $path = '/'.substr($uri, strlen('api/'));
             $this->assertArrayHasKey(rtrim($path, '/') ?: '/v1', $spec['paths'], "Route {$uri} fehlt in openapi/glossary-v1.json");
         }
+    }
+
+    /** Beschreibung und Positivliste passen zusammen, auch in den Beispielen (DEC-020: keine own_*). */
+    public function test_term_schema_entspricht_der_positivliste(): void
+    {
+        $spec = json_decode((string) file_get_contents(base_path('openapi/glossary-v1.json')), true);
+        $this->assertSame(ApiPresenter::PUBLIC_TERM_FIELDS, array_keys($spec['components']['schemas']['Term']['properties']));
+
+        $check = function (mixed $node) use (&$check): void {
+            if (! is_array($node)) {
+                return;
+            }
+            if (isset($node['slug'], $node['revision'], $node['categories'])) {
+                $this->assertSame([], array_diff(array_keys($node), ApiPresenter::PUBLIC_TERM_FIELDS), 'Beispiel mit Feldern ausserhalb der Positivliste');
+            }
+            foreach ($node as $child) {
+                $check($child);
+            }
+        };
+        $check($spec);
     }
 
     public function test_doku_seite(): void
