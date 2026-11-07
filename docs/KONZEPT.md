@@ -1,9 +1,21 @@
 # Konzept: EduKSX-Glossary
 
-**Entwurf** vom 07.11.2026 zur Abnahme (#3). Grundlage: [PROJECT_CONCEPT_V1.2.md](PROJECT_CONCEPT_V1.2.md) (mit
-ChatGPT erarbeitet) und das Glossar-Modul des Intranets (`docs/KONZEPT-GLOSSAR.md` im sek-intranet). Dieses
-Dokument fasst beides im Aufbau der Intranet-Konzepte zusammen; bei Widersprüchen gilt das Entscheidungsregister
-[DECISIONS_V1.2.md](DECISIONS_V1.2.md).
+**Entwurf** vom 07.11.2026 zur Abnahme (#3). Grundlage: Projektkonzept V1.2 (mit ChatGPT erarbeitet, 07.11.2026)
+und das Glossar-Modul des Intranets (`docs/KONZEPT-GLOSSAR.md` im sek-intranet). Konzept V1.2 und seine
+Beilagen (Entscheidungsregister, Sync-Vertrag, Confluence-Publisher, MCP-Readiness) sind in diese Konzepte
+zusammengeführt; der Originaltext steht im Git-Verlauf (Commit `8d4367b`). Bei Widersprüchen gilt
+[ENTSCHEIDE.md](ENTSCHEIDE.md).
+
+| Konzept                                          | Inhalt                                             |
+| ------------------------------------------------ | -------------------------------------------------- |
+| [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md) | Felder, Tabellen, Statusachsen, Import             |
+| [KONZEPT-API.md](KONZEPT-API.md)                 | REST-API, Synchronisation, Intranet als Abnehmer   |
+| [KONZEPT-STACK.md](KONZEPT-STACK.md)             | Technik, SQLite, Anmeldung                         |
+| [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)           | Auftritt nach CI, GUI-Bausteine aus dem Intranet   |
+| [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)         | Hostinger, Cloudflare, GitHub Pages                |
+| [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) | Versionen, Versionshistorie                    |
+| [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)   | Confluence-Publisher (später)                      |
+| [KONZEPT-MCP.md](KONZEPT-MCP.md)                 | MCP-Server für Rovo (später)                       |
 
 Kennzeichnung: **Entscheid** = vom Projektverantwortlichen festgelegt · **Vorschlag** = zur Abnahme · **offen** =
 noch zu klären.
@@ -92,6 +104,17 @@ Regeln wie im Intranet (**Entscheid**):
 - **GitHub Pages** bleibt dauerhaft als reduzierte, statische Lesefassung (Export des veröffentlichten Datenstands,
   [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)).
 
+## Recherche, Quellen und Qualität
+
+Ausgangspunkt: Volksschulamt des Kantons Zürich, Datenschutzbeauftragte des Kantons Zürich, Gemeindeamt, weitere
+kantonale Stellen, interne Schulterminologie; vorhandene Begriffssammlungen werden konsolidiert. Ergebnisse einer
+Recherche gelten **nicht automatisch** als offizielle Definition.
+
+**Vorschlag – Regeln:** Herkunft und URL für jeden nicht trivialen Eintrag, Prüfdatum der Quelle; Kennzeichen
+«offiziell» nur bei belegter amtlicher Form; Kurzbeschreibung in eigenen Worten, nicht aus fremden Texten kopiert;
+Liste der Doppelten vor der Veröffentlichung; Mehrdeutigkeiten bewusst erhalten; jährliche Wiedervorlage für
+veränderliche Begriffe; Änderungsjournal.
+
 ## Rollen (Vorschlag)
 
 | Rolle                    | lesen | vorschlagen | prüfen | freigeben | Import / Listen |
@@ -101,7 +124,8 @@ Regeln wie im Intranet (**Entscheid**):
 | Redaktion                | ja    | ja          | ja     | –         | nach Recht      |
 | Admin-Gruppe, Projektverantwortliche:r | ja | ja | ja | ja      | ja              |
 
-Admin-Zugang mit zweitem Faktor. **Offen:** Einreichen ohne Konto, mit E-Mail-Bestätigung oder mit Login (GitHub,
+**Beschlossen (DEC-014):** Ein lokaler Admin steht **ab dem ersten Deployment** zur Verfügung; ohne Anmeldung
+lassen sich keine Daten ändern. Admin-Zugang mit zweitem Faktor. **Offen:** Einreichen ohne Konto, mit E-Mail-Bestätigung oder mit Login (GitHub,
 Microsoft, Edulog).
 
 ## Schnittstellen
@@ -115,15 +139,14 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 - **REST-API `/api/v1`** (Entscheid, DEC-005): nur veröffentlichte Daten, JSON, OpenAPI 3.1, stabile UUID und
   Slugs, Pagination, ETag/304, Fehler als `application/problem+json`, Rate-Limit. Lesen ohne Schlüssel;
-  Schreiben (Vorschläge) geschützt. Endpunkte und Sync-Vertrag: PROJECT_CONCEPT_V1.2 Abschnitt 8 und
-  [SYNC_CONTRACT.md](SYNC_CONTRACT.md).
+  Schreiben (Vorschläge) geschützt. Endpunkte und Sync-Vertrag: [KONZEPT-API.md](KONZEPT-API.md).
 - **Intranet:** holt die Daten regelmässig ab (Vorschlag 15–60 Minuten) über Vollstand und Änderungen seit
   `since` (inkl. zurückgezogener Einträge), behält bei Fehlern den letzten gültigen Stand. Tooltip und Erkennung im
   Freitext bleiben im Intranet; `/glossar/begriffe` wird dort zum Adapter. Änderungen aus dem Intranet kommen als
   Vorschläge.
-- **Confluence** (Entscheid DEC-006/007): nur Empfänger, nachrangig; [CONFLUENCE_PUBLISHER.md](CONFLUENCE_PUBLISHER.md).
+- **Confluence** (Entscheid DEC-006/007): nur Empfänger, nachrangig; [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md).
 - **MCP für Rovo** (Entscheid DEC-008): in der Architektur vorgesehen, nicht im ersten Release; Rovo kann nur
-  vorschlagen, nicht veröffentlichen; [MCP_READINESS.md](MCP_READINESS.md).
+  vorschlagen, nicht veröffentlichen; [KONZEPT-MCP.md](KONZEPT-MCP.md).
 - **Vorschlag:** Website, API, Import und später MCP rufen dieselbe Service-Schicht auf (eine Stelle für Regeln,
   Rechte und Verlauf). Kein Zugriff anderer Systeme auf die Datenbank.
 
