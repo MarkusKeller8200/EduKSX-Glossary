@@ -15,6 +15,16 @@ use App\Models\TermRevision;
  */
 final class ApiPresenter
 {
+    /**
+     * Positivliste der öffentlichen Felder eines Begriffs (#43, DEC-018). Nur diese Felder verlassen die
+     * Veröffentlichungsgrenze – API, Vollstand, Change-Feed und GitHub Pages. Neue Felder bewusst hier ergänzen.
+     */
+    public const PUBLIC_TERM_FIELDS = [
+        'id', 'slug', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'own_abbreviation', 'own_name',
+        'aliases', 'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active',
+        'valid_from', 'valid_until', 'revision', 'published_at', 'web_url',
+    ];
+
     /** @var array<string, array{key: string, label: string, name: string, url: string|null}>|null */
     private ?array $categories = null;
 
@@ -71,7 +81,7 @@ final class ApiPresenter
         $str = fn (string $key): ?string => isset($s[$key]) && $s[$key] !== '' ? (string) $s[$key] : null;
         $abbreviation = $str('own_abbreviation') ?? $str('official_abbreviation');
 
-        return [
+        $term = [
             'id' => (string) $s['id'],
             'slug' => (string) $s['slug'],
             'abbreviation' => $abbreviation,
@@ -94,6 +104,8 @@ final class ApiPresenter
             'published_at' => $revision->published_at?->toIso8601ZuluString(),
             'web_url' => url('/begriffe/'.$s['slug']),
         ];
+
+        return array_intersect_key($term, array_flip(self::PUBLIC_TERM_FIELDS));
     }
 
     /**

@@ -21,6 +21,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Zurücksetzen und Wiederherstellungscodes des zweiten Faktors stehen im Protokoll. Konten ohne Verwaltungsrechte
   landen nach der Anmeldung auf der Startseite. Sitzungs-Cookie im Betrieb nur über HTTPS.
 
+- **Veröffentlichungsgrenze (#43):** Öffentliche Ausgaben (Website, API, Vollstand, Change-Feed, GitHub Pages)
+  bauen nur aus einer Positivliste von Feldern. Ein automatischer Test prüft, dass Notizen, «Intern genutzt in»,
+  Entwürfe, unveröffentlichte Begriffe und Kontodaten nirgends erscheinen.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.
