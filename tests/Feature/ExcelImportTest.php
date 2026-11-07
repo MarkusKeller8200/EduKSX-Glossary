@@ -158,7 +158,7 @@ class ExcelImportTest extends TestCase
         $csv = (string) $response->getContent();
         $this->assertStringStartsWith("\xEF\xBB\xBF", $csv);
         $this->assertStringContainsString("'=1+1", $csv);
-        $this->assertStringContainsString('Abkürzung offiziell;', $csv);
+        $this->assertStringContainsString('"Abkürzung offiziell";', $csv);
     }
 
     public function test_datum_aus_excel(): void

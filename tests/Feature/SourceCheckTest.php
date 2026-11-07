@@ -18,7 +18,7 @@ class SourceCheckTest extends TestCase
 
         $this->get('/admin/pruefung')->assertOk()
             ->assertInertia(fn (Assert $p) => $p->component('admin/source-check')->has('begriffe', 1)
-                ->where('begriffe.0.gruende', fn ($g): bool => in_array('VSA: nie geprüft', (array) $g, true) && in_array('offiziell ohne amtlichen Beleg', (array) $g, true)));
+                ->where('begriffe.0.gruende', fn ($g): bool => collect($g)->contains('VSA: nie geprüft') && collect($g)->contains('offiziell ohne amtlichen Beleg')));
 
         $this->put("/admin/begriffe/{$term->id}/herkunft", ['herkunft' => [
             ['source_id' => $vsa->id, 'retrieved_at' => now()->toDateString(), 'evidence' => 'amtlich', 'note' => 'Website VSA'],

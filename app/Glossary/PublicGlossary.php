@@ -124,7 +124,7 @@ final class PublicGlossary
             'andere' => array_map(fn (array $t): array => ['slug' => $t['slug'], 'bezeichnung' => $t['bezeichnung']], $others),
             'mehrdeutig' => (new GlossaryDisplay($this->published()))->isAmbiguous($s),
             // Verlauf (#68): nur veröffentlichte Revisionen mit Datum – ohne Personen, Entwürfe oder Inhalte
-            'verlauf' => $term->revisions()->whereNotNull('published_at')->orderByDesc('revision')->get(['revision', 'published_at'])
+            'verlauf' => $term->revisions()->whereNotNull('published_at')->reorder('revision', 'desc')->get(['revision', 'published_at'])
                 ->map(fn (TermRevision $r): array => ['revision' => $r->revision, 'am' => $r->published_at?->toDateString()])
                 ->values()->all(),
         ];
