@@ -43,29 +43,30 @@ Berücksichtigt wurden im Repository `MarkusKeller8200/EduKSX-Glossary` insbeson
 
 ## 4. Risikoregister
 
-| ID | Priorität | Befund | Evidenz/Status | Erforderliche Massnahme | Abnahmekriterium |
-|---|---|---|---|---|---|
-| SEC-01 | P0 | Kontolöschung eines ausschliesslich föderierten Kontos verlangt nur die Eingabe «LÖSCHEN» innerhalb einer aktiven Sitzung, keine frische Authentifizierung. | Im Code beobachtet: `AccountController::destroy()`. | Frische, nachgewiesene Re-Authentifizierung via OIDC (mit geeigneter Authentifizierungszeit) oder anderer vorhandener vertrauenswürdiger Methode; optional zusätzliche Bestätigung. | Session-Diebstahl allein genügt nicht für Löschung; automatisierte Tests. |
-| SEC-02 | P0 | Glossary teilt sich laut Hostingkonzept Host/Traefik mit dem Intranet-Prototyp. Ein kompromittierter Host kann beide Systeme betreffen. | Im Konzept bestätigt. | Für hohe Schutzanforderungen isolierten Produktionshost bzw. gleichwertige Host-Isolation, restriktive Netze, eigene Secrets und Least-Privilege-Container vorsehen. | Dokumentiertes Threat Model und verifizierte Isolation. |
-| SEC-03 | P0 | Aufbewahrung, Löschung und Wiederherstellung gelöschter Daten aus Backups sind noch nicht vollständig betrieblich geklärt. | Konzept und Deploymentdokumentation: lokale Rotationssicherung, Offsite-Backup offen. | Verbindliche Löschmatrix und Backup-Policy inkl. verschlüsselter Offsite-Kopie, Restore-Test, Wiederanwendung von Löschaufträgen. | Test: gelöschtes Konto bleibt auch nach Restore gelöscht/anonymisiert; dokumentierte Backupfristen. |
-| SEC-04 | P1 | Personenbezug kann in historischen Audits, Revisionen, Vorschlägen und Freitexten fortbestehen. | Audit nutzt User-IDs; Migrationen und Referenzen noch nicht abschliessend geprüft. | Datenkategorien und Aufbewahrungsgrund je Referenz erfassen; entkoppelte historische Zuschreibung, Pseudonymisierung und Anonymisierung mit Freitextprüfung. | Kontolöschtest über alle Tabellen, Revisionen, Exporte, Log- und Suchpfade. |
-| SEC-05 | P1 | SSO-Registrierung übernimmt Provider-E-Mail als Kontaktdatum; Vertrauenswürdigkeit und Verifikation jedes Claims bedürfen Prüfung. | Im Code beobachtet: `SsoController::register()`; Validierung im Provider noch zu prüfen. | E-Mail-Verifikation getrennt von Identitätsverifikation behandeln; bestätigte Claims und Provider-Verhalten prüfen. | Tests für fehlende, unbestätigte und kollidierende E-Mail-Claims. |
-| SEC-06 | P1 | `own_name` / `own_abbreviation` sind noch im öffentlichen DTO, obwohl persönliche Varianten nur im Benutzerkontext gelten sollen. | Im Code beobachtet: `ApiPresenter`; fachliche Zielmodelländerung. | Globale öffentliche Begriffe von benutzerbezogenen Overrides mit separatem Zugriffskontext trennen. | Persönliche Felder erscheinen nie in öffentlicher API, Export, Change-Feed, GitHub Pages oder Confluence. |
-| SEC-07 | P1 | Veröffentlichung versehentlich personenbezogener Freitexte kann irreversible Verbreitung über externe Konsumenten bewirken. | Architekturbedingt, keine konkrete Offenlegung festgestellt. | Vor Veröffentlichung Inhaltsprüfung, redaktionelle Freigabe, Notfall-Rückzug und Benachrichtigung von Abnehmern. | Negativtests mit gezielt platzierten Personendaten. |
-| SEC-08 | P1 | Tatsächliche Datenflüsse an Cloudflare, Hostinger, E-Mail-Provider, GitHub und spätere Integrationen sind nicht vollständig freigegeben. | Im Datenschutz-/Hostingkonzept offen. | Datenflussinventar mit Empfängern, Unterauftragsbearbeitern, Standorten, Zugriffsmöglichkeiten, Verträgen und Auslandübermittlungen. | Rechts-/Datenschutzfreigabe vor Community-Start. |
-| SEC-09 | P1 | Auditänderungen sind vorhanden, aber Unveränderbarkeit, eingeschränkte Zugriffe und unabhängiger Schutz sind noch nicht belegt. | `Audit::log()` schreibt in die Anwendungsdatenbank. | Append-only-Ereignisse, externe bzw. getrennte manipulationsgeschützte Ablage, Integritätsprüfung, definierte Fristen. | Manipulations- und Berechtigungstests; nachweisbare Unveränderbarkeit. |
-| SEC-10 | P1 | Host, Anwendung und Backups könnten dieselbe Vertrauens- bzw. Schlüsselgrenze teilen. | Schlüsselmanagement nicht abschliessend geprüft. | Getrennte Schlüsselverwaltung, rollenbasierte Schlüsselzugriffe, Rotation, Restore-Prozess, kein Schlüsselmaterial im Repository oder ungeschützten Backup. | Dokumentiertes KMS-/Secret-Konzept und Rotationstest. |
-| SEC-11 | P1 | Deploymentbeispiel verwendet einen SSH-Zugang über `root`; Origin-Zugriff und Firewallabsicherung noch offen. | In `DEPLOY.md` dokumentiert. | Dedizierter unprivilegierter Deploy-Benutzer, minimale Befehlsrechte, Hostkey-Verifikation, Origin-Firewall bzw. authentifizierter Tunnel. | Kein direkter Root-Deploy; Origin-Bypass verhindert. |
-| SEC-12 | P1 | Incident Response, Sicherheitsüberwachung und unabhängige Sicherheitsabnahme nicht ausreichend nachgewiesen. | Betriebsunterlagen unvollständig. | Incident-Runbook, Meldewege, Monitoring, Updates, Patch-SLAs und Penetrationstest. | Abnahmeprotokoll und simulierte Sicherheitsübung. |
-| SEC-13 | P2 | XLSX-Importvorschauen liegen zeitweise im Cache; Inhaltsschutz, Cache-Retention und Parser-Härtung vollständig prüfen. | Im Code beobachtet: `ExcelController::preview()`, TTL 30 Minuten, max. 5 MB. | Dateiinhaltstyp/Struktur validieren, Ressourcenlimits, sichere Parserkonfiguration, Cache-Bereinigung, keine Rohdaten in Debug/Logs. | Tests für fehlerhafte Dateien, Ressourcenverbrauch und Retention. |
-| SEC-14 | P2 | API-Suche verarbeitet alle veröffentlichten Begriffe im Anwendungsspeicher. | Im Code beobachtet: `GlossaryApiController::terms()`. | Ressourcenlimits und Lasttests, ggf. DB-seitige Suche/Pagination, Rate-Limits prüfen. | Stabile Reaktion bei Last und missbräuchlichen Suchanfragen. |
-| SEC-15 | P2 | Hosting- und Datenschutzentwurf enthalten noch offene oder vorläufige Fristen. | Dokumentiert. | Verantwortliche, Fristbeginn, Rechtsgrundlage, Ausnahmen und automatisierte Löschjobs festlegen. | Genehmigte Daten-/Aufbewahrungsmatrix. |
+| ID     | Priorität | Befund                                                                                                                                                      | Evidenz/Status                                                                           | Erforderliche Massnahme                                                                                                                                                             | Abnahmekriterium                                                                                          |
+| ------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| SEC-01 | P0        | Kontolöschung eines ausschliesslich föderierten Kontos verlangt nur die Eingabe «LÖSCHEN» innerhalb einer aktiven Sitzung, keine frische Authentifizierung. | Im Code beobachtet: `AccountController::destroy()`.                                      | Frische, nachgewiesene Re-Authentifizierung via OIDC (mit geeigneter Authentifizierungszeit) oder anderer vorhandener vertrauenswürdiger Methode; optional zusätzliche Bestätigung. | Session-Diebstahl allein genügt nicht für Löschung; automatisierte Tests.                                 |
+| SEC-02 | P0        | Glossary teilt sich laut Hostingkonzept Host/Traefik mit dem Intranet-Prototyp. Ein kompromittierter Host kann beide Systeme betreffen.                     | Im Konzept bestätigt.                                                                    | Für hohe Schutzanforderungen isolierten Produktionshost bzw. gleichwertige Host-Isolation, restriktive Netze, eigene Secrets und Least-Privilege-Container vorsehen.                | Dokumentiertes Threat Model und verifizierte Isolation.                                                   |
+| SEC-03 | P0        | Aufbewahrung, Löschung und Wiederherstellung gelöschter Daten aus Backups sind noch nicht vollständig betrieblich geklärt.                                  | Konzept und Deploymentdokumentation: lokale Rotationssicherung, Offsite-Backup offen.    | Verbindliche Löschmatrix und Backup-Policy inkl. verschlüsselter Offsite-Kopie, Restore-Test, Wiederanwendung von Löschaufträgen.                                                   | Test: gelöschtes Konto bleibt auch nach Restore gelöscht/anonymisiert; dokumentierte Backupfristen.       |
+| SEC-04 | P1        | Personenbezug kann in historischen Audits, Revisionen, Vorschlägen und Freitexten fortbestehen.                                                             | Audit nutzt User-IDs; Migrationen und Referenzen noch nicht abschliessend geprüft.       | Datenkategorien und Aufbewahrungsgrund je Referenz erfassen; entkoppelte historische Zuschreibung, Pseudonymisierung und Anonymisierung mit Freitextprüfung.                        | Kontolöschtest über alle Tabellen, Revisionen, Exporte, Log- und Suchpfade.                               |
+| SEC-05 | P1        | SSO-Registrierung übernimmt Provider-E-Mail als Kontaktdatum; Vertrauenswürdigkeit und Verifikation jedes Claims bedürfen Prüfung.                          | Im Code beobachtet: `SsoController::register()`; Validierung im Provider noch zu prüfen. | E-Mail-Verifikation getrennt von Identitätsverifikation behandeln; bestätigte Claims und Provider-Verhalten prüfen.                                                                 | Tests für fehlende, unbestätigte und kollidierende E-Mail-Claims.                                         |
+| SEC-06 | P1        | `own_name` / `own_abbreviation` sind noch im öffentlichen DTO, obwohl persönliche Varianten nur im Benutzerkontext gelten sollen.                           | Im Code beobachtet: `ApiPresenter`; fachliche Zielmodelländerung.                        | Globale öffentliche Begriffe von benutzerbezogenen Overrides mit separatem Zugriffskontext trennen.                                                                                 | Persönliche Felder erscheinen nie in öffentlicher API, Export, Change-Feed, GitHub Pages oder Confluence. |
+| SEC-07 | P1        | Veröffentlichung versehentlich personenbezogener Freitexte kann irreversible Verbreitung über externe Konsumenten bewirken.                                 | Architekturbedingt, keine konkrete Offenlegung festgestellt.                             | Vor Veröffentlichung Inhaltsprüfung, redaktionelle Freigabe, Notfall-Rückzug und Benachrichtigung von Abnehmern.                                                                    | Negativtests mit gezielt platzierten Personendaten.                                                       |
+| SEC-08 | P1        | Tatsächliche Datenflüsse an Cloudflare, Hostinger, E-Mail-Provider, GitHub und spätere Integrationen sind nicht vollständig freigegeben.                    | Im Datenschutz-/Hostingkonzept offen.                                                    | Datenflussinventar mit Empfängern, Unterauftragsbearbeitern, Standorten, Zugriffsmöglichkeiten, Verträgen und Auslandübermittlungen.                                                | Rechts-/Datenschutzfreigabe vor Community-Start.                                                          |
+| SEC-09 | P1        | Auditänderungen sind vorhanden, aber Unveränderbarkeit, eingeschränkte Zugriffe und unabhängiger Schutz sind noch nicht belegt.                             | `Audit::log()` schreibt in die Anwendungsdatenbank.                                      | Append-only-Ereignisse, externe bzw. getrennte manipulationsgeschützte Ablage, Integritätsprüfung, definierte Fristen.                                                              | Manipulations- und Berechtigungstests; nachweisbare Unveränderbarkeit.                                    |
+| SEC-10 | P1        | Host, Anwendung und Backups könnten dieselbe Vertrauens- bzw. Schlüsselgrenze teilen.                                                                       | Schlüsselmanagement nicht abschliessend geprüft.                                         | Getrennte Schlüsselverwaltung, rollenbasierte Schlüsselzugriffe, Rotation, Restore-Prozess, kein Schlüsselmaterial im Repository oder ungeschützten Backup.                         | Dokumentiertes KMS-/Secret-Konzept und Rotationstest.                                                     |
+| SEC-11 | P1        | Deploymentbeispiel verwendet einen SSH-Zugang über `root`; Origin-Zugriff und Firewallabsicherung noch offen.                                               | In `DEPLOY.md` dokumentiert.                                                             | Dedizierter unprivilegierter Deploy-Benutzer, minimale Befehlsrechte, Hostkey-Verifikation, Origin-Firewall bzw. authentifizierter Tunnel.                                          | Kein direkter Root-Deploy; Origin-Bypass verhindert.                                                      |
+| SEC-12 | P1        | Incident Response, Sicherheitsüberwachung und unabhängige Sicherheitsabnahme nicht ausreichend nachgewiesen.                                                | Betriebsunterlagen unvollständig.                                                        | Incident-Runbook, Meldewege, Monitoring, Updates, Patch-SLAs und Penetrationstest.                                                                                                  | Abnahmeprotokoll und simulierte Sicherheitsübung.                                                         |
+| SEC-13 | P2        | XLSX-Importvorschauen liegen zeitweise im Cache; Inhaltsschutz, Cache-Retention und Parser-Härtung vollständig prüfen.                                      | Im Code beobachtet: `ExcelController::preview()`, TTL 30 Minuten, max. 5 MB.             | Dateiinhaltstyp/Struktur validieren, Ressourcenlimits, sichere Parserkonfiguration, Cache-Bereinigung, keine Rohdaten in Debug/Logs.                                                | Tests für fehlerhafte Dateien, Ressourcenverbrauch und Retention.                                         |
+| SEC-14 | P2        | API-Suche verarbeitet alle veröffentlichten Begriffe im Anwendungsspeicher.                                                                                 | Im Code beobachtet: `GlossaryApiController::terms()`.                                    | Ressourcenlimits und Lasttests, ggf. DB-seitige Suche/Pagination, Rate-Limits prüfen.                                                                                               | Stabile Reaktion bei Last und missbräuchlichen Suchanfragen.                                              |
+| SEC-15 | P2        | Hosting- und Datenschutzentwurf enthalten noch offene oder vorläufige Fristen.                                                                              | Dokumentiert.                                                                            | Verantwortliche, Fristbeginn, Rechtsgrundlage, Ausnahmen und automatisierte Löschjobs festlegen.                                                                                    | Genehmigte Daten-/Aufbewahrungsmatrix.                                                                    |
 
 **Prioritäten:** P0 = vor hochsensibler produktiver Nutzung beheben oder nachweislich gleichwertig kompensieren; P1 = vor Community-Produktivstart prüfen und schliessen; P2 = vor vollständiger Sicherheitsabnahme bzw. risikobasiert bearbeiten. Diese Stufen sind eine vorläufige Empfehlung.
 
 ## 5. Verbindlich zu definierende technische Anforderungen
 
 ### 5.1 Identitäten und Konten
+
 - Privilegierte Funktionen nur nach MFA; phishingresistente MFA (Passkeys/WebAuthn) prüfen.
 - Re-Authentifizierung für Kontolöschung, Identitätswechsel, MFA-Reset, Passwort-/E-Mail-Änderung und sicherheitskritische Rollenänderungen.
 - OIDC: `state`, `nonce`, PKCE, Signatur, Issuer, Audience, Ablauf und verifizierte Claims strikt prüfen.
@@ -74,6 +75,7 @@ Berücksichtigt wurden im Repository `MarkusKeller8200/EduKSX-Glossary` insbeson
 - Eigen- und Fremdprivilegierung, IDOR und Mass-Assignment durch Tests ausschliessen.
 
 ### 5.2 Datenmodell und Veröffentlichung
+
 - Öffentliche Glossarbegriffe und persönliche Bezeichnungen/Beschreibungen als getrennte Datenmodelle.
 - Community-Name nie als FK oder alleinige historische Personenidentität; Löschung eines Kontos darf keinen Glossareintrag zerstören.
 - Feldbezogenes Journal mit Zeitpunkt, Aktion, Akteur-Kategorie und altem/neuem Wert, aber keine unnötige dauerhafte Personenidentifizierbarkeit.
@@ -83,6 +85,7 @@ Berücksichtigt wurden im Repository `MarkusKeller8200/EduKSX-Glossary` insbeson
 - Bei Veröffentlichung und Rückzug: Konsumenten-/Cache-Invalidierung, Behandlung externer Kopien, Prüfpfad für versehentliche PII.
 
 ### 5.3 Anwendungssicherheit
+
 - Sichere HTML-/Markdown-Darstellung, Schutz gegen XSS, CSRF, SQL Injection, SSRF und Dateiupload-Missbrauch.
 - Sichere Cookies, Session-Rotation, passende Zeitlimits, restriktive CORS- und CSP-Konfiguration.
 - API-Eingabevalidierung, Rate-Limits, Pagination-/Payload-Limits, kontrollierte Fehlerausgaben.
@@ -91,6 +94,7 @@ Berücksichtigt wurden im Repository `MarkusKeller8200/EduKSX-Glossary` insbeson
 - OWASP ASVS Level 2 als Prüfbasis; für kritische Funktionen ergänzende Level-3-Kontrollen.
 
 ### 5.4 Hosting und Betrieb
+
 - Separate Produktionsumgebung, minimale Containerprivilegien, keine unnötigen Hostmounts; abgeschottete Netzwerke.
 - Deploy-Schlüssel und technische Konten nach Least Privilege; keine direkte Root-Deploymentroutine.
 - Host-/Containerpatching, Protokollüberwachung, Sicherheitsalarmierung und dokumentierter Notfallzugang.
@@ -99,6 +103,7 @@ Berücksichtigt wurden im Repository `MarkusKeller8200/EduKSX-Glossary` insbeson
 - Ausfall-, Notfall- und Meldeverfahren mit Verantwortlichkeiten und RTO/RPO definieren.
 
 ### 5.5 Datenschutz und Recht
+
 - Betreiberrolle und anwendbares Recht verbindlich klären; gegebenenfalls Auftragsbearbeitung durch Schulen/Gemeinden vertraglich regeln.
 - Dateninventar und Verzeichnis der Bearbeitungstätigkeiten, Datenflussübersicht und Löschkonzept erstellen.
 - Datenschutz-Folgenabschätzung anhand konkreter Risiken und Rechtsgrundlagen prüfen, nicht pauschal voraussetzen.
@@ -108,17 +113,17 @@ Berücksichtigt wurden im Repository `MarkusKeller8200/EduKSX-Glossary` insbeson
 
 ## 6. Abnahmetests und Nachweise
 
-| Testgruppe | Mindestnachweis |
-|---|---|
-| Authentifizierung | Session-Diebstahl reicht nicht für sensible Kontoaktion; SSO-Claims/Verknüpfungen robust |
-| Rollen und Rechte | Kein Privilege Escalation, keine Selbstvergabe, keine IDOR |
-| Veröffentlichung | Gezielte private Testwerte erscheinen auf keinem öffentlichen Endpunkt oder Export |
-| Löschung | Identität, Referenzen, Vorschläge, Auditfristen und Wiederherstellung vollständig nachvollziehbar |
-| Backup/Restore | Verschlüsselung, Konsistenz, Aufbewahrung, Wiederanwendung von Löschungen |
-| Infrastruktur | Härtung, Netzgrenzen, Schlüsselzugriff, SSH/CI/CD-Prüfung |
-| Code und Dependencies | SAST/DAST, Dependency-/Secret-Scan; Ergebnisse dokumentiert |
-| Penetrationstest | Unabhängiger Test mit Nachprüfung kritischer/höherer Findings |
-| Datenschutzfreigabe | Datenflüsse, Verträge, Zweck-/Fristenmatrix, Verantwortlichkeiten dokumentiert |
+| Testgruppe            | Mindestnachweis                                                                                   |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| Authentifizierung     | Session-Diebstahl reicht nicht für sensible Kontoaktion; SSO-Claims/Verknüpfungen robust          |
+| Rollen und Rechte     | Kein Privilege Escalation, keine Selbstvergabe, keine IDOR                                        |
+| Veröffentlichung      | Gezielte private Testwerte erscheinen auf keinem öffentlichen Endpunkt oder Export                |
+| Löschung              | Identität, Referenzen, Vorschläge, Auditfristen und Wiederherstellung vollständig nachvollziehbar |
+| Backup/Restore        | Verschlüsselung, Konsistenz, Aufbewahrung, Wiederanwendung von Löschungen                         |
+| Infrastruktur         | Härtung, Netzgrenzen, Schlüsselzugriff, SSH/CI/CD-Prüfung                                         |
+| Code und Dependencies | SAST/DAST, Dependency-/Secret-Scan; Ergebnisse dokumentiert                                       |
+| Penetrationstest      | Unabhängiger Test mit Nachprüfung kritischer/höherer Findings                                     |
+| Datenschutzfreigabe   | Datenflüsse, Verträge, Zweck-/Fristenmatrix, Verantwortlichkeiten dokumentiert                    |
 
 ## 7. Empfohlene Phasen (noch **nicht beauftragt**)
 
