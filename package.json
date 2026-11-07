@@ -1,8 +1,8 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
     "name": "eduksx-glossary",
-    "license": "MIT",
     "private": true,
+    "license": "MIT",
     "type": "module",
     "scripts": {
         "build": "vp build",
