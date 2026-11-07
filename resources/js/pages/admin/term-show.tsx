@@ -1,5 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -13,6 +14,7 @@ type Begriff = Record<string, unknown> & {
     sources: string[];
     is_active: boolean;
     lifecycle_status: string;
+    zusammengefuehrt_in: { id: string; titel: string } | null;
 };
 
 type Eintrag = {
@@ -29,6 +31,7 @@ type Option = { key: string; label: string };
 const ART: Record<string, string> = {
     created: 'angelegt',
     updated: 'geändert',
+    merged: 'zusammengeführt',
 };
 
 const REIHENFOLGE = [
@@ -150,50 +153,70 @@ export default function TermShow({
                         ) : null}
                     </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                    <Button asChild variant="outline">
-                        <Link href={`/admin/begriffe/${b.id}/bearbeiten`}>
-                            Bearbeiten
-                        </Link>
-                    </Button>
-                    {b.ungespeichert ? (
-                        <Button
-                            disabled={sending}
-                            onClick={() =>
-                                post(`/admin/begriffe/${b.id}/veroeffentlichen`)
-                            }
-                        >
-                            Revision {b.revision} veröffentlichen
+                {b.zusammengefuehrt_in ? null : (
+                    <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline">
+                            <Link href={`/admin/begriffe/${b.id}/bearbeiten`}>
+                                Bearbeiten
+                            </Link>
                         </Button>
-                    ) : null}
-                    {b.veroeffentlicht !== null ? (
-                        <>
-                            <Button asChild variant="outline">
-                                <a href={`/begriffe/${b.slug}`}>
-                                    Auf der Website
-                                </a>
-                            </Button>
+                        {b.ungespeichert ? (
                             <Button
-                                variant="outline"
                                 disabled={sending}
-                                onClick={() => {
-                                    if (
-                                        window.confirm(
-                                            'Veröffentlichung zurückziehen? Der Begriff ist danach nicht mehr öffentlich.',
-                                        )
-                                    ) {
-                                        post(
-                                            `/admin/begriffe/${b.id}/zurueckziehen`,
-                                        );
-                                    }
-                                }}
+                                onClick={() =>
+                                    post(
+                                        `/admin/begriffe/${b.id}/veroeffentlichen`,
+                                    )
+                                }
                             >
-                                Zurückziehen
+                                Revision {b.revision} veröffentlichen
                             </Button>
-                        </>
-                    ) : null}
-                </div>
+                        ) : null}
+                        {b.veroeffentlicht !== null ? (
+                            <>
+                                <Button asChild variant="outline">
+                                    <a href={`/begriffe/${b.slug}`}>
+                                        Auf der Website
+                                    </a>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    disabled={sending}
+                                    onClick={() => {
+                                        if (
+                                            window.confirm(
+                                                'Veröffentlichung zurückziehen? Der Begriff ist danach nicht mehr öffentlich.',
+                                            )
+                                        ) {
+                                            post(
+                                                `/admin/begriffe/${b.id}/zurueckziehen`,
+                                            );
+                                        }
+                                    }}
+                                >
+                                    Zurückziehen
+                                </Button>
+                            </>
+                        ) : null}
+                    </div>
+                )}
             </div>
+
+            {b.zusammengefuehrt_in ? (
+                <Alert className="mt-6" role="note">
+                    <AlertDescription>
+                        Dieser Begriff wurde zusammengeführt in{' '}
+                        <Link
+                            href={`/admin/begriffe/${b.zusammengefuehrt_in.id}`}
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            {b.zusammengefuehrt_in.titel}
+                        </Link>
+                        . Er ist nur noch eine Weiterleitung und kann nicht mehr
+                        bearbeitet werden.
+                    </AlertDescription>
+                </Alert>
+            ) : null}
 
             <h2 className="mt-8 text-lg font-semibold">
                 Arbeitsstand (Revision {b.revision})

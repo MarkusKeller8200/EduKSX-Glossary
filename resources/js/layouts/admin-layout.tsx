@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
     { href: '/admin', label: 'Übersicht' },
     { href: '/admin/begriffe', label: 'Begriffe' },
+    { href: '/admin/doppelte', label: 'Doppelte' },
     { href: '/admin/listen', label: 'Listen' },
     { href: '/admin/import', label: 'Excel-Import' },
 ];

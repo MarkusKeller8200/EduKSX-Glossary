@@ -89,4 +89,11 @@ Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht ab
 - **Offizielle Felder** (Abkürzung, Bezeichnung, Aliase offiziell): ohne Recht `edit-official` nur leere Felder
   setzen. Vorgabe des Rechts: Administration.
 - `genutzt_in` als JSON-Liste (`used_in`), Suchbegriffe zusätzlich als Aliase vom Typ `search`.
+- **Doppelte (#16):** Seite «Doppelte» zeigt Gruppen gleicher Abkürzung bzw. Bezeichnung (Vergleich ohne Gross-/
+  Kleinschreibung und Leerraum); nichts geschieht automatisch. «Mehrdeutig belassen» wird je Gruppe gemerkt
+  (`duplicate_decisions`) und gilt, solange die Mitglieder gleich bleiben. «Zusammenführen»: ein Begriff bleibt
+  (ID, Slug), Kategorien, Herkunft, «Intern genutzt in» und Aliase werden vereinigt, Texte je Feld gewählt;
+  Abkürzungen und Bezeichnungen der anderen werden Suchbegriffe. Die anderen erhalten `merged_into_id` und sind nur
+  noch Weiterleitung (Website und API 301, Excel-Import meldet die neue ID). War einer veröffentlicht, wird das
+  Ergebnis gleich veröffentlicht – ein Datenstand.
 - Noch nicht umgesetzt: `proposals`, `import_batches` (mit #15), `term_relations` (später).

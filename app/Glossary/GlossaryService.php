@@ -9,6 +9,7 @@ use App\Models\Term;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -24,6 +25,12 @@ use InvalidArgumentException;
  */
 final class GlossaryService
 {
+    /** Felder, deren Wert beim Zusammenführen aus einem der Begriffe gewählt wird (#16). */
+    public const MERGE_CHOICE = [
+        'official_abbreviation', 'own_abbreviation', 'official_name', 'own_name', 'short_description', 'description',
+        'url', 'note', 'lifecycle_status', 'valid_from', 'valid_until',
+    ];
+
     /** Einfache Textfelder des Begriffs. */
     private const TEXT = [
         'official_abbreviation', 'own_abbreviation', 'official_name', 'own_name', 'short_description', 'description',
@@ -42,8 +49,11 @@ final class GlossaryService
      * @throws InvalidArgumentException bei ungültigen Werten
      * @throws OfficialFieldLocked ohne Recht für offizielle Felder
      */
-    public function save(?Term $term, array $data, ?User $author, bool $canEditOfficial, ?string $authorLabel = null): Term
+    public function save(?Term $term, array $data, ?User $author, bool $canEditOfficial, ?string $authorLabel = null, string $changeType = 'updated'): Term
     {
+        if ($term?->merged_into_id !== null) {
+            throw new InvalidArgumentException('Begriff wurde zusammengeführt und kann nicht mehr geändert werden.');
+        }
         $creating = $term === null;
         $term ??= new Term;
         $values = $this->normalize($data, $creating);
@@ -52,7 +62,7 @@ final class GlossaryService
             $this->guardOfficial($term, $values);
         }
 
-        return DB::transaction(function () use ($term, $values, $creating, $data, $author, $authorLabel): Term {
+        return DB::transaction(function () use ($term, $values, $creating, $data, $author, $authorLabel, $changeType): Term {
             if ($creating && isset($data['id'])) {
                 $id = (string) $data['id'];
                 if (! Str::isUuid($id)) {
@@ -92,7 +102,7 @@ final class GlossaryService
             $term->save();
             $term->revisions()->create([
                 'revision' => $term->revision,
-                'change_type' => $creating ? 'created' : 'updated',
+                'change_type' => $creating ? 'created' : $changeType,
                 'snapshot' => $this->snapshot($term),
                 'author_id' => $author?->id,
                 'author_label' => $authorLabel ?? $author?->name,
@@ -161,6 +171,129 @@ final class GlossaryService
         return TermPublicationEvent::query()->create([
             'term_id' => $term->id, 'action' => 'published', 'revision' => $latest->revision,
         ]);
+    }
+
+    /**
+     * Doppelte zusammenführen (#16): $target bleibt, $others werden zur Weiterleitung auf $target.
+     *
+     * - Kategorien, Herkunft, «Intern genutzt in» und offizielle Aliase werden vereinigt.
+     * - Texte: je Feld der Wert des in $choices gewählten Begriffs (Feld → ID), sonst der von $target.
+     * - Abkürzungen und Bezeichnungen der anderen, die nicht übernommen werden, kommen zu den Suchbegriffen.
+     * - War einer der Begriffe veröffentlicht, wird das Ergebnis gleich veröffentlicht (ein Datenstand); die
+     *   anderen erscheinen im Change-Feed als «merged» mit Verweis auf $target.
+     *
+     * @param  list<Term>  $others
+     * @param  array<string, string>  $choices
+     *
+     * @throws InvalidArgumentException bei ungültiger Auswahl
+     * @throws OfficialFieldLocked ohne Recht für offizielle Felder
+     */
+    public function merge(Term $target, array $others, array $choices, ?User $user, bool $canEditOfficial): Term
+    {
+        if ($others === []) {
+            throw new InvalidArgumentException('Mindestens zwei Begriffe zum Zusammenführen wählen.');
+        }
+        $all = [$target->id => $target];
+        foreach ($others as $other) {
+            if ($other->id === $target->id || isset($all[$other->id])) {
+                throw new InvalidArgumentException('Jeder Begriff darf nur einmal vorkommen.');
+            }
+            $all[$other->id] = $other;
+        }
+        foreach ($all as $term) {
+            if ($term->merged_into_id !== null) {
+                throw new InvalidArgumentException('«'.$this->title($term).'» wurde schon zusammengeführt.');
+            }
+        }
+
+        $data = [];
+        foreach (self::MERGE_CHOICE as $field) {
+            $from = $all[$choices[$field] ?? $target->id] ?? throw new InvalidArgumentException("Auswahl für «{$field}» gehört nicht zu den gewählten Begriffen.");
+            $value = $from->{$field};
+            $data[$field] = $value instanceof DateTimeInterface ? $value->format('Y-m-d') : $value;
+        }
+
+        $categories = $sources = $usedIn = $official = $search = [];
+        $own = null;
+        foreach ($all as $term) {
+            $term->loadMissing(['categories', 'sources', 'aliases']);
+            foreach ($term->categories as $category) {
+                $categories[] = (string) $category->key;
+            }
+            foreach ($term->sources as $source) {
+                $sources[] = (string) $source->key;
+            }
+            $usedIn = [...$usedIn, ...($term->used_in ?? [])];
+            $official = [...$official, ...$term->aliases->where('alias_type', 'official')->pluck('alias')->all()];
+            $own ??= $term->aliases->firstWhere('alias_type', 'own')?->alias;
+            $search = [...$search, ...(preg_split('/[;,]/', (string) $term->search_terms) ?: [])];
+        }
+        // Namen der anderen bleiben auffindbar
+        $kept = array_map(fn ($v): string => mb_strtolower(trim((string) $v)), [
+            $data['official_abbreviation'], $data['own_abbreviation'], $data['official_name'], $data['own_name'],
+        ]);
+        foreach ($all as $term) {
+            foreach ([$term->official_abbreviation, $term->own_abbreviation, $term->official_name, $term->own_name] as $name) {
+                $name = trim((string) $name);
+                if ($name !== '' && ! in_array(mb_strtolower($name), $kept, true)) {
+                    $search[] = $name;
+                }
+            }
+        }
+        $searchTerms = [];
+        foreach ($search as $item) {
+            $item = trim((string) $item);
+            if ($item !== '' && ! in_array(mb_strtolower($item), array_map('mb_strtolower', $searchTerms), true)) {
+                $searchTerms[] = $item;
+            }
+        }
+
+        $data += [
+            'categories' => array_values(array_unique($categories)),
+            'sources' => array_values(array_unique($sources)),
+            'used_in' => array_values(array_unique($usedIn)),
+            'official_aliases' => array_values(array_unique($official)),
+            'own_alias' => $own,
+            'search_terms' => implode('; ', $searchTerms),
+            'is_active' => array_filter($all, fn (Term $t): bool => $t->is_active) !== [],
+        ];
+
+        return DB::transaction(function () use ($target, $others, $all, $data, $user, $canEditOfficial): Term {
+            $anyPublished = array_filter($all, fn (Term $t): bool => $t->published_revision_id !== null) !== [];
+            $target = $this->save($target, $data, $user, $canEditOfficial, null, 'merged');
+
+            $events = [];
+            foreach ($others as $other) {
+                $wasPublished = $other->published_revision_id !== null;
+                $other->merged_into_id = $target->id;
+                $other->merged_at = now()->toImmutable();
+                $other->published_revision_id = null;
+                $other->save();
+                // Frühere Weiterleitungen auf diesen Begriff zeigen jetzt direkt auf $target
+                Term::query()->where('merged_into_id', $other->id)->update(['merged_into_id' => $target->id]);
+                if ($wasPublished) {
+                    $events[] = TermPublicationEvent::query()->create([
+                        'term_id' => $other->id, 'action' => 'merged', 'merged_into' => $target->id,
+                    ]);
+                }
+            }
+            if ($anyPublished) {
+                $event = $this->markPublished($target, $user);
+                if ($event !== null) {
+                    $events[] = $event;
+                }
+            }
+            if ($events !== []) {
+                $this->newRelease($target->id, 'merged', $user, $events);
+            }
+
+            return $target->refresh();
+        });
+    }
+
+    private function title(Term $term): string
+    {
+        return trim($term->displayAbbreviation().' – '.$term->displayName(), ' –');
     }
 
     /** Veröffentlichung zurückziehen: Begriff ist danach nicht mehr öffentlich (Tombstone im Change-Feed). */

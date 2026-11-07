@@ -25,7 +25,7 @@ use InvalidArgumentException;
 class TermController extends Controller
 {
     /** Formularfelder → Bezeichnung (wie Spalten im Excel/Intranet). */
-    private const LABELS = [
+    public const LABELS = [
         'official_abbreviation' => 'Abkürzung offiziell',
         'official_aliases' => 'Aliase offiziell',
         'own_abbreviation' => 'Abkürzung eigene',
@@ -50,7 +50,7 @@ class TermController extends Controller
 
     public function index(): Response
     {
-        $terms = Term::query()->with(['categories', 'publishedRevision'])->get()
+        $terms = Term::query()->current()->with(['categories', 'publishedRevision'])->get()
             ->sortBy(fn (Term $t): string => mb_strtolower($t->displayAbbreviation() ?: $t->displayName()))
             ->values()
             ->map(fn (Term $t): array => [
@@ -95,6 +95,9 @@ class TermController extends Controller
                 'revision' => $term->revision,
                 'veroeffentlicht' => $term->publishedRevision?->revision,
                 'ungespeichert' => $term->hasUnpublishedChanges(),
+                'zusammengefuehrt_in' => ($target = $term->mergeTarget()) !== null
+                    ? ['id' => $target->id, 'titel' => trim($target->displayAbbreviation().' – '.$target->displayName(), ' –')]
+                    : null,
             ],
             'verlauf' => array_reverse($history),
             'labels' => self::LABELS,

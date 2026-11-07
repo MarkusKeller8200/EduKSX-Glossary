@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Doppelte zusammenführen (#16):** neue Seite «Doppelte» in der Administration (auch über «Doppelte prüfen» bei
+  den Begriffen) mit Gruppen gleicher Abkürzung oder Bezeichnung. Je Gruppe «Zusammenführen» (verbleibenden Begriff
+  und Texte wählen, Kategorien, Herkunft und Aliase werden vereinigt) oder «Mehrdeutig belassen». Alte Adressen
+  und IDs leiten auf den verbleibenden Begriff weiter, im Change-Feed der API als «merged».
 - **GitHub Pages (#27):** reduzierte Lesefassung mit Suche, Index A–Z und Kategorienfilter; jeder Begriff verweist
   auf seine Detailseite auf glossary.eduksx.ch. Daten aus dem veröffentlichten Stand mit
   `php artisan glossary:export-pages` (schreibt `site/begriffe.json`, ohne interne Felder).

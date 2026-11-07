@@ -89,6 +89,9 @@ Beispiel-URL und -Datum sind Platzhalter.
 - **Change-Feed:** Tabelle `term_publication_events`; jede Veröffentlichung und jeder Rückzug ist ein Ereignis, die
   ID ist der Cursor. «published» enthält den Begriff in genau der veröffentlichten Revision, «unpublished» ist der
   Tombstone. Veröffentlichen mehrerer Begriffe in einem Schritt ergibt mehrere Ereignisse, aber einen Datenstand.
+- **Zusammengeführt (#16):** Ereignis «merged» mit `merged_into` (verbleibender Begriff), danach folgt dieser als
+  «published». `GET /api/v1/terms/{alte-id-oder-slug}` antwortet mit `301` und `Location` auf den verbleibenden
+  Begriff; die Website leitet `/begriffe/{alter-slug}` ebenso dauerhaft weiter.
 - **Sichtbar** ist ein Begriff, wenn er veröffentlicht ist und im veröffentlichten Abbild `is_active` gilt – der
   Arbeitsstand ändert nichts an Website oder API, bis er veröffentlicht wird.
 - **ETag** = Prüfsumme des Antwortinhalts (auch Listen-Änderungen werden erkannt), `Cache-Control: public,

@@ -6,13 +6,14 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Ereignis im Change-Feed (#25): Veröffentlichung oder Rückzug eines Begriffs. Die ID ist der Cursor.
+ * Ereignis im Change-Feed (#25): Veröffentlichung, Rückzug oder Zusammenführung (#16) eines Begriffs. Die ID ist der Cursor.
  *
  * @property int $id
  * @property string $term_id
  * @property string $action
  * @property int|null $revision
  * @property int|null $release_id
+ * @property string|null $merged_into
  * @property CarbonImmutable $created_at
  */
 class TermPublicationEvent extends Model
@@ -20,7 +21,7 @@ class TermPublicationEvent extends Model
     public const UPDATED_AT = null;
 
     /** @var list<string> */
-    protected $fillable = ['term_id', 'action', 'revision', 'release_id'];
+    protected $fillable = ['term_id', 'action', 'revision', 'release_id', 'merged_into'];
 
     /**
      * @return array<string, string>

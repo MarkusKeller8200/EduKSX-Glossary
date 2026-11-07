@@ -36,7 +36,7 @@ class ExcelController extends Controller
         $template = $request->boolean('vorlage');
         $rows = [];
         if (! $template) {
-            foreach (Term::query()->with(['categories', 'sources', 'aliases'])->get() as $term) {
+            foreach (Term::query()->current()->with(['categories', 'sources', 'aliases'])->get() as $term) {
                 $rows[] = array_values(ExcelFormat::row($term));
             }
             usort($rows, fn (array $a, array $b): int => strcasecmp($a[4] ?: $a[2], $b[4] ?: $b[2]));

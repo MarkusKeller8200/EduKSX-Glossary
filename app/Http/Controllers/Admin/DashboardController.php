@@ -19,7 +19,7 @@ class DashboardController extends Controller
         return Inertia::render('admin/dashboard', [
             'admins' => User::query()->where('is_admin', true)->count(),
             'stats' => [
-                'terms' => Term::query()->count(),
+                'terms' => Term::query()->current()->count(),
                 'published' => Term::query()->published()->count(),
                 'categories' => Category::query()->count(),
                 'sources' => Source::query()->count(),

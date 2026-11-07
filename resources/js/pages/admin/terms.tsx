@@ -83,7 +83,10 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                         Entwürfe, bis sie freigegeben werden.
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                    <Button asChild variant="outline">
+                        <Link href="/admin/doppelte">Doppelte prüfen</Link>
+                    </Button>
                     <Button asChild variant="outline">
                         <a href="/admin/export">Excel-Export</a>
                     </Button>

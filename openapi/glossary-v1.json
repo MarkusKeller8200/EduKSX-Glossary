@@ -270,6 +270,17 @@
               }
             }
           },
+          "301": {
+            "description": "Begriff wurde mit einem anderen zusammengeführt; `Location` zeigt auf den verbleibenden Begriff.",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
           "304": {
             "description": "Nicht geändert (ETag stimmt)"
           },
@@ -467,7 +478,7 @@
         ],
         "summary": "Änderungen seit einem Cursor (Change-Feed)",
         "operationId": "listChanges",
-        "description": "Veröffentlichungen und Rückzüge in fester Reihenfolge. Mit `meta.next_cursor` weiterfragen, solange `meta.has_more` wahr ist. Wiederholte Abrufe liefern dasselbe (idempotent). Bei `published` enthält `term` den Begriff in genau dieser Revision; `unpublished` heisst: nicht mehr öffentlich (lokal entfernen oder ausblenden). Ist `term.is_active` falsch, ausblenden.",
+        "description": "Veröffentlichungen und Rückzüge in fester Reihenfolge. Mit `meta.next_cursor` weiterfragen, solange `meta.has_more` wahr ist. Wiederholte Abrufe liefern dasselbe (idempotent). Bei `published` enthält `term` den Begriff in genau dieser Revision; `unpublished` heisst: nicht mehr öffentlich (lokal entfernen oder ausblenden). `merged` heisst: mit dem Begriff `merged_into` zusammengeführt (lokal entfernen, Verweise umleiten); der verbleibende Begriff folgt als `published`. Ist `term.is_active` falsch, ausblenden.",
         "parameters": [
           {
             "name": "since",
@@ -920,7 +931,8 @@
             "type": "string",
             "enum": [
               "published",
-              "unpublished"
+              "unpublished",
+              "merged"
             ]
           },
           "term_id": {
@@ -932,6 +944,14 @@
               "integer",
               "null"
             ]
+          },
+          "merged_into": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid",
+            "description": "Bei `merged`: ID des verbleibenden Begriffs. Den Begriff `term_id` lokal entfernen bzw. auf diese ID umleiten."
           },
           "release": {
             "type": [

@@ -88,6 +88,13 @@ class GlossaryApiController extends Controller
     {
         $term = $this->presenter->find($idOrSlug);
         if ($term === null) {
+            // Zusammengeführt (#16): dauerhaft auf den verbleibenden Begriff weiterleiten
+            $merged = Term::query()->whereNotNull('merged_into_id')
+                ->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))->first();
+            $target = $merged?->mergeTarget();
+            if ($target !== null && $this->presenter->find($target->id) !== null) {
+                return response('', 301, ['Location' => url("/api/v1/terms/{$target->id}")]);
+            }
             throw new NotFoundHttpException("Begriff «{$idOrSlug}» ist nicht veröffentlicht oder existiert nicht.");
         }
 
@@ -115,7 +122,7 @@ class GlossaryApiController extends Controller
     }
 
     /**
-     * GET /api/v1/changes?since=<cursor>&limit=<n> – Veröffentlichungen und Rückzüge seit dem Cursor, in fester
+     * GET /api/v1/changes?since=<cursor>&limit=<n> – Veröffentlichungen, Rückzüge und Zusammenführungen seit dem Cursor, in fester
      * Reihenfolge; idempotent wiederholbar. Bei «published» enthält «term» den Begriff in genau dieser Revision.
      */
     public function changes(Request $request): Response
@@ -141,6 +148,7 @@ class GlossaryApiController extends Controller
                 'action' => $e->action,
                 'term_id' => $e->term_id,
                 'revision' => $e->revision,
+                'merged_into' => $e->merged_into,
                 'release' => $e->release_id,
                 'occurred_at' => $e->created_at->toIso8601ZuluString(),
                 'term' => $revision instanceof TermRevision ? $this->presenter->term($revision) : null,

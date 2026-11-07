@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\TermController;
@@ -45,6 +46,13 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::put('begriffe/{term}', [TermController::class, 'update'])->whereUuid('term')->name('admin.terms.update');
     Route::post('begriffe/{term}/veroeffentlichen', [TermController::class, 'publishOne'])->whereUuid('term')->name('admin.terms.publish-one');
     Route::post('begriffe/{term}/zurueckziehen', [TermController::class, 'unpublish'])->whereUuid('term')->name('admin.terms.unpublish');
+
+    // Doppelte (#16): anzeigen, zusammenführen oder als mehrdeutig belassen
+    Route::get('doppelte', [DuplicateController::class, 'index'])->name('admin.duplicates');
+    Route::post('doppelte/belassen', [DuplicateController::class, 'dismiss'])->name('admin.duplicates.dismiss');
+    Route::post('doppelte/zuruecksetzen', [DuplicateController::class, 'reset'])->name('admin.duplicates.reset');
+    Route::get('doppelte/zusammenfuehren', [DuplicateController::class, 'create'])->name('admin.duplicates.merge');
+    Route::post('doppelte/zusammenfuehren', [DuplicateController::class, 'store'])->name('admin.duplicates.merge.store');
 
     // Listen: Kategorien und Herkunft
     Route::get('listen', [ListController::class, 'index'])->name('admin.lists');

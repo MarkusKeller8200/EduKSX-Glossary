@@ -52,6 +52,10 @@ final class GlossaryImporter
                             $created[$list] = [...$created[$list], ...$names];
                         }
                         $term = $id !== '' ? Term::query()->find($id) : null;
+                        if ($term?->merged_into_id !== null) {
+                            $target = $term->mergeTarget();
+                            throw new InvalidArgumentException('Begriff wurde zusammengeführt in «'.trim(($target?->displayAbbreviation() ?? '').' – '.($target?->displayName() ?? ''), ' –').'» (ID '.($target?->id ?? $term->merged_into_id).') – Zeile mit dieser ID anpassen.');
+                        }
                         $before = $term !== null ? ExcelFormat::normalize(ExcelFormat::row($term)) : [];
                         if ($term === null && $id !== '') {
                             $data['id'] = $id;

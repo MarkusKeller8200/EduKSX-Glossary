@@ -33,6 +33,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $valid_until
  * @property int $revision
  * @property string|null $published_revision_id
+ * @property string|null $merged_into_id
+ * @property CarbonImmutable|null $merged_at
+ * @property-read Term|null $mergedInto
  * @property-read TermRevision|null $publishedRevision
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, Source> $sources
@@ -70,6 +73,7 @@ class Term extends Model
             'valid_from' => 'immutable_date',
             'valid_until' => 'immutable_date',
             'revision' => 'integer',
+            'merged_at' => 'immutable_datetime',
         ];
     }
 
@@ -113,6 +117,38 @@ class Term extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->whereNotNull('published_revision_id');
+    }
+
+    /** @return BelongsTo<Term, $this> */
+    public function mergedInto(): BelongsTo
+    {
+        return $this->belongsTo(Term::class, 'merged_into_id');
+    }
+
+    /**
+     * Nicht zusammengeführt (#16): zusammengeführte Begriffe sind nur noch Weiterleitung.
+     *
+     * @param  Builder<Term>  $query
+     * @return Builder<Term>
+     */
+    public function scopeCurrent(Builder $query): Builder
+    {
+        return $query->whereNull('merged_into_id');
+    }
+
+    /** Verbleibender Begriff nach einer Zusammenführung (folgt Ketten); null, wenn nicht zusammengeführt. */
+    public function mergeTarget(): ?Term
+    {
+        $target = $this;
+        for ($i = 0; $target->merged_into_id !== null && $i < 20; $i++) {
+            $next = Term::query()->find($target->merged_into_id);
+            if ($next === null) {
+                return null;
+            }
+            $target = $next;
+        }
+
+        return $target === $this ? null : $target;
     }
 
     /** Angezeigte Abkürzung: eigene vor offizieller (wie im Intranet). */
