@@ -139,6 +139,10 @@ final class SyncClient
             }
             $term[$list] = $keys;
         }
+        // vom Gesamtstand abhängige Felder fehlen im Change-Feed; der Abnehmer berechnet sie aus seinem Stand (DEC-020)
+        foreach (ApiPresenter::CONTEXT_FIELDS as $field) {
+            unset($term[$field]);
+        }
         ksort($term);
 
         return $term;

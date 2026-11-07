@@ -28,17 +28,14 @@ class TermController extends Controller
     public const LABELS = [
         'official_abbreviation' => 'Abkürzung offiziell',
         'official_aliases' => 'Aliase offiziell',
-        'own_abbreviation' => 'Abkürzung eigene',
-        'own_alias' => 'Alias eigene',
+        'alternative_aliases' => 'Alternative Schreibweisen',
         'official_name' => 'Bezeichnung offiziell',
-        'own_name' => 'Bezeichnung eigene',
         'short_description' => 'Kurzbeschreibung',
         'description' => 'Beschreibung',
         'url' => 'URL',
         'note' => 'Notiz',
         'categories' => 'Kategorien',
         'sources' => 'Herkunft',
-        'used_in' => 'Intern genutzt in',
         'lifecycle_status' => 'Status',
         'search_terms' => 'Suchbegriffe',
         'valid_from' => 'Gültig ab',
@@ -68,7 +65,10 @@ class TermController extends Controller
         return Inertia::render('admin/terms', ['begriffe' => $terms]);
     }
 
-    /** Detail: Arbeitsstand, veröffentlichter Stand, Verlauf mit geänderten Feldern. */
+    /** Weitere Felder im Journal, die nicht im Formular stehen. */
+    public const JOURNAL_LABELS = ['slug' => 'Adresse (Slug)', 'search_aliases' => 'Suchbegriffe (Aliase)'];
+
+    /** Detail: Arbeitsstand, veröffentlichter Stand, Verlauf (Journal) mit altem und neuem Wert je Feld. */
     public function show(Term $term): Response
     {
         $term->load(['revisions', 'publishedRevision']);
@@ -81,9 +81,12 @@ class TermController extends Controller
                 'revision' => $revision->revision,
                 'art' => $revision->change_type,
                 'von' => $revision->author_label ?? ($revision->author_id !== null ? ($authors[$revision->author_id] ?? null) : null),
+                'rolle' => $revision->actor_type,
+                'quelle' => is_string($revision->context['via'] ?? null) ? $revision->context['via'] : null,
                 'am' => $revision->created_at->toIso8601String(),
                 'veroeffentlicht_am' => $revision->published_at?->toIso8601String(),
                 'felder' => $this->changedFields($previous, $revision),
+                'aenderungen' => $this->changes($revision),
             ];
             $previous = $revision;
         }
@@ -96,8 +99,9 @@ class TermController extends Controller
                 'veroeffentlicht' => $term->publishedRevision?->revision,
                 'ungespeichert' => $term->hasUnpublishedChanges(),
                 'zusammengefuehrt_in' => ($target = $term->mergeTarget()) !== null
-                    ? ['id' => $target->id, 'titel' => trim($target->displayAbbreviation().' – '.$target->displayName(), ' –')]
+                    ? ['id' => $target->id, 'titel' => $target->title()]
                     : null,
+                'altwerte' => $term->legacyValues()->open()->count(),
             ],
             'verlauf' => array_reverse($history),
             'labels' => self::LABELS,
@@ -125,7 +129,7 @@ class TermController extends Controller
     public function edit(Term $term): Response
     {
         return Inertia::render('admin/term-form', [
-            'begriff' => ['id' => $term->id, 'titel' => trim($term->displayAbbreviation().' – '.$term->displayName(), ' –')],
+            'begriff' => ['id' => $term->id, 'titel' => $term->title()],
             'werte' => $this->formData($term),
             'listen' => $this->lists(),
             'offiziellErlaubt' => Gate::allows('edit-official'),
@@ -175,10 +179,8 @@ class TermController extends Controller
         $data = $request->validate([
             'official_abbreviation' => ['nullable', 'string', 'max:60'],
             'official_aliases' => ['nullable', 'string', 'max:500'],
-            'own_abbreviation' => ['nullable', 'string', 'max:60'],
-            'own_alias' => ['nullable', 'string', 'max:120'],
+            'alternative_aliases' => ['nullable', 'string', 'max:1000'],
             'official_name' => ['nullable', 'string', 'max:255'],
-            'own_name' => ['nullable', 'string', 'max:255'],
             'short_description' => ['nullable', 'string', 'max:160'],
             'description' => ['nullable', 'string', 'max:20000'],
             'url' => ['nullable', 'string', 'max:500'],
@@ -187,7 +189,6 @@ class TermController extends Controller
             'categories.*' => ['string'],
             'sources' => ['array'],
             'sources.*' => ['string'],
-            'used_in' => ['nullable', 'string', 'max:1000'],
             'lifecycle_status' => ['required', 'string'],
             'search_terms' => ['nullable', 'string', 'max:2000'],
             'valid_from' => ['nullable', 'date_format:Y-m-d'],
@@ -216,9 +217,9 @@ class TermController extends Controller
     {
         if ($term === null) {
             return [
-                'official_abbreviation' => '', 'official_aliases' => '', 'own_abbreviation' => '', 'own_alias' => '',
-                'official_name' => '', 'own_name' => '', 'short_description' => '', 'description' => '', 'url' => '',
-                'note' => '', 'categories' => [], 'sources' => [], 'used_in' => '', 'lifecycle_status' => 'aktuell',
+                'official_abbreviation' => '', 'official_aliases' => '', 'alternative_aliases' => '', 'official_name' => '',
+                'short_description' => '', 'description' => '', 'url' => '', 'note' => '', 'categories' => [],
+                'sources' => [], 'lifecycle_status' => 'aktuell',
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
             ];
         }
@@ -227,23 +228,44 @@ class TermController extends Controller
         return [
             'official_abbreviation' => (string) $s['official_abbreviation'],
             'official_aliases' => implode('; ', (array) $s['official_aliases']),
-            'own_abbreviation' => (string) $s['own_abbreviation'],
-            'own_alias' => (string) $s['own_alias'],
+            'alternative_aliases' => implode('; ', (array) $s['alternative_aliases']),
             'official_name' => (string) $s['official_name'],
-            'own_name' => (string) $s['own_name'],
             'short_description' => (string) $s['short_description'],
             'description' => (string) $s['description'],
             'url' => (string) $s['url'],
             'note' => (string) $s['note'],
             'categories' => (array) $s['categories'],
             'sources' => (array) $s['sources'],
-            'used_in' => implode('; ', (array) $s['used_in']),
             'lifecycle_status' => (string) $s['lifecycle_status'],
             'search_terms' => (string) $s['search_terms'],
             'valid_from' => (string) $s['valid_from'],
             'valid_until' => (string) $s['valid_until'],
             'is_active' => (bool) $s['is_active'],
         ];
+    }
+
+    /**
+     * Journal einer Revision: Feld (Bezeichnung) → alter und neuer Wert als Text. Ältere Revisionen ohne
+     * change_set liefern nichts (dann gilt «felder»).
+     *
+     * @return list<array{feld: string, alt: string, neu: string}>
+     */
+    private function changes(TermRevision $revision): array
+    {
+        $labels = self::LABELS + self::JOURNAL_LABELS;
+        $text = fn (mixed $v): string => match (true) {
+            $v === null => '',
+            is_bool($v) => $v ? 'ja' : 'nein',
+            is_array($v) => implode('; ', array_map(fn ($i): string => is_scalar($i) ? (string) $i : (string) json_encode($i), $v)),
+            is_scalar($v) => (string) $v,
+            default => (string) json_encode($v),
+        };
+        $out = [];
+        foreach ($revision->change_set ?? [] as $field => $change) {
+            $out[] = ['feld' => $labels[$field] ?? $field, 'alt' => $text($change['old'] ?? null), 'neu' => $text($change['new'] ?? null)];
+        }
+
+        return $out;
     }
 
     /**

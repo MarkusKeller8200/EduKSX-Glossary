@@ -30,7 +30,7 @@ class ExcelController extends Controller
 
     public function __construct(private readonly GlossaryImporter $importer) {}
 
-    /** Alle Begriffe (Arbeitsstand) bzw. leere Vorlage als .xlsx. */
+    /** Alle Begriffe (Arbeitsstand) bzw. leere Vorlage als .xlsx (Format Version 2). */
     public function export(Request $request): HttpResponse
     {
         $template = $request->boolean('vorlage');
@@ -39,7 +39,8 @@ class ExcelController extends Controller
             foreach (Term::query()->current()->with(['categories', 'sources', 'aliases'])->get() as $term) {
                 $rows[] = array_values(ExcelFormat::row($term));
             }
-            usort($rows, fn (array $a, array $b): int => strcasecmp($a[4] ?: $a[2], $b[4] ?: $b[2]));
+            // Spalte 2 = Abkürzung offiziell, 5 = Bezeichnung offiziell
+            usort($rows, fn (array $a, array $b): int => strcasecmp($a[2] ?: $a[5], $b[2] ?: $b[5]));
         }
         $name = $template ? 'glossary-vorlage' : 'glossary-'.date('Y-m-d');
 
@@ -64,7 +65,10 @@ class ExcelController extends Controller
         $file = $request->file('datei');
         abort_if($file === null || is_array($file), 422);
         try {
-            $table = SpreadsheetReader::read((string) $file->getRealPath(), $file->getClientOriginalName(), ExcelFormat::header());
+            // auch die Spalten des alten Formats lesen: sie werden gemeldet und als Altwerte gesichert (DEC-020)
+            $table = SpreadsheetReader::read((string) $file->getRealPath(), $file->getClientOriginalName(), [
+                ...ExcelFormat::header(), ...array_keys(ExcelFormat::LEGACY_COLUMNS),
+            ]);
         } catch (RuntimeException $e) {
             throw ValidationException::withMessages(['datei' => $e->getMessage()]);
         }
@@ -86,6 +90,8 @@ class ExcelController extends Controller
             'token' => $token,
             'datei' => $file->getClientOriginalName(),
             'fehlendeSpalten' => array_values($unknown),
+            'altesFormat' => ExcelFormat::versionOf($table['header']) === 1,
+            'altSpalten' => array_values(array_intersect(array_keys(ExcelFormat::LEGACY_COLUMNS), $table['header'])),
             ...$result,
         ]);
     }
@@ -100,7 +106,8 @@ class ExcelController extends Controller
         $rows = $cached['rows'];
         $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $this->user($request), $this->official(), dryRun: false);
 
-        return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe.");
+        return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe."
+            .($result['altwerte'] > 0 ? " {$result['altwerte']} Altwerte gesichert (Seite «Altwerte»)." : ''));
     }
 
     private function user(Request $request): ?User

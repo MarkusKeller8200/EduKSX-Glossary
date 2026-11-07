@@ -26,6 +26,9 @@ Bei Zugriffen können IP-Adresse, Zeitpunkt, angefragte URL, Browser-/Client-Ken
 - Externe Anmeldedienste: Anbieter, Ausstellerkennung und stabile pseudonyme beziehungsweise technische Benutzerkennung; weitere Attribute nur soweit erforderlich.
 - Dokumentation der **Kenntnisnahme** dieser Erklärung: Version und Zeitpunkt. Zweckgebundene **Einwilligungen** werden gesondert protokolliert, wenn sie erforderlich sind.
 
+- Persönliche Darstellung von Begriffen («Meine Darstellung», freiwillig): eigene Abkürzung, Bezeichnung, Beschreibungen und Schreibweisen. Nur für die Person selbst sichtbar, wenn sie angemeldet ist; nie veröffentlicht, nicht über die API oder Exporte weitergegeben, mit dem Konto gelöscht.
+- Änderungen an Begriffen: Zeitpunkt, Art der Änderung, alte und neue Werte, Rolle sowie Community-Name (sonst Name) als Text zum Zeitpunkt der Änderung; nur für Redaktion und Administration. Bei Kontolöschung wird der Name durch «Gelöschtes Konto» ersetzt und der Bezug zum Konto entfernt; die fachliche Änderung bleibt nachvollziehbar.
+
 Der Community-Name kann bei öffentlich zugeschriebenen Beiträgen sichtbar sein. Vorname, Nachname, E-Mail, Funktion und Einrichtung sind nicht Teil öffentlicher API- oder Glossary-Ausgaben. Zugriff auf interne Kontodaten erhalten nur hierfür berechtigte Personen.
 
 ### c) Vorschläge und Moderation
@@ -72,6 +75,8 @@ Die tatsächlichen Fristen werden in einem internen, versionierten Löschkonzept
 | Inaktives Community-Konto                                | 24 Monate Inaktivität, Benachrichtigung 30 Tage zuvor                | Rechtsgrundlage, Wiederaktivierung, Ausnahmen                             |
 | Benutzerprofil auf Löschantrag                           | ohne unnötige Verzögerung, soweit keine Aufbewahrungsgründe bestehen | technische Umsetzung und Fristen                                          |
 | Externe Identitätsverknüpfungen, aktive Sitzungen, Token | bei Löschung/Entkopplung unverzüglich widerrufen oder entfernen      | Protokollreste separat behandeln                                          |
+| Persönliche Darstellung von Begriffen                    | mit dem Konto                                                        | –                                                                         |
+| Änderungsjournal der Begriffe                            | Name bei Kontolöschung durch «Gelöschtes Konto» ersetzt              | Freitexte in Änderungswerten auf Personenbezug prüfen                     |
 | Vorschläge und private Moderationsdaten                  | zweckbezogen begrenzen; keine unbegrenzte Personenbindung            | konkrete Frist und redaktioneller Archivbedarf                            |
 | Rollen- und Sicherheits-Audits                           | **[vorläufig 5 Jahre]**                                              | Erforderlichkeit, Verhältnismässigkeit, Rechtsgrundlage und Umfang prüfen |
 | Serverlogs                                               | [14 Tage]                                                            | tatsächliche Einstellungen auch bei Dienstleistern                        |
@@ -87,7 +92,7 @@ Die Anwendung setzt HTTPS, Passwort-Hashing, verpflichtende MFA für privilegier
 
 Bei der Registrierung wird die geltende Datenschutzerklärung angezeigt; Version und Zeitpunkt der Kenntnisnahme werden dokumentiert. Dies ist **keine pauschale Einwilligung** in alle Datenbearbeitungen. Wo eine Einwilligung erforderlich ist, wird sie getrennt, informiert, zweckbezogen und nachweisbar eingeholt; ein Widerruf ist mit Wirkung für die Zukunft möglich, soweit keine andere zulässige Grundlage die Bearbeitung trägt.
 
-Betroffene Personen können je nach anwendbarem Recht Auskunft, Berichtigung und unter den gesetzlichen Voraussetzungen Löschung oder Herausgabe ihrer Personendaten verlangen. Weitergehende Rechte, Beschwerdestellen und Rechtsbehelfe bestimmen sich nach der tatsächlich anwendbaren Rechtsordnung. Für Anfragen: [Kontakt]. Zuständige Aufsicht: [nach Betreiberstatus und geltendem Recht präzisieren; nicht automatisch nur EDÖB].
+Betroffene Personen können je nach anwendbarem Recht Auskunft, Berichtigung und unter den gesetzlichen Voraussetzungen Löschung oder Herausgabe ihrer Personendaten verlangen. Eine Herausgabe umfasst auch die eigene persönliche Darstellung von Begriffen. Weitergehende Rechte, Beschwerdestellen und Rechtsbehelfe bestimmen sich nach der tatsächlich anwendbaren Rechtsordnung. Für Anfragen: [Kontakt]. Zuständige Aufsicht: [nach Betreiberstatus und geltendem Recht präzisieren; nicht automatisch nur EDÖB].
 
 ## 10. Änderungen
 

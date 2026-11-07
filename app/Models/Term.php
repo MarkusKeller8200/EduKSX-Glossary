@@ -18,14 +18,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $id
  * @property string $slug
  * @property string|null $official_abbreviation
- * @property string|null $own_abbreviation
  * @property string|null $official_name
- * @property string|null $own_name
  * @property string|null $short_description
  * @property string|null $description
  * @property string|null $note
  * @property string|null $url
- * @property list<string>|null $used_in
  * @property string|null $search_terms
  * @property string $lifecycle_status
  * @property bool $is_active
@@ -41,6 +38,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, Source> $sources
  * @property-read Collection<int, TermAlias> $aliases
  * @property-read Collection<int, TermRevision> $revisions
+ * @property-read Collection<int, TermUserOverride> $overrides
+ * @property-read Collection<int, TermLegacyValue> $legacyValues
  */
 class Term extends Model
 {
@@ -54,9 +53,8 @@ class Term extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'slug', 'official_abbreviation', 'own_abbreviation', 'official_name', 'own_name', 'short_description',
-        'description', 'note', 'url', 'used_in', 'search_terms', 'lifecycle_status', 'is_active', 'valid_from',
-        'valid_until',
+        'slug', 'official_abbreviation', 'official_name', 'short_description', 'description', 'note', 'url',
+        'search_terms', 'lifecycle_status', 'is_active', 'valid_from', 'valid_until',
     ];
 
     /** @var array<string, mixed> */
@@ -68,7 +66,6 @@ class Term extends Model
     protected function casts(): array
     {
         return [
-            'used_in' => 'array',
             'is_active' => 'boolean',
             'valid_from' => 'immutable_date',
             'valid_until' => 'immutable_date',
@@ -99,6 +96,18 @@ class Term extends Model
     public function revisions(): HasMany
     {
         return $this->hasMany(TermRevision::class)->orderBy('revision');
+    }
+
+    /** @return HasMany<TermUserOverride, $this> Persönliche Darstellungen (nur je Person auslesen) */
+    public function overrides(): HasMany
+    {
+        return $this->hasMany(TermUserOverride::class);
+    }
+
+    /** @return HasMany<TermLegacyValue, $this> */
+    public function legacyValues(): HasMany
+    {
+        return $this->hasMany(TermLegacyValue::class);
     }
 
     /** @return BelongsTo<TermRevision, $this> */
@@ -151,16 +160,22 @@ class Term extends Model
         return $target === $this ? null : $target;
     }
 
-    /** Angezeigte Abkürzung: eigene vor offizieller (wie im Intranet). */
+    /** Angezeigte Abkürzung: die gemeinsame (DEC-020; persönliche Darstellung nur für die Person selbst). */
     public function displayAbbreviation(): string
     {
-        return (string) ($this->own_abbreviation ?: $this->official_abbreviation);
+        return (string) $this->official_abbreviation;
     }
 
-    /** Angezeigte Bezeichnung: eigene vor offizieller (wie im Intranet). */
+    /** Angezeigte Bezeichnung: die gemeinsame (DEC-020). */
     public function displayName(): string
     {
-        return (string) ($this->own_name ?: $this->official_name);
+        return (string) $this->official_name;
+    }
+
+    /** Titel «Abkürzung – Bezeichnung». */
+    public function title(): string
+    {
+        return trim($this->displayAbbreviation().' – '.$this->displayName(), ' –');
     }
 
     /** Arbeitsstand weicht von der veröffentlichten Revision ab. */

@@ -131,7 +131,9 @@ class ExcelImportTest extends TestCase
             ->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 
         $this->assertSame('ID', ExcelFormat::header()[0]);
-        $this->assertCount(19, ExcelFormat::header());
+        // Format Version 2 (DEC-020): ohne eigene Spalten und «Intern genutzt in», mit «Alternative Schreibweisen»
+        $this->assertCount(16, ExcelFormat::header());
+        $this->assertContains('Alternative Schreibweisen', ExcelFormat::header());
     }
 
     public function test_datum_aus_excel(): void

@@ -40,3 +40,11 @@ php artisan glossary:sync-check https://glossary.eduksx.ch --neu   # mit Vollsta
 
 Der Befehl synchronisiert wie ein Abnehmer und vergleicht danach mit dem Vollstand. Ergebnis: «Stand identisch»
 oder eine Liste der Abweichungen.
+
+## Gemeinsame Felder (DEC-020)
+
+- Das Glossary liefert nur gemeinsame, veröffentlichte Felder. «Intern genutzt in», Tooltips und lokale Benennungen
+  verwaltet das Intranet selbst; eigene Bezeichnungen werden nicht mehr synchronisiert.
+- `is_ambiguous` und `meaning_count` stehen nur im Vollstand und in `/terms`, nicht im Change-Feed. Abnehmer
+  berechnen sie aus ihrem lokalen Stand (Regel in `App\Glossary\GlossaryDisplay`); der Referenzclient lässt sie beim
+  Vergleich weg.

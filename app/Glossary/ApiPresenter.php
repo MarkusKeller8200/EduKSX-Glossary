@@ -10,8 +10,9 @@ use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 
 /**
- * Darstellung für die öffentliche API v1 (#25, docs/KONZEPT-API.md, openapi/glossary-v1.yaml). Englische
- * Feldnamen, stabile IDs; nur veröffentlichte Revisionen, ohne redaktionelle Notiz und «Intern genutzt in».
+ * Darstellung für die öffentliche API v1 (#25, docs/KONZEPT-API.md, openapi/glossary-v1.json). Englische
+ * Feldnamen, stabile IDs; nur veröffentlichte Revisionen, ohne redaktionelle Notiz, ohne persönliche Darstellung,
+ * Altwerte, Journal oder Akteure (DEC-018, DEC-020). «abbreviation» und «name» sind die gemeinsamen Werte.
  */
 final class ApiPresenter
 {
@@ -20,10 +21,17 @@ final class ApiPresenter
      * Veröffentlichungsgrenze – API, Vollstand, Change-Feed und GitHub Pages. Neue Felder bewusst hier ergänzen.
      */
     public const PUBLIC_TERM_FIELDS = [
-        'id', 'slug', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'own_abbreviation', 'own_name',
-        'aliases', 'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active',
-        'valid_from', 'valid_until', 'revision', 'published_at', 'web_url',
+        'id', 'slug', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
+        'alternative_aliases', 'aliases', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
+        'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
+        'valid_until', 'revision', 'published_at', 'web_url',
     ];
+
+    /**
+     * Vom Gesamtstand abhängige Felder: nur in Liste, Einzelbegriff und Vollstand, nicht im Change-Feed (ein altes
+     * Ereignis würde sonst Zahlen eines späteren Stands zeigen).
+     */
+    public const CONTEXT_FIELDS = ['is_ambiguous', 'meaning_count'];
 
     /** @var array<string, array{key: string, label: string, name: string, url: string|null}>|null */
     private ?array $categories = null;
@@ -38,12 +46,11 @@ final class ApiPresenter
      */
     public function terms(): array
     {
+        $revisions = $this->visible();
+        $display = $this->display($revisions);
         $terms = [];
-        foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
-            $revision = $term->publishedRevision;
-            if ($revision !== null && ($revision->snapshot['is_active'] ?? true) === true) {
-                $terms[] = $this->term($revision);
-            }
+        foreach ($revisions as $revision) {
+            $terms[] = $this->withContext($this->term($revision), $revision, $display);
         }
         usort($terms, fn (array $a, array $b): int => strcasecmp(
             (string) ($a['abbreviation'] ?: $a['name']),
@@ -67,11 +74,56 @@ final class ApiPresenter
             return null;
         }
 
-        return $this->term($revision);
+        return $this->withContext($this->term($revision), $revision, $this->display($this->visible()));
     }
 
     /**
-     * Begriff aus einer (veröffentlichten) Revision.
+     * Veröffentlichte Revisionen der öffentlich sichtbaren Begriffe.
+     *
+     * @return list<TermRevision>
+     */
+    private function visible(): array
+    {
+        $revisions = [];
+        foreach (Term::query()->published()->current()->with('publishedRevision')->get() as $term) {
+            $revision = $term->publishedRevision;
+            if ($revision !== null && ($revision->snapshot['is_active'] ?? true) === true) {
+                $revisions[] = $revision;
+            }
+        }
+
+        return $revisions;
+    }
+
+    /** @param  list<TermRevision>  $revisions */
+    private function display(array $revisions): GlossaryDisplay
+    {
+        return new GlossaryDisplay(array_map(fn (TermRevision $r): array => $r->snapshot, $revisions));
+    }
+
+    /**
+     * Felder, die vom Gesamtstand abhängen, ergänzen (Reihenfolge wie in PUBLIC_TERM_FIELDS).
+     *
+     * @param  array<string, mixed>  $term
+     * @return array<string, mixed>
+     */
+    private function withContext(array $term, TermRevision $revision, GlossaryDisplay $display): array
+    {
+        $term['is_ambiguous'] = $display->isAmbiguous($revision->snapshot);
+        $term['meaning_count'] = $display->meaningCount($revision->snapshot);
+        $ordered = [];
+        foreach (self::PUBLIC_TERM_FIELDS as $field) {
+            if (array_key_exists($field, $term)) {
+                $ordered[$field] = $term[$field];
+            }
+        }
+
+        return $ordered;
+    }
+
+    /**
+     * Begriff aus einer (veröffentlichten) Revision, ohne die vom Gesamtstand abhängigen Felder (CONTEXT_FIELDS).
+     * Ältere Abbilder können Altfelder (own_*, used_in) enthalten; sie werden nie ausgegeben.
      *
      * @return array<string, mixed>
      */
@@ -79,18 +131,21 @@ final class ApiPresenter
     {
         $s = $revision->snapshot;
         $str = fn (string $key): ?string => isset($s[$key]) && $s[$key] !== '' ? (string) $s[$key] : null;
-        $abbreviation = $str('own_abbreviation') ?? $str('official_abbreviation');
+        $official = array_values(array_map('strval', array_filter((array) ($s['official_aliases'] ?? []))));
+        $alternative = array_values(array_map('strval', array_filter((array) ($s['alternative_aliases'] ?? []))));
 
         $term = [
             'id' => (string) $s['id'],
             'slug' => (string) $s['slug'],
-            'abbreviation' => $abbreviation,
-            'name' => $str('own_name') ?? $str('official_name'),
+            'abbreviation' => $str('official_abbreviation'),
+            'name' => $str('official_name'),
             'official_abbreviation' => $str('official_abbreviation'),
             'official_name' => $str('official_name'),
-            'own_abbreviation' => $str('own_abbreviation'),
-            'own_name' => $str('own_name'),
-            'aliases' => array_values(array_map('strval', array_filter([...(array) ($s['official_aliases'] ?? []), $s['own_alias'] ?? null]))),
+            'official_aliases' => $official,
+            'alternative_aliases' => $alternative,
+            'aliases' => array_values(array_unique([...$official, ...$alternative])),
+            'display_label' => GlossaryDisplay::displayLabel($s),
+            'is_full_term' => GlossaryDisplay::isFullTerm($s),
             'short_description' => $str('short_description'),
             'description' => $str('description'),
             'url' => $str('url'),
@@ -105,7 +160,7 @@ final class ApiPresenter
             'web_url' => url('/begriffe/'.$s['slug']),
         ];
 
-        return array_intersect_key($term, array_flip(self::PUBLIC_TERM_FIELDS));
+        return array_intersect_key($term, array_flip(array_diff(self::PUBLIC_TERM_FIELDS, self::CONTEXT_FIELDS)));
     }
 
     /**

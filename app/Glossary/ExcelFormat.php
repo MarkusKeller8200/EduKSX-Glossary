@@ -8,9 +8,13 @@ use App\Models\Term;
 use Carbon\CarbonImmutable;
 
 /**
- * Excel-Format des Glossary = Export des sek-intranet (#13, `Glossary::FIELDS` dort): gleiche Spaltennamen, gleiche
- * Reihenfolge, Mehrfachwerte mit «;», Kategorien/Herkunft als Label, Aktiv als ja/nein, Status als Text.
- * So lässt sich der Export des Intranets ohne Umbau importieren – und der Export des Glossary im Intranet.
+ * Excel-Format des Glossary, Version 2 (DEC-020). Grundlage ist der Export des sek-intranet (#13, `Glossary::FIELDS`
+ * dort): gleiche Spaltennamen, Mehrfachwerte mit «;», Kategorien/Herkunft als Label, Aktiv als ja/nein, Status als
+ * Text. Neu «Alternative Schreibweisen» (gemeinsam freigegeben).
+ *
+ * Version 1 (Intranet) wird beim Import weiterhin erkannt: «Abkürzung eigene», «Alias eigene», «Bezeichnung eigene»
+ * und «Intern genutzt in» sind keine gemeinsamen Daten mehr. Sie werden nicht übernommen, sondern als Altwerte
+ * gesichert und in der Vorschau gemeldet (LEGACY_COLUMNS).
  */
 final class ExcelFormat
 {
@@ -19,16 +23,13 @@ final class ExcelFormat
         'Kategorien' => 'categories',
         'Abkürzung offiziell' => 'official_abbreviation',
         'Aliase offiziell' => 'official_aliases',
-        'Abkürzung eigene' => 'own_abbreviation',
-        'Alias eigene' => 'own_alias',
+        'Alternative Schreibweisen' => 'alternative_aliases',
         'Bezeichnung offiziell' => 'official_name',
-        'Bezeichnung eigene' => 'own_name',
         'Kurzbeschreibung' => 'short_description',
         'Beschreibung' => 'description',
         'URL' => 'url',
         'Notiz' => 'note',
         'Herkunft' => 'sources',
-        'Intern genutzt in' => 'used_in',
         'Status' => 'lifecycle_status',
         'Suchbegriffe' => 'search_terms',
         'Gültig ab' => 'valid_from',
@@ -36,8 +37,22 @@ final class ExcelFormat
         'Aktiv' => 'is_active',
     ];
 
+    /** Version des Formats (Version 1 = Intranet mit eigenen Feldern). */
+    public const VERSION = 2;
+
+    /** Spalten des alten Formats → Feld der Altwerte (TermLegacyValue). */
+    public const LEGACY_COLUMNS = [
+        'Abkürzung eigene' => 'own_abbreviation',
+        'Alias eigene' => 'own_alias',
+        'Bezeichnung eigene' => 'own_name',
+        'Intern genutzt in' => 'used_in',
+    ];
+
     /** Spalten mit Mehrfachwerten («;»). */
-    public const MULTI = ['Kategorien', 'Aliase offiziell', 'Herkunft', 'Intern genutzt in'];
+    public const MULTI = ['Kategorien', 'Aliase offiziell', 'Alternative Schreibweisen', 'Herkunft'];
+
+    /** Mehrfachwerte im alten Format. */
+    public const LEGACY_MULTI = ['Intern genutzt in'];
 
     /** Offizielle Spalten (Recht «edit-official»). */
     public const OFFICIAL = ['Abkürzung offiziell', 'Aliase offiziell', 'Bezeichnung offiziell'];
@@ -66,16 +81,13 @@ final class ExcelFormat
             'Kategorien' => $list($term->categories->sortBy('sort_order')),
             'Abkürzung offiziell' => (string) $term->official_abbreviation,
             'Aliase offiziell' => implode('; ', $term->aliases->where('alias_type', 'official')->pluck('alias')->all()),
-            'Abkürzung eigene' => (string) $term->own_abbreviation,
-            'Alias eigene' => (string) $term->aliases->firstWhere('alias_type', 'own')?->alias,
+            'Alternative Schreibweisen' => implode('; ', $term->aliases->where('alias_type', 'alternative')->pluck('alias')->all()),
             'Bezeichnung offiziell' => (string) $term->official_name,
-            'Bezeichnung eigene' => (string) $term->own_name,
             'Kurzbeschreibung' => (string) $term->short_description,
             'Beschreibung' => (string) $term->description,
             'URL' => (string) $term->url,
             'Notiz' => (string) $term->note,
             'Herkunft' => $list($term->sources->sortBy('sort_order')),
-            'Intern genutzt in' => implode('; ', $term->used_in ?? []),
             'Status' => Term::STATUS[$term->lifecycle_status] ?? $term->lifecycle_status,
             'Suchbegriffe' => (string) $term->search_terms,
             'Gültig ab' => (string) $term->valid_from?->toDateString(),
@@ -108,6 +120,36 @@ final class ExcelFormat
         }
 
         return $data;
+    }
+
+    /**
+     * Werte der alten Spalten einer Zeile: Feld der Altwerte → Liste der Werte (nur nicht leere).
+     *
+     * @param  array<string, string>  $row
+     * @return array<string, list<string>>
+     */
+    public static function legacy(array $row): array
+    {
+        $out = [];
+        foreach (self::LEGACY_COLUMNS as $column => $field) {
+            $value = trim((string) ($row[$column] ?? ''));
+            if ($value === '') {
+                continue;
+            }
+            $out[$field] = in_array($column, self::LEGACY_MULTI, true) ? self::list($value) : [$value];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Version einer Datei an ihren Spalten: 1, wenn eine Spalte des alten Formats vorkommt.
+     *
+     * @param  list<string>  $header
+     */
+    public static function versionOf(array $header): int
+    {
+        return array_intersect($header, array_keys(self::LEGACY_COLUMNS)) !== [] ? 1 : self::VERSION;
     }
 
     /**

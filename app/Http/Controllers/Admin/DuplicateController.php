@@ -68,7 +68,7 @@ class DuplicateController extends Controller
 
         $rows = $terms->map(fn (Term $t): array => [
             'id' => $t->id,
-            'titel' => trim($t->displayAbbreviation().' – '.$t->displayName(), ' –'),
+            'titel' => $t->title(),
             'veroeffentlicht' => $t->published_revision_id !== null,
             'werte' => $this->values($t),
             'kategorien' => $t->categories->map(fn (Category $c): string => $c->displayLabel())->values()->all(),
@@ -131,10 +131,12 @@ class DuplicateController extends Controller
         }
 
         $count = count($others);
+        $conflicts = $this->glossary->lastMergeConflicts;
 
         return redirect("/admin/begriffe/{$term->id}")->with('status', ($count === 1 ? '1 Begriff' : "{$count} Begriffe")
             .' zusammengeführt (Revision '.$term->revision.').'
-            .($term->published_revision_id !== null ? ' Der Stand ist veröffentlicht; alte Adressen leiten hierher weiter.' : ''));
+            .($term->published_revision_id !== null ? ' Der Stand ist veröffentlicht; alte Adressen leiten hierher weiter.' : '')
+            .($conflicts > 0 ? " {$conflicts} persönliche Darstellungen widersprechen sich und bleiben beim alten Begriff." : ''));
     }
 
     // ---------- intern ----------

@@ -6,6 +6,27 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Gemeinsame und persönliche Daten (DEC-020, #80–#83):** Begriffe enthalten nur noch gemeinsame Fachdaten.
+  «Abkürzung eigene», «Bezeichnung eigene», «Alias eigene» und «Intern genutzt in» entfallen; vorhandene Werte
+  werden bei der Migration vollständig als **Altwerte** gesichert und auf der neuen Seite «Altwerte» von der
+  Redaktion zugeordnet (offiziell, alternative Schreibweise, Suchbegriff) oder verworfen – nichts geschieht
+  automatisch. Bestand: `php artisan glossary:bestand-eigene`. Neu **alternative Schreibweisen** (mehrere,
+  öffentlich).
+- **API v1 (Vorschau):** `own_abbreviation` und `own_name` entfallen; `abbreviation`/`name` sind die gemeinsamen
+  Werte. Neu `official_aliases`, `alternative_aliases`, `display_label`, `is_full_term`, in Liste, Einzelbegriff und
+  Vollstand zusätzlich `is_ambiguous` und `meaning_count`.
+- **Excel-Format Version 2:** Spalte «Alternative Schreibweisen» statt der eigenen Spalten. Dateien im alten
+  Intranet-Format werden erkannt; die alten Spalten werden gemeldet und als Altwerte gesichert.
+
+### Neu
+
+- **Meine Darstellung:** Angemeldete Konten legen auf der Begriffsseite eine eigene Abkürzung, Bezeichnung,
+  Beschreibung und Schreibweisen fest – nur für sich sichtbar, nie öffentlich, mit dem Konto gelöscht.
+- **Änderungsjournal:** Der Verlauf zeigt je Revision die Felder mit altem und neuem Wert, Rolle und Quelle
+  (Excel, Altwerte, Zusammenführung). Beim Löschen eines Kontos bleibt der Verlauf, der Name wird ersetzt.
+
 ## [0.4.0] – 2026-11-07
 
 ### Neu

@@ -48,14 +48,12 @@ Personendossiers, Mandantenfähigkeit im ersten Schritt.
 | ---------------------------------- | ------------------------------------------------------------------- |
 | Kategorien                         | eine oder mehrere aus der erweiterbaren Kategorienliste             |
 | Abkürzung offiziell + Aliase       | geschützt: ändern nur mit Recht «offizielle Begriffe pflegen»       |
-| Abkürzung eigene + Alias           | frei, z. B. lokal gebräuchliche Form                                |
+| Alternative Schreibweisen          | gemeinsam gültig, redaktionell geprüft, mehrere (DEC-020)           |
 | Bezeichnung offiziell              | geschützt                                                           |
-| Bezeichnung eigene                 | alternative Benennung; im Intranet kann sie Vorrang haben           |
 | Kurzbeschreibung                   | ein Satz, max. 160 Zeichen (Tooltip im Intranet)                    |
 | Beschreibung                       | ausführliche Erklärung, eigene Worte, mit Quellenbezug              |
 | Quelle (URL) und Herkunft          | mehrere Herkünfte aus der Herkunftsliste (VSA, Kanton, Bund, DSB …) |
 | Notiz                              | redaktionell, Markdown                                              |
-| Genutzt in                         | Bezüge zu Anwendungen; neu unabhängig vom Intranet                  |
 | Status                             | aktuell / historisch / zu prüfen                                    |
 | Suchbegriffe, gültig ab/bis, aktiv | Suche, zeitliche Geltung, ein-/ausblenden                           |
 
@@ -73,6 +71,11 @@ Regeln wie im Intranet (**Entscheid**):
 - Jede Veröffentlichung ist eine unveränderliche **Revision**; Website und API zeigen immer die zuletzt
   freigegebene. Ein Änderungsvorschlag lässt die veröffentlichte Revision unberührt, bis die neue freigegeben ist.
 - Eigene Bezeichnungen je Schule (Mandant) später als eigene Ebene, nicht als globaler Wert.
+
+**Entscheid DEC-020 (07.11.2026):** Eigene Abkürzung, eigene Bezeichnung, eigener Alias und «Genutzt in» sind keine
+gemeinsamen Felder mehr. Persönliche Formen setzt jede angemeldete Person für sich («Meine Darstellung»); das
+Intranet verwaltet seine Modulverwendungen und lokalen Benennungen selbst. Details in
+[KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md#gemeinsame-und-persönliche-daten-änderungsjournal-dec-020).
 
 ## Funktionen
 
