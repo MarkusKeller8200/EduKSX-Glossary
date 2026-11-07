@@ -14,6 +14,7 @@ Stand: 07.11.2026
 | DEC-009 | Offen | Stack endgültig festlegen; Laravel/React wie Intranet ist Favorit. |
 | DEC-010 | Vorschlag | PostgreSQL, OpenAPI 3.1, Sync-Release und Cursor-basierter Change-Feed. |
 | DEC-011 | Vorschlag | MCP nutzt interne Application Services, nicht die Datenbank direkt; Rovo-Änderungen standardmässig moderieren. |
-| DEC-012 | Offen | Hosting, Authentisierung, Confluence-Mehrfachziele und Rovo-Kompatibilitätsprüfung. |
+| DEC-012 | Offen | Authentisierung, Confluence-Mehrfachziele und Rovo-Kompatibilitätsprüfung (Hosting: siehe DEC-013). |
+| DEC-013 | Beschlossen | Hosting zuerst als Container auf dem bestehenden Hostinger-VPS hinter Traefik, Infomaniak später prüfen; Domain `glossar.eduksx.ch` über Cloudflare ([KONZEPT-HOSTING.md](KONZEPT-HOSTING.md), #4, 07.11.2026). |
 
 Bei Widersprüchen zu V1.0/V1.1 haben DEC-004 bis DEC-008 Vorrang.
