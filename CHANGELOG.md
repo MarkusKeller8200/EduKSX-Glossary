@@ -8,6 +8,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
+  wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
+  veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.
+
+### Neu
+
 - **Softwarelizenz (#65, DEC-021):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf
   `/legals`).
 

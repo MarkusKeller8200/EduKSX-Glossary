@@ -54,6 +54,7 @@ const ART: Record<string, string> = {
     created: 'angelegt',
     updated: 'geändert',
     merged: 'zusammengeführt',
+    restored: 'wiederhergestellt',
 };
 
 const REIHENFOLGE = [
@@ -101,6 +102,22 @@ export default function TermShow({
 }) {
     const [sending, setSending] = useState(false);
     const { auth } = usePage().props;
+    const formFehler = (
+        usePage().props.errors as Record<string, string> | undefined
+    )?.form;
+    const darfBearbeiten = can(auth, 'edit-terms');
+    // Revision wiederherstellen bzw. Entwurf verwerfen (DEC-022)
+    const wiederherstellen = (revision: number, veroeffentlichen: boolean) => {
+        const text = veroeffentlichen
+            ? `Revision ${revision} wiederherstellen und gleich veröffentlichen?`
+            : `Revision ${revision} als neue Revision wiederherstellen (Entwurf)?`;
+        if (window.confirm(text)) {
+            post(`/admin/begriffe/${b.id}/wiederherstellen`, {
+                revision,
+                veroeffentlichen,
+            });
+        }
+    };
     const darfVeroeffentlichen = can(auth, 'publish');
     const titel = [b.official_abbreviation, b.official_name]
         .filter(Boolean)
@@ -122,13 +139,15 @@ export default function TermShow({
         }
         return typeof v === 'string' || typeof v === 'number' ? String(v) : '';
     };
-    const post = (url: string) => {
+    const post = (
+        url: string,
+        data: Record<string, string | number | boolean> = {},
+    ) => {
         setSending(true);
-        router.post(
-            url,
-            {},
-            { preserveScroll: true, onFinish: () => setSending(false) },
-        );
+        router.post(url, data, {
+            preserveScroll: true,
+            onFinish: () => setSending(false),
+        });
     };
 
     return (
@@ -154,6 +173,7 @@ export default function TermShow({
                         <RevisionBadges
                             published={b.veroeffentlicht}
                             revision={b.revision}
+                            draft={b.ungespeichert}
                         />
                         <StatusBadge status={b.lifecycle_status} />
                         {!b.is_active ? (
@@ -192,6 +212,28 @@ export default function TermShow({
                                 Revision {b.revision} veröffentlichen
                             </Button>
                         ) : null}
+                        {b.ungespeichert &&
+                        b.veroeffentlicht !== null &&
+                        darfBearbeiten ? (
+                            <Button
+                                variant="outline"
+                                disabled={sending}
+                                onClick={() => {
+                                    if (
+                                        window.confirm(
+                                            `Entwurf verwerfen? Der veröffentlichte Stand V${b.veroeffentlicht} wird als neue Revision wiederhergestellt.`,
+                                        )
+                                    ) {
+                                        post(
+                                            `/admin/begriffe/${b.id}/wiederherstellen`,
+                                            { revision: b.veroeffentlicht },
+                                        );
+                                    }
+                                }}
+                            >
+                                Entwurf verwerfen
+                            </Button>
+                        ) : null}
                         {b.veroeffentlicht !== null ? (
                             <>
                                 <Button asChild variant="outline">
@@ -223,6 +265,12 @@ export default function TermShow({
                     </div>
                 )}
             </div>
+
+            {formFehler ? (
+                <Alert className="mt-6" variant="destructive" role="alert">
+                    <AlertDescription>{formFehler}</AlertDescription>
+                </Alert>
+            ) : null}
 
             {b.zusammengefuehrt_in ? (
                 <Alert className="mt-6" role="note">
@@ -307,6 +355,37 @@ export default function TermShow({
                                     V{e.revision} ·{' '}
                                     {datum(e.veroeffentlicht_am)}
                                 </Badge>
+                            ) : null}
+                            {darfBearbeiten &&
+                            !b.zusammengefuehrt_in &&
+                            e.revision !== b.revision ? (
+                                <span className="ml-auto flex flex-wrap gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={sending}
+                                        onClick={() =>
+                                            wiederherstellen(e.revision, false)
+                                        }
+                                    >
+                                        Wiederherstellen
+                                    </Button>
+                                    {darfVeroeffentlichen ? (
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={sending}
+                                            onClick={() =>
+                                                wiederherstellen(
+                                                    e.revision,
+                                                    true,
+                                                )
+                                            }
+                                        >
+                                            … und veröffentlichen
+                                        </Button>
+                                    ) : null}
+                                </span>
                             ) : null}
                         </div>
                         {e.aenderungen.length > 0 ? (

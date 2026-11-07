@@ -62,10 +62,15 @@ export function StatusBadge({
 export function RevisionBadges({
     published,
     revision,
+    draft,
 }: {
     published: number | null;
     revision: number;
+    /** inhaltliche Abweichung vom öffentlichen Stand (DEC-022); ohne Angabe: andere Revisionsnummer */
+    draft?: boolean;
 }) {
+    const entwurf = draft ?? (published === null || published !== revision);
+
     return (
         <span className="inline-flex flex-wrap gap-1">
             {published !== null ? (
@@ -77,7 +82,7 @@ export function RevisionBadges({
                     V{published}
                 </Badge>
             ) : null}
-            {published === null || published !== revision ? (
+            {entwurf ? (
                 <Badge
                     variant="outline"
                     className={stateClasses.draft}

@@ -171,6 +171,11 @@ final class GlossaryService
         if ($term->published_revision_id === $latest->id) {
             return null;
         }
+        // Gleicher Inhalt wie der öffentliche Stand (z. B. nach «Entwurf verwerfen»): nichts veröffentlichen (DEC-022)
+        $published = $term->published_revision_id !== null ? TermRevision::query()->find($term->published_revision_id) : null;
+        if ($published !== null && $published->snapshot == $latest->snapshot) {
+            return null;
+        }
 
         $latest->published_at = now()->toImmutable();
         $latest->approved_by = $approver?->id;
@@ -356,6 +361,43 @@ final class GlossaryService
                 $value->save();
             }
         }
+    }
+
+    /**
+     * Frühere Revision wiederherstellen (DEC-022): neue Revision mit deren gemeinsamen Feldern (nie Altfelder), auf
+     * Wunsch gleich veröffentlicht. Die alte Revision bleibt unverändert. Ohne Abweichung entsteht keine Revision.
+     *
+     * @throws InvalidArgumentException unbekannte Revision, fehlende Kategorie/Herkunft, zusammengeführter Begriff
+     * @throws OfficialFieldLocked ohne Recht für offizielle Felder
+     */
+    public function restore(Term $term, int $revision, ?User $user, bool $canEditOfficial, bool $publish = false): Term
+    {
+        /** @var TermRevision|null $source */
+        $source = $term->revisions()->where('revision', $revision)->first();
+        if ($source === null) {
+            throw new InvalidArgumentException("Revision {$revision} gibt es nicht.");
+        }
+        $s = $source->snapshot;
+        $data = [];
+        foreach (self::TEXT as $field) {
+            $data[$field] = $s[$field] ?? null;
+        }
+        $data += [
+            'official_aliases' => (array) ($s['official_aliases'] ?? []),
+            'alternative_aliases' => (array) ($s['alternative_aliases'] ?? []),
+            'categories' => (array) ($s['categories'] ?? []),
+            'sources' => (array) ($s['sources'] ?? []),
+            'lifecycle_status' => (string) ($s['lifecycle_status'] ?? 'aktuell'),
+            'is_active' => (bool) ($s['is_active'] ?? true),
+            'valid_from' => $s['valid_from'] ?? null,
+            'valid_until' => $s['valid_until'] ?? null,
+        ];
+
+        return DB::transaction(function () use ($term, $data, $user, $canEditOfficial, $publish, $revision): Term {
+            $term = $this->save($term, $data, $user, $canEditOfficial, null, 'restored', ['restored_from' => $revision]);
+
+            return $publish ? $this->publish($term, $user) : $term;
+        });
     }
 
     /** Veröffentlichung zurückziehen: Begriff ist danach nicht mehr öffentlich (Tombstone im Change-Feed). */

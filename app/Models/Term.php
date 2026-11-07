@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Begriff (Arbeitsstand). Öffentlich ist nur die veröffentlichte Revision (publishedRevision), nie dieser Stand.
@@ -34,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property CarbonImmutable|null $merged_at
  * @property-read Term|null $mergedInto
  * @property-read TermRevision|null $publishedRevision
+ * @property-read TermRevision|null $latestRevision
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, Source> $sources
  * @property-read Collection<int, TermAlias> $aliases
@@ -178,9 +180,27 @@ class Term extends Model
         return trim($this->displayAbbreviation().' – '.$this->displayName(), ' –');
     }
 
-    /** Arbeitsstand weicht von der veröffentlichten Revision ab. */
+    /** @return HasOne<TermRevision, $this> Neueste Revision (Arbeitsstand) */
+    public function latestRevision(): HasOne
+    {
+        return $this->hasOne(TermRevision::class)->latestOfMany('revision');
+    }
+
+    /**
+     * Entwurf (DEC-022): Der Arbeitsstand weicht inhaltlich von der veröffentlichten Revision ab. Gleicher Inhalt mit
+     * höherer Nummer (z. B. nach «Entwurf verwerfen») ist kein Entwurf.
+     */
     public function hasUnpublishedChanges(): bool
     {
-        return $this->publishedRevision === null || $this->publishedRevision->revision !== $this->revision;
+        $published = $this->publishedRevision;
+        if ($published === null) {
+            return true;
+        }
+        if ($published->revision === $this->revision) {
+            return false;
+        }
+        $latest = $this->latestRevision;
+
+        return $latest === null || $latest->snapshot != $published->snapshot;
     }
 }

@@ -47,7 +47,7 @@ class TermController extends Controller
 
     public function index(): Response
     {
-        $terms = Term::query()->current()->with(['categories', 'publishedRevision'])->get()
+        $terms = Term::query()->current()->with(['categories', 'publishedRevision', 'latestRevision'])->get()
             ->sortBy(fn (Term $t): string => mb_strtolower($t->displayAbbreviation() ?: $t->displayName()))
             ->values()
             ->map(fn (Term $t): array => [
@@ -60,6 +60,7 @@ class TermController extends Controller
                 'aktiv' => $t->is_active,
                 'revision' => $t->revision,
                 'veroeffentlicht' => $t->publishedRevision?->revision,
+                'entwurf' => $t->hasUnpublishedChanges(),
             ])
             ->all();
 
@@ -72,7 +73,7 @@ class TermController extends Controller
     /** Detail: Arbeitsstand, veröffentlichter Stand, Verlauf (Journal) mit altem und neuem Wert je Feld. */
     public function show(Term $term): Response
     {
-        $term->load(['revisions', 'publishedRevision']);
+        $term->load(['revisions', 'publishedRevision', 'latestRevision']);
         $authors = User::query()->whereIn('id', $term->revisions->pluck('author_id')->filter()->unique()->all())->pluck('name', 'id');
 
         $previous = null;
@@ -167,6 +168,36 @@ class TermController extends Controller
         return back()->with('status', $term->revision === $before
             ? 'Keine Änderung.'
             : self::LABELS[$field].' gespeichert (Revision '.$term->revision.', Entwurf).');
+    }
+
+    /** Frühere Revision wiederherstellen, optional gleich veröffentlichen; «Entwurf verwerfen» (DEC-022). */
+    public function restore(Request $request, Term $term): RedirectResponse
+    {
+        $data = $request->validate([
+            'revision' => ['required', 'integer', 'min:1'],
+            'veroeffentlichen' => ['boolean'],
+        ]);
+        $publish = $request->boolean('veroeffentlichen');
+        if ($publish && ! Gate::allows('publish')) {
+            throw ValidationException::withMessages(['form' => 'Veröffentlichen braucht das Recht «Veröffentlichen».']);
+        }
+        $before = $term->revision;
+        $publishedBefore = $term->published_revision_id;
+        try {
+            $term = $this->glossary->restore($term, (int) $data['revision'], $this->user($request), Gate::allows('edit-official'), $publish);
+        } catch (OfficialFieldLocked $e) {
+            throw ValidationException::withMessages(['form' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages(['form' => $e->getMessage()]);
+        }
+
+        if ($term->revision === $before) {
+            return back()->with('status', "Revision {$data['revision']} entspricht schon dem Arbeitsstand"
+                .($term->published_revision_id !== $publishedBefore ? " – Revision {$term->revision} veröffentlicht." : ' – nichts geändert.'));
+        }
+
+        return back()->with('status', "Revision {$data['revision']} als Revision {$term->revision} wiederhergestellt"
+            .($publish ? ' und veröffentlicht.' : ($term->hasUnpublishedChanges() ? ' (Entwurf).' : ' – entspricht dem veröffentlichten Stand.')));
     }
 
     public function publishOne(Request $request, Term $term): RedirectResponse
