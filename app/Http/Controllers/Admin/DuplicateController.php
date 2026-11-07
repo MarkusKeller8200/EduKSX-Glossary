@@ -78,7 +78,7 @@ class DuplicateController extends Controller
 
         $labels = [];
         foreach (GlossaryService::MERGE_CHOICE as $field) {
-            $labels[$field] = TermController::LABELS[$field] ?? $field;
+            $labels[$field] = TermController::LABELS[$field];
         }
 
         return Inertia::render('admin/merge', [
