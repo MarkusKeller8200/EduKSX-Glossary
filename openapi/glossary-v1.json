@@ -241,6 +241,10 @@
                     "aliases": [
                       "KL"
                     ],
+                    "search_terms": [
+                      "Klassenlehrer",
+                      "Klassenlehrerin"
+                    ],
                     "display_label": "KLP",
                     "is_full_term": false,
                     "is_ambiguous": false,
@@ -251,17 +255,23 @@
                     "categories": [
                       {
                         "key": "per",
+                        "abbreviation": null,
                         "label": "Personal",
                         "name": "Personal",
-                        "url": null
+                        "description": null,
+                        "url": null,
+                        "color": null
                       }
                     ],
                     "sources": [
                       {
                         "key": "vsa",
+                        "abbreviation": null,
                         "label": "VSA",
                         "name": "Volksschulamt des Kantons Zürich",
-                        "url": "https://www.zh.ch/de/bildung/schulen/volksschule.html"
+                        "description": null,
+                        "url": "https://www.zh.ch/de/bildung/schulen/volksschule.html",
+                        "color": null
                       }
                     ],
                     "status": "aktuell",
@@ -634,6 +644,16 @@
               "per"
             ]
           },
+          "abbreviation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Kürzel",
+            "examples": [
+              "PER"
+            ]
+          },
           "label": {
             "type": "string",
             "examples": [
@@ -646,12 +666,29 @@
               "Personal"
             ]
           },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Beschreibung der Kategorie bzw. Herkunft"
+          },
           "url": {
             "type": [
               "string",
               "null"
             ],
             "format": "uri"
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Farbe aus der Palette (Name wie im Intranet, z. B. «blue»); Darstellung beim Abnehmer",
+            "examples": [
+              "blue"
+            ]
           }
         }
       },
@@ -688,6 +725,7 @@
           "official_aliases",
           "alternative_aliases",
           "aliases",
+          "search_terms",
           "display_label",
           "is_full_term",
           "categories",
@@ -751,6 +789,13 @@
               "type": "string"
             },
             "description": "Sammelliste: official_aliases und alternative_aliases (abwärtskompatibel)"
+          },
+          "search_terms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Suchbegriffe (nur für die Suche, nicht zur Anzeige)"
           },
           "display_label": {
             "type": "string",
@@ -857,6 +902,10 @@
           "aliases": [
             "KL"
           ],
+          "search_terms": [
+            "Klassenlehrer",
+            "Klassenlehrerin"
+          ],
           "display_label": "KLP",
           "is_full_term": false,
           "is_ambiguous": false,
@@ -867,17 +916,23 @@
           "categories": [
             {
               "key": "per",
+              "abbreviation": null,
               "label": "Personal",
               "name": "Personal",
-              "url": null
+              "description": null,
+              "url": null,
+              "color": null
             }
           ],
           "sources": [
             {
               "key": "vsa",
+              "abbreviation": null,
               "label": "VSA",
               "name": "Volksschulamt des Kantons Zürich",
-              "url": "https://www.zh.ch/de/bildung/schulen/volksschule.html"
+              "description": null,
+              "url": "https://www.zh.ch/de/bildung/schulen/volksschule.html",
+              "color": null
             }
           ],
           "status": "aktuell",

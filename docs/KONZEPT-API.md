@@ -177,3 +177,6 @@ ohne v2 und ohne Übergangsfrist; der CHANGELOG nennt die Änderung.
 - Positivliste `ApiPresenter::PUBLIC_TERM_FIELDS` (mit `CONTEXT_FIELDS`), `openapi/glossary-v1.json` nachgeführt.
 - Das Intranet synchronisiert nur gemeinsame, veröffentlichte Felder und IDs und berechnet «Intern genutzt in»,
   Tooltips und lokale Benennungen selbst (eigener Auftrag im Repository `sek-intranet`).
+- **Ergänzt (#87):** `search_terms` (Suchbegriffe, nur für die Suche). Kategorien und Herkunft liefern neben
+  `key`, `label`, `name`, `url` auch `abbreviation`, `description` und `color` (Name aus der Palette wie im
+  Intranet); die redaktionelle Notiz bleibt intern.
