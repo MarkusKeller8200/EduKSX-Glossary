@@ -2,6 +2,15 @@
 
 Projekt: EduKSX-Glossary.
 
+## Projektregeln (Projektverantwortliche:r, 07.11.2026)
+
+- **Abgehakte Issues selbst schliessen:** Ist die Testliste «Zum Testen abhaken:» eines Issues vollständig
+  abgehakt, schliesst der Agent das Issue (Status-Label entfernen, kurzer Kommentar). Gilt vor dem Abschnitt
+  «GitHub-Ablauf» unten.
+- **Konzepte zuerst vorlegen:** Entscheide werden als Entwurf (Pull Request) vorgelegt und erst nach Abnahme gemergt
+  (`docs/KONZEPT*.md`, Register `docs/ENTSCHEIDE.md`).
+- **Dateien nur nach Rückfrage löschen.**
+
 <!-- blueprint:github-ablauf -->
 
 ## GitHub-Ablauf und Releases
