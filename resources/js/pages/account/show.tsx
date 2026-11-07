@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent, ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -371,16 +371,19 @@ function Anmeldedienste({
             onFinish: () => form.reset('password'),
         });
     };
-    const loesen = (id: number) => {
-        const password = window.prompt(
-            'Verknüpfung lösen – bitte Passwort eingeben:',
-        );
-        if (password) {
-            router.delete(`/konto/anmeldedienste/${id}`, {
-                data: { password },
-                preserveScroll: true,
-            });
+    // Lösen mit Passwortfeld statt window.prompt (Klartext, #59)
+    const [loesenId, setLoesenId] = useState<number | null>(null);
+    const loesenForm = useForm({ password: '' });
+    const loesen = (e: FormEvent) => {
+        e.preventDefault();
+        if (loesenId === null) {
+            return;
         }
+        loesenForm.delete(`/konto/anmeldedienste/${loesenId}`, {
+            preserveScroll: true,
+            onSuccess: () => setLoesenId(null),
+            onFinish: () => loesenForm.reset('password'),
+        });
     };
 
     if (!microsoft && konto.identitaeten.length === 0) {
@@ -403,13 +406,71 @@ function Anmeldedienste({
                                 ({i.art}) · seit {i.seit ?? '–'} · zuletzt{' '}
                                 {i.zuletzt ?? '–'}
                             </span>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => loesen(i.id)}
-                            >
-                                Lösen
-                            </Button>
+                            {loesenId === i.id ? null : (
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                        loesenForm.clearErrors();
+                                        setLoesenId(i.id);
+                                    }}
+                                >
+                                    Lösen
+                                </Button>
+                            )}
+                            {loesenId === i.id ? (
+                                <form
+                                    onSubmit={loesen}
+                                    className="grid w-full gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-end"
+                                >
+                                    <Feld
+                                        id={`unlink_password_${i.id}`}
+                                        label={`${i.anbieter} lösen – Passwort bestätigen`}
+                                    >
+                                        <Input
+                                            id={`unlink_password_${i.id}`}
+                                            type="password"
+                                            autoComplete="current-password"
+                                            value={loesenForm.data.password}
+                                            onChange={(e) =>
+                                                loesenForm.setData(
+                                                    'password',
+                                                    e.target.value,
+                                                )
+                                            }
+                                            required
+                                        />
+                                        <InputError
+                                            message={
+                                                (
+                                                    loesenForm.errors as Record<
+                                                        string,
+                                                        string | undefined
+                                                    >
+                                                ).identitaet
+                                            }
+                                        />
+                                    </Feld>
+                                    <Button
+                                        type="submit"
+                                        size="sm"
+                                        disabled={loesenForm.processing}
+                                    >
+                                        Verknüpfung lösen
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setLoesenId(null);
+                                            loesenForm.reset('password');
+                                        }}
+                                    >
+                                        Abbrechen
+                                    </Button>
+                                </form>
+                            ) : null}
                         </li>
                     ))}
                 </ul>
