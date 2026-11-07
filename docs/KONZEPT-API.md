@@ -102,3 +102,52 @@ Beispiel-URL und -Datum sind Platzhalter.
 - **Fehler** als `application/problem+json` (RFC 9457) für alle Pfade unter `/api/`.
 - **CORS:** `GET` von jeder Herkunft, ohne Cookies (`config/cors.php`).
 - Rate-Limit 120 Abrufe pro Minute und Adresse.
+
+## Nutzungsbedingungen und Stabilität (#30, beschlossen 07.11.2026)
+
+Entscheid zum offenen Punkt 5 aus [KONZEPT.md](KONZEPT.md) (DEC-016).
+
+### Stabilitätszusage v1 – erst ab öffentlichem Betrieb
+
+- **Bis zum öffentlichen Betrieb (Etappe 1.0)** ist die API eine **Vorschau**: Felder und Endpunkte können sich
+  ändern. Änderungen stehen im CHANGELOG; Abnehmer (das Intranet) passen sich an. Auf `/api/docs` und in der
+  OpenAPI-Beschreibung steht der Hinweis «Vorschau».
+- **Ab dem öffentlichen Betrieb** gilt die folgende Zusage (Entscheid Projektverantwortliche:r, 07.11.2026):
+    - **Was bleibt:** Pfade, Parameter und Felder von `/api/v1` werden weder entfernt noch umbenannt. Ihre Bedeutung
+      ändert sich nicht. IDs (UUID) und Slugs bleiben stabil; nach einer Zusammenführung leitet die alte Adresse mit
+      `301` weiter.
+    - **Was dazukommen darf:** neue Felder, neue Endpunkte, neue Werte bei Aufzählungen (z. B. Ereignisarten im
+      Change-Feed, Status). Abnehmer ignorieren Unbekanntes.
+    - **Brechende Änderungen** gibt es nur in einer neuen Version `/api/v2`. v1 läuft danach mindestens **12 Monate**
+      parallel weiter. Die Ankündigung erfolgt im CHANGELOG, auf `/api/docs` und mit der Kopfzeile
+      `Deprecation`/`Sunset` (RFC 8594, RFC 9745).
+    - **Version der Beschreibung:** `info.version` in `openapi/glossary-v1.json` folgt der App-Version. Erweiterungen
+      erhöhen MINOR.
+
+### Zugang und Grenzen (beschlossen 07.11.2026)
+
+- **Ohne Anmeldung und ohne Schlüssel:** Die API liefert nur veröffentlichte Daten.
+- **Rate-Limit:** 120 Abrufe pro Minute und Adresse. Darüber kommt `429` mit `Retry-After`. Für den Sync reicht
+  ein Abruf alle 5–15 Minuten; Abnehmer nutzen ETag und `If-None-Match`, eine `304`-Antwort ist günstig.
+- **Gesamt-Export:** `/api/v1/exports?format=json` ist frei abrufbar. Empfohlen ist höchstens ein Abruf pro Stunde;
+  danach `/changes` verwenden.
+- **Keine Zusage zur Verfügbarkeit (SLA):** Die API ist ein freiwilliges Angebot. Abnehmer halten einen lokalen
+  Stand (Cache, Fallback) und dürfen bei einem Ausfall nicht stehen bleiben. Für das Intranet ist das Etappe 0.5.
+- **Missbrauch** (massenhaftes Abfragen, Umgehen des Limits) kann je Adresse gesperrt werden; Cloudflare-Regeln
+  folgen mit #19.
+
+### Nutzung der Daten (Lizenz – beschlossen 07.11.2026, vorläufig)
+
+- **Entscheid:** Begriffssammlung vorerst unter **CC BY 4.0** (Projektverantwortliche:r, 07.11.2026: «momentan ok»;
+  wird mit der Lizenzprüfung, offener Entscheid 3, bestätigt). Nennung: «EduKSX-Glossary, glossary.eduksx.ch». Die API
+  liefert die Lizenz im Vollstand (`license`) und auf `/api/v1` mit.
+- **Ausnahme:** Offizielle Bezeichnungen und Abkürzungen sind Fakten und frei. Längere Texte aus amtlichen Quellen
+  übernehmen wir nur als Verweis (`url`, Herkunft), nicht wörtlich. So bleibt CC BY für die eigenen Texte möglich.
+- **Software-Lizenz:** getrennt, nicht Teil dieses Entscheids.
+
+### Umsetzung nach Abnahme
+
+- Abschnitt «Nutzung und Stabilität» auf `/api/docs` und in `info.description`/`info.license` der
+  OpenAPI-Beschreibung.
+- Feld `license` (Name, URL, Nennung) in `/api/v1` und `/api/v1/exports`.
+- Kopfzeilen `Deprecation`/`Sunset` erst, wenn eine v2 kommt.
