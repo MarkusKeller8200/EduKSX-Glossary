@@ -25,6 +25,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   bauen nur aus einer Positivliste von Feldern. Ein automatischer Test prüft, dass Notizen, «Intern genutzt in»,
   Entwürfe, unveröffentlichte Begriffe und Kontodaten nirgends erscheinen.
 
+- **Benutzer und Rollen verwalten (#38):** Neue Seiten «Benutzer» (Liste mit Suche und Filter, Konto anlegen,
+  Detail mit Rollen, Sperren, zweiten Faktor zurücksetzen und Protokoll) und «Rollen und Rechte» (Rechte je Rolle mit
+  Schutzklassen, eigene Rollen wie «Redaktion Schule» anlegen). Was ausserhalb der eigenen Befugnis liegt, ist
+  ausgegraut und wird serverseitig abgewiesen.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.

@@ -4,7 +4,9 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
+use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\TermController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\PageController;
@@ -64,6 +66,20 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('listen/{list}', [ListController::class, 'store'])->whereIn('list', ['kategorien', 'herkunft'])->name('admin.lists.store');
         Route::put('listen/{list}/{id}', [ListController::class, 'update'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('id')->name('admin.lists.update');
         Route::delete('listen/{list}/{id}', [ListController::class, 'destroy'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('id')->name('admin.lists.destroy');
+    });
+
+    // Benutzer und Rollen (#38): nur mit «manage-users»; Schutzregeln im RoleManager/AccountManager
+    Route::middleware('can:manage-users')->group(function () {
+        Route::get('benutzer', [UserController::class, 'index'])->name('admin.users');
+        Route::post('benutzer', [UserController::class, 'store'])->name('admin.users.store');
+        Route::get('benutzer/{user}', [UserController::class, 'show'])->whereUuid('user')->name('admin.users.show');
+        Route::put('benutzer/{user}/rollen', [UserController::class, 'updateRoles'])->whereUuid('user')->name('admin.users.roles');
+        Route::post('benutzer/{user}/sperren', [UserController::class, 'block'])->whereUuid('user')->name('admin.users.block');
+        Route::post('benutzer/{user}/entsperren', [UserController::class, 'unblock'])->whereUuid('user')->name('admin.users.unblock');
+        Route::post('benutzer/{user}/zwei-faktor', [UserController::class, 'resetTwoFactor'])->whereUuid('user')->name('admin.users.reset-2fa');
+        Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
+        Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');
+        Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');
     });
 
     // Excel (#13, #15): Export, Vorlage, Import mit Vorschau
