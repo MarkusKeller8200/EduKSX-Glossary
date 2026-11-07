@@ -19,6 +19,9 @@ class StatusController extends Controller
             'api_version' => 'v1',
             'app_version' => $version['version'],
             'developer_release' => $version['dev'],
+            // Vorschau bis zum öffentlichen Betrieb; danach «stable» mit Stabilitätszusage (DEC-016)
+            'stability' => (string) config('glossary.api_stability'),
+            'license' => $presenter->license(),
             'release' => $presenter->release(),
             'openapi' => url('/api/openapi.json'),
             'docs' => url('/api/docs'),

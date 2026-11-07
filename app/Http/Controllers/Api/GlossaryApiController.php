@@ -178,6 +178,7 @@ class GlossaryApiController extends Controller
         return $this->cached($request, [
             'release' => $release['release'],
             'cursor' => $release['cursor'],
+            'license' => $this->presenter->license(),
             'checksum' => $release['checksum'],
             'published_at' => $release['published_at'],
             'categories' => $this->presenter->categoryList(),
