@@ -6,6 +6,18 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Farbwahl (#107):** Farben in «Listen» als farbige Labels wählbar, neu mit den CI-Farben Violett, Orange und Blau.
+- **Fusszeile (#102):** auch in der Administration immer sichtbar.
+- **Kategorien (#105):** werden überall untereinander angezeigt.
+- **Begriffstabelle (#104):** gruppieren zusätzlich nach Erstelldatum und letzter Änderung.
+- **Seitenbreite (#99, DEC-023):** Website und Administration einheitlich 1152 px; lange Texte auf Lesebreite.
+
+### Behoben
+
+- **Auswahllisten im Dunkelmodus (#107):** Einträge sind lesbar (heller Text auf dunklem Grund).
+
 ## [0.6.0] – 2026-11-07
 
 ### Neu

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ListBadge, StatusBadge } from '@/components/tags';
+import { ListBadges, StatusBadge } from '@/components/tags';
 
 type Meine = {
     abbreviation_override: string;
@@ -67,7 +67,7 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                 </Link>
             </p>
 
-            <article className="mt-4 max-w-3xl">
+            <article className="mt-4 max-w-prose">
                 <h1 className="text-3xl font-semibold tracking-tight">
                     {b.abkuerzung ? (
                         <span translate="no">{b.abkuerzung}</span>
@@ -79,9 +79,7 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                 </h1>
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                    {b.kategorien.map((k) => (
-                        <ListBadge key={k} list="kategorien" label={k} />
-                    ))}
+                    <ListBadges list="kategorien" labels={b.kategorien} />
                     {b.status !== 'aktuell' ? (
                         <StatusBadge status={b.status} />
                     ) : null}

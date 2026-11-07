@@ -2,7 +2,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ListBadge } from '@/components/tags';
+import { ListBadges } from '@/components/tags';
 
 type Mitglied = {
     id: string;
@@ -143,13 +143,10 @@ export default function Duplicates({
                                                 .filter(Boolean)
                                                 .join(' – ')}
                                         </Link>
-                                        {b.kategorien.map((k) => (
-                                            <ListBadge
-                                                key={k}
-                                                list="kategorien"
-                                                label={k}
-                                            />
-                                        ))}
+                                        <ListBadges
+                                            list="kategorien"
+                                            labels={b.kategorien}
+                                        />
                                         <span className="text-muted-foreground">
                                             {b.veroeffentlicht
                                                 ? 'veröffentlicht'

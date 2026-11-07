@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
 import CookieNotice from '@/components/cookie-notice';
+import SiteFooter from '@/components/site-footer';
 import { Button } from '@/components/ui/button';
 import ViewWidthTabs from '@/components/view-width-tabs';
-import { versionLabel } from '@/components/version-label';
 import { useViewWidth, widthClass } from '@/hooks/use-view-width';
 import { hasAdminArea } from '@/lib/access';
 import { cn } from '@/lib/utils';
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
  * Kopf und Fuss bleiben bei langen Listen sichtbar (#28).
  */
 export default function PublicLayout({ children }: { children: ReactNode }) {
-    const { appVersion, auth, links } = usePage().props;
+    const { appVersion, auth } = usePage().props;
     const admin = hasAdminArea(auth);
     const { view } = useViewWidth();
 
@@ -25,7 +25,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 <div
                     className={cn(
                         'mx-auto flex flex-wrap items-center justify-between gap-4 px-4 py-3',
-                        widthClass(view, 'max-w-5xl'),
+                        widthClass(view, 'max-w-6xl'),
                     )}
                 >
                     <Link
@@ -76,7 +76,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     <p
                         className={cn(
                             'mx-auto px-4 py-2 text-sm',
-                            widthClass(view, 'max-w-5xl'),
+                            widthClass(view, 'max-w-6xl'),
                         )}
                     >
                         In Entwicklung – Inhalte und Funktionen entstehen
@@ -88,82 +88,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <main
                 className={cn(
                     'mx-auto w-full flex-1 px-4 py-8',
-                    widthClass(view, 'max-w-5xl'),
+                    widthClass(view, 'max-w-6xl'),
                 )}
             >
                 {children}
             </main>
 
-            <footer className="sticky bottom-0 z-20 border-t border-border bg-background text-sm text-muted-foreground">
-                <div
-                    className={cn(
-                        'mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-4',
-                        widthClass(view, 'max-w-5xl'),
-                    )}
-                >
-                    <span>
-                        Version{' '}
-                        <Link
-                            href="/versionen"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            {versionLabel(appVersion)}
-                        </Link>
-                        {' · '}
-                        <a
-                            href="/api/docs"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            API
-                        </a>
-                        {' · '}
-                        <Link
-                            href={admin ? '/admin' : '/anmelden'}
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Administration
-                        </Link>
-                        {' · '}
-                        <Link
-                            href="/datenschutz"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Datenschutz
-                        </Link>
-                        {' · '}
-                        <Link
-                            href="/legals"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Rechtliches
-                        </Link>
-                        {' · '}
-                        <a
-                            href="https://creativecommons.org/licenses/by/4.0/deed.de"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Daten CC BY 4.0
-                        </a>
-                        {links.pages ? (
-                            <>
-                                {' · '}
-                                <a
-                                    href={links.pages}
-                                    className="text-link underline-offset-4 hover:underline"
-                                >
-                                    Lesefassung auf GitHub Pages
-                                </a>
-                            </>
-                        ) : null}
-                    </span>
-                    <a
-                        href="https://markussx.ch/eduksx"
-                        className="underline-offset-4 hover:underline"
-                    >
-                        Developed by <BrandWordmark brand="developer" />
-                    </a>
-                </div>
-            </footer>
+            <SiteFooter narrow="max-w-6xl" />
         </div>
     );
 }

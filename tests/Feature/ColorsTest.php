@@ -27,6 +27,6 @@ class ColorsTest extends TestCase
         $glossary->publish($glossary->save(null, ['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'categories' => ['per']], null, true), null);
 
         $this->get('/')->assertInertia(fn (Assert $p) => $p->where('farben.kategorien.Personal', 'teal'));
-        $this->get('/admin/listen')->assertInertia(fn (Assert $p) => $p->where('listen.kategorien.0.color', 'teal')->has('farbwahl', 11));
+        $this->get('/admin/listen')->assertInertia(fn (Assert $p) => $p->where('listen.kategorien.0.color', 'teal')->has('farbwahl', 14));
     }
 }

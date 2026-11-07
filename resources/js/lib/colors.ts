@@ -83,6 +83,29 @@ export const palette = {
         icon: 'text-indigo-600 dark:text-indigo-400',
         panel: 'bg-indigo-100 text-indigo-800 hover:bg-indigo-200/70 dark:bg-indigo-950 dark:text-indigo-200 dark:hover:bg-indigo-900',
     },
+    // CI-Farben MarKusSXCH (#107): Violett und Blau als zarte Fläche, Orange als Fläche mit dunkler Schrift
+    // (Orange als Schrift nur 2.36 : 1). Kontrast hell/dunkel in tests/Unit/ContrastTest.php.
+    'ci-violet': {
+        badge: 'border-brand-violet/40 bg-brand-violet/10 text-brand-violet dark:bg-brand-violet/15',
+        dot: 'bg-brand-violet',
+        bar: 'border-l-brand-violet',
+        icon: 'text-brand-violet',
+        panel: 'bg-brand-violet/10 text-brand-violet hover:bg-brand-violet/15',
+    },
+    'ci-orange': {
+        badge: 'border-primary bg-primary text-primary-foreground',
+        dot: 'bg-brand-orange',
+        bar: 'border-l-brand-orange',
+        icon: 'text-warning',
+        panel: 'bg-primary text-primary-foreground hover:bg-primary/90',
+    },
+    'ci-blue': {
+        badge: 'border-brand-blue/40 bg-brand-blue/10 text-link dark:bg-brand-blue/15',
+        dot: 'bg-brand-blue',
+        bar: 'border-l-brand-blue',
+        icon: 'text-link',
+        panel: 'bg-brand-blue/10 text-link hover:bg-brand-blue/15',
+    },
 } as const;
 
 export type ColorName = keyof typeof palette;
