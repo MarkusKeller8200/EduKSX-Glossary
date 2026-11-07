@@ -1,8 +1,10 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useState, type FormEvent } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { NativeSelect } from '@/components/ui/native-select';
 import { can } from '@/lib/access';
 import { RevisionBadges, StateBadge, StatusBadge } from '@/components/tags';
 import { stateClasses } from '@/lib/colors';
@@ -19,6 +21,16 @@ type Begriff = Record<string, unknown> & {
     lifecycle_status: string;
     zusammengefuehrt_in: { id: string; titel: string } | null;
     altwerte: number;
+    herkunft_pruefung: Pruefung[];
+};
+
+type Pruefung = {
+    source_id: string;
+    label: string;
+    name: string;
+    retrieved_at: string;
+    evidence: string;
+    note: string;
 };
 
 type Eintrag = {
@@ -89,6 +101,7 @@ export default function TermShow({
     verlauf,
     labels,
     listen,
+    belegstatus,
 }: {
     begriff: Begriff;
     verlauf: Eintrag[];
@@ -98,6 +111,7 @@ export default function TermShow({
         herkunft: Option[];
         status: Record<string, string>;
     };
+    belegstatus: Record<string, string>;
 }) {
     const [sending, setSending] = useState(false);
     const { auth } = usePage().props;
@@ -278,6 +292,14 @@ export default function TermShow({
                 })}
             </dl>
 
+            {b.herkunft_pruefung.length > 0 && darfBearbeiten ? (
+                <HerkunftPruefen
+                    id={b.id}
+                    zeilen={b.herkunft_pruefung}
+                    belegstatus={belegstatus}
+                />
+            ) : null}
+
             <h2 className="mt-10 text-lg font-semibold">Verlauf</h2>
             <ol className="mt-3 space-y-3 text-sm">
                 {verlauf.map((e) => (
@@ -348,5 +370,89 @@ export default function TermShow({
                 ))}
             </ol>
         </>
+    );
+}
+
+/** Quellenprüfung (#69): Prüfdatum, Belegstatus, Hinweis je Herkunft – ohne Revision, nicht öffentlich. */
+function HerkunftPruefen({
+    id,
+    zeilen,
+    belegstatus,
+}: {
+    id: string;
+    zeilen: Pruefung[];
+    belegstatus: Record<string, string>;
+}) {
+    const form = useForm({ herkunft: zeilen });
+    const setze = (i: number, key: keyof Pruefung, value: string) =>
+        form.setData(
+            'herkunft',
+            form.data.herkunft.map((z, n) =>
+                n === i ? { ...z, [key]: value } : z,
+            ),
+        );
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.put(`/admin/begriffe/${id}/herkunft`, { preserveScroll: true });
+    };
+
+    return (
+        <section id="herkunft" className="mt-10">
+            <h2 className="text-lg font-semibold">Herkunft prüfen</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+                Prüfdatum und Belegstatus je Herkunft (redaktionell, ohne neue
+                Revision). «Offiziell» nur mit amtlichem Beleg; nach einem Jahr
+                erscheint der Begriff unter «Prüfung».
+            </p>
+            <form onSubmit={submit} className="mt-3 grid gap-3">
+                {form.data.herkunft.map((z, i) => (
+                    <div
+                        key={z.source_id}
+                        className="grid gap-2 rounded-md border border-border p-3 text-sm sm:grid-cols-[12rem_10rem_12rem_1fr]"
+                    >
+                        <span className="self-center font-medium">
+                            {z.label}
+                            <span className="block text-xs font-normal text-muted-foreground">
+                                {z.name}
+                            </span>
+                        </span>
+                        <Input
+                            type="date"
+                            aria-label={`${z.label}: geprüft am`}
+                            value={z.retrieved_at}
+                            onChange={(e) =>
+                                setze(i, 'retrieved_at', e.target.value)
+                            }
+                        />
+                        <NativeSelect
+                            aria-label={`${z.label}: Belegstatus`}
+                            value={z.evidence}
+                            onChange={(e) =>
+                                setze(i, 'evidence', e.target.value)
+                            }
+                        >
+                            <option value="">Belegstatus …</option>
+                            {Object.entries(belegstatus).map(([k, v]) => (
+                                <option key={k} value={k}>
+                                    {v}
+                                </option>
+                            ))}
+                        </NativeSelect>
+                        <Input
+                            aria-label={`${z.label}: Hinweis`}
+                            placeholder="Hinweis (z. B. Fundstelle)"
+                            value={z.note}
+                            maxLength={255}
+                            onChange={(e) => setze(i, 'note', e.target.value)}
+                        />
+                    </div>
+                ))}
+                <div>
+                    <Button type="submit" size="sm" disabled={form.processing}>
+                        Prüfung speichern
+                    </Button>
+                </div>
+            </form>
+        </section>
     );
 }

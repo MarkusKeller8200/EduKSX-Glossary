@@ -6,6 +6,18 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu (0.7.0)
+
+- **CSV-Export (#71):** Begriffe zusätzlich als CSV (UTF-8, Semikolon); Formeln werden als Text geschützt.
+- **Öffentlicher Verlauf (#68):** Die Detailseite zeigt die veröffentlichten Revisionen mit Datum, ohne Personen.
+- **Quellenprüfung (#69):** Prüfdatum und Belegstatus je Herkunft; Seite «Prüfung» mit jährlicher Wiedervorlage.
+- **Import-Protokoll (#64):** Jeder übernommene Import mit Datei, Person, Zeitpunkt und Ergebnis.
+
+### Geändert (0.7.0)
+
+- **Microsoft-Anmeldung (#61):** einmaliger nonce je Anmeldung, im id_token geprüft.
+- **Log-Rotation (#60):** Docker rotiert die Logs je Dienst; Frist 14 Tage über den Host (DEPLOY.md).
+
 ### Neu
 
 - **Softwarelizenz (#65, DEC-021):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf

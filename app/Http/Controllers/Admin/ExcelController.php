@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Glossary\ExcelFormat;
 use App\Glossary\GlossaryImporter;
+use App\Glossary\Journal;
 use App\Http\Controllers\Controller;
+use App\Models\ImportBatch;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\Csv;
@@ -61,7 +63,23 @@ class ExcelController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('admin/import', ['spalten' => ExcelFormat::header()]);
+        return Inertia::render('admin/import', [
+            'spalten' => ExcelFormat::header(),
+            // Import-Protokoll (#64): die letzten 20
+            'protokoll' => ImportBatch::query()->latest('id')->limit(20)->get()->map(fn (ImportBatch $b): array => [
+                'id' => $b->id,
+                'am' => $b->created_at->toIso8601String(),
+                'von' => $b->user_label,
+                'datei' => $b->file_name,
+                'format' => $b->format_version,
+                'zeilen' => $b->rows,
+                'neu' => $b->created_count,
+                'geaendert' => $b->updated_count,
+                'fehler' => $b->error_count,
+                'altwerte' => $b->legacy_count,
+                'meldungen' => $b->errors ?? [],
+            ])->all(),
+        ]);
     }
 
     /** Datei hochladen → Vorschau; gespeichert wird nichts. */
@@ -93,6 +111,8 @@ class ExcelController extends Controller
             'user' => $this->user($request)?->id,
             'rows' => $table['rows'],
             'listen_anlegen' => $createLists,
+            'datei' => mb_substr($file->getClientOriginalName(), 0, 255),
+            'format' => ExcelFormat::versionOf($table['header']),
         ], now()->addMinutes(30));
 
         return Inertia::render('admin/import-preview', [
@@ -113,7 +133,27 @@ class ExcelController extends Controller
 
         /** @var list<array<string, string>> $rows */
         $rows = $cached['rows'];
-        $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $this->user($request), $this->official(), dryRun: false);
+        $user = $this->user($request);
+        $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $user, $this->official(), dryRun: false);
+
+        $errors = [];
+        foreach ($result['plan'] as $p) {
+            if ($p['art'] === 'fehler' && count($errors) < 100) {
+                $errors[] = ['zeile' => $p['zeile'], 'meldung' => mb_substr(implode(' ', $p['meldungen']), 0, 300)];
+            }
+        }
+        ImportBatch::query()->create([
+            'user_id' => $user?->id,
+            'user_label' => Journal::actorLabel($user),
+            'file_name' => (string) ($cached['datei'] ?? 'Datei'),
+            'format_version' => (int) ($cached['format'] ?? ExcelFormat::VERSION),
+            'rows' => count($rows),
+            'created_count' => $result['neu'],
+            'updated_count' => $result['geaendert'],
+            'error_count' => $result['fehler'],
+            'legacy_count' => $result['altwerte'],
+            'errors' => $errors === [] ? null : $errors,
+        ]);
 
         return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe."
             .($result['altwerte'] > 0 ? " {$result['altwerte']} Altwerte gesichert (Seite «Altwerte»)." : ''));

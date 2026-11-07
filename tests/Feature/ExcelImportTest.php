@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Glossary\ExcelFormat;
 use App\Glossary\GlossaryService;
 use App\Models\Category;
+use App\Models\ImportBatch;
 use App\Models\Source;
 use App\Models\Term;
 use App\Support\SpreadsheetWriter;
@@ -135,6 +136,18 @@ class ExcelImportTest extends TestCase
         // Format Version 2 (DEC-020): ohne eigene Spalten und «Intern genutzt in», mit «Alternative Schreibweisen»
         $this->assertCount(16, ExcelFormat::header());
         $this->assertContains('Alternative Schreibweisen', ExcelFormat::header());
+    }
+
+    public function test_import_protokoll(): void
+    {
+        $token = $this->token($this->preview([$this->row(), $this->row(['ID' => '', 'Abkürzung offiziell' => '', 'Bezeichnung offiziell' => ''])]));
+        $this->post("/admin/import/{$token}")->assertRedirect('/admin/begriffe');
+
+        $batch = ImportBatch::query()->sole();
+        $this->assertSame('glossar-2026-11-07.xlsx', $batch->file_name);
+        $this->assertSame([1, 1, 2], [$batch->created_count, $batch->error_count, $batch->rows]);
+        $this->assertSame(3, $batch->errors[0]['zeile'] ?? null);
+        $this->get('/admin/import')->assertInertia(fn (Assert $p) => $p->where('protokoll.0.datei', 'glossar-2026-11-07.xlsx'));
     }
 
     public function test_csv_export_schuetzt_formeln(): void
