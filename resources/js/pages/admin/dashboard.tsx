@@ -54,8 +54,8 @@ export default function Dashboard({
                         <CardTitle>Listen und Datenstand</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {stats.categories} Kategorien, {stats.sources}{' '}
-                        Herkünfte · Datenstand {stats.release ?? '–'}
+                        {stats.categories} Kategorien, {stats.sources} Herkünfte
+                        · Datenstand {stats.release ?? '–'}
                     </CardContent>
                 </Card>
             </div>
