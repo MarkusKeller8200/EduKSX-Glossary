@@ -13,9 +13,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Jede Veröffentlichung erzeugt einen neuen Datenstand mit Prüfsumme (für den Sync). Offizielle Felder nur mit
   Recht änderbar, mehrdeutige Abkürzungen erlaubt, IDs aus dem Intranet bleiben erhalten. Administration zeigt
   Anzahl Begriffe, Listen und Datenstand.
-- **Startdatei `start.bat` (#20):** lokaler Start unter Windows per Doppelklick – richtet beim ersten Start alles
-  ein und fragt nach dem Admin, sonst Pakete und Datenbank nachführen; `start.bat --pull` holt zuerst den neuesten
-  Stand.
+- **Startdatei `start.bat` (#20):** lokaler Start unter Windows per Doppelklick – holt zuerst den neuesten Stand
+  des Branches (`start.bat BRANCH` checkt einen anderen Branch aus, `--ohne-pull` startet ohne GitHub), bricht bei
+  lokalen Änderungen ab, richtet beim ersten Start alles ein und fragt nach dem Admin, sonst Pakete und Datenbank
+  nachführen.
 
 ### Behoben
 
