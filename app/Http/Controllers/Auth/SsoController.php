@@ -66,7 +66,7 @@ class SsoController extends Controller
         $identity = UserIdentity::query()->where('provider', 'microsoft')
             ->where('issuer', $claims['issuer'])->where('subject', $claims['subject'])->first();
 
-        if ($linking && $user instanceof User) {
+        if ($linking) {
             return $this->link($user, $identity, $claims);
         }
 
