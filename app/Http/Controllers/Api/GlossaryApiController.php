@@ -172,10 +172,12 @@ class GlossaryApiController extends Controller
         if ($format !== 'json') {
             throw new BadRequestHttpException('Nur format=json wird unterstützt.');
         }
+        // Cursor vor den Begriffen lesen: Ereignisse danach holt der Abnehmer über den Change-Feed (wiederholbar).
         $release = $this->presenter->release();
 
         return $this->cached($request, [
             'release' => $release['release'],
+            'cursor' => $release['cursor'],
             'checksum' => $release['checksum'],
             'published_at' => $release['published_at'],
             'categories' => $this->presenter->categoryList(),

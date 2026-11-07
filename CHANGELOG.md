@@ -6,6 +6,13 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Sync für Abnehmer (#29):** Vollstand und Datenstand der API enthalten den `cursor` für den Change-Feed. Neuer
+  Befehl `php artisan glossary:sync-check URL` synchronisiert wie ein Abnehmer (z. B. das Intranet) und vergleicht
+  mit dem Vollstand. Ein automatischer Test spielt Veröffentlichen, Ändern, Zurückziehen, Wiederaufnahme und
+  Zusammenführen durch. Anleitung für das Intranet in `docs/SYNC-INTRANET.md`.
+
 ## [0.2.0] – 2026-11-07
 
 ### Neu
