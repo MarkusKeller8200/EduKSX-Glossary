@@ -180,3 +180,4 @@ ohne v2 und ohne Übergangsfrist; der CHANGELOG nennt die Änderung.
 - **Ergänzt (#87):** `search_terms` (Suchbegriffe, nur für die Suche). Kategorien und Herkunft liefern neben
   `key`, `label`, `name`, `url` auch `abbreviation`, `description` und `color` (Name aus der Palette wie im
   Intranet); die redaktionelle Notiz bleibt intern.
+- **`updated_at` (#62):** Zeitpunkt der veröffentlichten Revision, wie im Synchronisationsvertrag verlangt.

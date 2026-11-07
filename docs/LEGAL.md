@@ -82,3 +82,11 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 - [ ] Fachliche bzw. erforderlichenfalls juristische Freigabe protokolliert.
 
 **Pflege:** Eigene Codeübernahmen aus `sek-intranet` und `my-github-blueprint` erfordern keine erneute Eigenlizenzprüfung. Bei darin enthaltenen fremden Bestandteilen, neuen Abhängigkeiten, Copy/Paste aus fremden Repositories, Assets oder einer neuen Release-Version ist dieses Register vor Veröffentlichung zu aktualisieren. Lizenzscanner unterstützen die Prüfung, ersetzen sie aber nicht.
+
+## Lizenzbericht der Pakete (#73)
+
+`scripts/license-report.mjs` listet alle Composer- und npm-Pakete der Laufzeit (direkt und transitiv) mit Lizenz.
+Die CI erzeugt den Bericht bei jeder Prüfung und warnt bei starkem Copyleft, nicht-kommerziellen oder fehlenden
+Lizenzangaben. Jedes Release erhält ihn als Anhang `license-report.md` (Workflow `license-report`). Offen: den
+Lizenztext der SIL OFL 1.1 für die Schrift Inter als Datei beilegen.
+

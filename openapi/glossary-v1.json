@@ -280,6 +280,7 @@
                     "valid_until": null,
                     "revision": 3,
                     "published_at": "2026-11-07T00:00:00Z",
+                    "updated_at": "2026-11-06T14:30:00Z",
                     "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson"
                   }
                 }
@@ -731,7 +732,8 @@
           "categories",
           "sources",
           "status",
-          "revision"
+          "revision",
+          "updated_at"
         ],
         "properties": {
           "id": {
@@ -883,6 +885,11 @@
             ],
             "format": "date-time"
           },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Zeitpunkt der veröffentlichten Revision (Stand der Inhalte, Sync-Vertrag)"
+          },
           "web_url": {
             "type": "string",
             "format": "uri"
@@ -941,6 +948,7 @@
           "valid_until": null,
           "revision": 3,
           "published_at": "2026-11-07T00:00:00Z",
+          "updated_at": "2026-11-06T14:30:00Z",
           "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson"
         }
       },

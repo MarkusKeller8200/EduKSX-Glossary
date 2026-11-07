@@ -6,11 +6,12 @@
  */
 export const palette = {
     brand: {
-        badge: 'border-brand/30 bg-info-soft text-primary',
+        // Glossary: --brand ist Orange (Schrift nur 2.36 : 1) – darum Blau aus --info (4.68 : 1 / 5.87 : 1)
+        badge: 'border-info/30 bg-info-soft text-info',
         dot: 'bg-brand',
         bar: 'border-l-brand',
         icon: 'text-brand',
-        panel: 'bg-info-soft text-primary hover:bg-info-soft/70',
+        panel: 'bg-info-soft text-info hover:bg-info-soft/70',
     },
     slate: {
         badge: 'border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',

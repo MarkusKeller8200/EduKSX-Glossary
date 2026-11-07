@@ -27,7 +27,7 @@ final class ApiPresenter
         'id', 'slug', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
         'alternative_aliases', 'aliases', 'search_terms', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
         'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
-        'valid_until', 'revision', 'published_at', 'web_url',
+        'valid_until', 'revision', 'published_at', 'updated_at', 'web_url',
     ];
 
     /**
@@ -162,6 +162,8 @@ final class ApiPresenter
             'valid_until' => $str('valid_until'),
             'revision' => $revision->revision,
             'published_at' => $revision->published_at?->toIso8601ZuluString(),
+            // Sync-Vertrag (#62): Zeitpunkt der veröffentlichten Revision (Stand der Inhalte)
+            'updated_at' => $revision->created_at->toIso8601ZuluString(),
             'web_url' => url('/begriffe/'.$s['slug']),
         ];
 
