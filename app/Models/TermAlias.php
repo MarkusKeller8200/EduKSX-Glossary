@@ -6,7 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Schreibweise eines Begriffs: offizielle Aliase, eigener Alias oder Suchbegriff. Nicht eindeutig – mehrdeutige
+ * Schreibweise eines Begriffs: offizielle Aliase, gemeinsam freigegebene alternative Schreibweise
+ * oder Suchbegriff (DEC-020; persönliche Aliase stehen in TermUserOverride). Nicht eindeutig – mehrdeutige
  * Abkürzungen sind erlaubt.
  *
  * @property int $id
@@ -17,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class TermAlias extends Model
 {
-    public const TYPES = ['official', 'own', 'search'];
+    public const TYPES = ['official', 'alternative', 'search'];
 
     public $timestamps = false;
 
