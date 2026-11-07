@@ -234,11 +234,17 @@
                     "name": "Klassenlehrperson",
                     "official_abbreviation": "KLP",
                     "official_name": "Klassenlehrperson",
-                    "own_abbreviation": null,
-                    "own_name": null,
+                    "official_aliases": [],
+                    "alternative_aliases": [
+                      "KL"
+                    ],
                     "aliases": [
                       "KL"
                     ],
+                    "display_label": "KLP",
+                    "is_full_term": false,
+                    "is_ambiguous": false,
+                    "meaning_count": 1,
                     "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
                     "description": null,
                     "url": "https://example.org/quelle",
