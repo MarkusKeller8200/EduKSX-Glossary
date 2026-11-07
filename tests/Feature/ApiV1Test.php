@@ -29,6 +29,21 @@ class ApiV1Test extends TestCase
         return $publish ? $this->glossary->publish($term, null) : $term;
     }
 
+    public function test_suchbegriffe_und_angaben_der_listen(): void
+    {
+        Category::query()->where('key', 'per')->update(['description' => 'Personen und Funktionen', 'color' => 'blue', 'note' => 'INTERN-NOTIZ']);
+        $this->term(['official_abbreviation' => 'KLP', 'official_name' => 'Klassenlehrperson', 'search_terms' => 'Klassenlehrer; Klassenlehrerin', 'categories' => ['per']]);
+
+        $this->getJson('/api/v1/terms')
+            ->assertJsonPath('data.0.search_terms', ['Klassenlehrer', 'Klassenlehrerin'])
+            ->assertJsonPath('data.0.categories.0.abbreviation', 'PER')
+            ->assertJsonPath('data.0.categories.0.description', 'Personen und Funktionen')
+            ->assertJsonPath('data.0.categories.0.color', 'blue');
+        $list = $this->getJson('/api/v1/categories')->assertJsonPath('data.0.color', 'blue');
+        $this->assertStringNotContainsString('INTERN-NOTIZ', (string) $list->getContent());
+        $this->assertStringNotContainsString('INTERN-NOTIZ', (string) $this->getJson('/api/v1/exports?format=json')->getContent());
+    }
+
     public function test_begriffe_nur_veroeffentlicht(): void
     {
         $this->term(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'categories' => ['per'], 'sources' => ['vsa']]);

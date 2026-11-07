@@ -17,6 +17,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **API v1 (Vorschau):** `own_abbreviation` und `own_name` entfallen; `abbreviation`/`name` sind die gemeinsamen
   Werte. Neu `official_aliases`, `alternative_aliases`, `display_label`, `is_full_term`, in Liste, Einzelbegriff und
   Vollstand zusätzlich `is_ambiguous` und `meaning_count`.
+- **API v1 ergänzt (#87):** Suchbegriffe (`search_terms`) im Begriff; Kategorien und Herkunft mit Kürzel,
+  Beschreibung und Farbe.
 - **Excel-Format Version 2:** Spalte «Alternative Schreibweisen» statt der eigenen Spalten. Dateien im alten
   Intranet-Format werden erkannt; die alten Spalten werden gemeldet und als Altwerte gesichert.
 

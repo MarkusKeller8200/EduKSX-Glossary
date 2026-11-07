@@ -14,6 +14,9 @@ use App\Models\TermRevision;
  * Feldnamen, stabile IDs; nur veröffentlichte Revisionen, ohne redaktionelle Notiz, ohne persönliche Darstellung,
  * Altwerte, Journal oder Akteure (DEC-018, DEC-020). «abbreviation» und «name» sind die gemeinsamen Werte.
  */
+/**
+ * @phpstan-type ListItem array{key: string, abbreviation: string|null, label: string, name: string, description: string|null, url: string|null, color: string|null}
+ */
 final class ApiPresenter
 {
     /**
@@ -22,7 +25,7 @@ final class ApiPresenter
      */
     public const PUBLIC_TERM_FIELDS = [
         'id', 'slug', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
-        'alternative_aliases', 'aliases', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
+        'alternative_aliases', 'aliases', 'search_terms', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
         'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
         'valid_until', 'revision', 'published_at', 'web_url',
     ];
@@ -33,10 +36,10 @@ final class ApiPresenter
      */
     public const CONTEXT_FIELDS = ['is_ambiguous', 'meaning_count'];
 
-    /** @var array<string, array{key: string, label: string, name: string, url: string|null}>|null */
+    /** @var array<string, ListItem>|null */
     private ?array $categories = null;
 
-    /** @var array<string, array{key: string, label: string, name: string, url: string|null}>|null */
+    /** @var array<string, ListItem>|null */
     private ?array $sources = null;
 
     /**
@@ -144,6 +147,8 @@ final class ApiPresenter
             'official_aliases' => $official,
             'alternative_aliases' => $alternative,
             'aliases' => array_values(array_unique([...$official, ...$alternative])),
+            // Suchbegriffe (öffentlich, nur für die Suche; z. B. «Suchbegriffe» im Intranet)
+            'search_terms' => array_values(array_map('strval', array_filter((array) ($s['search_aliases'] ?? [])))),
             'display_label' => GlossaryDisplay::displayLabel($s),
             'is_full_term' => GlossaryDisplay::isFullTerm($s),
             'short_description' => $str('short_description'),
@@ -197,39 +202,42 @@ final class ApiPresenter
         return $license;
     }
 
-    /** @return list<array{key: string, label: string, name: string, url: string|null}> */
+    /** @return list<ListItem> */
     public function categoryList(): array
     {
         return array_values($this->categories());
     }
 
-    /** @return list<array{key: string, label: string, name: string, url: string|null}> */
+    /** @return list<ListItem> */
     public function sourceList(): array
     {
         return array_values($this->sources());
     }
 
     /**
-     * @param  array<string, array{key: string, label: string, name: string, url: string|null}>  $map
-     * @return list<array{key: string, label: string, name: string, url: string|null}>
+     * @param  array<string, ListItem>  $map
+     * @return list<ListItem>
      */
     private function refs(array $map, mixed $keys): array
     {
         $out = [];
         foreach ((array) $keys as $key) {
-            $out[] = $map[(string) $key] ?? ['key' => (string) $key, 'label' => (string) $key, 'name' => (string) $key, 'url' => null];
+            $out[] = $map[(string) $key] ?? [
+                'key' => (string) $key, 'abbreviation' => null, 'label' => (string) $key, 'name' => (string) $key,
+                'description' => null, 'url' => null, 'color' => null,
+            ];
         }
 
         return $out;
     }
 
-    /** @return array<string, array{key: string, label: string, name: string, url: string|null}> */
+    /** @return array<string, ListItem> */
     private function categories(): array
     {
         return $this->categories ??= $this->list(Category::class);
     }
 
-    /** @return array<string, array{key: string, label: string, name: string, url: string|null}> */
+    /** @return array<string, ListItem> */
     private function sources(): array
     {
         return $this->sources ??= $this->list(Source::class);
@@ -237,13 +245,17 @@ final class ApiPresenter
 
     /**
      * @param  class-string<Category|Source>  $model
-     * @return array<string, array{key: string, label: string, name: string, url: string|null}>
+     * @return array<string, ListItem>
      */
     private function list(string $model): array
     {
         $out = [];
         foreach ($model::query()->orderBy('sort_order')->orderBy('name')->get() as $item) {
-            $out[$item->key] = ['key' => $item->key, 'label' => $item->displayLabel(), 'name' => $item->name, 'url' => $item->url];
+            // ohne redaktionelle Notiz; Farbe = Name aus der Palette wie im Intranet (colors.ts)
+            $out[$item->key] = [
+                'key' => $item->key, 'abbreviation' => $item->abbreviation, 'label' => $item->displayLabel(),
+                'name' => $item->name, 'description' => $item->description, 'url' => $item->url, 'color' => $item->color,
+            ];
         }
 
         return $out;
