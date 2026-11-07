@@ -25,3 +25,7 @@
 Aktuelle Unterstützung von MCP in Rovo/Atlassian (Transport, Connector-Registrierung, Anmeldung, Weitergabe der
 Identität, Rechte), vor der Umsetzung mit aktueller Herstellerdoku prüfen; Kompatibilität erst nach Integrationstest
 zusichern.
+
+## Geschützte Serviceidentitäten (DEC-017/018)
+
+Der spätere MCP-Adapter erhält eine eigenständige technische Identität mit minimalen Scopes. Ein weitergereichter Benutzerkontext darf nur nach gesicherter, nachvollziehbarer Prüfung übernommen werden. Schreibwerkzeuge erzeugen Vorschläge über die regulären Glossary-Services und durchlaufen die Moderation; Veröffentlichung durch KI erfordert einen erneuten ausdrücklichen Projektentscheid. Private Benutzer- und Moderationsdaten werden nicht als allgemeine Suchergebnisse an Rovo ausgegeben.
