@@ -28,7 +28,7 @@ final class Permission
         'publish' => ['label' => 'Veröffentlichen und zurückziehen', 'class' => self::PRIVILEGED],
         'edit-official' => ['label' => 'Offizielle Felder ändern', 'class' => self::PRIVILEGED],
         'manage-users' => ['label' => 'Benutzer und Rollen verwalten', 'class' => self::PRIVILEGED],
-        'import' => ['label' => 'Excel-Import und -Export', 'class' => self::PRIVILEGED],
+        'import' => ['label' => 'Excel-Import', 'class' => self::PRIVILEGED],
         'lists' => ['label' => 'Listen (Kategorien, Herkunft) pflegen', 'class' => self::PRIVILEGED],
         'service-tokens' => ['label' => 'Servicekonten und Token verwalten', 'class' => self::PRIVILEGED],
         'system' => ['label' => 'System und Sicherheit', 'class' => self::SYSTEM],

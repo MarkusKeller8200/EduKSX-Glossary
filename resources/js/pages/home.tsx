@@ -29,7 +29,7 @@ function initial(b: Begriff): string {
 
 /** Startseite: veröffentlichte Begriffe mit Suche, Index A–Z und Kategorien (#24, PUB-01/02). */
 export default function Home({ begriffe }: { begriffe: Begriff[] }) {
-    const { links } = usePage().props;
+    const { links, auth } = usePage().props;
     const [suche, setSuche] = useState('');
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
     const [kategorie, setKategorie] = useState<string | null>(null);
@@ -175,6 +175,25 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             {begriffe.length === 0 ? (
                 <p className="mt-6 text-muted-foreground">
                     Noch keine Begriffe veröffentlicht.
+                </p>
+            ) : null}
+
+            {auth.can.export ? (
+                <p className="mt-8 text-sm">
+                    Veröffentlichte Begriffe herunterladen (CC BY 4.0):{' '}
+                    <a
+                        href="/export"
+                        className="text-link underline underline-offset-4"
+                    >
+                        Excel
+                    </a>
+                    {' · '}
+                    <a
+                        href="/export?format=csv"
+                        className="text-link underline underline-offset-4"
+                    >
+                        CSV
+                    </a>
                 </p>
             ) : null}
 

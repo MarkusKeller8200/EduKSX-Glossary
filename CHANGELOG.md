@@ -13,6 +13,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   bisherige Konten ohne Rolle sind Benutzer.
 - **Persönliche Darstellung (#114):** nur noch mit dem Recht «Persönliche Darstellung» (ab Benutzer); Gäste sehen die
   gemeinsame Form, gespeicherte Anpassungen bleiben erhalten.
+- **Export für Benutzer (#111):** Excel und CSV der veröffentlichten Begriffe unter «Mein Konto» und auf der
+  Startseite (Recht «Exportieren», ohne Entwürfe und Notizen). Die Redaktion exportiert den Arbeitsstand weiterhin in
+  der Administration; der Import ist ein eigenes Recht.
 - **Hierarchie der Rollen (#115):** «Rollen und Rechte» zeigt die Stufen Gast bis Developer mit den Rechten, die jede
   Stufe dazubekommt, farbig nach Schutzklasse.
 

@@ -57,6 +57,16 @@ final class ExcelFormat
     /** Offizielle Spalten (Recht «edit-official»). */
     public const OFFICIAL = ['Abkürzung offiziell', 'Aliase offiziell', 'Bezeichnung offiziell'];
 
+    /**
+     * Spalten des Exports veröffentlichter Daten (#111): Positivliste ohne redaktionelle Notiz, nur Felder aus
+     * ApiPresenter::PUBLIC_TERM_FIELDS.
+     */
+    public const PUBLIC_COLUMNS = [
+        'ID', 'Kategorien', 'Abkürzung offiziell', 'Aliase offiziell', 'Alternative Schreibweisen', 'Bezeichnung offiziell',
+        'Kurzbeschreibung', 'Beschreibung', 'URL', 'Herkunft', 'Status', 'Suchbegriffe', 'Gültig ab', 'Gültig bis',
+        'Aktiv', 'Revision', 'Veröffentlicht',
+    ];
+
     /** @return list<string> */
     public static function header(): array
     {
@@ -93,6 +103,42 @@ final class ExcelFormat
             'Gültig ab' => (string) $term->valid_from?->toDateString(),
             'Gültig bis' => (string) $term->valid_until?->toDateString(),
             'Aktiv' => $term->is_active ? 'ja' : 'nein',
+        ];
+    }
+
+    /**
+     * Veröffentlichter Begriff (aus ApiPresenter::terms) als Zeile in der Reihenfolge von PUBLIC_COLUMNS (#111).
+     *
+     * @param  array<string, mixed>  $term
+     * @return list<string>
+     */
+    public static function publicRow(array $term): array
+    {
+        $join = fn (mixed $items): string => implode('; ', array_map('strval', (array) $items));
+        $labels = fn (mixed $refs): string => implode('; ', array_map(
+            fn (mixed $r): string => is_array($r) ? (string) ($r['label'] ?? $r['key'] ?? '') : (string) $r,
+            (array) $refs,
+        ));
+        $status = (string) ($term['status'] ?? '');
+
+        return [
+            (string) ($term['id'] ?? ''),
+            $labels($term['categories'] ?? []),
+            (string) ($term['official_abbreviation'] ?? ''),
+            $join($term['official_aliases'] ?? []),
+            $join($term['alternative_aliases'] ?? []),
+            (string) ($term['official_name'] ?? ''),
+            (string) ($term['short_description'] ?? ''),
+            (string) ($term['description'] ?? ''),
+            (string) ($term['url'] ?? ''),
+            $labels($term['sources'] ?? []),
+            Term::STATUS[$status] ?? $status,
+            $join($term['search_terms'] ?? []),
+            (string) ($term['valid_from'] ?? ''),
+            (string) ($term['valid_until'] ?? ''),
+            ($term['is_active'] ?? true) ? 'ja' : 'nein',
+            (string) ($term['revision'] ?? ''),
+            substr((string) ($term['published_at'] ?? ''), 0, 10),
         ];
     }
 
