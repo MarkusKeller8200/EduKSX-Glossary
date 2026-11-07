@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.4.0] – 2026-11-07
+
 ### Neu
 
 - **Rollen und Rechte (#36):** Rollen Moderator, Admin und Developer mit einstellbaren Rechten (Vorschläge
