@@ -17,6 +17,13 @@ if [ -z "${APP_KEY:-}" ]; then
     export APP_KEY
 fi
 
+# Rolle des Containers: «web» (Standard) sichert und migriert; «worker»/«scheduler» nur Konfiguration (#40)
+ROLE="${GLOSSARY_ROLE:-web}"
+if [ "$ROLE" != "web" ]; then
+    php artisan optimize --no-ansi
+    exec "$@"
+fi
+
 # SQLite-Datei anlegen, falls neu; vor dem Umbau eine Sicherung (eine Datei, konsistent über sqlite3 .backup).
 DB="${DB_DATABASE:-storage/app/database/glossary.sqlite}"
 if [ -s "$DB" ]; then

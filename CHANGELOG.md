@@ -35,6 +35,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Sitzungen werden abgemeldet), zweiter Faktor (für Community freiwillig) und Konto löschen. Gespeichert wird von
   der letzten Anmeldung nur das Datum.
 
+- **E-Mail-Versand (#40):** an keinen Anbieter gebunden (Microsoft 365, Google, SMTP von Infomaniak/Hostinger oder
+  Versanddienste), eingestellt nur in der Umgebung des Servers (Anleitung in DEPLOY.md). Neue Seite «System» für
+  Developer mit Stand des Versands und Testmail. Mails laufen im Betrieb über eine Warteschlange mit Wiederholung;
+  dafür kommen die Dienste `worker` und `scheduler` dazu.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.

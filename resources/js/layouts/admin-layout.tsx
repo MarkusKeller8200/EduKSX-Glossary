@@ -14,6 +14,7 @@ const NAV = [
     { href: '/admin/listen', label: 'Listen', recht: 'lists' },
     { href: '/admin/import', label: 'Excel-Import', recht: 'import' },
     { href: '/admin/benutzer', label: 'Benutzer', recht: 'manage-users' },
+    { href: '/admin/system', label: 'System', recht: 'system' },
 ];
 
 /** Rahmen der Administration (nur angemeldet). Seitenleiste aus dem Intranet folgt mit der Redaktion (#14). */

@@ -37,6 +37,9 @@ class UserController extends Controller
         'mfa.reset' => 'Zweiter Faktor zurückgesetzt',
         'mfa.recovery_codes' => 'Neue Wiederherstellungscodes',
         'mfa.recovery_used' => 'Wiederherstellungscode verwendet',
+        'account.password' => 'Passwort geändert',
+        'account.deleted' => 'Konto gelöscht',
+        'system.testmail' => 'Testmail ausgelöst',
     ];
 
     public function __construct(private readonly RoleManager $roles, private readonly AccountManager $accounts) {}

@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -90,6 +91,12 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
         Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');
         Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');
+    });
+
+    // System (#40): nur Developer (Recht «system»)
+    Route::middleware('can:system')->group(function () {
+        Route::get('system', [SystemController::class, 'index'])->name('admin.system');
+        Route::post('system/testmail', [SystemController::class, 'testMail'])->middleware('throttle:5,1')->name('admin.system.testmail');
     });
 
     // Excel (#13, #15): Export, Vorlage, Import mit Vorschau
