@@ -41,10 +41,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             ),
         [begriffe],
     );
-    const vorhanden = useMemo(
-        () => new Set(begriffe.map(initial)),
-        [begriffe],
-    );
+    const vorhanden = useMemo(() => new Set(begriffe.map(initial)), [begriffe]);
 
     const q = suche.trim().toLowerCase();
     const liste = begriffe.filter(
@@ -130,7 +127,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 </div>
             ) : null}
 
-            <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
+            <p
+                className="mt-6 text-sm text-muted-foreground"
+                aria-live="polite"
+            >
                 {liste.length === 1 ? '1 Begriff' : `${liste.length} Begriffe`}
                 {liste.length !== begriffe.length
                     ? ` von ${begriffe.length}`

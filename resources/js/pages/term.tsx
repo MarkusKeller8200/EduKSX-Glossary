@@ -24,6 +24,7 @@ type Begriff = {
 /** Detailseite eines veröffentlichten Begriffs (#24, PUB-03/04/05/07). */
 export default function Term({ begriff: b }: { begriff: Begriff }) {
     const titel = [b.abkuerzung, b.bezeichnung].filter(Boolean).join(' – ');
+    const offiziell = [b.abkuerzung_offiziell, b.bezeichnung_offiziell];
     const offiziellAnders =
         (b.abkuerzung_offiziell && b.abkuerzung_offiziell !== b.abkuerzung) ||
         (b.bezeichnung_offiziell && b.bezeichnung_offiziell !== b.bezeichnung);
@@ -74,9 +75,7 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                                 Offizielle Form
                             </dt>
                             <dd translate="no">
-                                {[b.abkuerzung_offiziell, b.bezeichnung_offiziell]
-                                    .filter(Boolean)
-                                    .join(' – ')}
+                                {offiziell.filter(Boolean).join(' – ')}
                             </dd>
                         </>
                     ) : null}
