@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Access\Audit;
 use App\Models\User;
 use App\Support\Totp;
 use Illuminate\Support\Facades\Hash;
@@ -60,6 +61,7 @@ final class TwoFactor
             if ($normalized !== '' && Hash::check($normalized, $hash)) {
                 unset($codes[$i]);
                 $user->forceFill(['two_factor_recovery_codes' => array_values($codes)])->save();
+                Audit::log($user, $user, 'mfa.recovery_used', ['remaining' => count($codes)]);
 
                 return true;
             }

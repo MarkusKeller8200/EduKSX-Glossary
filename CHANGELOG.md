@@ -15,6 +15,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Developer nur per `php artisan glossary:developer E-MAIL`, das letzte Developer-Konto und die letzte
   Verwaltungsberechtigung bleiben erhalten. Jede Änderung steht im Protokoll.
 
+- **Anmeldung gehärtet (#37):** Privilegierte Rechte gelten nur mit bestätigtem zweitem Faktor, auch wenn die Rolle
+  sie hat. Gesperrte Konten verlieren den Zugang sofort, auch in offenen Sitzungen; Entsperren im Notfall mit
+  `php artisan glossary:admin E-MAIL --entsperren`. Rollenänderungen wirken ohne neue Anmeldung. Einrichten,
+  Zurücksetzen und Wiederherstellungscodes des zweiten Faktors stehen im Protokoll. Konten ohne Verwaltungsrechte
+  landen nach der Anmeldung auf der Startseite. Sitzungs-Cookie im Betrieb nur über HTTPS.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.

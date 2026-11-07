@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\DB;
  * @property list<string>|null $two_factor_recovery_codes Hashes
  * @property CarbonImmutable|null $two_factor_confirmed_at
  * @property int|null $two_factor_last_step
+ * @property string $status active, blocked
+ * @property CarbonImmutable|null $blocked_at
  * @property-read Collection<int, Role> $roles
  */
 class User extends Authenticatable
@@ -30,6 +32,9 @@ class User extends Authenticatable
 
     /** @var list<string> */
     protected $fillable = ['name', 'email', 'password'];
+
+    /** @var array<string, mixed> */
+    protected $attributes = ['status' => 'active'];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
@@ -49,6 +54,7 @@ class User extends Authenticatable
             'two_factor_recovery_codes' => 'encrypted:array',
             'two_factor_confirmed_at' => 'immutable_datetime',
             'two_factor_last_step' => 'integer',
+            'blocked_at' => 'immutable_datetime',
         ];
     }
 
@@ -69,6 +75,12 @@ class User extends Authenticatable
     {
         return array_values(array_map('strval', DB::table('user_roles')->join('roles', 'roles.id', '=', 'user_roles.role_id')
             ->where('user_roles.user_id', $this->id)->orderBy('roles.sort_order')->pluck('roles.key')->all()));
+    }
+
+    /** Nicht gesperrt (#37). */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
     }
 
     public function isDeveloper(): bool

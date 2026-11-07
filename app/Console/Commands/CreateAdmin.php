@@ -2,11 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Access\AccountManager;
 use App\Access\RoleManager;
-use App\Glossary\TwoFactor;
 use App\Models\Role;
 use App\Models\User;
-use App\Models\UserAudit;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
@@ -21,13 +20,26 @@ class CreateAdmin extends Command
         {email? : E-Mail-Adresse des Kontos}
         {--name= : Anzeigename}
         {--password= : Passwort (nur für Skripte; ohne Angabe wird gefragt)}
-        {--reset-2fa : Nur den zweiten Faktor des Kontos zurücksetzen (z. B. Handy verloren)}';
+        {--reset-2fa : Nur den zweiten Faktor des Kontos zurücksetzen (z. B. Handy verloren)}
+        {--entsperren : Nur ein gesperrtes Konto wieder freigeben (Notfall)}';
 
     protected $description = 'Lokalen Admin anlegen bzw. Passwort neu setzen';
 
-    public function handle(TwoFactor $twoFactor, RoleManager $roles): int
+    public function handle(AccountManager $accounts, RoleManager $roles): int
     {
         $email = (string) ($this->argument('email') ?? $this->ask('E-Mail'));
+        if ($this->option('entsperren')) {
+            $user = User::query()->where('email', strtolower($email))->first();
+            if ($user === null) {
+                $this->error("Kein Konto mit {$email}.");
+
+                return self::FAILURE;
+            }
+            $accounts->unblock(null, $user);
+            $this->info("Konto {$user->email} ist wieder aktiv.");
+
+            return self::SUCCESS;
+        }
         if ($this->option('reset-2fa')) {
             $user = User::query()->where('email', strtolower($email))->first();
             if ($user === null) {
@@ -35,10 +47,7 @@ class CreateAdmin extends Command
 
                 return self::FAILURE;
             }
-            $twoFactor->reset($user);
-            UserAudit::query()->create([
-                'actor_label' => RoleManager::SERVER, 'target_user_id' => $user->id, 'action' => 'mfa.reset', 'result' => 'ok',
-            ]);
+            $accounts->resetTwoFactor(null, $user);
             $this->info("Zweiter Faktor für {$user->email} zurückgesetzt – bei der nächsten Anmeldung neu einrichten.");
 
             return self::SUCCESS;
