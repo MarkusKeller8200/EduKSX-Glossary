@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
+import CookieNotice from '@/components/cookie-notice';
 import { Button } from '@/components/ui/button';
 import ViewWidthTabs from '@/components/view-width-tabs';
 import { versionLabel } from '@/components/version-label';
@@ -65,6 +66,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     </nav>
                 </div>
             </header>
+            <CookieNotice />
 
             {appVersion.prototype ? (
                 <div
