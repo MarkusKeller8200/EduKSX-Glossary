@@ -152,7 +152,19 @@ final class GlossaryService
     {
         $term->loadMissing(['categories', 'sources', 'aliases']);
         $aliases = fn (string $type): array => $term->aliases->where('alias_type', $type)->pluck('alias')->values()->all();
-        $keys = fn ($items): array => collect($items)->pluck('key')->sort()->values()->all();
+        /**
+         * @param  iterable<Category|Source>  $items
+         * @return list<string>
+         */
+        $keys = function (iterable $items): array {
+            $keys = [];
+            foreach ($items as $item) {
+                $keys[] = (string) $item->key;
+            }
+            sort($keys);
+
+            return $keys;
+        };
 
         $snapshot = [];
         foreach (self::TEXT as $field) {
@@ -168,7 +180,7 @@ final class GlossaryService
             'search_aliases' => $aliases('search'),
             'categories' => $keys($term->categories),
             'sources' => $keys($term->sources),
-            'used_in' => array_values($term->used_in ?? []),
+            'used_in' => $term->used_in ?? [],
             'lifecycle_status' => $term->lifecycle_status,
             'is_active' => $term->is_active,
             'valid_from' => $term->valid_from?->toDateString(),
@@ -272,7 +284,9 @@ final class GlossaryService
         }
         if (array_key_exists('official_aliases', $values)) {
             $current = $term->aliases()->where('alias_type', 'official')->pluck('alias')->sort()->values()->all();
-            $new = collect($values['official_aliases'])->sort()->values()->all();
+            /** @var list<string> $new */
+            $new = $values['official_aliases'];
+            sort($new);
             if ($current !== [] && $current !== $new) {
                 throw new OfficialFieldLocked('official_aliases');
             }
