@@ -6,6 +6,17 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Startdatei `start.bat` (#20):** lokaler Start unter Windows per Doppelklick – richtet beim ersten Start alles
+  ein und fragt nach dem Admin, sonst Pakete und Datenbank nachführen; `start.bat --pull` holt zuerst den neuesten
+  Stand.
+
+### Behoben
+
+- **Versionen auf dem Server (#20):** `CHANGELOG.md` wurde beim Deployment (`git archive`) ausgelassen; die Seite
+  «Versionen» wäre leer geblieben. Ausserdem löst eine Änderung am CHANGELOG jetzt ein Deployment aus.
+
 ## [0.1.0] – 2026-11-07
 
 ### Neu

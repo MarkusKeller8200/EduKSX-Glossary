@@ -13,7 +13,8 @@ dem Intranet übernommen. Konzepte: [docs/KONZEPT.md](docs/KONZEPT.md), Entschei
 
 ## Starten
 
-Voraussetzungen: PHP 8.4, Composer, Node 22.
+Voraussetzungen: PHP 8.4, Composer, Node 22. Unter Windows genügt ein Doppelklick auf **`start.bat`**
+(`start.bat --pull` holt zuerst den neuesten Stand). Von Hand:
 
 ```bash
 composer setup              # Pakete, .env, Schlüssel, SQLite, Migrationen, Build
