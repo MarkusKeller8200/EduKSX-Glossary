@@ -322,13 +322,13 @@ final class GlossaryService
             }
             $conflict = false;
             foreach (TermUserOverride::FIELDS as $field) {
-                $mine = $override->{$field};
+                $mine = $override->getAttribute($field);
                 if ($mine === null || $mine === '' || $mine === []) {
                     continue;
                 }
-                $theirs = $existing->{$field};
+                $theirs = $existing->getAttribute($field);
                 if ($theirs === null || $theirs === '' || $theirs === []) {
-                    $existing->{$field} = $mine;
+                    $existing->setAttribute($field, $mine);
                 } elseif ($theirs !== $mine) {
                     $conflict = true;
                 }
