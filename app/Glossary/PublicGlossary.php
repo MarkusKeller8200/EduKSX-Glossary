@@ -14,6 +14,13 @@ use Illuminate\Support\Collection;
  */
 final class PublicGlossary
 {
+    /** Positivliste der Felder auf der Detailseite (#43, DEC-018); ohne Notiz, «Intern genutzt in», Verlauf. */
+    public const PUBLIC_DETAIL_FIELDS = [
+        'slug', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase', 'kurz',
+        'beschreibung', 'url', 'kategorien', 'herkunft', 'status', 'gueltig_ab', 'gueltig_bis', 'revision',
+        'veroeffentlicht', 'andere',
+    ];
+
     /**
      * Kurzform für Liste und Suche.
      *
@@ -71,7 +78,7 @@ final class PublicGlossary
             fn (array $t): bool => $t['slug'] !== $s['slug'] && mb_strtolower($t['abkuerzung']) === mb_strtolower($abk),
         ));
 
-        return [
+        $detail = [
             'slug' => $s['slug'],
             'abkuerzung' => $abk,
             'bezeichnung' => (string) ($s['own_name'] ?: $s['official_name']),
@@ -94,6 +101,8 @@ final class PublicGlossary
             'veroeffentlicht' => $revision->published_at?->toDateString(),
             'andere' => array_map(fn (array $t): array => ['slug' => $t['slug'], 'bezeichnung' => $t['bezeichnung']], $others),
         ];
+
+        return array_intersect_key($detail, array_flip(self::PUBLIC_DETAIL_FIELDS));
     }
 
     /**
