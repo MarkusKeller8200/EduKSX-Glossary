@@ -62,6 +62,8 @@ class TermController extends Controller
                 'revision' => $t->revision,
                 'veroeffentlicht' => $t->publishedRevision?->revision,
                 'entwurf' => $t->hasUnpublishedChanges(),
+                'angelegt' => $t->created_at?->toIso8601String(),
+                'geaendert' => $t->updated_at?->toIso8601String(),
             ])
             ->all();
 

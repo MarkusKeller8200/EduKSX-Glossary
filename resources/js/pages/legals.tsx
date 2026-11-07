@@ -52,19 +52,19 @@ export default function Legals() {
             <h1 className="text-3xl font-semibold tracking-tight">
                 Rechtliches und Drittlizenzen
             </h1>
-            <p className="mt-3 text-muted-foreground">
+            <p className="mt-3 max-w-prose text-muted-foreground">
                 EduKSX-Glossary verwendet eigene Entwicklungen, Komponenten aus
                 anderen Projekten und freie Software. Diese Übersicht nennt
                 bekannte Herkunftsprojekte und Lizenzgrundlagen.
             </p>
-            <div className="mt-6 rounded-lg border border-border bg-muted px-4 py-3 text-sm">
+            <div className="mt-6 max-w-prose rounded-lg border border-border bg-muted px-4 py-3 text-sm">
                 <strong>Lizenzprüfung im Aufbau.</strong> Die Aufstellung ist
                 noch kein vollständiges Lizenzinventar und keine abschliessende
                 rechtliche Freigabe. Insbesondere die Lizenzpflichten fremder
                 Bestandteile in übernommenem Code sind noch abschliessend zu
                 prüfen.
             </div>
-            <section className="mt-8 space-y-3">
+            <section className="mt-8 max-w-prose space-y-3">
                 <h2 className="text-xl font-semibold">
                     Lizenzierung des Projekts
                 </h2>

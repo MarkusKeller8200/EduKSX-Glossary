@@ -6,30 +6,35 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
-### Neu (0.7.0)
-
-- **CSV-Export (#71):** Begriffe zusätzlich als CSV (UTF-8, Semikolon); Formeln werden als Text geschützt.
-- **Öffentlicher Verlauf (#68):** Die Detailseite zeigt die veröffentlichten Revisionen mit Datum, ohne Personen.
-- **Quellenprüfung (#69):** Prüfdatum und Belegstatus je Herkunft; Seite «Prüfung» mit jährlicher Wiedervorlage.
-- **Import-Protokoll (#64):** Jeder übernommene Import mit Datei, Person, Zeitpunkt und Ergebnis.
-
-### Geändert (0.7.0)
-
-- **Microsoft-Anmeldung (#61):** einmaliger nonce je Anmeldung, im id_token geprüft.
-- **Log-Rotation (#60):** Docker rotiert die Logs je Dienst; Frist 14 Tage über den Host (DEPLOY.md).
-
 ### Neu
 
 - **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
   wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
   veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.
 
+### Geändert
+
+- **Farbwahl (#107):** Farben in «Listen» als farbige Labels wählbar, neu mit den CI-Farben Violett, Orange und Blau.
+- **Fusszeile (#102):** auch in der Administration immer sichtbar.
+- **Kategorien (#105):** werden überall untereinander angezeigt.
+- **Begriffstabelle (#104):** gruppieren zusätzlich nach Erstelldatum und letzter Änderung.
+- **Seitenbreite (#99, DEC-023):** Website und Administration einheitlich 1152 px; lange Texte auf Lesebreite.
+
+### Behoben
+
+- **Auswahllisten im Dunkelmodus (#107):** Einträge sind lesbar (heller Text auf dunklem Grund).
+
+## [0.6.0] – 2026-11-07
+
 ### Neu
+
+- **CSV-Export (#71):** Begriffe zusätzlich als CSV (UTF-8, Semikolon); Formeln werden als Text geschützt.
+- **Öffentlicher Verlauf (#68):** Die Detailseite zeigt die veröffentlichten Revisionen mit Datum, ohne Personen.
+- **Quellenprüfung (#69):** Prüfdatum und Belegstatus je Herkunft; Seite «Prüfung» mit jährlicher Wiedervorlage.
+- **Import-Protokoll (#64):** Jeder übernommene Import mit Datei, Person, Zeitpunkt und Ergebnis.
 
 - **Softwarelizenz (#65, DEC-021):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf
   `/legals`).
-
-### Neu
 
 - **Farbige Labels (#77, #91, #92):** Kategorien und Herkunft in der Farbe, die unter «Listen» gewählt wird (Palette
   aus dem Intranet, hell und dunkel mit Kontrast AA). Status der Begriffe als Label (aktuell grün, zu prüfen orange,
@@ -46,6 +51,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Gestaltungspunkte des CI-Manuals.
 
 ### Geändert
+
+- **Microsoft-Anmeldung (#61):** einmaliger nonce je Anmeldung, im id_token geprüft.
+- **Log-Rotation (#60):** Docker rotiert die Logs je Dienst; Frist 14 Tage über den Host (DEPLOY.md).
 
 - **Administration (#89, #90):** Kopf in zwei Zeilen – Titel, Person und Abmelden oben, alle Menüpunkte darunter;
   Beschreibungen unter den Seitentiteln in voller Breite.

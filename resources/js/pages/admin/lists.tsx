@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
 import { isColorName, palette } from '@/lib/colors';
+import { cn } from '@/lib/utils';
 
 type Eintrag = {
     id: string;
@@ -38,7 +38,10 @@ const TITEL = { kategorien: 'Kategorien', herkunft: 'Herkunft' } as const;
 
 /** Anzeigenamen der Palette (#77). */
 const FARBNAMEN: Record<string, string> = {
-    brand: 'Marke (Blau)',
+    'ci-violet': 'Violett (CI)',
+    'ci-orange': 'Orange (CI)',
+    'ci-blue': 'Blau (CI)',
+    brand: 'Blau (Links)',
     slate: 'Grau',
     sky: 'Himmelblau',
     cyan: 'Cyan',
@@ -309,24 +312,49 @@ function Formular({
             {feld('label', 'Label (kurz)')}
             {feld('url', 'URL')}
             {feld('sort_order', 'Reihenfolge')}
-            <div className="space-y-1">
-                <Label htmlFor={`${liste}-${eintrag?.id ?? 'neu'}-color`}>
-                    Farbe
-                </Label>
-                <NativeSelect
-                    id={`${liste}-${eintrag?.id ?? 'neu'}-color`}
-                    value={form.data.color}
-                    onChange={(e) => form.setData('color', e.target.value)}
-                >
-                    <option value="">keine (grau)</option>
-                    {farben.map((f) => (
-                        <option key={f} value={f}>
-                            {FARBNAMEN[f] ?? f}
-                        </option>
-                    ))}
-                </NativeSelect>
+            <fieldset className="space-y-1 sm:col-span-3">
+                <legend className="text-sm font-medium">Farbe</legend>
+                {/* Farben direkt als Labels in ihrer Farbe (#107) – Radio-Gruppe, mit Tastatur bedienbar */}
+                <div className="flex flex-wrap gap-2">
+                    {['', ...farben].map((f) => {
+                        const id = `${liste}-${eintrag?.id ?? 'neu'}-color-${f || 'keine'}`;
+                        const gewaehlt = form.data.color === f;
+
+                        return (
+                            <label
+                                key={f || 'keine'}
+                                htmlFor={id}
+                                className={cn(
+                                    'cursor-pointer rounded-md ring-offset-2 ring-offset-background has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50',
+                                    gewaehlt && 'ring-2 ring-foreground',
+                                )}
+                            >
+                                <input
+                                    id={id}
+                                    type="radio"
+                                    name={`${liste}-${eintrag?.id ?? 'neu'}-color`}
+                                    value={f}
+                                    checked={gewaehlt}
+                                    onChange={() => form.setData('color', f)}
+                                    className="sr-only"
+                                />
+                                <Badge
+                                    variant="outline"
+                                    className={
+                                        palette[isColorName(f) ? f : 'slate']
+                                            .badge
+                                    }
+                                >
+                                    {f === ''
+                                        ? 'keine (grau)'
+                                        : (FARBNAMEN[f] ?? f)}
+                                </Badge>
+                            </label>
+                        );
+                    })}
+                </div>
                 <InputError message={form.errors.color} />
-            </div>
+            </fieldset>
             <div className="space-y-1 sm:col-span-2">
                 <Label htmlFor={`${liste}-${eintrag?.id ?? 'neu'}-description`}>
                     Beschreibung (öffentlich)

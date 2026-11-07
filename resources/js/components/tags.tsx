@@ -37,6 +37,27 @@ export function ListBadge({
     );
 }
 
+/** Mehrere Labels einer Liste, immer untereinander (#105). */
+export function ListBadges({
+    list,
+    labels,
+}: {
+    list: 'kategorien' | 'herkunft';
+    labels: string[];
+}) {
+    if (labels.length === 0) {
+        return null;
+    }
+
+    return (
+        <span className="inline-flex flex-col items-start gap-1">
+            {labels.map((l) => (
+                <ListBadge key={l} list={list} label={l} />
+            ))}
+        </span>
+    );
+}
+
 /** Status des Begriffs: aktuell, historisch, zu prüfen (#91). */
 export function StatusBadge({
     status,

@@ -48,6 +48,23 @@ class ContrastTest extends TestCase
         }
     }
 
+    /**
+     * CI-Farben als Labels (#107): Violett und Blau auf zarter Fläche (10 % hell, 15 % dunkel), Orange als Fläche mit
+     * dunkler Schrift (--primary-foreground auf --primary, oben geprüft).
+     */
+    public function test_ci_labels_hell_und_dunkel(): void
+    {
+        $css = (string) file_get_contents(dirname(__DIR__, 2).'/resources/css/app.css');
+        foreach ([':root' => 0.10, '.dark' => 0.15] as $selector => $alpha) {
+            $t = $this->tokens($css, $selector);
+            foreach ([['brand-violet', 'brand-violet'], ['link', 'brand-blue']] as [$text, $tint]) {
+                $background = $this->mix($t[$tint], $t['background'], $alpha);
+                $ratio = $this->ratio($t[$text], $background);
+                $this->assertGreaterThanOrEqual(4.5, $ratio, sprintf('--%s auf %s (%s): %.2f : 1', $text, $tint, $selector, $ratio));
+            }
+        }
+    }
+
     public function test_orange_nie_als_schrift_auf_weiss(): void
     {
         // Befund KONZEPT-DESIGN: Orange #FF8A00 auf Weiss nur 2.36 : 1 – der Test hält den Wert fest
@@ -65,6 +82,18 @@ class ContrastTest extends TestCase
         }
 
         return $tokens;
+    }
+
+    /** Farbe mit Deckkraft $alpha über einem Hintergrund. */
+    private function mix(string $color, string $background, float $alpha): string
+    {
+        $out = '#';
+        foreach ([1, 3, 5] as $i) {
+            $value = (int) round($alpha * hexdec(substr($color, $i, 2)) + (1 - $alpha) * hexdec(substr($background, $i, 2)));
+            $out .= sprintf('%02x', $value);
+        }
+
+        return $out;
     }
 
     private function ratio(string $a, string $b): float

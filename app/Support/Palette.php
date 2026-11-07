@@ -11,7 +11,10 @@ use App\Models\Source;
  */
 final class Palette
 {
-    public const NAMES = ['brand', 'slate', 'sky', 'cyan', 'teal', 'emerald', 'amber', 'orange', 'rose', 'violet', 'indigo'];
+    public const NAMES = [
+        'ci-violet', 'ci-orange', 'ci-blue',   // CI-Farben MarKusSXCH (#107)
+        'brand', 'slate', 'sky', 'cyan', 'teal', 'emerald', 'amber', 'orange', 'rose', 'violet', 'indigo',
+    ];
 
     /**
      * Farbe je Label der Listen (für die Anzeige der Tags); ohne Farbe fehlt der Eintrag (Anzeige: slate).

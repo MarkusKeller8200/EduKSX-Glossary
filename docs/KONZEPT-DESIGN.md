@@ -86,6 +86,21 @@ Befunde aus der Prüfung:
   wie im Intranet.
 - Hinweis «In Entwicklung», solange 0.x (Markenfortschreibung v1.1: keine erfundenen Releases oder Versprechen).
 
+## Seitenbreite und Lesebreite (DEC-023, beschlossen 07.11.2026)
+
+Angelehnt an die Container-Breiten von Bootstrap 5 (lg 960 px, xl 1140 px, xxl 1320 px):
+
+| Ansicht (#76)             | Breite                | Verwendung                                    |
+| ------------------------- | --------------------- | --------------------------------------------- |
+| Mobil                     | 384 px (`max-w-sm`)   | Prüfen der mobilen Darstellung                |
+| Desktop schmal (Standard) | 1152 px (`max-w-6xl`) | Website und Administration einheitlich (≈ xl) |
+| Ganze Breite              | volle Fensterbreite   | grosse Tabellen                               |
+
+- **Fliesstext** (Beschreibung auf der Detailseite, Datenschutzerklärung, Rechtliches, Versionen) auf Lesebreite
+  begrenzen: `max-w-prose`, etwa 65 Zeichen pro Zeile (Richtwert 60–75).
+- **Listen, Tabellen und kurze Hinweise** unter Seitentiteln nutzen die volle Seitenbreite (#89).
+- Vorher hatte die Website 1024 px und die Administration 1152 px, ohne festgehaltenen Grund. Umsetzung: #99.
+
 ## Prüfung
 
 - Abnahmecheckliste des CI-Manuals (Abschnitt 13) als Punkte in der PR-Vorlage bzw. als Test: exakte Wortmarke,
@@ -98,6 +113,9 @@ Befunde aus der Prüfung:
   `brand` nutzt hier `--info` (Blau), weil `--brand` im Glossary Orange ist und als Schrift nur 2.36 : 1 erreicht.
   Status: aktuell grün, zu prüfen orange (Warnung), historisch grau; veröffentlicht «V<Revision>» blau, Entwurf
   orange, zusammengeführt violett.
+- **CI-Farben in der Farbwahl (#107):** «Violett (CI)», «Orange (CI)», «Blau (CI)» zusätzlich zur Palette. Violett und
+  Blau als zarte Fläche mit Schrift in Violett bzw. Link-Blau, Orange als Fläche mit dunkler Schrift; Kontrast hell und
+  dunkel im ContrastTest. Die Farbwahl zeigt alle Farben als Labels (statt Dropdown).
 
 ## Offen
 

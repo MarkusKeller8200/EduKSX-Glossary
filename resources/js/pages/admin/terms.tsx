@@ -1,7 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useMemo, useState, type KeyboardEvent } from 'react';
 import {
-    ListBadge,
+    ListBadges,
     RevisionBadges,
     StateBadge,
     StatusBadge,
@@ -23,17 +23,64 @@ type Begriff = {
     revision: number;
     veroeffentlicht: number | null;
     entwurf: boolean;
+    angelegt: string | null;
+    geaendert: string | null;
 };
 
 type Feld = 'official_abbreviation' | 'official_name' | 'short_description';
-type Gruppierung = '' | 'kategorie' | 'status' | 'veroeffentlichung';
+type Gruppierung =
+    | ''
+    | 'kategorie'
+    | 'status'
+    | 'veroeffentlichung'
+    | 'angelegt'
+    | 'geaendert';
 
 const GRUPPEN: Record<Gruppierung, string> = {
     '': 'keine',
     kategorie: 'Kategorie',
     status: 'Status',
     veroeffentlichung: 'Veröffentlichung',
+    angelegt: 'Erstelldatum',
+    geaendert: 'Letzte Änderung',
 };
+
+/**
+ * Zeitraum für die Gruppierung nach Datum (#104): heute, diese Woche, dieser Monat, sonst Monat und Jahr. Der
+ * Sortierschlüssel ordnet die Gruppen von neu nach alt.
+ */
+function zeitraum(iso: string | null): { titel: string; key: string } {
+    if (!iso) {
+        return { titel: 'ohne Datum', key: '0' };
+    }
+    const d = new Date(iso);
+    const jetzt = new Date();
+    const tag = (x: Date) =>
+        new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+    const heute = tag(jetzt);
+    const montag = heute - ((jetzt.getDay() + 6) % 7) * 86400000;
+    if (tag(d) === heute) {
+        return { titel: 'heute', key: '9-heute' };
+    }
+    if (tag(d) >= montag) {
+        return { titel: 'diese Woche', key: '8-woche' };
+    }
+    if (
+        d.getFullYear() === jetzt.getFullYear() &&
+        d.getMonth() === jetzt.getMonth()
+    ) {
+        return { titel: 'dieser Monat', key: '7-monat' };
+    }
+    const monat = d.toLocaleDateString('de-CH', {
+        month: 'long',
+        year: 'numeric',
+    });
+
+    return {
+        titel: monat,
+        key: `1-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`,
+    };
+}
 
 /**
  * Begriffe (Arbeitsstand) als Redaktionstabelle (#67): filtern, gruppieren, Abkürzung, Bezeichnung und
@@ -295,13 +342,10 @@ export default function Terms({
                                     </td>
                                     <td className="px-3 py-2">
                                         <div className="flex flex-wrap gap-1">
-                                            {b.kategorien.map((k) => (
-                                                <ListBadge
-                                                    key={k}
-                                                    list="kategorien"
-                                                    label={k}
-                                                />
-                                            ))}
+                                            <ListBadges
+                                                list="kategorien"
+                                                labels={b.kategorien}
+                                            />
                                         </div>
                                     </td>
                                     <td className="px-3 py-2">
@@ -345,6 +389,22 @@ function gruppieren(
 ): { titel: string; begriffe: Begriff[] }[] {
     if (gruppierung === '') {
         return [{ titel: '', begriffe: liste }];
+    }
+    if (gruppierung === 'angelegt' || gruppierung === 'geaendert') {
+        const nachZeit = new Map<
+            string,
+            { titel: string; begriffe: Begriff[] }
+        >();
+        for (const b of liste) {
+            const z = zeitraum(b[gruppierung]);
+            const g = nachZeit.get(z.key) ?? { titel: z.titel, begriffe: [] };
+            g.begriffe.push(b);
+            nachZeit.set(z.key, g);
+        }
+
+        return [...nachZeit.entries()]
+            .sort(([a], [b]) => b.localeCompare(a))
+            .map(([, g]) => g);
     }
     const map = new Map<string, Begriff[]>();
     const add = (key: string, b: Begriff) =>
