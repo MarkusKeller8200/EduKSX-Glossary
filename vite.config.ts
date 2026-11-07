@@ -16,6 +16,8 @@ export default defineConfig({
             fonts: [
                 bunny('Inter', {
                     weights: [400, 500, 600, 700],
+                    // Ohne Zusatzpaket «fontaine»: Fallback ist system-ui (app.css --font-sans)
+                    optimizedFallbacks: false,
                 }),
             ],
         }),
