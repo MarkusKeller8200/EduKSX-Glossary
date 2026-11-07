@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.2.0] – 2026-11-07
+
 ### Neu
 
 - **Doppelte zusammenführen (#16):** neue Seite «Doppelte» in der Administration (auch über «Doppelte prüfen» bei
