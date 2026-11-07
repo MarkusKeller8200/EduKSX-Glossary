@@ -40,6 +40,8 @@
                 url: '/api/openapi.json',
                 withDefaultFonts: false,
                 hideDownloadButton: false,
+                // Entwickler-Leiste von Scalar (nur auf localhost sichtbar, Teilen über die Scalar Registry) aus
+                showDeveloperTools: 'never',
                 defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
                 metaData: { title: 'API – EduKSX-Glossary' },
             });

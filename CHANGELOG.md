@@ -24,7 +24,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Cursor inkl. Rückzügen, für den Sync des Intranets) und `/api/v1/exports?format=json`. Nur veröffentlichte
   Daten, ETag/304, Fehler als problem+json, CORS für Lesezugriffe.
 - **API-Doku (#26):** interaktive Seite `/api/docs` zum Ausprobieren, Beschreibung als OpenAPI 3.1 unter
-  `/api/openapi.json`; Link «API» im Fuss der Website.
+  `/api/openapi.json`; Link «API» im Fuss der Website; ohne die Entwickler-Leiste von Scalar.
 - **Begriffe auf der Website (#24):** Die Startseite zeigt alle veröffentlichten Begriffe mit Suche (auch in
   Aliasen und Suchbegriffen), Index A–Z und Filter nach Kategorie; jeder Begriff hat eine Detailseite
   `/begriffe/…` mit Kurzbeschreibung, Beschreibung, Kategorien, Herkunft, Quelle und Verweis auf weitere Bedeutungen
