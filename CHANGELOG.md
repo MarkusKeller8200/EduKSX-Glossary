@@ -56,6 +56,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Versionen auf dem Server (#20):** `CHANGELOG.md` wurde beim Deployment (`git archive`) ausgelassen; die Seite
   «Versionen» wäre leer geblieben. Ausserdem löst eine Änderung am CHANGELOG jetzt ein Deployment aus.
 
+### Geändert
+
+- **Kopf und Fuss fixiert (#28):** Bei langen Begriffslisten bleiben Kopf und Fusszeile der Website sowie der Kopf
+  der Administration beim Scrollen sichtbar.
+
 ## [0.1.0] – 2026-11-07
 
 ### Neu

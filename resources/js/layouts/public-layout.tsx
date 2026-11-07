@@ -5,13 +5,16 @@ import BrandWordmark from '@/components/brand-wordmark';
 import { Button } from '@/components/ui/button';
 import { versionLabel } from '@/components/version-label';
 
-/** Öffentlicher Rahmen: Kopf mit Wortmarke, Inhalt, Fuss mit Version und Signatur (CI-Manual Abschnitt 9). */
+/**
+ * Öffentlicher Rahmen: Kopf mit Wortmarke, Inhalt, Fuss mit Version und Signatur (CI-Manual Abschnitt 9).
+ * Kopf und Fuss bleiben bei langen Listen sichtbar (#28).
+ */
 export default function PublicLayout({ children }: { children: ReactNode }) {
     const { appVersion, auth, links } = usePage().props;
 
     return (
         <div className="flex min-h-screen flex-col bg-background text-foreground">
-            <header className="border-b border-border">
+            <header className="sticky top-0 z-20 border-b border-border bg-background">
                 <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3">
                     <Link
                         href="/"
@@ -55,7 +58,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 {children}
             </main>
 
-            <footer className="border-t border-border text-sm text-muted-foreground">
+            <footer className="sticky bottom-0 z-20 border-t border-border bg-background text-sm text-muted-foreground">
                 <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
                     <span>
                         Version{' '}
