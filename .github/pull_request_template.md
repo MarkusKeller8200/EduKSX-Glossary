@@ -18,7 +18,7 @@ Refs #
 
 ## Checkliste
 
-- [ ] `python3 .github/blueprint/release.py check` läuft lokal ohne Fehler
+- [ ] `composer ci:check` läuft lokal ohne Fehler
 - [ ] Neue oder geänderte Funktionen haben Tests
 - [ ] Eintrag in `CHANGELOG.md` unter «Unveröffentlicht» (Neu / Geändert / Behoben)
 - [ ] Doku nachgeführt

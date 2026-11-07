@@ -1,0 +1,67 @@
+name: ci
+
+# Prüfung für Pull Requests und Pushes auf andere Branches (aus sek-intranet tests.yml übernommen).
+# Pushes auf main prüft deploy.yml (ruft diesen Workflow auf). Reine Doku-Änderungen lösen keine Prüfung aus.
+on:
+  push:
+    branches-ignore: [main]
+    paths-ignore: ['**/*.md', 'site/**', '.github/dependabot.yml']
+  pull_request:
+    paths-ignore: ['**/*.md', 'site/**']
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # Tags für Version und Release-Prüfung
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
+      - name: Zwischenspeicher Composer und npm
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/composer
+            ~/.npm
+          key: deps-${{ runner.os }}-${{ hashFiles('composer.json', 'composer.lock', 'package.json', 'package-lock.json') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
+      - name: Setup Application
+        run: composer setup
+
+      - name: Version und CHANGELOG prüfen
+        run: python3 .github/blueprint/release.py check
+
+      - name: Run CI Checks
+        run: |
+          set -o pipefail
+          composer ci:check 2>&1 | tee ci-output.txt
+
+      - name: Fehler anzeigen
+        if: failure()
+        run: |
+          .github/scripts/report-failure.sh ci-output.txt 'CI-Prüfung fehlgeschlagen'
+          if grep -q 'Formatting issues' ci-output.txt; then
+            npx vp check --fix > /dev/null 2>&1 || true
+            git diff > fmt.diff
+            .github/scripts/report-failure.sh fmt.diff 'Formatierung (Korrektur)' 400
+          fi

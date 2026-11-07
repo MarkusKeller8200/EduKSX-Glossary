@@ -1,0 +1,247 @@
+/*
+ * Farbwerte EduKSX-Glossary nach CI MarKusSXCH (markussxch/docs/brand, CI-Manual v1.0, Fortschreibung v1.1).
+ * Aufbau und Namen der Farbwerte übernommen aus sek-intranet resources/css/app.css, damit die übernommenen
+ * GUI-Bausteine unverändert funktionieren (docs/KONZEPT-DESIGN.md). Farben in Seiten nur über diese Werte.
+ */
+@import 'tailwindcss';
+
+@import 'tw-animate-css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --font-sans:
+        'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    --color-brand: var(--brand);
+    --color-brand-violet: var(--brand-violet);
+    --color-brand-orange: var(--brand-orange);
+    --color-brand-blue: var(--brand-blue);
+    --color-brand-neutral: var(--brand-neutral);
+    --color-link: var(--link);
+    --color-brand-accent: var(--brand-accent);
+    --color-brand-ink: var(--brand-ink);
+    --color-success: var(--success);
+    --color-success-soft: var(--success-soft);
+    --color-warning: var(--warning);
+    --color-warning-soft: var(--warning-soft);
+    --color-info: var(--info);
+    --color-info-soft: var(--info-soft);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    --color-term-underline: var(--term-underline);
+    --color-term-underline-hover: var(--term-underline-hover);
+}
+
+/*
+ * Farbkonzept EduKSX-Glossary (docs/KONZEPT-DESIGN.md)
+ * - Markenfarben (--brand-violet/-orange/-blue) nur für die Wortmarke und als Akzent.
+ * - Orange als Fläche mit dunkler Schrift, nie als Schrift oder einziger Hinweis.
+ * - Links und Fokus in --link/--ring (funktionales Blau), nicht im Marken-Blau.
+ * - Statusfarben (Erfolg, Warnung, Fehler) nicht durch Markenfarben ersetzen.
+ * - CI: --muted-foreground #64748b erreicht auf --muted nur 4.39 : 1, darum #5a6678 (5.37 : 1).
+ */
+:root {
+    /* Markenfarben (nur Wortmarke und Akzente) */
+    --brand-violet: #7952b3;
+    --brand-orange: #ff8a00;
+    --brand-blue: #007ebb;
+    --brand-neutral: #222222;
+    --brand: #ff8a00;
+    --brand-accent: #007ebb;
+    --brand-ink: #222222;
+
+    --background: #ffffff;
+    --foreground: #222222;
+    --card: #ffffff;
+    --card-foreground: #222222;
+    --popover: #ffffff;
+    --popover-foreground: #222222;
+    /* Hauptknopf: Orange als Fläche mit dunkler Schrift (6.73 : 1), nie weiss (2.36 : 1) */
+    --primary: #ff8a00;
+    --primary-foreground: #222222;
+    --secondary: #fff3e5;
+    --secondary-foreground: #5c3200;
+    --muted: #f4f6f8;
+    --muted-foreground: #5a6678;
+    --accent: #e6f3fa;
+    --accent-foreground: #08415f;
+    --destructive: #c62828;
+    --destructive-foreground: #b71c1c;
+    --success: #1b7a3d;
+    --success-soft: #e7f5ec;
+    --warning: #a35a00;
+    --warning-soft: #fff4e0;
+    --info: #0272ad;
+    --info-soft: #e8f4fb;
+    /* Links und Fokus: funktionales Blau (5.23 : 1); #007ebb liegt mit 4.47 : 1 knapp unter AA */
+    --link: #0272ad;
+    --border: #e2e8f0;
+    --input: #cbd5e1;
+    --ring: #0272ad;
+    --chart-1: #ff8a00;
+    --chart-2: #007ebb;
+    --chart-3: #7952b3;
+    --chart-4: #0d9488;
+    --chart-5: #e11d48;
+    --radius: 0.625rem;
+    --sidebar: #fbfbfc;
+    --sidebar-foreground: #222222;
+    --sidebar-primary: #ff8a00;
+    --sidebar-primary-foreground: #222222;
+    --sidebar-accent: #fff3e5;
+    --sidebar-accent-foreground: #5c3200;
+    --sidebar-border: #e2e8f0;
+    --sidebar-ring: #0272ad;
+
+    /* Baustein «Begriff»: Farbe der feinen Punkte (Linie, mind. 3 : 1) */
+    --term-underline: #7952b3;
+    --term-underline-hover: #4c2f7a;
+}
+
+.dark {
+    --brand-violet: #b59aff;
+    --brand-orange: #ff8a00;
+    --brand-blue: #32b8f2;
+    --brand-neutral: #f2f5f8;
+    --brand: #ff8a00;
+    --brand-accent: #32b8f2;
+    --brand-ink: #f2f5f8;
+
+    --background: #151b24;
+    --foreground: #f2f5f8;
+    --card: #1b2330;
+    --card-foreground: #f2f5f8;
+    --popover: #1b2330;
+    --popover-foreground: #f2f5f8;
+    --primary: #ff8a00;
+    --primary-foreground: #151b24;
+    --secondary: #3a2a10;
+    --secondary-foreground: #ffd9a8;
+    --muted: #222b37;
+    --muted-foreground: #aab6c7;
+    --accent: #12324a;
+    --accent-foreground: #d6eefb;
+    --destructive: #b42318;
+    --destructive-foreground: #ff8a80;
+    --success: #5fd38d;
+    --success-soft: #12321f;
+    --warning: #ffb95c;
+    --warning-soft: #3a2a10;
+    --info: #32b8f2;
+    --info-soft: #12324a;
+    --link: #32b8f2;
+    --border: #2d3746;
+    --input: #3a4556;
+    --ring: #32b8f2;
+    --chart-1: #ff8a00;
+    --chart-2: #32b8f2;
+    --chart-3: #b59aff;
+    --chart-4: #2dd4bf;
+    --chart-5: #fb7185;
+    --sidebar: #11161e;
+    --sidebar-foreground: #f2f5f8;
+    --sidebar-primary: #ff8a00;
+    --sidebar-primary-foreground: #151b24;
+    --sidebar-accent: #3a2a10;
+    --sidebar-accent-foreground: #ffd9a8;
+    --sidebar-border: #2d3746;
+    --sidebar-ring: #32b8f2;
+
+    --term-underline: #b59aff;
+    --term-underline-hover: #e3d9ff;
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* Tabellen-Scrollbereich: Scrollleisten immer sichtbar und gut greifbar */
+.grid-scroll {
+    overflow: scroll;
+    scrollbar-width: auto;
+    scrollbar-color: var(--color-muted-foreground) var(--color-muted);
+}
+
+.grid-scroll::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+.grid-scroll::-webkit-scrollbar-track {
+    background: var(--color-muted);
+}
+
+.grid-scroll::-webkit-scrollbar-thumb {
+    border: 3px solid var(--color-muted);
+    border-radius: 999px;
+    background: color-mix(
+        in oklab,
+        var(--color-muted-foreground) 70%,
+        transparent
+    );
+}
+
+.grid-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--color-muted-foreground);
+}
+
+.grid-scroll::-webkit-scrollbar-corner {
+    background: var(--color-muted);
+}

@@ -6,16 +6,16 @@ Beilagen (Entscheidungsregister, Sync-Vertrag, Confluence-Publisher, MCP-Readine
 zusammengeführt; der Originaltext steht im Git-Verlauf (Commit `8d4367b`). Bei Widersprüchen gilt
 [ENTSCHEIDE.md](ENTSCHEIDE.md).
 
-| Konzept                                          | Inhalt                                             |
-| ------------------------------------------------ | -------------------------------------------------- |
-| [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md) | Felder, Tabellen, Statusachsen, Import             |
-| [KONZEPT-API.md](KONZEPT-API.md)                 | REST-API, Synchronisation, Intranet als Abnehmer   |
-| [KONZEPT-STACK.md](KONZEPT-STACK.md)             | Technik, SQLite, Anmeldung                         |
-| [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)           | Auftritt nach CI, GUI-Bausteine aus dem Intranet   |
-| [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)         | Hostinger, Cloudflare, GitHub Pages                |
-| [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) | Versionen, Versionshistorie                    |
-| [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)   | Confluence-Publisher (später)                      |
-| [KONZEPT-MCP.md](KONZEPT-MCP.md)                 | MCP-Server für Rovo (später)                       |
+| Konzept                                              | Inhalt                                           |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md)     | Felder, Tabellen, Statusachsen, Import           |
+| [KONZEPT-API.md](KONZEPT-API.md)                     | REST-API, Synchronisation, Intranet als Abnehmer |
+| [KONZEPT-STACK.md](KONZEPT-STACK.md)                 | Technik, SQLite, Anmeldung                       |
+| [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)               | Auftritt nach CI, GUI-Bausteine aus dem Intranet |
+| [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)             | Hostinger, Cloudflare, GitHub Pages              |
+| [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) | Versionen, Versionshistorie                      |
+| [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)       | Confluence-Publisher (später)                    |
+| [KONZEPT-MCP.md](KONZEPT-MCP.md)                     | MCP-Server für Rovo (später)                     |
 
 Kennzeichnung: **Entscheid** = vom Projektverantwortlichen festgelegt · **Vorschlag** = mit der Abnahme vom
 07.11.2026 als Planungsgrundlage übernommen, Einzelheiten werden bei der Umsetzung im jeweiligen Issue festgelegt ·
@@ -42,20 +42,20 @@ Personendossiers, Mandantenfähigkeit im ersten Schritt.
 
 **Entscheid:** Die Felder des Intranet-Glossars sind die Ausgangsbasis (DEC-002).
 
-| Feld                              | Regel                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------ |
-| Kategorien                        | eine oder mehrere aus der erweiterbaren Kategorienliste                  |
-| Abkürzung offiziell + Aliase      | geschützt: ändern nur mit Recht «offizielle Begriffe pflegen»            |
-| Abkürzung eigene + Alias          | frei, z. B. lokal gebräuchliche Form                                     |
-| Bezeichnung offiziell             | geschützt                                                                |
-| Bezeichnung eigene                | alternative Benennung; im Intranet kann sie Vorrang haben                |
-| Kurzbeschreibung                  | ein Satz, max. 160 Zeichen (Tooltip im Intranet)                         |
-| Beschreibung                      | ausführliche Erklärung, eigene Worte, mit Quellenbezug                   |
-| Quelle (URL) und Herkunft         | mehrere Herkünfte aus der Herkunftsliste (VSA, Kanton, Bund, DSB …)      |
-| Notiz                             | redaktionell, Markdown                                                   |
-| Genutzt in                        | Bezüge zu Anwendungen; neu unabhängig vom Intranet                       |
-| Status                            | aktuell / historisch / zu prüfen                                         |
-| Suchbegriffe, gültig ab/bis, aktiv | Suche, zeitliche Geltung, ein-/ausblenden                               |
+| Feld                               | Regel                                                               |
+| ---------------------------------- | ------------------------------------------------------------------- |
+| Kategorien                         | eine oder mehrere aus der erweiterbaren Kategorienliste             |
+| Abkürzung offiziell + Aliase       | geschützt: ändern nur mit Recht «offizielle Begriffe pflegen»       |
+| Abkürzung eigene + Alias           | frei, z. B. lokal gebräuchliche Form                                |
+| Bezeichnung offiziell              | geschützt                                                           |
+| Bezeichnung eigene                 | alternative Benennung; im Intranet kann sie Vorrang haben           |
+| Kurzbeschreibung                   | ein Satz, max. 160 Zeichen (Tooltip im Intranet)                    |
+| Beschreibung                       | ausführliche Erklärung, eigene Worte, mit Quellenbezug              |
+| Quelle (URL) und Herkunft          | mehrere Herkünfte aus der Herkunftsliste (VSA, Kanton, Bund, DSB …) |
+| Notiz                              | redaktionell, Markdown                                              |
+| Genutzt in                         | Bezüge zu Anwendungen; neu unabhängig vom Intranet                  |
+| Status                             | aktuell / historisch / zu prüfen                                    |
+| Suchbegriffe, gültig ab/bis, aktiv | Suche, zeitliche Geltung, ein-/ausblenden                           |
 
 Regeln wie im Intranet (**Entscheid**):
 
@@ -118,12 +118,12 @@ veränderliche Begriffe; Änderungsjournal.
 
 ## Rollen (Vorschlag)
 
-| Rolle                    | lesen | vorschlagen | prüfen | freigeben | Import / Listen |
-| ------------------------ | ----- | ----------- | ------ | --------- | --------------- |
-| Öffentlichkeit           | ja    | ja (geschützt) | –   | –         | –               |
-| Community-Mitglied       | ja    | ja, eigene Vorschläge sehen | – | – | –            |
-| Redaktion                | ja    | ja          | ja     | –         | nach Recht      |
-| Admin-Gruppe, Projektverantwortliche:r | ja | ja | ja | ja      | ja              |
+| Rolle                                  | lesen | vorschlagen                 | prüfen | freigeben | Import / Listen |
+| -------------------------------------- | ----- | --------------------------- | ------ | --------- | --------------- |
+| Öffentlichkeit                         | ja    | ja (geschützt)              | –      | –         | –               |
+| Community-Mitglied                     | ja    | ja, eigene Vorschläge sehen | –      | –         | –               |
+| Redaktion                              | ja    | ja                          | ja     | –         | nach Recht      |
+| Admin-Gruppe, Projektverantwortliche:r | ja    | ja                          | ja     | ja        | ja              |
 
 **Beschlossen (DEC-014):** Ein lokaler Admin steht **ab dem ersten Deployment** zur Verfügung; ohne Anmeldung
 lassen sich keine Daten ändern. Admin-Zugang mit zweitem Faktor. **Offen:** Einreichen ohne Konto, mit E-Mail-Bestätigung oder mit Login (GitHub,
@@ -178,15 +178,15 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 ## Etappen
 
-| Etappe | Inhalt                                                                      | Abnahme                                           |
-| ------ | --------------------------------------------------------------------------- | ------------------------------------------------- |
-| 0.1    | Konzept, Hosting, Stack, Versionierung; Programmiergerüst und Deployment    | Gerüst läuft auf `glossary.eduksx.ch`              |
-| 0.2    | Datenmodell, Übernahme der Intranet-Daten, Import/Export                    | Startinhalt importiert, nichts still gelöscht     |
-| 0.3    | Öffentliche Website und API `/api/v1` mit OpenAPI und Sync                  | Sync mit dem Intranet automatisch getestet        |
-| 0.4    | Community: Vorschläge, Moderation, Verlauf                                  | kein Vorschlag ohne Freigabe öffentlich           |
-| 0.5    | Intranet als Abnehmer (Adapter, Cache, Fallback)                            | Sync inkl. Rückzug und Wiederaufnahme getestet    |
-| 1.0    | erster öffentlicher Betrieb (Datenschutz, Sicherung, Überwachung)           | Freigabe für den Betrieb                          |
-| später | Confluence-Publisher, MCP für Rovo, Mandanten                               | eigene Konzepte                                   |
+| Etappe | Inhalt                                                                   | Abnahme                                        |
+| ------ | ------------------------------------------------------------------------ | ---------------------------------------------- |
+| 0.1    | Konzept, Hosting, Stack, Versionierung; Programmiergerüst und Deployment | Gerüst läuft auf `glossary.eduksx.ch`          |
+| 0.2    | Datenmodell, Übernahme der Intranet-Daten, Import/Export                 | Startinhalt importiert, nichts still gelöscht  |
+| 0.3    | Öffentliche Website und API `/api/v1` mit OpenAPI und Sync               | Sync mit dem Intranet automatisch getestet     |
+| 0.4    | Community: Vorschläge, Moderation, Verlauf                               | kein Vorschlag ohne Freigabe öffentlich        |
+| 0.5    | Intranet als Abnehmer (Adapter, Cache, Fallback)                         | Sync inkl. Rückzug und Wiederaufnahme getestet |
+| 1.0    | erster öffentlicher Betrieb (Datenschutz, Sicherung, Überwachung)        | Freigabe für den Betrieb                       |
+| später | Confluence-Publisher, MCP für Rovo, Mandanten                            | eigene Konzepte                                |
 
 Termine erst mit Ressourcenplanung.
 

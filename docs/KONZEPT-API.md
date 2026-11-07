@@ -36,16 +36,16 @@ Beispiel einer Antwort:
 
 ```json
 {
-  "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
-  "slug": "klassenlehrperson",
-  "abbreviation": "KLP",
-  "name": "Klassenlehrperson",
-  "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
-  "categories": ["Schulorganisation"],
-  "status": "aktuell",
-  "revision": 3,
-  "published_at": "2026-11-07T00:00:00Z",
-  "sources": [{ "name": "Schule", "url": "https://example.org/quelle" }]
+    "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
+    "slug": "klassenlehrperson",
+    "abbreviation": "KLP",
+    "name": "Klassenlehrperson",
+    "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
+    "categories": ["Schulorganisation"],
+    "status": "aktuell",
+    "revision": 3,
+    "published_at": "2026-11-07T00:00:00Z",
+    "sources": [{ "name": "Schule", "url": "https://example.org/quelle" }]
 }
 ```
 

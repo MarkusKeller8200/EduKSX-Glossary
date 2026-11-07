@@ -6,10 +6,10 @@ nicht neu entwickelt.
 
 ## Zwei Quellen
 
-| Was                                                     | Quelle (verbindlich)                                                                                                                                          |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Wortmarke, Markenfarben, Schrift, Signatur, Schreibweisen | [markussxch/docs](https://github.com/MarkusKeller8200/markussxch/tree/main/docs): CI-Manual v1.0, Markenfortschreibung v1.1, EduKSX-Produktfamilie        |
-| Bausteine, Verhalten, Barrierefreiheit, Theme-Technik   | sek-intranet: `resources/js/components` (40 GUI-Bausteine, `docs/GUI-KOMPONENTEN.md`), `resources/css/app.css`, `docs/KONZEPT-THEMES.md`                    |
+| Was                                                       | Quelle (verbindlich)                                                                                                                               |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wortmarke, Markenfarben, Schrift, Signatur, Schreibweisen | [markussxch/docs](https://github.com/MarkusKeller8200/markussxch/tree/main/docs): CI-Manual v1.0, Markenfortschreibung v1.1, EduKSX-Produktfamilie |
+| Bausteine, Verhalten, Barrierefreiheit, Theme-Technik     | sek-intranet: `resources/js/components` (40 GUI-Bausteine, `docs/GUI-KOMPONENTEN.md`), `resources/css/app.css`, `docs/KONZEPT-THEMES.md`           |
 
 Das CI bestimmt **wie es aussieht**, das Intranet **was es ist und wie es sich bedient**. Bei Widerspruch gilt für
 Farben und Marke das CI, für Bedienung und Barrierefreiheit das Intranet; Barrierefreiheit geht in beiden vor.
@@ -48,17 +48,17 @@ Farben und Marke das CI, für Bedienung und Barrierefreiheit das Intranet; Barri
 Markenfarben gemäss CI; für Bedienelemente kontrastgeprüfte **funktionale** Töne (CI-Manual Abschnitt 2 und 5:
 EduKSX hat Orange als primären UI-Akzent, Blau und Violett ergänzend). Kontraste nach WCAG berechnet.
 
-| Farbwert (wie Intranet)          | Hell                          | Dunkel                        | Prüfung                                                     |
-| -------------------------------- | ----------------------------- | ----------------------------- | ----------------------------------------------------------- |
-| `--brand-violet/-orange/-blue`   | `#7952B3` / `#FF8A00` / `#007EBB` | `#B59AFF` / `#FF8A00` / `#32B8F2` | nur Wortmarke und Akzente                               |
-| `--background`, `--card`         | `#FFFFFF`                     | `#151B24`                     |                                                             |
-| `--foreground`                   | `#222222`                     | `#F2F5F8`                     | 15.9 : 1                                                    |
-| `--muted-foreground`             | `#5A6678`                     | `#AAB6C7`                     | 5.37 : 1 auf `--muted` / 6.96 : 1 – CI-Wert `#64748B` erreicht auf `--muted` nur 4.39 : 1 |
-| `--primary` (Hauptknopf)         | `#FF8A00`                     | `#FF8A00`                     | Orange als Fläche                                           |
-| `--primary-foreground`           | `#222222`                     | `#151B24`                     | 6.73 : 1 / 7.32 : 1 – **dunkle Schrift auf Orange**, nie weiss (2.36 : 1) |
-| Links (`--link`), `--ring` (Fokus) | `#0272AD`                     | `#32B8F2`                     | 5.23 : 1 / 7.64 : 1                                         |
-| `--term-underline`               | `#7952B3`                     | `#B59AFF`                     | Linie, mind. 3 : 1                                          |
-| Status (Erfolg, Warnung, Fehler) | wie Intranet                  | wie Intranet                  | nicht durch Markenfarben ersetzen                           |
+| Farbwert (wie Intranet)            | Hell                              | Dunkel                            | Prüfung                                                                                   |
+| ---------------------------------- | --------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------- |
+| `--brand-violet/-orange/-blue`     | `#7952B3` / `#FF8A00` / `#007EBB` | `#B59AFF` / `#FF8A00` / `#32B8F2` | nur Wortmarke und Akzente                                                                 |
+| `--background`, `--card`           | `#FFFFFF`                         | `#151B24`                         |                                                                                           |
+| `--foreground`                     | `#222222`                         | `#F2F5F8`                         | 15.9 : 1                                                                                  |
+| `--muted-foreground`               | `#5A6678`                         | `#AAB6C7`                         | 5.37 : 1 auf `--muted` / 6.96 : 1 – CI-Wert `#64748B` erreicht auf `--muted` nur 4.39 : 1 |
+| `--primary` (Hauptknopf)           | `#FF8A00`                         | `#FF8A00`                         | Orange als Fläche                                                                         |
+| `--primary-foreground`             | `#222222`                         | `#151B24`                         | 6.73 : 1 / 7.32 : 1 – **dunkle Schrift auf Orange**, nie weiss (2.36 : 1)                 |
+| Links (`--link`), `--ring` (Fokus) | `#0272AD`                         | `#32B8F2`                         | 5.23 : 1 / 7.64 : 1                                                                       |
+| `--term-underline`                 | `#7952B3`                         | `#B59AFF`                         | Linie, mind. 3 : 1                                                                        |
+| Status (Erfolg, Warnung, Fehler)   | wie Intranet                      | wie Intranet                      | nicht durch Markenfarben ersetzen                                                         |
 
 Befunde aus der Prüfung:
 

@@ -6,20 +6,20 @@ Datenmenge reicht SQLite vollauf.
 
 ## Stack
 
-| Schicht       | Technologie                                                                                     | wie im Intranet        |
-| ------------- | ----------------------------------------------------------------------------------------------- | ---------------------- |
-| Backend       | Laravel 13 (PHP 8.4)                                                                            | ja                     |
-| Frontend      | React 19 + TypeScript, Inertia 3, shadcn/ui (Radix), Tailwind 4                                 | ja                     |
-| GUI-Bausteine | aus dem Intranet übernommen (`components/ui`, `data-grid`, `term`), Farbwerte nach CI MarKusSXCH ([KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)) | ja, Aussehen anders |
-| Build         | Vite (Vite Plus wie im Intranet)                                                                | ja                     |
-| Datenbank     | **SQLite**, eine Datei im Docker-Volumen, Laravel-Migrationen; Tests mit SQLite im Speicher     | Intranet: JSON, SQLite vorgesehen |
-| Austausch     | JSON (Übernahme aus dem Intranet, Export, GitHub Pages), Excel (XLSX)                           | ja                     |
-| API           | Laravel-Routen `/api/v1`, OpenAPI 3.1 (`openapi/glossary-v1.yaml`), Doku mit Scalar             | ja                     |
-| Anmeldung     | **lokaler Admin ab dem ersten Deployment** (Session, Passwort, zweiter Faktor)                  | anders (Intranet: Demo-Login, später OIDC) |
-| Tests         | PHPUnit, PHPStan Level 7 (Larastan), Pint, `vp check`                                           | ja                     |
-| Prüfbefehl    | `composer ci:check` (inkl. `release.py check`)                                                  | ja                     |
-| Betrieb       | Docker-Image (PHP 8.4 + Apache), Compose, Traefik auf dem Hostinger-VPS                         | ja                     |
-| Deployment    | GitHub Actions → SSH → `docker compose up --build`, Prüfadresse `/up`                           | ja                     |
+| Schicht       | Technologie                                                                                                                               | wie im Intranet                            |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Backend       | Laravel 13 (PHP 8.4)                                                                                                                      | ja                                         |
+| Frontend      | React 19 + TypeScript, Inertia 3, shadcn/ui (Radix), Tailwind 4                                                                           | ja                                         |
+| GUI-Bausteine | aus dem Intranet übernommen (`components/ui`, `data-grid`, `term`), Farbwerte nach CI MarKusSXCH ([KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)) | ja, Aussehen anders                        |
+| Build         | Vite (Vite Plus wie im Intranet)                                                                                                          | ja                                         |
+| Datenbank     | **SQLite**, eine Datei im Docker-Volumen, Laravel-Migrationen; Tests mit SQLite im Speicher                                               | Intranet: JSON, SQLite vorgesehen          |
+| Austausch     | JSON (Übernahme aus dem Intranet, Export, GitHub Pages), Excel (XLSX)                                                                     | ja                                         |
+| API           | Laravel-Routen `/api/v1`, OpenAPI 3.1 (`openapi/glossary-v1.yaml`), Doku mit Scalar                                                       | ja                                         |
+| Anmeldung     | **lokaler Admin ab dem ersten Deployment** (Session, Passwort, zweiter Faktor)                                                            | anders (Intranet: Demo-Login, später OIDC) |
+| Tests         | PHPUnit, PHPStan Level 7 (Larastan), Pint, `vp check`                                                                                     | ja                                         |
+| Prüfbefehl    | `composer ci:check` (inkl. `release.py check`)                                                                                            | ja                                         |
+| Betrieb       | Docker-Image (PHP 8.4 + Apache), Compose, Traefik auf dem Hostinger-VPS                                                                   | ja                                         |
+| Deployment    | GitHub Actions → SSH → `docker compose up --build`, Prüfadresse `/up`                                                                     | ja                                         |
 
 ### Warum so
 
@@ -61,11 +61,11 @@ site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Expor
 
 ## Varianten
 
-| Punkt     | Vorschlag              | Alternative                              | Abwägung                                                                                                                                                       |
-| --------- | ---------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Speicher  | SQLite                 | JSON-Dateien wie im Intranet-Prototyp    | JSON: Repositories 1:1 aus dem Intranet. SQLite: Transaktionen für Revisionen und Sync ohne späteren Umbau.                                                    |
-| Website   | Inertia (wie Intranet) | eigenes statisches Frontend über die API | Inertia: ein Code für Website und Redaktion. Statisch: zweites Projekt. Für Suchmaschinen bei Bedarf Inertia mit SSR (`build:ssr`).                            |
-| 2. Faktor | Laravel Fortify (TOTP) | eigenes TOTP oder Passkeys               | Fortify ist offiziell und gepflegt; das Intranet hat es bewusst weggelassen (dort später OIDC).                                                                |
+| Punkt     | Vorschlag              | Alternative                              | Abwägung                                                                                                                            |
+| --------- | ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Speicher  | SQLite                 | JSON-Dateien wie im Intranet-Prototyp    | JSON: Repositories 1:1 aus dem Intranet. SQLite: Transaktionen für Revisionen und Sync ohne späteren Umbau.                         |
+| Website   | Inertia (wie Intranet) | eigenes statisches Frontend über die API | Inertia: ein Code für Website und Redaktion. Statisch: zweites Projekt. Für Suchmaschinen bei Bedarf Inertia mit SSR (`build:ssr`). |
+| 2. Faktor | Laravel Fortify (TOTP) | eigenes TOTP oder Passkeys               | Fortify ist offiziell und gepflegt; das Intranet hat es bewusst weggelassen (dort später OIDC).                                     |
 
 ## Offen (wird geklärt, wenn benötigt)
 

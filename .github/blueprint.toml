@@ -12,11 +12,11 @@ datenschutz = "Keine echten Personendaten, Zugangsdaten oder Bildschirmfotos mit
 # Wo sieht man die Version? (für «Fehler melden»)
 version_ort = "im Fuss der Glossar-Website"
 # Befehl, der vor jedem Commit alle Prüfungen ausführt (für PR-Vorlage und CONTRIBUTING)
-pruefbefehl = "python3 .github/blueprint/release.py check"
+pruefbefehl = "composer ci:check"
 # Zusätzliche Punkte für die Checkliste der PR-Vorlage, z. B. ["Nur erfundene Testdaten"]
 pr_checkliste = ["Begriffe mit Quelle bzw. Definition, alphabetisch eingeordnet", "Keine echten Personendaten"]
 # Abschnitt «Entwicklungsumgebung» in CONTRIBUTING.md (Markdown), leer = kein Abschnitt
-entwicklung = "Die Website liegt im Ordner `site/` und wird bei jedem Push auf `main` über GitHub Pages veröffentlicht. Lokal ansehen: `python3 -m http.server -d site 8000`, dann http://localhost:8000 öffnen."
+entwicklung = "Voraussetzungen: PHP 8.4, Composer, Node 22. Einrichten: `composer setup`, Admin anlegen: `php artisan glossary:admin`, starten: `composer dev` (http://localhost:8000). Prüfen wie in der CI: `composer ci:check`. Die reduzierte Fassung für GitHub Pages liegt in `site/`."
 # Abschnitt «Grundsätze» in SECURITY.md, z. B. ["Zugangsdaten nur verschlüsselt speichern"]
 sicherheit_grundsaetze = []
 # Zusätzlicher Link bei «Neues Issue» (z. B. Doku-Ordner), leer = keiner
@@ -86,7 +86,7 @@ startversion = "0.1.0"
 # Titel des GitHub-Releases
 release_titel = "{kurz} {version}"
 # Workflows (Namen), die für den Release-Commit grün sein müssen, z. B. ["deploy"]; leer = sofort
-release_nach = []
+release_nach = ["deploy"]
 # Manifeste mit eigener «version», die bei Änderung erhöht werden muss (Globs), leer = keine Prüfung
 # z. B. ["plugins/*/plugin.json", "modules/*/module.json"]
 plugin_manifeste = []
@@ -105,7 +105,7 @@ admin_issue = 1
 [actions]
 erlaubte_actions = "ausgewaehlt"  # «alle», «ausgewaehlt» (GitHub-eigene + verifizierte + Liste) oder «nur_github»
 verifizierte_erlauben = true      # Actions von verifizierten Erstellern (Marketplace-Haken)
-zusaetzlich_erlaubt = []          # weitere Actions, z. B. ["shivammathur/setup-php@*"]
+zusaetzlich_erlaubt = ["shivammathur/setup-php@*"]  # weitere Actions
 sha_pinning = false               # Actions nur mit Commit-SHA erlauben (sicherer; alle Workflows müssen dann pinnen)
 aufbewahrung_tage = "auto"        # Artefakte/Protokolle; auto: öffentlich 90, privat 30
 fork_freigabe = "all_external_contributors"  # öffentlich: Workflows aus Forks erst nach Freigabe
@@ -122,7 +122,7 @@ code_scanning = "auto"            # CodeQL Standard-Setup; auto: öffentlich an 
 private_meldungen = true          # öffentlich: «Report a vulnerability» einschalten
 
 [dependabot]
-oekosysteme = ["github-actions"]  # z. B. ["github-actions", "composer", "npm", "pip", "docker"]
+oekosysteme = ["github-actions", "composer", "npm"]  # z. B. ["github-actions", "composer", "npm", "pip", "docker"]
 intervall = "weekly"
 # Neue Paketversionen erst nach so vielen Tagen vorschlagen (Schutz vor frisch veröffentlichten, kompromittierten
 # Paketen); Sicherheits-Updates kommen trotzdem sofort. 0 = aus
