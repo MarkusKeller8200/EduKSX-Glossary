@@ -41,6 +41,10 @@ if /i "%ZIEL%"=="--ohne-pull" goto :einrichten
 echo  Neuesten Stand von GitHub holen ...
 git fetch --all --prune || goto :fehler
 
+rem package-lock.json wird von npm erzeugt und je nach npm-Version umgeschrieben: zuruecksetzen,
+rem solange package.json unveraendert ist (sonst ist es eine gewollte Aenderung).
+git diff --quiet -- package.json && git checkout -- package-lock.json 2>nul
+
 rem Lokale Aenderungen? Dann nicht wechseln, sonst gingen sie verloren.
 git diff --quiet && git diff --cached --quiet
 if errorlevel 1 (
@@ -73,7 +77,8 @@ if not exist "vendor\autoload.php" (
 ) else (
     echo  Pakete und Datenbank auf den neuesten Stand bringen ...
     call composer install --no-interaction || goto :fehler
-    call npm install --no-audit --no-fund || goto :fehler
+    rem npm ci haelt sich genau an package-lock.json und aendert sie nicht
+    call npm ci --no-audit --no-fund || call npm install --no-audit --no-fund || goto :fehler
     if not exist "storage\app\database\glossary.sqlite" type nul > "storage\app\database\glossary.sqlite"
     php artisan migrate --force || goto :fehler
     php artisan optimize:clear >nul

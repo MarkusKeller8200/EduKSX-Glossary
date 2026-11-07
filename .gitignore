@@ -43,3 +43,7 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+# Excel-/CSV-Dateien im Projektordner (z. B. Export aus dem Intranet) nicht einchecken
+/*.xlsx
+/*.csv
