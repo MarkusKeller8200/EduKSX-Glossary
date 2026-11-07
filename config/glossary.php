@@ -29,6 +29,16 @@ return [
     // Datenschutzerklärung: Version, deren Kenntnisnahme bei Registrierung bzw. Änderung gespeichert wird (#41, #42)
     'privacy_version' => env('GLOSSARY_PRIVACY_VERSION', '1.0-entwurf'),
 
+    // Datenschutzerklärung noch Entwurf (Hinweis auf /datenschutz), bis der Freigabecheck erledigt ist (#42)
+    'privacy_draft' => (bool) env('GLOSSARY_PRIVACY_DRAFT', true),
+
+    // Löschfristen (docs/LOESCHKONZEPT.md, #42)
+    'retention' => [
+        'inactive_months' => (int) env('GLOSSARY_RETENTION_INACTIVE_MONTHS', 24),
+        'notice_days' => 30,
+        'audit_years' => (int) env('GLOSSARY_RETENTION_AUDIT_YEARS', 5),
+    ],
+
     // Spam-Schutz für Formulare (Cloudflare Turnstile, #41); ohne Schlüssel ausgeschaltet (lokal)
     'turnstile' => [
         'site_key' => env('TURNSTILE_SITE_KEY'),

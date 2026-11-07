@@ -17,6 +17,9 @@ abstract class TestCase extends BaseTestCase
 
         // Backend-Tests unabhängig vom Frontend-Build (kein Vite-Manifest nötig).
         $this->withoutVite();
+
+        // Kenntnisnahme der Datenschutzerklärung nur in den Tests dazu verlangen (#42, PrivacyTest)
+        config(['glossary.privacy_version' => '']);
     }
 
     /** Geheimer Schlüssel des Test-Admins (zweiter Faktor, #11). */

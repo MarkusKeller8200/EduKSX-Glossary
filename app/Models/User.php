@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
  * @property CarbonImmutable|null $email_verified_at
  * @property string|null $privacy_notice_version
  * @property CarbonImmutable|null $privacy_notice_acknowledged_at
+ * @property CarbonImmutable|null $inactivity_notice_sent_at
  * @property string $email
  * @property string|null $two_factor_secret
  * @property list<string>|null $two_factor_recovery_codes Hashes
@@ -70,6 +71,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'immutable_datetime',
             'privacy_notice_acknowledged_at' => 'immutable_datetime',
+            'inactivity_notice_sent_at' => 'immutable_datetime',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',

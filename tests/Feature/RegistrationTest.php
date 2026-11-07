@@ -24,7 +24,7 @@ class RegistrationTest extends TestCase
 
     private function mailOn(): void
     {
-        config(['mail.default' => 'smtp', 'mail.from.address' => 'noreply@eduksx.ch']);
+        config(['mail.default' => 'smtp', 'mail.from.address' => 'noreply@eduksx.ch', 'glossary.privacy_version' => '1.0-test']);
         Mail::fake();
     }
 

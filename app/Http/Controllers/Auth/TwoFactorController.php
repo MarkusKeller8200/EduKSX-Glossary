@@ -59,7 +59,7 @@ class TwoFactorController extends Controller
         $request->session()->forget('login.id');
         Auth::login($user, $remember);
         $request->session()->regenerate();
-        $user->forceFill(['last_login_on' => today()])->save();   // nur das Datum (Löschfristen, #39)
+        $user->forceFill(['last_login_on' => today(), 'inactivity_notice_sent_at' => null])->save();   // nur das Datum (Löschfristen, #39, #42)
 
         return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
     }

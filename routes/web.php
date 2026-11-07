@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PrivacyController;
 use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');
+// Datenschutzerklärung (#42); Kenntnisnahme für angemeldete Konten
+Route::get('datenschutz', [PrivacyController::class, 'show'])->name('privacy');
+Route::middleware('auth')->group(function () {
+    Route::get('datenschutz/kenntnisnahme', [PrivacyController::class, 'acknowledge'])->name('privacy.acknowledge');
+    Route::post('datenschutz/kenntnisnahme', [PrivacyController::class, 'store'])->name('privacy.store');
+});
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
 
 // Interaktive Doku der öffentlichen API (OpenAPI 3.1, #26)

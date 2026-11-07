@@ -68,7 +68,7 @@ class LoginController extends Controller
         // Noch ohne zweiten Faktor: anmelden; wer privilegierte Rechte hat, muss ihn danach einrichten (#37)
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-        $user->forceFill(['last_login_on' => today()])->save();   // nur das Datum (Löschfristen, #39)
+        $user->forceFill(['last_login_on' => today(), 'inactivity_notice_sent_at' => null])->save();   // nur das Datum (Löschfristen, #39, #42)
 
         return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
     }
