@@ -74,3 +74,19 @@ Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht ab
 - Sicherung: konsistente Kopie mit `sqlite3 .backup` bzw. `VACUUM INTO`, verschlüsselt ausser Haus; Ziel und
   Intervall werden geklärt, wenn benötigt.
 - Für die erwartete Datenmenge (einige tausend Begriffe, wenige gleichzeitig Schreibende) reicht SQLite vollauf.
+
+## Umsetzung (#12, 07.11.2026)
+
+- Migration `2026_11_07_000100_create_glossary_tables.php`, Models `Term`, `TermAlias`, `TermRevision`,
+  `Category`, `Source`, `PublicationRelease`; Regeln nur in `App\Glossary\GlossaryService`.
+- **Listen** (Kategorien, Herkunft) mit Schlüssel (`key`, z. B. `beh`, `vsa`), Kürzel, Bezeichnung, Label, Farbe –
+  wie im Intranet, damit der Excel-Export des Intranets (Labels mit «;») direkt passt (#13).
+- **IDs:** Beim Anlegen kann eine bestehende UUID mitgegeben werden (ID aus dem Intranet bleibt gleich).
+- **Revisionen:** jede inhaltliche Änderung eine neue Revision mit vollständigem Abbild; Inhalt unveränderlich, nur
+  die Freigabe wird gesetzt. Ohne Änderung entsteht keine Revision.
+- **Veröffentlichen** setzt `terms.published_revision_id`; Website und API lesen nur diese Revision. Jede
+  Veröffentlichung und jeder Rückzug erzeugt einen Datenstand (`publication_releases`) mit Prüfsumme.
+- **Offizielle Felder** (Abkürzung, Bezeichnung, Aliase offiziell): ohne Recht `edit-official` nur leere Felder
+  setzen. Vorgabe des Rechts: Administration.
+- `genutzt_in` als JSON-Liste (`used_in`), Suchbegriffe zusätzlich als Aliase vom Typ `search`.
+- Noch nicht umgesetzt: `proposals`, `import_batches` (mit #15), `term_relations` (später).

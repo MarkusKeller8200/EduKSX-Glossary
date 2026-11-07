@@ -1,10 +1,25 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { versionLabel } from '@/components/version-label';
 
 /** Startseite der Administration. Redaktion, Import und Moderation folgen ab 0.2. */
-export default function Dashboard({ admins }: { admins: number }) {
+type Stats = {
+    terms: number;
+    published: number;
+    categories: number;
+    sources: number;
+    release: number | null;
+};
+
+export default function Dashboard({
+    admins,
+    stats,
+}: {
+    admins: number;
+    stats: Stats;
+}) {
     const { appVersion, auth } = usePage().props;
 
     return (
@@ -26,12 +41,41 @@ export default function Dashboard({ admins }: { admins: number }) {
                     </CardHeader>
                     <CardContent>{admins}</CardContent>
                 </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Begriffe</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {stats.terms} gesamt, davon {stats.published}{' '}
+                        veröffentlicht
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Listen und Datenstand</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {stats.categories} Kategorien, {stats.sources} Herkünfte
+                        · Datenstand {stats.release ?? '–'}
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="mt-6 flex flex-wrap gap-3">
+                <Button asChild>
+                    <Link href="/admin/import">Excel-Import</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <Link href="/admin/begriffe">Begriffe anzeigen</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <a href="/admin/export">Excel-Export</a>
+                </Button>
             </div>
             <Alert className="mt-6">
                 <AlertTitle>Nächste Schritte</AlertTitle>
                 <AlertDescription>
-                    Zweiter Faktor für Admins, Datenmodell und Übernahme der
-                    Begriffe aus dem Intranet (Meilenstein 0.2).
+                    Zweiter Faktor für Admins, Redaktion mit Tabelle und
+                    Excel-Import aus dem Intranet (Meilenstein 0.2).
                 </AlertDescription>
             </Alert>
         </>

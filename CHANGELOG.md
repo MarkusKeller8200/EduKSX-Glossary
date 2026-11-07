@@ -8,6 +8,22 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Excel-Import und -Export (#13, #15):** gleiches Format wie der Excel-Export des Intranets (19 Spalten,
+  Mehrfachwerte mit «;»). Import immer zuerst als Vorschau (neu / geändert / Fehler), übernommen wird erst mit
+  «Übernehmen»; Zeilen ohne ID werden neu angelegt, eine ID aus dem Intranet bleibt erhalten, nie wird gelöscht.
+  Unbekannte Kategorien und Herkünfte auf Wunsch neu anlegen. Importierte Begriffe sind Entwürfe. Export aller
+  Begriffe und leere Vorlage. Neue Seite «Begriffe» in der Administration (Liste mit Filter und Stand der
+  Veröffentlichung).
+- **Ausgewählte veröffentlichen (#23):** in der Begriffsliste Einträge auswählen (einzeln, alle gefilterten oder
+  «Alle Entwürfe auswählen») und in einem Schritt veröffentlichen – ein gemeinsamer Datenstand; Begriffe ohne
+  Änderung seit der letzten Freigabe werden übersprungen.
+- **Weg in die Administration:** Knopf «Anmelden» bzw. «Administration» oben auf der Website; in der Übersicht der
+  Administration Knöpfe zu Excel-Import, Begriffen und Excel-Export.
+- **Datenmodell (#12):** Begriffe, Kategorien, Herkunft, Schreibweisen und Revisionen in SQLite. Jede Änderung
+  ergibt eine unveränderliche Revision; öffentlich ist nur die freigegebene, Änderungen danach bleiben Entwurf.
+  Jede Veröffentlichung erzeugt einen neuen Datenstand mit Prüfsumme (für den Sync). Offizielle Felder nur mit
+  Recht änderbar, mehrdeutige Abkürzungen erlaubt, IDs aus dem Intranet bleiben erhalten. Administration zeigt
+  Anzahl Begriffe, Listen und Datenstand.
 - **Startdatei `start.bat` (#20):** lokaler Start unter Windows per Doppelklick – holt zuerst den neuesten Stand
   des Branches (`start.bat BRANCH` checkt einen anderen Branch aus, `--ohne-pull` startet ohne GitHub), bricht bei
   lokalen Änderungen ab, richtet beim ersten Start alles ein und fragt nach dem Admin, sonst Pakete und Datenbank

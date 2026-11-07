@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
+import { Button } from '@/components/ui/button';
 import { versionLabel } from '@/components/version-label';
 
 /** Öffentlicher Rahmen: Kopf mit Wortmarke, Inhalt, Fuss mit Version und Signatur (CI-Manual Abschnitt 9). */
@@ -28,14 +29,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         >
                             Versionen
                         </Link>
-                        {auth.user ? (
-                            <Link
-                                href="/admin"
-                                className="text-link underline-offset-4 hover:underline"
-                            >
-                                Administration
+                        <Button asChild size="sm" variant="outline">
+                            <Link href={auth.user ? '/admin' : '/anmelden'}>
+                                {auth.user ? 'Administration' : 'Anmelden'}
                             </Link>
-                        ) : null}
+                        </Button>
                         <AppearanceToggleTab />
                     </nav>
                 </div>
