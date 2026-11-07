@@ -129,6 +129,8 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 - Hosting: [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (Entscheid DEC-013).
 - Stack: [KONZEPT-STACK.md](KONZEPT-STACK.md) (Entwurf).
+- Auftritt und GUI-Bausteine: [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md) (Entwurf) – Auftritt nach CI MarKusSXCH,
+  Bausteine aus dem Intranet übernommen, nicht neu entwickelt.
 - Issues, Versionen, Releases: Blueprint-Ablauf ([GITHUB-ABLAUF.md](GITHUB-ABLAUF.md)),
   [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) (Entwurf).
 

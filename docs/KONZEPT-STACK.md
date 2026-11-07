@@ -9,6 +9,7 @@
 | ---------- | ------------------------------------------------------------------- | --------------- |
 | Backend    | Laravel 13 (PHP 8.4)                                                | ja              |
 | Frontend   | React 19 + TypeScript, Inertia 3, shadcn/ui (Radix), Tailwind 4     | ja              |
+| GUI-Bausteine | aus dem Intranet übernommen (`components/ui`, `data-grid`, `term`), Farbwerte nach CI MarKusSXCH ([KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)) | ja, Aussehen anders |
 | Build      | Vite (Vite Plus wie im Intranet)                                    | ja              |
 | Datenbank  | **PostgreSQL 17** (Container), Tests mit SQLite                     | Ziel im Intranet |
 | API        | Laravel-Routen `/api/v1`, OpenAPI 3.1 (`openapi/glossary-v1.yaml`), Doku mit Scalar | ja (Scalar) |
