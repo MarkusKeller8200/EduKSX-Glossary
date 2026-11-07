@@ -37,6 +37,13 @@ Online stellen auf `https://glossary.eduksx.ch` (Hostinger-VPS, Docker, Traefik,
 | `VERSION`, `CHANGELOG.md`      | Version und Versionshistorie (Seite «Versionen»)                                    |
 | `docs/`                        | Konzepte, Entscheide, Ablauf auf GitHub                                             |
 
+## Rechtliches und Drittlizenzen
+
+Die Herkunft verwendeter Frameworks, kopierter Komponenten und weiterer Bibliotheken ist in
+[docs/LEGAL.md](docs/LEGAL.md) dokumentiert. Die öffentliche Übersicht ist unter `/legals` vorgesehen.
+Die Rechte an übernommenem Intranet-Code und die eigene Softwarelizenz werden vor einer vollständigen
+Freigabe gesondert geprüft. Diese Dokumentation ersetzt keine vollständige Lizenzinventur.
+
 ## Mitmachen
 
 Begriffe vorschlagen, Fehler melden oder Verbesserungen anregen über die
