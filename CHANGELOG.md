@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Redaktion (#14):** Begriffe in der Administration anlegen und bearbeiten (Formular mit allen Feldern, offizielle
+  Felder nur mit Recht), Detailseite mit Arbeitsstand, Stand der Veröffentlichung und Verlauf (wer, wann, welche
+  Felder geändert), «Veröffentlichen» und «Zurückziehen» je Begriff. Neue Seite «Listen» zum Pflegen von
+  Kategorien und Herkunft (Schlüssel bleiben fest, Löschen nur ohne Verwendung).
 - **Öffentliche API v1 (#25):** `/api/v1/terms` (Suche, Kategorie, Status, Seiten), `/api/v1/terms/{id-oder-slug}`,
   `/api/v1/categories`, `/api/v1/sources`, `/api/v1/releases/latest`, `/api/v1/changes?since=` (Change-Feed mit
   Cursor inkl. Rückzügen, für den Sync des Intranets) und `/api/v1/exports?format=json`. Nur veröffentlichte

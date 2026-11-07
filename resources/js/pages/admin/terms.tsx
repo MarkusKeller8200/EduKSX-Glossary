@@ -87,8 +87,11 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                     <Button asChild variant="outline">
                         <a href="/admin/export">Excel-Export</a>
                     </Button>
-                    <Button asChild>
+                    <Button asChild variant="outline">
                         <Link href="/admin/import">Excel-Import</Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/admin/begriffe/neu">Neuer Begriff</Link>
                     </Button>
                 </div>
             </div>
@@ -166,7 +169,12 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                                     className="px-3 py-2 font-medium"
                                     translate="no"
                                 >
-                                    {b.abkuerzung}
+                                    <Link
+                                        href={`/admin/begriffe/${b.id}`}
+                                        className="text-link underline-offset-4 hover:underline"
+                                    >
+                                        {b.abkuerzung || '–'}
+                                    </Link>
                                 </td>
                                 <td className="px-3 py-2" translate="no">
                                     {b.bezeichnung}

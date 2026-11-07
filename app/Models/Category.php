@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * Kategorie (erweiterbare Liste, mehrere je Begriff) – Felder wie die Listen im Intranet-Glossar.
@@ -27,6 +28,12 @@ class Category extends Model
 
     /** @var list<string> */
     protected $fillable = ['key', 'abbreviation', 'name', 'label', 'description', 'url', 'note', 'color', 'sort_order'];
+
+    /** @return BelongsToMany<Term, $this> */
+    public function terms(): BelongsToMany
+    {
+        return $this->belongsToMany(Term::class, 'term_categories');
+    }
 
     /** Kurzes Label für Tags und Excel: Label, sonst Kürzel, sonst Schlüssel. */
     public function displayLabel(): string

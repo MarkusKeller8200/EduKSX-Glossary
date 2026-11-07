@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ExcelController;
+use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\PageController;
@@ -25,8 +26,22 @@ Route::post('abmelden', [LoginController::class, 'destroy'])->middleware('auth')
 // Administration: alles, was Daten ändert, nur angemeldet und mit Recht
 Route::middleware(['auth', 'can:administer'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
+    // Redaktion (#14)
     Route::get('begriffe', [TermController::class, 'index'])->name('admin.terms');
     Route::post('begriffe/veroeffentlichen', [TermController::class, 'publish'])->name('admin.terms.publish');
+    Route::get('begriffe/neu', [TermController::class, 'create'])->name('admin.terms.create');
+    Route::post('begriffe', [TermController::class, 'store'])->name('admin.terms.store');
+    Route::get('begriffe/{term}', [TermController::class, 'show'])->whereUuid('term')->name('admin.terms.show');
+    Route::get('begriffe/{term}/bearbeiten', [TermController::class, 'edit'])->whereUuid('term')->name('admin.terms.edit');
+    Route::put('begriffe/{term}', [TermController::class, 'update'])->whereUuid('term')->name('admin.terms.update');
+    Route::post('begriffe/{term}/veroeffentlichen', [TermController::class, 'publishOne'])->whereUuid('term')->name('admin.terms.publish-one');
+    Route::post('begriffe/{term}/zurueckziehen', [TermController::class, 'unpublish'])->whereUuid('term')->name('admin.terms.unpublish');
+
+    // Listen: Kategorien und Herkunft
+    Route::get('listen', [ListController::class, 'index'])->name('admin.lists');
+    Route::post('listen/{list}', [ListController::class, 'store'])->whereIn('list', ['kategorien', 'herkunft'])->name('admin.lists.store');
+    Route::put('listen/{list}/{id}', [ListController::class, 'update'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('id')->name('admin.lists.update');
+    Route::delete('listen/{list}/{id}', [ListController::class, 'destroy'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('id')->name('admin.lists.destroy');
 
     // Excel (#13, #15): Export, Vorlage, Import mit Vorschau
     Route::get('export', [ExcelController::class, 'export'])->name('admin.export');
