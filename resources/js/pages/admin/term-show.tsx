@@ -226,7 +226,10 @@ export default function TermShow({
                                     ) {
                                         post(
                                             `/admin/begriffe/${b.id}/wiederherstellen`,
-                                            { revision: b.veroeffentlicht },
+                                            {
+                                                revision:
+                                                    b.veroeffentlicht ?? 0,
+                                            },
                                         );
                                     }
                                 }}
