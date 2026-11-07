@@ -1,198 +1,139 @@
-# Konzept Benutzerverwaltung und Rollen (Entwurf, #34)
+# Konzept: Benutzerverwaltung, Identitäten und Berechtigungen
 
-Vorgabe der/des Projektverantwortlichen vom 07.11.2026: Rollen Developer, Admin, Moderator und API; Angaben zur
-Person nur so viele wie nötig. Entscheide vom 07.11.2026 eingearbeitet: konfigurierbare Rechte je Rolle,
-Selbstregistrierung mit Double-Opt-in, Developer mit allen Rechten, Anmeldung auch über Microsoft und Edulog.
-Dieses Konzept ersetzt den Abschnitt «Rollen (Vorschlag)» in [KONZEPT.md](KONZEPT.md). Es gilt erst nach der
-Abnahme (DEC-017).
+**Stand:** 07.11.2026 · **Status:** fachlich abgenommenes Konzept · **Entscheide:** DEC-014, DEC-017 bis DEC-019 (letztere nach Eintrag ins Register)  
+**Geltung:** EduKSX-Glossary; ersetzt den bisherigen Entwurf `KONZEPT-BENUTZER.md`.
 
-## Grundsätze
+## 1. Ziele und Grundsätze
 
-- **Datensparsam:** nur Angaben, die für Anmeldung, Zuordnung von Vorschlägen und Missbrauchsschutz nötig sind.
-  Keine Telefonnummer, Adresse, Geburtsdatum oder Foto.
-- **Öffentlich ist höchstens der Community-Name.** Vorname, Name, E-Mail, Funktion und Einrichtung sehen nur
-  Moderation und Administration.
-- **Rollen sind kombinierbar** (z. B. Admin und Moderator). Ein Konto ohne Rolle ist ein Community-Konto.
-- **Rechte sind je Rolle einstellbar** (Entscheid): Die Administration legt in einer Matrix fest, welche Funktionen
-  eine Rolle darf. Der Code prüft immer das Recht (Gate), nie den Rollennamen.
-- **Anmeldung** mit lokalem Konto (E-Mail und Passwort, DEC-014) oder über **Microsoft** bzw. **Edulog** (Single
-  Sign-On). Es entsteht immer ein Konto im Glossary; Rollen und Rechte vergibt das Glossary, nicht der
-  Anmeldedienst.
+EduKSX-Glossary ist öffentlich lesbar. Persönliche Konten dienen der Einreichung und Bearbeitung von Vorschlägen sowie redaktionellen und administrativen Aufgaben. Technische Integrationen verwenden getrennte Servicekonten. Das Glossary selbst verwaltet Rollen und Rechte; externe Anmeldedienste vergeben keine Glossary-Berechtigungen.
 
-## Rollen
+- **Minimalprinzip:** Nur erforderliche Personendaten, Berechtigungen und technische Identitäten; standardmässig kein Recht ohne ausdrückliche Zuweisung.
+- **Öffentlichkeit:** Nur veröffentlichte Glossary-Daten verlassen die interne Veröffentlichungsgrenze. Öffentlich sichtbar ist bei einem Vorschlag höchstens der freiwillige Community-Name; private Vorschläge selbst bleiben intern.
+- **Nachvollziehbarkeit:** Sicherheitsrelevante Änderungen, Moderation, Freigaben und schreibende Servicezugriffe werden angemessen protokolliert.
+- **Kompatibilität:** Laravel 13, bestehender TOTP-Mechanismus, SQLite, öffentliche REST-API ohne Leseschlüssel; spätere Microsoft-, Edulog-, Confluence- und MCP-Anbindungen.
 
-| Rolle         | Wofür                                                                | Zweiter Faktor | Anmeldung             |
-| ------------- | -------------------------------------------------------------------- | -------------- | --------------------- |
-| _(Community)_ | Vorschläge einreichen, eigene Vorschläge und deren Stand sehen       | freiwillig     | Passwort              |
-| **Moderator** | Vorschläge prüfen, Rückfragen stellen, Begriffe als Entwurf ändern   | Pflicht        | Passwort + Code       |
-| **Admin**     | Freigeben/Veröffentlichen, Benutzer und Rollen, Import, Listen       | Pflicht        | Passwort + Code       |
-| **Developer** | alle Rechte, auch moderieren und freigeben; dazu Technik             | Pflicht        | Passwort + Code       |
-| **API**       | Maschinenkonto (z. B. Intranet, später MCP/Rovo) für Schreibzugriffe | –              | nur Token, kein Login |
+## 2. Identitätsarten und Rollen
 
-### Rechte je Rolle (einstellbar)
+### 2.1 Persönliche Benutzerkonten
 
-Die Tabelle zeigt die **Voreinstellung**. In der Administration lässt sich je Rolle ein- und ausschalten, welche
-Funktionen sie darf. Zusätzliche Rollen kann die Administration anlegen, z. B. «Redaktion Schule».
+| Rolle | Aufgaben | MFA | Anmeldung |
+| --- | --- | --- | --- |
+| Community (keine zusätzliche Rolle) | Vorschläge einreichen; eigene Vorschläge und Status einsehen | freiwillig | lokal oder unterstützter Identitätsanbieter |
+| Moderator | Vorschläge prüfen; Rückfragen; Entwürfe bearbeiten | verpflichtend | persönliche Anmeldung mit wirksamer MFA |
+| Admin | Veröffentlichen; Benutzer- und Rollenverwaltung innerhalb der Sicherheitsgrenzen; Import und Listen | verpflichtend | persönliche Anmeldung mit wirksamer MFA |
+| Developer | sämtliche Anwendungsrechte sowie System- und Sicherheitsverwaltung | verpflichtend | persönliche Anmeldung mit wirksamer MFA |
 
-| Recht (Gate)      | Community | Moderator | Admin | Developer | API        |
-| ----------------- | --------- | --------- | ----- | --------- | ---------- |
-| `propose`         | ja        | ja        | ja    | ja        | ja (Token) |
-| `moderate`        | –         | ja        | ja    | ja        | –          |
-| `edit-terms`      | –         | ja        | ja    | ja        | –          |
-| `publish`         | –         | –         | ja    | ja        | –          |
-| `edit-official`   | –         | –         | ja    | ja        | –          |
-| `manage-users`    | –         | –         | ja    | ja        | –          |
-| `import`, `lists` | –         | –         | ja    | ja        | –          |
-| `system`          | –         | –         | –     | ja        | –          |
+Rollen sind kombinierbar. Die Anwendung berechnet die effektiven Rechte aus allen zugewiesenen Rollen und prüft sie **serverseitig für jede geschützte Aktion**. Eine Rolle ist keine direkte Autorisierung; massgebend ist das angeforderte Recht. Die Developer-Rolle ist eine unveränderbare, geschützte Systemrolle.
 
-- **Schutz vor Aussperren:** Developer hat immer alle Rechte; diese Rolle ist nicht einstellbar. Das Recht
-  `manage-users` kann nicht allen Rollen entzogen werden, und das letzte Konto mit diesem Recht lässt sich nicht
-  sperren oder löschen.
-- **Zweiter Faktor:** Pflicht für jede Rolle mit einem Recht ausser `propose`; einstellbar je Rolle, Voreinstellung
-  wie oben.
-- Jede Änderung an Rollen und Rechten wird protokolliert (wer, wann, vorher, nachher).
-- **API-Konten** melden sich nie mit Passwort an. Sie erhalten ein Token: zufällig erzeugt, nur einmal angezeigt,
-  gespeichert nur als Hash, mit Ablaufdatum und jederzeit widerrufbar. Die öffentliche Lese-API bleibt ohne
-  Token.
-- Der heutige Schalter `is_admin` geht in den Rollen auf. Bestehende Konten erhalten die Rollen Admin und Developer.
+### 2.2 Servicekonten
 
-## Angaben zum Konto
+Servicekonten sind **keine Benutzerrolle** und werden getrennt von Personenkonten geführt. Sie dienen etwa dem Intranet, einem zukünftigen MCP-Adapter oder anderen freigegebenen Automatisierungen. Kein interaktiver Login, kein Passwort, keine Sitzungscookies. Die öffentliche Lese-API bleibt ohne Konto oder Schlüssel zugänglich.
 
-| Feld                    | Pflicht | Sichtbar für                 | Bemerkung                                                                  |
-| ----------------------- | ------- | ---------------------------- | -------------------------------------------------------------------------- |
-| Community-Name          | –       | öffentlich (bei Vorschlägen) | eindeutig; leer → Vorschläge erscheinen als «Community»                    |
-| Vorname                 | ja      | Moderation, Administration   |                                                                            |
-| Name                    | ja      | Moderation, Administration   |                                                                            |
-| Funktion                | –       | Moderation, Administration   | Freitext, z. B. «Schulleitung», «Gemeindeschreiberin»                      |
-| Öffentliche Einrichtung | –       | Moderation, Administration   | Art aus Liste: Schule, Schulgemeinde, Gemeinde, Kanton, andere (Entscheid) |
-| Gemeinde / Schule       | –       | Moderation, Administration   | Name als Freitext, z. B. «Primarschule Musterdorf»                         |
-| E-Mail                  | ja      | Moderation, Administration   | eindeutig, muss bestätigt sein                                             |
-| Passwort                | ja¹     | niemand                      | mind. 12 Zeichen, nur als Hash                                             |
-| Zweiter Faktor          | –       | Administration (nur Status)  | Pflicht für Moderator, Admin, Developer                                    |
+Jedes Servicekonto erhält einen Namen, Zweck, verantwortliche natürliche Person, Status und eng begrenzte Scopes. Token werden kryptografisch zufällig erzeugt, nur einmal angezeigt, ausschliesslich als sichere Hashwerte abgelegt, befristet, einzeln widerrufbar und nach Möglichkeit regelmässig rotiert. Token und Identitäten werden von anderen Rollen unabhängig geprüft. Schreibende Servicezugriffe verwenden dieselbe Geschäftslogik, Validierung, Auditierung und Moderationskette wie schreibende Personenzugriffe. Ein Servicekonto darf nicht unmittelbar veröffentlichen, solange dafür kein gesonderter Entscheid getroffen wurde.
 
-¹ Nicht nötig, wenn sich jemand nur über Microsoft oder Edulog anmeldet. Ein Passwort lässt sich später setzen.
+## 3. Berechtigungsmodell
 
-**Vom System geführt** (nicht eingegeben, nötig für Sicherheit und Löschfristen):
+| Gate / Recht | Community | Moderator | Admin | Developer | Servicekonto (Default) |
+| --- | --- | --- | --- | --- | --- |
+| `propose` | ja | ja | ja | ja | nur mit Scope |
+| `moderate` | nein | ja | ja | ja | nein |
+| `edit-terms` | nein | ja | ja | ja | nein |
+| `publish` | nein | nein | ja | ja | nein |
+| `edit-official` | nein | nein | ja | ja | nein |
+| `manage-users` | nein | nein | ja (begrenzt) | ja | nein |
+| `import`, `lists` | nein | nein | ja | ja | nein |
+| `system` | nein | nein | nein | ja | nein |
+| Developer-Rolle vergeben/entziehen | nein | nein | nein | ja | nein |
 
-- Rollen, Status (aktiv / gesperrt), E-Mail bestätigt am
-- verknüpfte Anmeldedienste: Dienst (Microsoft, Edulog) und die eindeutige, stabile Kennung des Dienstes
-  (`sub`/`oid`), keine weiteren Profildaten
-- Zustimmung zur Datenschutzerklärung (Zeitpunkt, Version)
-- letzte Anmeldung: nur das Datum, um inaktive Konten zu löschen
-- angelegt / geändert am
+Dies sind **Voreinstellungen**, nicht zwingend jede denkbare zukünftige Rolle. Zusätzliche Rollen (z. B. «Redaktion Schule») sind möglich. Für die Konfiguration gelten drei Klassen:
 
-**Bewusst nicht gespeichert:** IP-Adressen über die Sitzung hinaus, Geräteangaben, Telefon, Adresse,
-Geburtsdatum, Foto, Geschlecht.
+1. **Normale Rechte** (`propose`, `moderate`, `edit-terms`): durch autorisierte Rollenverwaltung anpassbar.
+2. **Privilegierte Rechte** (`publish`, `edit-official`, `manage-users`, `import`, `lists`): nur mit ausdrücklich zugestandener Verwaltungsbefugnis veränderbar; eine Person darf eigene Berechtigungen weder direkt noch indirekt erhöhen. Die Vergabe eines Rechts darf niemals über die eigene Verwaltungsgrenze hinausgehen.
+3. **Systemkritische Rechte** (`system`, Developer-Vergabe, Sicherheitskonfiguration): ausschliesslich Developer, nicht über die Rollenmatrix umkonfigurierbar.
 
-## Abläufe
+Die Developer-Rolle wird nur durch einen bereits berechtigten Developer oder über einen **gesicherten administrativen Serverprozess** zugewiesen beziehungsweise entzogen. Ein Admin kann weder sich selbst noch anderen Developer-Rechte geben. Bei der Migration erhalten vorhandene Admin-Konten zunächst **nur Admin**, niemals automatisch Developer. Die anfängliche Developer-Zuweisung ist explizit vorzunehmen und zu protokollieren. Schutz gegen Aussperren: Das letzte funktionsfähige Developer-Konto darf nicht über die GUI gesperrt, gelöscht oder seiner Rolle beraubt werden; ein kontrollierter, protokollierter Notfallzugang bleibt möglich. Das gilt auch für die letzte nutzbare Verwaltungsberechtigung.
 
-- **Registrierung (Entscheid: frei, Double-Opt-in):** Formular mit Spam-Schutz (Cloudflare Turnstile) und
-  Zustimmung zur Datenschutzerklärung. Danach geht ein Bestätigungslink per E-Mail (60 Minuten gültig). Erst nach
-  der Bestätigung ist das Konto aktiv, als Community-Konto ohne Rolle. Unbestätigte Registrierungen werden nach 7
-  Tagen gelöscht. Rollen vergibt nur die Administration. Nötig ist ein E-Mail-Versand (SMTP).
-- **Passwort vergessen:** Link per E-Mail (60 Minuten gültig). Ob die Adresse ein Konto hat, verrät die Antwort
-  nicht.
-- **Selbstverwaltung:** Angaben ändern, Passwort ändern, zweiten Faktor einrichten, Konto löschen.
-- **Administration:** Benutzerliste mit Suche, Rollen vergeben, sperren/entsperren, zweiten Faktor zurücksetzen,
-  Passwort-Link senden. Jede Änderung an Rollen wird protokolliert (wer, wann, was).
-- **Löschen:** Auf Wunsch sofort. Inaktive Community-Konten nach 24 Monaten, mit Hinweis 30 Tage vorher.
-  Vorschläge bleiben erhalten, erscheinen danach aber als «Community» ohne Personenbezug.
-- **Sperren** statt löschen bei Missbrauch. Ein gesperrtes Konto kann sich nicht anmelden.
+Änderungen an Rollen, privilegierten Rechten und Sicherheitskonfigurationen enthalten ausführende Identität, Ziel, Zeit, alten und neuen Wert sowie Ergebnis im Audit-Protokoll. Rollen- und Rechteänderungen werden unverzüglich auf aktive Sitzungen und Tokenberechtigungen wirksam.
 
-## E-Mail-Versand (offen für jeden Dienst)
+## 4. Personendaten und Kontofelder
 
-Entscheid 07.11.2026: Der Versand wird nicht an einen Anbieter gebunden. Die Anwendung nutzt die Mail-Schicht von
-Laravel; der Dienst wird nur über die Umgebung des Servers eingestellt (`MAIL_MAILER`, `MAIL_HOST` usw.).
+| Feld | Pflicht | Öffentlichkeit / Sichtbarkeit | Hinweis |
+| --- | --- | --- | --- |
+| Vorname, Nachname | grundsätzlich ja; bei Edulog nach Attributverfügbarkeit gesondert beurteilen | nur berechtigte Moderation/Administration | nicht öffentlich |
+| E-Mail | für lokale Anmeldung ja; bei Edulog ggf. gesondert erheben und verifizieren | nur berechtigte Stellen | Kontakt / Wiederherstellung |
+| Passwort | nur bei lokalem Login | nie im Klartext | mindestens 12 Zeichen; sicherer Passwort-Hash |
+| Community-Name | nein | höchstens bei ausdrücklich öffentlich gezeigter Zuschreibung | eindeutig; leer = «Community» |
+| Funktion | nein | intern | Freitext |
+| Einrichtungsart | nein | intern | Schule, Schulgemeinde, Gemeinde, Kanton, andere |
+| Gemeinde/Schule | nein | intern | Freitext |
+| Zweiter Faktor | für privilegierte Nutzung ja | Admin sieht nur Status | TOTP-Geheimnis verschlüsselt; Recovery-Codes gehasht |
 
-| Dienst                                                 | Anbindung                                                                    | Paket nötig           |
-| ------------------------------------------------------ | ---------------------------------------------------------------------------- | --------------------- |
-| Microsoft 365 / Exchange Online                        | SMTP (`smtp.office365.com:587`, Postfach mit SMTP AUTH) oder Microsoft Graph | Graph: ja; SMTP: nein |
-| Google Workspace / Gmail                               | SMTP (`smtp.gmail.com:587`) mit App-Passwort bzw. SMTP-Relay                 | nein                  |
-| Infomaniak, Hostinger u. a.                            | SMTP des Anbieters                                                           | nein                  |
-| Versanddienste (Postmark, Amazon SES, Resend, Mailgun) | Treiber von Laravel                                                          | teilweise             |
+Weitere intern geführte Daten: Rollen, Kontostatus, E-Mail-Verifikation, Datum der letzten Anmeldung (zwecks Inaktivität), Erstell- und Änderungszeitpunkt, Version/Zeitpunkt der **Kenntnisnahme** der Datenschutzerklärung sowie getrennte, zweckgebundene Einwilligungen nur falls benötigt. Externe Identitäten werden als `provider`, `issuer`, `subject` und nötigenfalls ergänzend `tenant_id`/`object_id` gespeichert. Eine E-Mail ist niemals der technische Schlüssel einer externen Identität.
 
-- **Absender** einstellbar (`MAIL_FROM_ADDRESS`, z. B. `noreply@eduksx.ch`), Antworten an eine eigene Adresse.
-- **Testmail** aus der Administration (Recht `system`), damit sich die Einstellung ohne Registrierung prüfen lässt.
-- **Ohne eingerichteten Versand** (`MAIL_MAILER=log`) bleibt die Registrierung ausgeschaltet; Konten legt dann
-  die Administration an.
-- Mails nur in die Warteschlange und mit Wiederholung, damit ein Ausfall des Dienstes keine Anmeldung blockiert.
-- Zugangsdaten nur in der Umgebung des Servers, nie im Repository.
+Keine routinemässige Speicherung von Telefonnummer, Adresse, Geburtsdatum, Foto, Geschlecht oder detaillierten Geräteprofilen. Temporäre IP-/Zugriffsdaten für Sicherheit und Missbrauchsschutz sind von persistenten Kontoattributen getrennt und folgen dem Löschkonzept.
 
-## Anmeldung über Microsoft und Edulog (Single Sign-On)
+## 5. Registrierung, Anmeldung und Kontoschutz
 
-Beide Dienste über **OpenID Connect** (Authorization Code Flow mit PKCE). Auf der Anmeldeseite stehen die Knöpfe
-«Mit Microsoft anmelden» und «Mit Edulog anmelden» neben E-Mail und Passwort.
+### 5.1 Community
 
-- **Microsoft (Entscheid 07.11.2026: Kontoverknüpfung, allen Microsoft-Anmeldungen vertrauen):** Jedes
-  Microsoft-Konto kann sich anmelden, Geschäfts- und Schulkonten aller Organisationen und private Konten (Endpunkt
-  `common`). Schulen und Gemeinden müssen nichts registrieren und nichts freigeben; das Konto wird nur mit dem
-  Glossary-Konto verknüpft.
-    - **Technisch unvermeidbar:** Für «Mit Microsoft anmelden» braucht das Glossary **einmal** eine eigene
-      App-Registrierung (Client-ID). Diese ist «mehrinstanzenfähig» (alle Organisationen und private Konten) und
-      liegt in einem beliebigen Entra-Tenant des Projekts, z. B. einem kostenlosen. Rücksprungadresse
-      `https://glossary.eduksx.ch/anmelden/microsoft`.
-    - Angefragt werden nur `openid`, `profile` und `email`. Das braucht normalerweise keine Zustimmung einer
-      Administration. Organisationen, die Benutzerzustimmung allgemein sperren, müssen die App einmal zulassen;
-      dann erscheint bei Microsoft ein Hinweis.
-    - Optional später: Herausgeber-Verifizierung bei Microsoft, damit kein Hinweis «nicht überprüfter
-      Herausgeber» erscheint.
-- **Edulog (abgeklärt 07.11.2026):** Föderation der Identitätsdienste im Bildungsraum Schweiz (im Auftrag der
-  EDK, betrieben von educa). Lernende, Lehrpersonen und Mitarbeitende der Bildungsverwaltung melden sich mit ihrem
-  Edulog-Pseudonym an.
-    - **Keine offene API zum Selbstanmelden:** Dienstleistungsanbieter treten der Föderation vertraglich bei. Ablauf:
-      Vorbedingungen prüfen → «Formular Dienstleistungsanbieter» an `info@edulog.ch` → Prüfung (Due Diligence)
-      → «Föderationsvertrag Dienstleistungsanbieter» unterzeichnen → Integration in einer Testumgebung →
-      Verifizierung durch die Geschäftsstelle → Produktion.
-    - **Protokoll:** Das Formular von 2021 fragt nach SAML-Angaben; die Anmeldeseite von Edulog bietet auch
-      OpenID Connect. Welches Protokoll Edulog für das Glossary vorsieht, klärt der Antrag. Bevorzugt wird OpenID
-      Connect.
-    - **Bedingungen:** Sicherheitsanforderungen von Edulog und Datenminimierung (Attribute nach «Leitfaden
-      Attribute»). Für das Glossary reichen Pseudonym, Vorname, Name und E-Mail.
-    - Bis zur Verifizierung erscheint der Knopf nicht. Die Umsetzung kommt nach der Anbindung von Microsoft.
-- **Erste Anmeldung:** Gibt es ein Konto mit derselben, vom Dienst bestätigten E-Mail, fragt das Glossary nach dem
-  Passwort dieses Kontos und verknüpft danach. Sonst entsteht ein neues Community-Konto mit Vorname, Name und
-  E-Mail vom Dienst (bestätigt, kein Double-Opt-in nötig). Fehlende Pflichtangaben und die Zustimmung zur
-  Datenschutzerklärung werden einmal abgefragt.
-- **Übernommene Angaben:** nur Vorname, Name, E-Mail und die Kennung. Keine Gruppen, Fotos oder
-  Organisationsdaten.
-- **Zweiter Faktor:** Für Rollen mit Pflicht verlangt das Glossary seinen eigenen Code auch nach einer Anmeldung
-  über Microsoft oder Edulog. Später kann eine Einstellung die Mehrfaktor-Anmeldung des Dienstes anerkennen.
-- **Verknüpfen und lösen** im eigenen Konto. Lösen geht nur, wenn ein Passwort oder ein anderer Dienst bleibt.
-- **Technik:** Laravel Socialite mit dem Microsoft-Provider; für Edulog je nach Protokoll ein OpenID-Connect- oder
-  SAML-Provider. Diese Pakete werden lokal installiert, weil die Cloud-Sitzung keine Pakete installieren kann.
-  Geheimnisse (Client-Secret, Zertifikate) nur in der Umgebung des Servers, nie im Repository.
+Öffentliches Lesen inklusive der GET-API benötigt kein Konto. Für Vorschläge **innerhalb der Anwendung** wird ein persönliches Konto mit verifiziertem Zugang benötigt. Lokale Selbstregistrierung: Spam-Schutz (z. B. Cloudflare Turnstile), Information über die Datenschutzerklärung mit protokollierter Kenntnisnahme, Bestätigungslink per E-Mail (60 Minuten gültig), Freischaltung erst nach Bestätigung. Unbestätigte Registrierungen werden nach sieben Tagen gelöscht. Die Rolle ist zunächst ausschliesslich Community; weitere Rechte weist eine autorisierte Stelle zu. Bei fehlender Versandkonfiguration ist Selbstregistrierung deaktiviert; autorisierte Personen können Konten administrativ anlegen.
 
-## Umsetzung (nach Abnahme, Meilenstein 0.4.0)
+Die GitHub-Issue-Formulare können bis zur integrierten Community-Funktion als Übergangskanal bestehen bleiben. Sie sind kein anonymer Zugang zu internen Vorschlägen und unterliegen den separaten GitHub-Datenschutzbedingungen. Kein Vorschlag wird ohne redaktionelle Freigabe veröffentlicht.
 
-1. Datenmodell: Spalten für die Angaben; Tabellen `roles`, `role_permissions`, `user_roles`,
-   `user_identities` (Anmeldedienste) und `user_audit`; Migration `is_admin` → Admin + Developer.
-2. Rechte (Gates) aus der Rollen-Matrix; die Administration nutzt sie statt `administer`.
-3. Administration: Benutzer (Liste, Detail, Rollen, sperren) und Rollen (Matrix der Rechte), mit Bausteinen aus
-   dem Intranet.
-4. Eigenes Konto: Angaben, Passwort, zweiter Faktor, verknüpfte Dienste, Konto löschen.
-5. Registrierung mit Double-Opt-in und «Passwort vergessen» (braucht Mailversand).
-6. Anmeldung über Microsoft (braucht App-Registrierung), danach Edulog (braucht Aufnahme bei Edulog).
-7. API-Konten mit Token (erst nötig, wenn Schreibzugriffe kommen: Vorschläge über die API, MCP).
+### 5.2 Lokale Anmeldung
 
-## Entschieden (07.11.2026)
+Passwörter werden ausschliesslich sicher gehasht. Es gelten Anmeldebegrenzungen, generische Fehlertexte, Session-Rotation nach Authentifizierung, sichere Cookies (`Secure`, `HttpOnly`, angemessenes `SameSite`) und HTTPS. Passwortzurücksetzung über einmaligen, kurzlebigen Link (Vorschlag: 60 Minuten) ohne Offenlegung, ob ein Konto existiert. Gesperrte Konten können sich nicht anmelden.
 
-1. **Rechte je Rolle einstellbar** statt fest; Moderator veröffentlicht in der Voreinstellung nicht.
-2. **Einrichtung:** Art aus Liste (Schule, Schulgemeinde, Gemeinde, Kanton, andere), Gemeinde/Schule als Freitext.
-3. **Selbstregistrierung** mit Double-Opt-in per E-Mail.
-4. **Developer** hat alle Rechte, auch moderieren und freigeben.
-5. **Anmeldung über Microsoft und Edulog** zusätzlich zum lokalen Konto.
+### 5.3 MFA
 
-## Entschieden (07.11.2026, zweite Runde)
+MFA ist **aufgrund der effektiven Berechtigungen** verpflichtend, nicht als deaktivierbare Eigenschaft einer Rolle. Vor Bestätigung des zweiten Faktors sind sämtliche privilegierten Funktionen gesperrt. Das gilt auch nach Microsoft- oder Edulog-Anmeldung. Fremde MFA wird nur anerkannt, wenn deren Durchführung über vertrauenswürdige, überprüfbare Authentifizierungsinformationen belegt ist und die Anerkennung ausdrücklich freigegeben wurde. Der bestehende TOTP-Mechanismus nach RFC 6238 wird weiterverwendet; Geheimnisse verschlüsselt, acht einmalige Wiederherstellungscodes nur als Hash. MFA-Reset verlangt überprüfte Identität und ein Audit-Ereignis; für Notfälle ist ein gesicherter Serverprozess vorzusehen.
 
-6. **E-Mail-Versand offen** für jeden Dienst (Microsoft 365, Google, SMTP-Anbieter, Versanddienste).
-7. **Microsoft:** keine Registrierung durch Schulen oder Gemeinden, nur Kontoverknüpfung; allen
-   Microsoft-Anmeldungen wird vertraut (Organisationen und private Konten).
-8. **Edulog:** abgeklärt, Beitritt per Vertrag (siehe oben).
-9. **Datenschutzerklärung:** Entwurf in [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md).
+### 5.4 Selbstverwaltung, Sperrung und Löschung
 
-## Offene Fragen (werden geklärt, wenn benötigt)
+Personen können zulässige Profildaten, Passwort, MFA und Identitätsverknüpfungen verwalten sowie die Kontolöschung beantragen. Eine letzte nutzbare Anmeldemethode darf nicht versehentlich entfernt werden. Bei Löschung werden Sitzungen und Token unverzüglich ungültig; restliche Daten folgen dem dokumentierten Aufbewahrungs- und Löschkonzept. Gesperrte Konten behalten ausschliesslich zweckmässig notwendige Daten und dürfen keine neuen Aktionen durchführen.
 
-1. **Mailversand:** welcher Dienst im Betrieb und welche Absenderadresse.
-2. **Microsoft:** in welchem Tenant die eine App-Registrierung liegt (z. B. ein kostenloser Tenant für EduKSX).
-3. **Edulog:** Antrag stellen, sobald die Anwendung öffentlich läuft (Due Diligence prüft den Betrieb).
-4. **Datenschutzerklärung:** Platzhalter im Entwurf ergänzen (verantwortliche Person, Standort des Servers).
+## 6. Föderierte Anmeldung
+
+### 6.1 Microsoft
+
+Microsoft-Login über OpenID Connect, Authorization Code Flow mit PKCE und sorgfältiger Prüfung von `state`, `nonce`, Token-Signatur, Aussteller, Audience, Ablauf und Redirect-URI. Das Glossary besitzt eine eigene mehrinstanzenfähige App-Registrierung für Organisations- und private Microsoft-Konten; einzelne Schulen und Gemeinden müssen im Regelfall keine eigene App registrieren. Organisatorische Consent-Richtlinien können dennoch eine Freigabe verlangen.
+
+Identitätsschlüssel ist die Kombination aus bestätigtem `issuer` und stabilem `subject`; für Microsoft können `tid` und `oid` ergänzend hinterlegt werden. Ein E-Mail-Gleichstand **führt niemals allein** zur automatischen Kontoübernahme oder Verknüpfung. Verknüpfung mit einem existierenden Konto nur nach erneuter Authentifizierung über dessen bereits vertrauenswürdige Methode. Eine vom Provider nicht zuverlässig verifizierte E-Mail ist gesondert zu bestätigen. Externe Gruppen, Rollen, Mandanten oder Claims verleihen keine Glossary-Privilegien. Angeforderte Attribute werden auf das Notwendige beschränkt.
+
+### 6.2 Edulog
+
+Edulog ist eine nachgelagerte Integration und wird erst nach vertraglicher Aufnahme, technischer Prüfung und Freigabe angeboten. Das genaue Protokoll (OIDC/SAML) sowie zulässige Attribute werden mit Edulog geklärt; nicht vorab voraussetzen. Technischer Identitätsschlüssel ist die bestätigte stabile pseudonyme Kennung samt Aussteller beziehungsweise Föderationskontext. Vorname, Name und E-Mail können fehlen. Fehlende fachlich erforderliche Angaben werden nur wo notwendig ergänzend erhoben; Kontozuordnung und Kontaktkanal müssen sicher verifizierbar sein.
+
+Der Zugang von Lernenden und insbesondere minderjährigen Personen wird **vor einer Freischaltung** gesondert beurteilt (Zweck, erforderliche Daten, rechtliche Grundlagen und Schutzvorkehrungen). Die Edulog-Anmeldung gibt standardmässig nur Community-Rechte; externe Attribute berechtigen niemals automatisch zur Moderation oder Administration.
+
+### 6.3 Identitäten verknüpfen und lösen
+
+Eine externe Identität kann erst nach belastbarer Authentifizierung mit einem bestehenden Konto verknüpft werden. Einmalige Zuordnung von `provider`/`issuer`/`subject` durch Datenbank-Constraint erzwingen. Entkopplung nur durch angemeldete Person mit erneuter Authentifizierung und verbleibender funktionsfähiger Anmeldemethode. Sensible Verknüpfungsänderungen protokollieren.
+
+## 7. E-Mail-Versand
+
+Laravel-Mail-Schicht, providerunabhängig konfiguriert (`MAIL_MAILER`, `MAIL_HOST`, Zugangsdaten nur in der Serverumgebung). Unterstützte Wege: SMTP oder passende Treiber für Microsoft 365, Google Workspace, Infomaniak, Hostinger oder spezialisierte Versanddienste. Versand über eine Warteschlange mit Wiederholung und sicherem Fehlerverhalten; ausgehende Nachrichten geben keine unnötigen persönlichen Informationen preis. Ohne funktionierenden E-Mail-Versand bleibt Selbstregistrierung deaktiviert. Testmail nur mit Systemrecht. Tatsächlicher Anbieter und Datenstandort sind im Datenschutz-/Betriebskonzept zu dokumentieren.
+
+## 8. Datenmodell und technische Umsetzung
+
+- Personen: `users`, `roles`, `permissions`/`role_permissions`, `user_roles`, `user_identities`, `user_audit`.
+- Servicekonten: `service_accounts`, `service_account_tokens`, `service_account_audit`; bislang angedachte `api_clients` darin aufgehen lassen, nicht parallel führen.
+- Datenschutz: Kenntnisnahme der Datenschutzerklärung (`privacy_notice_version`, `privacy_notice_acknowledged_at`) und gegebenenfalls getrennte `user_consents` mit Zweck, Zeitpunkt, Version und Widerruf.
+- Audit und redaktionelle Daten getrennt vom öffentlichen Veröffentlichungsmodell. Serverseitig Gates/Policies für Web, API, Import, Exporte und künftig MCP identisch durchsetzen.
+- Der bisherige Schalter `is_admin` wird bei Migration in die **Admin-Rolle** überführt, **nicht automatisch in Developer**. Initialer Developer nur nach ausdrücklich protokolliertem Bootstrap.
+
+### Abnahmetests
+
+1. Admin kann weder direkt noch mittelbar Developer werden; letzte Developer-Identität ist geschützt.
+2. Rollenänderung kann weder eigene Rechte erhöhen noch systemkritische Rechte entsperren; MFA lässt sich nicht durch Rollenänderung umgehen.
+3. Servicekonten haben keinen Browser-Login; Token sind gehasht, widerrufbar, ablaufend und scope-begrenzt.
+4. Microsoft-Verknüpfung allein über gleiche E-Mail wird abgelehnt; Provider-Identität ist eindeutig.
+5. Edulog kann technisch mit pseudonymer Identität ohne vorausgesetzte E-Mail modelliert werden.
+6. Öffentliche API, Exporte, Change-Feed und GitHub Pages enthalten ausschliesslich veröffentlichte Fachdaten.
+7. Kontolöschung entzieht Zugänge und wahrt die dokumentierten Lösch- und Auditregeln.
+
+## 9. Umsetzungsreihenfolge und offene Punkte
+
+Reihenfolge: Rollen-/Identitätsmodell und Migration → MFA-/Policy-Härtung → Benutzer-Selbstverwaltung und Registrierung → Microsoft → Edulog nach Zulassung → schreibende Servicekonten, wenn die entsprechenden Integrationen beginnen. Bestehende lokale Admin-Anmeldung und öffentliche Lese-API bleiben bis zum Ausbau betriebsfähig.
+
+**Noch betrieblich beziehungsweise rechtlich zu klären:** produktiver Mailanbieter/Absender, Microsoft-App-Tenant und organisatorische Freigaben, Edulog-Beitritt/Attributvertrag/Lernendenfreigabe, technische Löschfristen je Datenart, tatsächliche Cloud-Datenflüsse sowie juristische Abnahme der Datenschutzerklärung.
