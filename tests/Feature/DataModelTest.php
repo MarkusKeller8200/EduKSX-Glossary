@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Glossary\ExcelFormat;
 use App\Glossary\GlossaryService;
 use App\Glossary\Journal;
+use App\Models\Role;
 use App\Models\Term;
 use App\Models\TermLegacyValue;
 use App\Models\TermRevision;
@@ -37,9 +38,10 @@ class DataModelTest extends TestCase
         return $this->glossary->publish($this->glossary->save(null, $data, null, true), null);
     }
 
+    /** Konto mit der Rolle Benutzer (Rolle neuer Konten, #110). */
     private function community(string $email): User
     {
-        return User::query()->create(['name' => 'Konto '.$email, 'email' => $email, 'password' => 'ein-langes-Test-Passwort-1']);
+        return $this->userWithRoles([Role::USER], $email, twoFactor: false);
     }
 
     // ---------- Journal (B) ----------
@@ -122,6 +124,21 @@ class DataModelTest extends TestCase
         // leer speichern entfernt die Anpassung
         $this->actingAs($a)->put("/begriffe/{$term->slug}/meine-darstellung", [])->assertRedirect();
         $this->assertSame(0, TermUserOverride::query()->count());
+    }
+
+    public function test_gast_ohne_persoenliche_darstellung(): void
+    {
+        $term = $this->published(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung']);
+        $gast = $this->userWithRoles([Role::GUEST], 'g@example.org', twoFactor: false);
+        // frühere Anpassung (z. B. vor dem Wechsel zu Gast) bleibt gespeichert, gilt aber nicht
+        TermUserOverride::query()->forceCreate(['term_id' => $term->id, 'user_id' => $gast->id, 'name_override' => 'Schulleitung Primar']);
+
+        $this->actingAs($gast)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'X'])->assertForbidden();
+        $this->actingAs($gast)->delete("/begriffe/{$term->slug}/meine-darstellung")->assertForbidden();
+        $this->actingAs($gast)->get("/begriffe/{$term->slug}")
+            ->assertInertia(fn (Assert $p) => $p->where('begriff.bezeichnung', 'Schulleitung')->missing('begriff.meine'));
+        $this->actingAs($gast)->get('/')->assertInertia(fn (Assert $p) => $p->where('begriffe.0.bezeichnung', 'Schulleitung'));
+        $this->assertSame(1, TermUserOverride::query()->where('user_id', $gast->id)->count());
     }
 
     public function test_meine_darstellung_braucht_anmeldung_und_veroeffentlichten_begriff(): void

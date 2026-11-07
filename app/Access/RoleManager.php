@@ -43,6 +43,18 @@ final class RoleManager
         $target->flushPermissions();
     }
 
+    /**
+     * Rolle für neue Konten (Role::DEFAULT_FOR_NEW, #110) durch den Serverprozess, protokolliert mit $label
+     * (z. B. «Registrierung»). Fehlt die Rolle, bleibt das Konto ohne Rolle (nur lesen).
+     */
+    public function assignDefault(User $target, string $label): void
+    {
+        $role = Role::query()->where('key', Role::DEFAULT_FOR_NEW)->first();
+        if ($role !== null) {
+            $this->assign(null, $target, $role, $label);
+        }
+    }
+
     public function revoke(?User $actor, User $target, Role $role, ?string $label = null): void
     {
         $this->guard($actor, $target, $role, 'role.revoked', function () use ($actor, $target, $role): void {

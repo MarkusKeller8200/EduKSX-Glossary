@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Access\Audit;
+use App\Access\RoleManager;
 use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -24,7 +25,7 @@ use Throwable;
  * - Identität nur über Aussteller + Kennung (sub), nie über die E-Mail.
  * - Gleiche E-Mail eines bestehenden Kontos führt nie zur automatischen Verknüpfung: erst mit dem bisherigen Zugang
  *   anmelden und unter «Mein Konto» verknüpfen (Passwort bestätigen).
- * - Neue Konten erhalten nur Community-Rechte; externe Gruppen/Rollen zählen nicht.
+ * - Neue Konten erhalten die Rolle Benutzer (#110); externe Gruppen/Rollen zählen nicht.
  * - Mit eingerichtetem zweitem Faktor folgt die Code-Abfrage wie bei der Anmeldung mit Passwort.
  */
 class SsoController extends Controller
@@ -32,7 +33,7 @@ class SsoController extends Controller
     /** Wie lange nach der Passwortbestätigung eine Verknüpfung gestartet werden darf. */
     private const LINK_MINUTES = 10;
 
-    public function __construct(private readonly MicrosoftLogin $microsoft) {}
+    public function __construct(private readonly MicrosoftLogin $microsoft, private readonly RoleManager $roles) {}
 
     public function redirect(Request $request): SymfonyRedirect|RedirectResponse
     {
@@ -161,6 +162,7 @@ class SsoController extends Controller
             $user->forceFill(['password' => Str::password(48), 'password_set' => false, 'status' => 'active'])->save();
             $user->identities()->create($this->identityData($claims) + ['last_used_at' => now()]);
             Audit::log($user, $user, 'account.registered', ['provider' => 'microsoft']);
+            $this->roles->assignDefault($user, 'Registrierung (Microsoft)');
 
             return $user;
         });

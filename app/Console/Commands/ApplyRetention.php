@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use App\Access\Audit;
+use App\Access\Permission;
 use App\Mail\InactivityNotice;
 use App\Models\ImportBatch;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\MailSetup;
 use DateTimeInterface;
@@ -18,7 +20,7 @@ use Throwable;
  * Löschfristen anwenden (docs/LOESCHKONZEPT.md, #41, #42). Läuft täglich über den Dienst «scheduler».
  *
  * - Unbestätigte Registrierungen: nach 7 Tagen löschen.
- * - Inaktive Community-Konten (ohne Rolle): nach 23 Monaten ohne Anmeldung Hinweis per Mail, 30 Tage danach löschen.
+ * - Inaktive Community-Konten (nur Grundrechte, z. B. Gast oder Benutzer): nach 23 Monaten ohne Anmeldung Hinweis per Mail, 30 Tage danach löschen.
  *   Ohne Mailversand kein Hinweis und darum auch keine Löschung.
  * - Audit-Protokoll: Einträge älter als die Aufbewahrungsfrist (vorläufig 5 Jahre) löschen.
  */
@@ -76,7 +78,8 @@ class ApplyRetention extends Command
     }
 
     /**
-     * Community-Konten (ohne Rolle, aktiv), deren letzte Anmeldung (sonst Anlage) vor $since liegt.
+     * Community-Konten (aktiv, keine Rolle mit Recht der Administration und nicht Developer, #110), deren letzte
+     * Anmeldung (sonst Anlage) vor $since liegt.
      *
      * @return iterable<User>
      */
@@ -84,7 +87,8 @@ class ApplyRetention extends Command
     {
         return User::query()
             ->where('status', 'active')
-            ->whereDoesntHave('roles')
+            ->whereDoesntHave('roles', fn ($q) => $q->where(fn ($q) => $q->where('roles.key', Role::DEVELOPER)
+                ->orWhereIn('roles.id', DB::table('role_permissions')->whereIn('permission', Permission::privilegedArea())->select('role_id'))))
             ->where(function ($q) use ($since): void {
                 $q->where('last_login_on', '<', $since->format('Y-m-d'))
                     ->orWhere(fn ($q) => $q->whereNull('last_login_on')->where('created_at', '<', $since));

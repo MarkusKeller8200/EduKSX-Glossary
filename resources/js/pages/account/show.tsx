@@ -50,7 +50,7 @@ export default function AccountShow({
                     <p className="mt-1 text-sm text-muted-foreground">
                         {konto.email} ·{' '}
                         {konto.rollen.length === 0
-                            ? 'Community'
+                            ? 'ohne Rolle'
                             : konto.rollen.join(', ')}
                     </p>
                 </div>

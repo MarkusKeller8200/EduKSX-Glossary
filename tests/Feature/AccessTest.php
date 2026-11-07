@@ -10,6 +10,7 @@ use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
 use App\Models\UserAudit;
+use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 /** Rollen und Rechte mit Schutzregeln (#36, docs/KONZEPT-BENUTZER.md Abschnitt 3, Abnahmetests 1 und 2). */
@@ -25,13 +26,56 @@ class AccessTest extends TestCase
 
     public function test_voreingestellte_rollen_und_rechte(): void
     {
-        $this->assertEqualsCanonicalizing(['propose', 'moderate', 'edit-terms'], Role::byKey(Role::MODERATOR)->permissionKeys());
+        $this->assertEqualsCanonicalizing(['propose', 'export', 'personal-display', 'moderate', 'edit-terms'], Role::byKey(Role::MODERATOR)->permissionKeys());
+        $this->assertContains('service-tokens', Role::byKey(Role::ADMIN)->permissionKeys());
         $this->assertNotContains('system', Role::byKey(Role::ADMIN)->permissionKeys());
         $this->assertSame(Permission::keys(), Role::byKey(Role::DEVELOPER)->permissionKeys());
 
-        $community = User::query()->create(['name' => 'C', 'email' => 'c@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
-        $this->assertSame(['propose'], $community->permissions());
-        $this->assertFalse($community->needsTwoFactor());
+        // Rollen Gast, Benutzer, Organisations-Admin (#110)
+        $this->assertSame([], Role::byKey(Role::GUEST)->permissionKeys());
+        $this->assertEqualsCanonicalizing(Permission::BASIC, Role::byKey(Role::USER)->permissionKeys());
+        $this->assertEqualsCanonicalizing([...Permission::BASIC, 'service-tokens'], Role::byKey(Role::ORG_ADMIN)->permissionKeys());
+        $this->assertSame('privileged', Permission::classOf('service-tokens'));
+
+        // ohne Rolle keine Rechte mehr (bisher fest «propose»)
+        $ohne = User::query()->create(['name' => 'C', 'email' => 'c@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
+        $this->assertSame([], $ohne->permissions());
+        $this->assertFalse($ohne->needsTwoFactor());
+    }
+
+    public function test_gast_liest_benutzer_mit_grundrechten_ohne_zweiten_faktor(): void
+    {
+        $gast = $this->userWithRoles([Role::GUEST], 'g@example.org', twoFactor: false);
+        $benutzer = $this->userWithRoles([Role::USER], 'b@example.org', twoFactor: false);
+        $orgAdmin = $this->userWithRoles([Role::ORG_ADMIN], 'o@example.org', twoFactor: false);
+
+        foreach (Permission::BASIC as $permission) {
+            $this->assertFalse(Gate::forUser($gast)->allows($permission));
+            $this->assertTrue(Gate::forUser($benutzer)->allows($permission));
+        }
+        $this->assertFalse($benutzer->needsTwoFactor());
+        $this->assertFalse(Gate::forUser($benutzer)->allows('administer'));
+
+        // Servicekonten sind privilegiert: zweiter Faktor nötig
+        $this->assertTrue($orgAdmin->needsTwoFactor());
+        $this->assertFalse(Gate::forUser($orgAdmin)->allows('service-tokens'));
+        $orgAdmin->forceFill(['two_factor_secret' => self::TOTP_SECRET, 'two_factor_confirmed_at' => now()])->save();
+        $orgAdmin->flushPermissions();
+        $this->assertTrue(Gate::forUser($orgAdmin)->allows('service-tokens'));
+    }
+
+    public function test_migration_macht_konten_ohne_rolle_zu_benutzern(): void
+    {
+        $ohne = User::query()->create(['name' => 'Alt', 'email' => 'alt@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
+        $moderator = $this->userWithRoles([Role::MODERATOR], 'm@example.org');
+
+        $migration = require database_path('migrations/2026_11_08_000100_add_base_roles.php');
+        $migration->up();   // idempotent: Rollen bestehen schon, nur Konten ohne Rolle werden Benutzer
+
+        $this->assertSame([Role::USER], $ohne->roleKeys());
+        $this->assertSame([Role::MODERATOR], $moderator->roleKeys());
+        $this->assertTrue(UserAudit::query()->where('target_user_id', $ohne->id)->where('actor_label', 'Migration')->exists());
+        $this->assertSame(1, Role::query()->where('key', Role::USER)->count());
     }
 
     public function test_developer_nur_per_befehl_und_protokolliert(): void
@@ -131,9 +175,9 @@ class AccessTest extends TestCase
         $this->assertNotNull($term->refresh()->published_revision_id);
     }
 
-    public function test_community_konto_ohne_administration(): void
+    public function test_benutzer_ohne_administration(): void
     {
-        $this->actingAs($this->userWithRoles([], 'c@example.org', twoFactor: false));
+        $this->actingAs($this->userWithRoles([Role::USER], 'c@example.org', twoFactor: false));
         $this->get('/admin')->assertForbidden();
         $this->get('/admin/begriffe')->assertForbidden();
     }
