@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,8 +19,8 @@ use LogicException;
  * @property string|null $author_id
  * @property string|null $author_label
  * @property string|null $approved_by
- * @property \Carbon\CarbonImmutable|null $published_at
- * @property \Carbon\CarbonImmutable $created_at
+ * @property CarbonImmutable|null $published_at
+ * @property CarbonImmutable $created_at
  */
 class TermRevision extends Model
 {

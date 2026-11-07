@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,15 +29,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $search_terms
  * @property string $lifecycle_status
  * @property bool $is_active
- * @property \Carbon\CarbonImmutable|null $valid_from
- * @property \Carbon\CarbonImmutable|null $valid_until
+ * @property CarbonImmutable|null $valid_from
+ * @property CarbonImmutable|null $valid_until
  * @property int $revision
  * @property string|null $published_revision_id
  * @property-read TermRevision|null $publishedRevision
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Category> $categories
- * @property-read \Illuminate\Database\Eloquent\Collection<int, Source> $sources
- * @property-read \Illuminate\Database\Eloquent\Collection<int, TermAlias> $aliases
- * @property-read \Illuminate\Database\Eloquent\Collection<int, TermRevision> $revisions
+ * @property-read Collection<int, Category> $categories
+ * @property-read Collection<int, Source> $sources
+ * @property-read Collection<int, TermAlias> $aliases
+ * @property-read Collection<int, TermRevision> $revisions
  */
 class Term extends Model
 {

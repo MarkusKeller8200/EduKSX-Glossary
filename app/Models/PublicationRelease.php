@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $checksum
  * @property int $term_count
  * @property string|null $published_by
- * @property \Carbon\CarbonImmutable $created_at
+ * @property CarbonImmutable $created_at
  */
 class PublicationRelease extends Model
 {
