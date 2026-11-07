@@ -4,6 +4,7 @@ import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { stateClasses } from '@/lib/colors';
 
 type Begriff = {
     id: string;
@@ -99,7 +100,7 @@ export default function Merge({
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">
                 Begriffe zusammenführen
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
                 Ein Begriff bleibt mit seiner ID und Adresse erhalten, die
                 anderen leiten danach auf ihn weiter. Kategorien, Herkunft,
                 Aliase und «Intern genutzt in» werden vereinigt; Abkürzungen und
@@ -136,10 +137,11 @@ export default function Merge({
                                         <span translate="no">{b.titel}</span>
                                         <span className="mt-1 block">
                                             <Badge
-                                                variant={
+                                                variant="outline"
+                                                className={
                                                     b.veroeffentlicht
-                                                        ? 'default'
-                                                        : 'secondary'
+                                                        ? stateClasses.published
+                                                        : stateClasses.draft
                                                 }
                                             >
                                                 {b.veroeffentlicht

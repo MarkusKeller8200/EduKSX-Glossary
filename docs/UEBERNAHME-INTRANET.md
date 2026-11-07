@@ -4,8 +4,8 @@ Liste der Dateien, die aus `MarkusKeller8200/sek-intranet` übernommen wurden (d
 Stand des Intranets: Commit `main` vom 07.11.2026 (Version 0.36.0 + Unveröffentlicht). Verbesserungen fliessen als
 Issue in beide Projekte.
 
-Rechte: Code des Projektverantwortlichen; die shadcn/ui-Bausteine stehen unter MIT. Die Lizenz des Glossary ist
-noch festzulegen (KONZEPT, Lizenzen).
+Rechte: Code des Projektverantwortlichen; die shadcn/ui-Bausteine stehen unter MIT. Der eigene Code des Glossary
+steht unter MIT (DEC-021, `LICENSE`).
 
 ## Unverändert
 
@@ -25,6 +25,8 @@ noch festzulegen (KONZEPT, Lizenzen).
 
 | Datei                                                            | Abweichung                                                                                                                                                       |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resources/js/lib/colors.ts`                                     | nur `palette`, `isColorName`, `statusClasses`; ohne Listen des Intranets und Druckfarben; dazu Farben für Status und Veröffentlichung (#77, #91, #92)            |
+| `resources/js/components/tags.tsx`                               | nach `option-badge.tsx`: Farbe je Label über die geteilte Angabe `farben` statt `use-options` (#77)                                                              |
 | `resources/js/components/ui/button.tsx`                          | Variante `link` in `text-link` statt `text-primary` (Orange als Schrift hat zu wenig Kontrast)                                                                   |
 | `resources/css/app.css`                                          | Farbwerte nach CI MarKusSXCH, Schrift Inter, neue Werte `--brand-*`, `--link`; ohne Zeiterfassung                                                                |
 | `app/Http/Middleware/SecurityHeaders.php`                        | ohne Einbindungen von Fachanwendungen (`frame-src 'self'`)                                                                                                       |

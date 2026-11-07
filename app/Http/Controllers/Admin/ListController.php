@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Source;
+use App\Support\Palette;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -28,12 +29,12 @@ class ListController extends Controller
             $data[$name] = $model::query()->orderBy('sort_order')->orderBy('name')->withCount('terms')->get()
                 ->map(fn (Category|Source $i): array => [
                     'id' => $i->id, 'key' => $i->key, 'abbreviation' => $i->abbreviation, 'name' => $i->name,
-                    'label' => $i->label, 'description' => $i->description, 'url' => $i->url, 'note' => $i->note,
+                    'label' => $i->label, 'description' => $i->description, 'url' => $i->url, 'note' => $i->note, 'color' => $i->color,
                     'sort_order' => $i->sort_order, 'begriffe' => (int) $i->getAttribute('terms_count'),
                 ])->all();
         }
 
-        return Inertia::render('admin/lists', ['listen' => $data]);
+        return Inertia::render('admin/lists', ['listen' => $data, 'farbwahl' => Palette::NAMES]);
     }
 
     public function store(Request $request, string $list): RedirectResponse
@@ -101,6 +102,7 @@ class ListController extends Controller
             'description' => ['nullable', 'string', 'max:2000'],
             'url' => ['nullable', 'url:http,https', 'max:500'],
             'note' => ['nullable', 'string', 'max:5000'],
+            'color' => ['nullable', 'string', Rule::in(Palette::NAMES)],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
     }

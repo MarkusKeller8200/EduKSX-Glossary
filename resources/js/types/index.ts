@@ -24,6 +24,11 @@ export type SharedData = {
     appVersion: AppVersion;
     links: { githubRepo: string | null; pages: string | null };
     flash: { status: string | null };
+    /** Farbe (Name der Palette) je Label der Kategorien und Herkunft (#77) */
+    farben: {
+        kategorien: Record<string, string>;
+        herkunft: Record<string, string>;
+    };
 };
 
 export type Release = {

@@ -1,0 +1,69 @@
+name: license-report
+
+# Lizenzbericht der Pakete (#73) als Anhang des neuesten GitHub-Release. Läuft täglich (und von Hand) und hängt den
+# Bericht an, wenn er beim Release noch fehlt – erzeugt aus dem Stand des Tags. Kein workflow_run, damit nie fremder
+# Code in einem Kontext mit Schreibrecht ausgecheckt wird.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag, z. B. v0.6.0 (leer = neuestes Release)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release ohne Bericht?
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          tag="${TAG_INPUT:-$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null || true)}"
+          if [ -z "$tag" ]; then
+            echo "Kein Release – nichts zu tun."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx "license-report.md"; then
+            echo "Bericht für $tag liegt schon vor."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        if: steps.release.outputs.skip != 'true'
+        with:
+          ref: refs/tags/${{ steps.release.outputs.tag }}
+          persist-credentials: false
+
+      - name: Setup PHP
+        if: steps.release.outputs.skip != 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        if: steps.release.outputs.skip != 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Bericht erzeugen und anhängen
+        if: steps.release.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          composer install --no-dev --no-scripts --no-interaction --prefer-dist
+          npm ci --ignore-scripts
+          composer licenses --no-dev --format=json > composer-licenses.json
+          npm ls --omit=dev --all --json --long > npm-tree.json || true
+          node scripts/license-report.mjs composer-licenses.json npm-tree.json > license-report.md
+          gh release upload "$TAG" license-report.md --repo "$GITHUB_REPOSITORY" --clobber

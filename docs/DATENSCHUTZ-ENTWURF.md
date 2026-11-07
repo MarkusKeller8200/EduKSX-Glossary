@@ -41,7 +41,20 @@ Für automatisierte schreibende Integrationen speichern wir Bezeichnung, Zweck, 
 
 ## 4. Cookies und lokale Speicherung
 
-Für die Anmeldung verwenden wir technisch notwendige Sitzungs- und Schutz-Cookies; voraussichtliche Inaktivitätsdauer [120 Minuten; tatsächliche Konfiguration prüfen]. Die Darstellung (hell/dunkel) kann lokal als `appearance` gespeichert werden. Es sind keine Drittanbieter-Cookies zu Werbe- oder Trackingzwecken vorgesehen. Je nach tatsächlicher Integration können Sicherheitsdienste technisch notwendige Speichermechanismen verwenden; diese müssen vor Veröffentlichung geprüft und offengelegt werden.
+Wir verwenden nur technisch notwendige Cookies und speichern vom Besucher selbst gewählte Einstellungen im Browser. Es sind keine Drittanbieter-Cookies zu Werbe- oder Trackingzwecken und keine Nutzungsanalyse vorgesehen. Deshalb zeigt die Website beim ersten Besuch einen Hinweis (keine Einwilligung); kommen später nicht notwendige Cookies dazu, wird daraus eine Einwilligung mit Ablehnen-Möglichkeit. [Rechtliche Einordnung nach DSG bzw. DSGVO/ePrivacy prüfen, #66.]
+
+| Name                      | Art                    | Zweck                                             | Dauer                                             | Anbieter   |
+| ------------------------- | ---------------------- | ------------------------------------------------- | ------------------------------------------------- | ---------- |
+| `eduksx-glossary-session` | Cookie, notwendig      | Sitzung (Anmeldung, Formulare)                    | bis zum Schliessen bzw. [120 Minuten] Inaktivität | Glossary   |
+| `XSRF-TOKEN`              | Cookie, notwendig      | Schutz gegen gefälschte Formulare                 | wie die Sitzung                                   | Glossary   |
+| `remember_web_…`          | Cookie, notwendig      | «Angemeldet bleiben», nur wenn gewählt            | bis zum Abmelden, höchstens [400 Tage; prüfen]    | Glossary   |
+| `appearance`              | Cookie und Browser     | Einstellung hell/dunkel/System                    | 1 Jahr                                            | Glossary   |
+| `view-width`              | Browser (localStorage) | Ansicht Mobil/Desktop schmal/ganze Breite (#76)   | bis zum Löschen im Browser                        | Glossary   |
+| `cookie-notice`           | Browser (localStorage) | Hinweis zu Cookies gelesen (mit Fassung)          | bis zum Löschen im Browser                        | Glossary   |
+| `__cf_bm` u. a.           | Cookie, notwendig      | Schutz vor Bots im Betrieb hinter Cloudflare      | [30 Minuten; prüfen]                              | Cloudflare |
+| Turnstile                 | Cookie/Speicher        | Schutz der Registrierung, nur auf `/registrieren` | [prüfen]                                          | Cloudflare |
+
+Die Lesefassung auf GitHub Pages setzt selbst keine Cookies.
 
 ## 5. Anmeldung über Microsoft und Edulog
 

@@ -54,6 +54,7 @@ class TermController extends Controller
                 'id' => $t->id,
                 'abkuerzung' => $t->displayAbbreviation(),
                 'bezeichnung' => $t->displayName(),
+                'kurz' => (string) $t->short_description,
                 'kategorien' => $t->categories->map(fn (Category $c): string => $c->displayLabel())->all(),
                 'status' => Term::STATUS[$t->lifecycle_status] ?? $t->lifecycle_status,
                 'aktiv' => $t->is_active,
@@ -62,7 +63,7 @@ class TermController extends Controller
             ])
             ->all();
 
-        return Inertia::render('admin/terms', ['begriffe' => $terms]);
+        return Inertia::render('admin/terms', ['begriffe' => $terms, 'offiziellErlaubt' => Gate::allows('edit-official')]);
     }
 
     /** Weitere Felder im Journal, die nicht im Formular stehen. */
@@ -144,6 +145,28 @@ class TermController extends Controller
         return redirect("/admin/begriffe/{$term->id}")->with('status', $term->revision === $before
             ? 'Keine Änderungen.'
             : 'Gespeichert als Revision '.$term->revision.' (Entwurf – zum Veröffentlichen freigeben).');
+    }
+
+    /** Bearbeiten in der Zelle (#67): ein Feld, gleiche Regeln wie das Formular (Revision, offizielle Felder). */
+    public function updateField(Request $request, Term $term): RedirectResponse
+    {
+        $data = $request->validate([
+            'feld' => ['required', 'string', 'in:short_description,official_abbreviation,official_name'],
+            'wert' => ['nullable', 'string', 'max:255'],
+        ]);
+        $field = (string) $data['feld'];
+        $before = $term->revision;
+        try {
+            $term = $this->glossary->save($term, [$field => $data['wert'] ?? ''], $this->user($request), Gate::allows('edit-official'), null, 'updated', ['via' => 'tabelle']);
+        } catch (OfficialFieldLocked $e) {
+            throw ValidationException::withMessages(['wert' => $e->getMessage()]);
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages(['wert' => $e->getMessage()]);
+        }
+
+        return back()->with('status', $term->revision === $before
+            ? 'Keine Änderung.'
+            : self::LABELS[$field].' gespeichert (Revision '.$term->revision.', Entwurf).');
     }
 
     public function publishOne(Request $request, Term $term): RedirectResponse

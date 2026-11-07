@@ -1,8 +1,11 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import BrandWordmark from '@/components/brand-wordmark';
+import CookieNotice from '@/components/cookie-notice';
+import ViewWidthTabs from '@/components/view-width-tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { useViewWidth, widthClass } from '@/hooks/use-view-width';
 import { can } from '@/lib/access';
 import { cn } from '@/lib/utils';
 
@@ -18,46 +21,30 @@ const NAV = [
     { href: '/admin/system', label: 'System', recht: 'system' },
 ];
 
-/** Rahmen der Administration (nur angemeldet). Seitenleiste aus dem Intranet folgt mit der Redaktion (#14). */
+/** Rahmen der Administration (nur angemeldet): Kopf in zwei Zeilen (#90), Breite nach gewählter Ansicht (#76). */
 export default function AdminLayout({ children }: { children: ReactNode }) {
     const { auth, flash } = usePage().props;
     const path = usePage().url.split('?')[0];
+    const { view } = useViewWidth();
 
     return (
         <div className="flex min-h-screen flex-col bg-background text-foreground">
             <header className="sticky top-0 z-20 border-b border-border bg-sidebar">
-                <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-3">
+                {/* Zeile 1 (#90): Titel links, Person und Abmelden auf gleicher Höhe rechts */}
+                <div
+                    className={cn(
+                        'mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 pt-3 pb-2',
+                        widthClass(view, 'max-w-6xl'),
+                    )}
+                >
                     <Link href="/admin" className="text-lg">
                         <BrandWordmark brand="education" suffix="Glossary" />
                         <span className="ml-2 text-sm font-normal text-muted-foreground">
                             Administration
                         </span>
                     </Link>
-                    <nav
-                        aria-label="Administration"
-                        className="flex items-center gap-1 text-sm"
-                    >
-                        {NAV.filter(
-                            (item) =>
-                                item.recht === null || can(auth, item.recht),
-                        ).map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                aria-current={
-                                    path === item.href ? 'page' : undefined
-                                }
-                                className={cn(
-                                    'rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground',
-                                    path === item.href &&
-                                        'bg-secondary font-medium text-secondary-foreground',
-                                )}
-                            >
-                                {item.label}
-                            </Link>
-                        ))}
-                    </nav>
-                    <div className="flex items-center gap-3 text-sm">
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                        <ViewWidthTabs />
                         <Link
                             href="/"
                             className="text-link underline-offset-4 hover:underline"
@@ -80,8 +67,41 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         </Button>
                     </div>
                 </div>
+                {/* Zeile 2 (#90): alle Menüpunkte */}
+                <nav
+                    aria-label="Administration"
+                    className={cn(
+                        'mx-auto flex flex-wrap items-center gap-1 px-4 pb-2 text-sm',
+                        widthClass(view, 'max-w-6xl'),
+                    )}
+                >
+                    {NAV.filter(
+                        (item) => item.recht === null || can(auth, item.recht),
+                    ).map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            aria-current={
+                                path === item.href ? 'page' : undefined
+                            }
+                            className={cn(
+                                'rounded-md px-3 py-1.5 hover:bg-accent hover:text-accent-foreground',
+                                path === item.href &&
+                                    'bg-secondary font-medium text-secondary-foreground',
+                            )}
+                        >
+                            {item.label}
+                        </Link>
+                    ))}
+                </nav>
             </header>
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+            <CookieNotice />
+            <main
+                className={cn(
+                    'mx-auto w-full flex-1 px-4 py-8',
+                    widthClass(view, 'max-w-6xl'),
+                )}
+            >
                 {flash.status ? (
                     <Alert className="mb-6" role="status">
                         <AlertDescription>{flash.status}</AlertDescription>

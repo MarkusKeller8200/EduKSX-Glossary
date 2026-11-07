@@ -39,6 +39,7 @@ class ApiV1Test extends TestCase
             ->assertJsonPath('data.0.categories.0.abbreviation', 'PER')
             ->assertJsonPath('data.0.categories.0.description', 'Personen und Funktionen')
             ->assertJsonPath('data.0.categories.0.color', 'blue');
+        $this->assertNotNull($this->getJson('/api/v1/terms')->json('data.0.updated_at'));
         $list = $this->getJson('/api/v1/categories')->assertJsonPath('data.0.color', 'blue');
         $this->assertStringNotContainsString('INTERN-NOTIZ', (string) $list->getContent());
         $this->assertStringNotContainsString('INTERN-NOTIZ', (string) $this->getJson('/api/v1/exports?format=json')->getContent());

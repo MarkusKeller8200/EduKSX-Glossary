@@ -166,12 +166,11 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 - MFA für privilegierte Personenrechte, serverseitige Berechtigungsprüfung, Eingaben validieren, Markdown sicher darstellen, Excel-Uploads prüfen, Secrets nicht im Repository, Dependabot/CodeQL, Sicherungen mit Wiederherstellungstest.
 - [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) bleibt bis zur rechtlichen und betrieblichen Prüfung Entwurf. Datenstandorte, Auftragsbearbeitung, Auslandübermittlungen und Aufbewahrung sind vor dem öffentlichen Betrieb zu klären (DEC-019).
 
-## Lizenzen (offen)
+## Lizenzen
 
-- **Software:** Open-Source-Lizenz festlegen (z. B. MIT, Apache-2.0 oder AGPL-3.0). Code aus dem privaten Intranet
-  nur übernehmen, wenn die Rechte und Fremdlizenzen geprüft sind.
-- **Daten:** Lizenz der Begriffssammlung getrennt festlegen (z. B. CC BY 4.0); Zitierumfang und Nachnutzung
-  fremder Begriffslisten prüfen.
+- **Software:** MIT (DEC-021, beschlossen 07.11.2026, Datei `LICENSE`). Code aus dem Intranet nur übernehmen, wenn
+  die Rechte und Fremdlizenzen geprüft sind.
+- **Daten:** CC BY 4.0 (DEC-016, vorläufig); Zitierumfang und Nachnutzung fremder Begriffslisten prüfen.
 
 ## Etappen
 
@@ -192,7 +191,7 @@ Termine erst mit Ressourcenplanung.
 
 1. Stack und Datenbank ([KONZEPT-STACK.md](KONZEPT-STACK.md)).
 2. Community-Anmeldung entschieden (DEC-017) und mit 0.4.0 umgesetzt (Registrierung mit Double-Opt-in, Microsoft). Offen: Microsoft-App-Tenant für den Betrieb und Edulog-Aufnahme (#46).
-3. Rechte- und Lizenzprüfung bei Übernahme aus dem Intranet; Software- und Datenlizenz.
+3. Rechte- und Lizenzprüfung bei Übernahme aus dem Intranet. Softwarelizenz MIT (DEC-021), Datenlizenz CC BY 4.0 (DEC-016).
 4. Freigabe-, Versions- und Rollback-Regeln für Revisionen.
 5. ~~API: Nutzungsbedingungen, Gesamt-Export, Rate-Limits, Stabilitätszusage.~~ Entschieden mit DEC-016 (#30).
 6. Mandanten-Bezeichnungen und -Notizen.

@@ -48,6 +48,12 @@ jobs:
       - name: Setup Application
         run: composer setup
 
+      - name: Lizenzen der Pakete (#73, nur Warnung)
+        run: |
+          composer licenses --no-dev --format=json > composer-licenses.json
+          npm ls --omit=dev --all --json --long > npm-tree.json || true
+          node scripts/license-report.mjs composer-licenses.json npm-tree.json > license-report.md
+
       - name: Version und CHANGELOG prüfen
         run: python3 .github/blueprint/release.py check
 

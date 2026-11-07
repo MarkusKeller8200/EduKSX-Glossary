@@ -30,7 +30,7 @@ export default function Import({ spalten }: { spalten: string[] }) {
             <h1 className="text-3xl font-semibold tracking-tight">
                 Excel-Import
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-muted-foreground">
                 Export des Intranets (Glossar → Excel-Export) oder eine
                 ausgefüllte Vorlage hochladen. Zuerst erscheint eine Vorschau;
                 gespeichert wird erst mit «Übernehmen». Zeilen ohne ID werden

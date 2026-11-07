@@ -93,6 +93,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::get('begriffe/{term}', [TermController::class, 'show'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.show');
     Route::get('begriffe/{term}/bearbeiten', [TermController::class, 'edit'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.edit');
     Route::put('begriffe/{term}', [TermController::class, 'update'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.update');
+    Route::patch('begriffe/{term}/feld', [TermController::class, 'updateField'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.field');
     Route::post('begriffe/{term}/veroeffentlichen', [TermController::class, 'publishOne'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.publish-one');
     Route::post('begriffe/{term}/zurueckziehen', [TermController::class, 'unpublish'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.unpublish');
 
