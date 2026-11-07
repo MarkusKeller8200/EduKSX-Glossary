@@ -65,6 +65,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         >
                             {versionLabel(appVersion)}
                         </Link>
+                        {' · '}
+                        <Link
+                            href={auth.user ? '/admin' : '/anmelden'}
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            Administration
+                        </Link>
                         {links.pages ? (
                             <>
                                 {' · '}

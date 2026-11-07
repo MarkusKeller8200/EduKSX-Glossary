@@ -8,6 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Begriffe auf der Website (#24):** Die Startseite zeigt alle veröffentlichten Begriffe mit Suche (auch in
+  Aliasen und Suchbegriffen), Index A–Z und Filter nach Kategorie; jeder Begriff hat eine Detailseite
+  `/begriffe/…` mit Kurzbeschreibung, Beschreibung, Kategorien, Herkunft, Quelle und Verweis auf weitere Bedeutungen
+  derselben Abkürzung. Öffentlich ist immer der freigegebene Stand; redaktionelle Notizen bleiben intern.
+  Administration auch über den Fuss der Website erreichbar.
 - **Excel-Import und -Export (#13, #15):** gleiches Format wie der Excel-Export des Intranets (19 Spalten,
   Mehrfachwerte mit «;»). Import immer zuerst als Vorschau (neu / geändert / Fehler), übernommen wird erst mit
   «Übernehmen»; Zeilen ohne ID werden neu angelegt, eine ID aus dem Intranet bleibt erhalten, nie wird gelöscht.

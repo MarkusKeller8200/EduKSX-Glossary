@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 // Öffentlich: nur lesen (PUB-01)
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
+Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
 
 // Anmeldung lokaler Konten (DEC-014); keine Registrierung
 Route::middleware('guest')->group(function () {

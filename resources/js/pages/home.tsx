@@ -1,16 +1,58 @@
-import { Head, usePage } from '@inertiajs/react';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
-/** Startseite: Suche und Begriffe folgen mit dem Datenmodell (0.2) und der öffentlichen Website (0.3). */
-export default function Home() {
+type Begriff = {
+    slug: string;
+    abkuerzung: string;
+    bezeichnung: string;
+    kurz: string;
+    kategorien: string[];
+    status: string;
+    suche: string;
+};
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+/** Anfangsbuchstabe für den Index (Umlaute zum Grundbuchstaben, Ziffern unter «#»). */
+function initial(b: Begriff): string {
+    const first = (b.abkuerzung || b.bezeichnung)
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .charAt(0)
+        .toUpperCase();
+
+    return ALPHABET.includes(first) ? first : '#';
+}
+
+/** Startseite: veröffentlichte Begriffe mit Suche, Index A–Z und Kategorien (#24, PUB-01/02). */
+export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     const { links } = usePage().props;
+    const [suche, setSuche] = useState('');
+    const [buchstabe, setBuchstabe] = useState<string | null>(null);
+    const [kategorie, setKategorie] = useState<string | null>(null);
+
+    const kategorien = useMemo(
+        () =>
+            [...new Set(begriffe.flatMap((b) => b.kategorien))].sort((a, b) =>
+                a.localeCompare(b, 'de-CH'),
+            ),
+        [begriffe],
+    );
+    const vorhanden = useMemo(
+        () => new Set(begriffe.map(initial)),
+        [begriffe],
+    );
+
+    const q = suche.trim().toLowerCase();
+    const liste = begriffe.filter(
+        (b) =>
+            (q === '' || b.suche.includes(q)) &&
+            (buchstabe === null || initial(b) === buchstabe) &&
+            (kategorie === null || b.kategorien.includes(kategorie)),
+    );
 
     return (
         <>
@@ -31,36 +73,125 @@ export default function Home() {
                 <Input
                     id="suche"
                     type="search"
-                    placeholder="Begriff suchen …"
-                    disabled
-                    aria-describedby="suche-hinweis"
+                    placeholder="Begriff oder Abkürzung suchen …"
+                    value={suche}
+                    onChange={(e) => setSuche(e.target.value)}
+                    autoFocus
                 />
-                <p
-                    id="suche-hinweis"
-                    className="mt-2 text-sm text-muted-foreground"
-                >
-                    Die Suche folgt, sobald die ersten Begriffe übernommen sind.
-                </p>
             </div>
 
-            <Card className="mt-8">
-                <CardHeader>
-                    <CardTitle>Mitmachen</CardTitle>
-                    <CardDescription>
-                        Fehlt ein Begriff oder stimmt eine Erklärung nicht?
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {links.githubRepo ? (
-                        <a
-                            href={`https://github.com/${links.githubRepo}/issues/new/choose`}
-                            className="text-link underline underline-offset-4"
+            <nav
+                aria-label="Index A–Z"
+                className="mt-4 flex flex-wrap gap-1 text-sm"
+            >
+                {[...ALPHABET, '#'].map((l) => (
+                    <button
+                        key={l}
+                        type="button"
+                        disabled={!vorhanden.has(l)}
+                        aria-pressed={buchstabe === l}
+                        onClick={() => setBuchstabe(buchstabe === l ? null : l)}
+                        className={cn(
+                            'min-w-8 rounded-md px-2 py-1 font-medium disabled:text-muted-foreground/50',
+                            buchstabe === l
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-accent hover:text-accent-foreground',
+                        )}
+                    >
+                        {l}
+                    </button>
+                ))}
+            </nav>
+
+            {kategorien.length > 0 ? (
+                <div
+                    className="mt-3 flex flex-wrap gap-2"
+                    role="group"
+                    aria-label="Kategorie"
+                >
+                    {kategorien.map((k) => (
+                        <button
+                            key={k}
+                            type="button"
+                            aria-pressed={kategorie === k}
+                            onClick={() =>
+                                setKategorie(kategorie === k ? null : k)
+                            }
+                            className={cn(
+                                'rounded-full border border-border px-3 py-1 text-sm',
+                                kategorie === k
+                                    ? 'border-transparent bg-secondary font-medium text-secondary-foreground'
+                                    : 'hover:bg-accent hover:text-accent-foreground',
+                            )}
                         >
-                            Begriff vorschlagen oder Fehler melden
-                        </a>
-                    ) : null}
-                </CardContent>
-            </Card>
+                            {k}
+                        </button>
+                    ))}
+                </div>
+            ) : null}
+
+            <p className="mt-6 text-sm text-muted-foreground" aria-live="polite">
+                {liste.length === 1 ? '1 Begriff' : `${liste.length} Begriffe`}
+                {liste.length !== begriffe.length
+                    ? ` von ${begriffe.length}`
+                    : ''}
+            </p>
+
+            <ul className="mt-2 divide-y divide-border border-y border-border">
+                {liste.map((b) => (
+                    <li key={b.slug}>
+                        <Link
+                            href={`/begriffe/${b.slug}`}
+                            className="block px-1 py-3 hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                        >
+                            <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                {b.abkuerzung ? (
+                                    <span
+                                        className="font-semibold"
+                                        translate="no"
+                                    >
+                                        {b.abkuerzung}
+                                    </span>
+                                ) : null}
+                                <span translate="no">{b.bezeichnung}</span>
+                                {b.kategorien.map((k) => (
+                                    <Badge key={k} variant="outline">
+                                        {k}
+                                    </Badge>
+                                ))}
+                                {b.status !== 'aktuell' ? (
+                                    <Badge variant="secondary">
+                                        {b.status}
+                                    </Badge>
+                                ) : null}
+                            </span>
+                            {b.kurz ? (
+                                <span className="mt-1 block text-sm text-muted-foreground">
+                                    {b.kurz}
+                                </span>
+                            ) : null}
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+
+            {begriffe.length === 0 ? (
+                <p className="mt-6 text-muted-foreground">
+                    Noch keine Begriffe veröffentlicht.
+                </p>
+            ) : null}
+
+            {links.githubRepo ? (
+                <p className="mt-8 text-sm">
+                    Fehlt ein Begriff oder stimmt eine Erklärung nicht?{' '}
+                    <a
+                        href={`https://github.com/${links.githubRepo}/issues/new/choose`}
+                        className="text-link underline underline-offset-4"
+                    >
+                        Begriff vorschlagen oder Fehler melden
+                    </a>
+                </p>
+            ) : null}
         </>
     );
 }
