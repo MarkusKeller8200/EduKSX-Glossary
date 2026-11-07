@@ -116,6 +116,7 @@ export default function TermShow({
     const [sending, setSending] = useState(false);
     const { auth } = usePage().props;
     const darfVeroeffentlichen = can(auth, 'publish');
+    const darfBearbeiten = can(auth, 'edit-terms');
     const titel = [b.official_abbreviation, b.official_name]
         .filter(Boolean)
         .join(' – ');
