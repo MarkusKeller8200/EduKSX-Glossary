@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Models\ImportBatch;
 use App\Models\Role;
 use App\Models\TermLegacyValue;
 use App\Models\TermPublicationEvent;
@@ -106,6 +107,7 @@ final class Journal
             ->update(['actor_label' => self::DELETED_LABEL]);
         TermPublicationEvent::query()->where('actor_id', $user->id)->toBase()->update(['actor_id' => null]);
         TermLegacyValue::query()->where('resolved_by', $user->id)->toBase()->update(['resolved_by' => null]);
+        ImportBatch::query()->where('user_id', $user->id)->toBase()->update(['user_label' => self::DELETED_LABEL, 'user_id' => null]);
     }
 
     private static function blank(mixed $value): bool

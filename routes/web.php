@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SourceCheckController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Admin\UserController;
@@ -104,6 +105,10 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('doppelte/zuruecksetzen', [DuplicateController::class, 'reset'])->name('admin.duplicates.reset');
         Route::get('doppelte/zusammenfuehren', [DuplicateController::class, 'create'])->name('admin.duplicates.merge');
         Route::post('doppelte/zusammenfuehren', [DuplicateController::class, 'store'])->name('admin.duplicates.merge.store');
+
+        // Quellenprüfung (#69)
+        Route::get('pruefung', [SourceCheckController::class, 'index'])->name('admin.source-check');
+        Route::put('begriffe/{term}/herkunft', [SourceCheckController::class, 'update'])->whereUuid('term')->name('admin.terms.sources');
 
         // Altwerte aus dem Intranet-Format zuordnen (DEC-020)
         Route::get('altwerte', [LegacyValueController::class, 'index'])->name('admin.legacy');

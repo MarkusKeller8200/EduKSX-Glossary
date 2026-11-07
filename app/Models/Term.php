@@ -83,7 +83,7 @@ class Term extends Model
     /** @return BelongsToMany<Source, $this> */
     public function sources(): BelongsToMany
     {
-        return $this->belongsToMany(Source::class, 'term_sources')->withPivot(['url', 'retrieved_at', 'note']);
+        return $this->belongsToMany(Source::class, 'term_sources')->withPivot(['url', 'retrieved_at', 'note', 'evidence']);
     }
 
     /** @return HasMany<TermAlias, $this> */
