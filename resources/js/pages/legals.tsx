@@ -1,13 +1,13 @@
 import { Head } from '@inertiajs/react';
 
 const origins = [
-    { name: 'sek-intranet', url: 'https://github.com/MarkusKeller8200/sek-intranet', license: 'Rechteklärung offen', detail: 'Übernommene GUI-Bausteine und Infrastrukturteile; Drittanteile und Weitergaberechte pro Datei prüfen.' },
+    { name: 'sek-intranet', url: 'https://github.com/MarkusKeller8200/sek-intranet', license: 'Eigenes Repository', detail: 'Eigene GUI-Bausteine und Infrastrukturteile. Nur darin enthaltene fremde Komponenten und deren Lizenzpflichten sind zu prüfen.' },
     { name: 'shadcn/ui', url: 'https://github.com/shadcn-ui/ui', license: 'MIT', detail: 'Kopierte und angepasste UI-Komponenten; Copyright und vollständigen Lizenzhinweis mitliefern.' },
     { name: 'Laravel', url: 'https://github.com/laravel/framework', license: 'MIT', detail: 'Framework und Anwendungsgrundgerüst; Originalherkunft kopierter Skeleton-Dateien prüfen.' },
     { name: 'React', url: 'https://github.com/facebook/react', license: 'MIT', detail: 'Benutzeroberfläche.' },
     { name: 'Lucide', url: 'https://github.com/lucide-icons/lucide', license: 'ISC', detail: 'Icons; Copyright- und Lizenzhinweise berücksichtigen.' },
     { name: 'Inter', url: 'https://github.com/rsms/inter', license: 'SIL OFL 1.1', detail: 'Schriftwahl; tatsächliche Auslieferung von Font-Dateien und Lizenzhinweise noch prüfen.' },
-    { name: 'my-github-blueprint', url: 'https://github.com/MarkusKeller8200/my-github-blueprint', license: 'Noch zu prüfen', detail: 'Ausgangsbasis für GitHub-Konfigurationen und Workflows.' },
+    { name: 'my-github-blueprint', url: 'https://github.com/MarkusKeller8200/my-github-blueprint', license: 'Eigenes Repository', detail: 'Eigene GitHub-Konfigurationen und Workflows. Lizenzpflichten sind nur für gegebenenfalls enthaltene Fremdanteile zu prüfen.' },
 ];
 
 export default function Legals() {
@@ -22,8 +22,8 @@ export default function Legals() {
             <div className="mt-6 rounded-lg border border-border bg-muted px-4 py-3 text-sm">
                 <strong>Lizenzprüfung im Aufbau.</strong> Die Aufstellung ist noch kein vollständiges
                 Lizenzinventar und keine abschliessende rechtliche Freigabe. Insbesondere die
-                Weitergaberechte für Code aus dem sek-intranet und die Softwarelizenz für eigene
-                Programmteile müssen noch geklärt werden.
+                Lizenzpflichten fremder Bestandteile in übernommenem Code und die Softwarelizenz für eigene
+                EduKSX-Glossary-Programmteile müssen noch geklärt werden.
             </div>
             <section className="mt-8 space-y-3">
                 <h2 className="text-xl font-semibold">Lizenzierung des Projekts</h2>
