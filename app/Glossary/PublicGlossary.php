@@ -23,7 +23,7 @@ final class PublicGlossary
     {
         $categories = $this->labels(Category::class);
 
-        return $this->published()
+        $list = $this->published()
             ->map(function (array $s) use ($categories): array {
                 $abk = (string) ($s['own_abbreviation'] ?: $s['official_abbreviation']);
                 $name = (string) ($s['own_name'] ?: $s['official_name']);
@@ -44,6 +44,8 @@ final class PublicGlossary
             ->sortBy(fn (array $t): string => mb_strtolower($t['abkuerzung'] ?: $t['bezeichnung']))
             ->values()
             ->all();
+
+        return array_values($list);
     }
 
     /**
@@ -115,11 +117,15 @@ final class PublicGlossary
      */
     private function published(): Collection
     {
-        return Term::query()->published()->with('publishedRevision')->get()
-            ->map(fn (Term $t): array => $t->publishedRevision === null ? [] : $t->publishedRevision->snapshot)
-            ->filter(fn (array $s): bool => $s !== [])
-            ->values()
-            ->toBase();
+        /** @var list<array<string, mixed>> $snapshots */
+        $snapshots = [];
+        foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
+            if ($term->publishedRevision !== null) {
+                $snapshots[] = $term->publishedRevision->snapshot;
+            }
+        }
+
+        return new Collection($snapshots);
     }
 
     /**
