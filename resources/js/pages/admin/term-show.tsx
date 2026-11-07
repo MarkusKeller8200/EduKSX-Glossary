@@ -45,6 +45,7 @@ const ROLLE: Record<string, string> = {
 const QUELLE: Record<string, string> = {
     excel: 'Excel-Import',
     altwerte: 'Altwerte',
+    tabelle: 'Tabelle',
 };
 
 type Option = { key: string; label: string };
