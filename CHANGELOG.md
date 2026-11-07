@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.6.0] – 2026-11-07
+
 ### Neu
 
 - **CSV-Export (#71):** Begriffe zusätzlich als CSV (UTF-8, Semikolon); Formeln werden als Text geschützt.
