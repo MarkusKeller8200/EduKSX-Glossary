@@ -94,7 +94,7 @@ class ServiceAccountController extends Controller
                 ->map(fn (ServiceAccountAudit $e): array => [
                     'am' => $e->created_at->toIso8601String(),
                     'aktion' => self::ACTIONS[$e->action] ?? $e->action,
-                    'von' => $e->actor_id !== null ? (User::query()->find($e->actor_id)?->name ?? '(gelöscht)') : $e->actor_label,
+                    'von' => $e->actor_id !== null ? (User::query()->find($e->actor_id)->name ?? '(gelöscht)') : $e->actor_label,
                     'ergebnis' => $e->result,
                     'details' => $e->details,
                 ])->all(),
