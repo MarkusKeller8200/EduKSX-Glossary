@@ -1,0 +1,25 @@
+# Entscheide
+
+Register aller Projektentscheide. Hervorgegangen aus dem Entscheidungsregister V1.2 (mit ChatGPT erarbeitet,
+07.11.2026) und laufend nachgeführt. Status: **beschlossen** (vom Projektverantwortlichen festgelegt),
+**Vorschlag** (zur Abnahme), **offen** (wird geklärt, wenn benötigt).
+
+| ID      | Status      | Entscheid                                                                                                                                                                              | Konzept                                              |
+| ------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| DEC-001 | beschlossen | Eigenständige öffentliche Glossary-Webanwendung für Volksschulen, Schulgemeinden und Gemeinden.                                                                                        | [KONZEPT.md](KONZEPT.md)                             |
+| DEC-002 | beschlossen | Grunddatenstruktur des Glossar-Moduls aus `sek-intranet` als Referenz übernehmen.                                                                                                      | [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md)     |
+| DEC-003 | beschlossen | Redaktionelle Pflege durch Recherche, Excel-Import/-Export und Community-Anträge mit Adminfreigabe.                                                                                    | [KONZEPT.md](KONZEPT.md)                             |
+| DEC-004 | beschlossen | EduKSX-Glossary ist führendes Datensystem; Konsumenten erhalten ausschliesslich veröffentlichte Daten.                                                                                 | [KONZEPT-API.md](KONZEPT-API.md)                     |
+| DEC-005 | beschlossen | Standardisierte REST-API ist Pflichtumfang; das Intranet muss regelmässig synchronisieren können.                                                                                      | [KONZEPT-API.md](KONZEPT-API.md)                     |
+| DEC-006 | beschlossen | Confluence ist ausschliesslich Datenempfänger; Glossardaten sollen als Seite in beliebigen berechtigten Spaces publizierbar sein.                                                        | [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)       |
+| DEC-007 | beschlossen | Confluence-Publisher hat gegenüber Kern-API/Intranet niedrigere Priorität.                                                                                                             | [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)       |
+| DEC-008 | beschlossen | MCP-Server für künftige Rovo-Nutzung bereits architektonisch berücksichtigen; Implementierung nachrangig.                                                                              | [KONZEPT-MCP.md](KONZEPT-MCP.md)                     |
+| DEC-009 | beschlossen | Stack wie das Intranet: Laravel 13, Inertia 3, React 19, TypeScript, shadcn/ui, Tailwind 4.                                                                                            | [KONZEPT-STACK.md](KONZEPT-STACK.md)                 |
+| DEC-010 | beschlossen | **SQLite** als Datenbank (eine Datei im Volumen), **kein PostgreSQL** im Projekt (Anpassung und Abnahme 07.11.2026); JSON als Austausch- und Startformat; OpenAPI 3.1, Datenstand (Release) und Change-Feed mit Cursor. | [KONZEPT-STACK.md](KONZEPT-STACK.md)                 |
+| DEC-011 | beschlossen | MCP nutzt interne Services, nicht die Datenbank direkt; Rovo-Änderungen standardmässig moderieren.                                                                                     | [KONZEPT-MCP.md](KONZEPT-MCP.md)                     |
+| DEC-012 | offen       | Anmeldung der Community, Confluence-Mehrfachziele und Rovo-Kompatibilität – wird geklärt, wenn benötigt.                                                                              | –                                                    |
+| DEC-013 | beschlossen | Hosting zuerst als Container auf dem bestehenden Hostinger-VPS hinter Traefik, Infomaniak später prüfen; Domain `glossary.eduksx.ch` über Cloudflare; GitHub Pages bleibt als reduzierte Lesefassung (#4, 07.11.2026). | [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)             |
+| DEC-014 | beschlossen | **Lokaler Admin von Beginn an:** Schon das erste Deployment hat eine Anmeldung für die Administration; ohne Anmeldung lassen sich keine Daten ändern (07.11.2026).                     | [KONZEPT-STACK.md](KONZEPT-STACK.md)                 |
+| DEC-015 | beschlossen | Auftritt nach CI MarKusSXCH, GUI-Bausteine aus dem Intranet übernehmen statt neu entwickeln (#9, 07.11.2026).                                                                           | [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)               |
+
+Konzepte abgenommen am 07.11.2026 (#3, #5, #6, #9). Frühere Konzeptstände V1.0/V1.1 (Confluence als Datenspeicher) sind überholt; es gelten DEC-004 bis DEC-008.

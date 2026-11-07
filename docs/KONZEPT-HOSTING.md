@@ -2,7 +2,7 @@
 
 Entscheid des Projektverantwortlichen vom 07.11.2026 (#4), nach Entscheidungsvorlage im Chat; abgenommen mit
 Anpassungen am selben Tag. Betrifft DEC-012
-(Hosting) in [DECISIONS_V1.2.md](DECISIONS_V1.2.md).
+(Hosting) in [ENTSCHEIDE.md](ENTSCHEIDE.md).
 
 ## Entscheid
 
