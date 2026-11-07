@@ -10,6 +10,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -45,6 +46,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // Abgelaufener oder veränderter Bestätigungslink (#41): freundlich zur Anmeldung
+        $exceptions->render(function (InvalidSignatureException $e, Request $request) {
+            if ($request->routeIs('register.verify')) {
+                return redirect('/anmelden')->withErrors(['email' => 'Der Bestätigungslink ist abgelaufen. Bitte anmelden – der Link wird dann neu gesendet.']);
+            }
+
+            return null;
+        });
 
         // API: Fehler als application/problem+json (RFC 9457, docs/KONZEPT-API.md)
         $exceptions->render(function (Throwable $e, Request $request) {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\Turnstile;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,9 +22,11 @@ final class SecurityHeaders
         $headers = $response->headers;
 
         $headers->set('X-Frame-Options', 'SAMEORIGIN');
+        // Spam-Schutz (Turnstile) bettet sich nur auf der Registrierung als iframe ein (#41)
+        $frames = $request->routeIs('register') && Turnstile::enabled() ? "'self' https://challenges.cloudflare.com" : "'self'";
         $headers->set('Content-Security-Policy', implode('; ', [
             "frame-ancestors 'self'",
-            "frame-src 'self'",
+            "frame-src {$frames}",
             "object-src 'none'",
             "base-uri 'self'",
         ]));

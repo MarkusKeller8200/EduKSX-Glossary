@@ -26,6 +26,15 @@ return [
     // API v1 bis zum öffentlichen Betrieb als Vorschau (DEC-016): Felder können sich noch ändern
     'api_stability' => env('GLOSSARY_API_STABILITY', 'preview'),
 
+    // Datenschutzerklärung: Version, deren Kenntnisnahme bei Registrierung bzw. Änderung gespeichert wird (#41, #42)
+    'privacy_version' => env('GLOSSARY_PRIVACY_VERSION', '1.0-entwurf'),
+
+    // Spam-Schutz für Formulare (Cloudflare Turnstile, #41); ohne Schlüssel ausgeschaltet (lokal)
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
     // Reduzierte Fassung auf GitHub Pages (docs/KONZEPT-HOSTING.md)
     'pages_url' => env('GLOSSARY_PAGES_URL', 'https://markuskeller8200.github.io/EduKSX-Glossary/'),
 ];

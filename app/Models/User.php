@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Access\Permission;
+use App\Notifications\ResetPasswordNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -24,12 +25,15 @@ use Illuminate\Support\Facades\DB;
  * @property string|null $institution_type
  * @property string|null $institution_name
  * @property CarbonImmutable|null $last_login_on
+ * @property CarbonImmutable|null $email_verified_at
+ * @property string|null $privacy_notice_version
+ * @property CarbonImmutable|null $privacy_notice_acknowledged_at
  * @property string $email
  * @property string|null $two_factor_secret
  * @property list<string>|null $two_factor_recovery_codes Hashes
  * @property CarbonImmutable|null $two_factor_confirmed_at
  * @property int|null $two_factor_last_step
- * @property string $status active, blocked
+ * @property string $status active, blocked, pending (Registrierung noch nicht bestätigt)
  * @property CarbonImmutable|null $blocked_at
  * @property-read Collection<int, Role> $roles
  */
@@ -64,7 +68,8 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'email_verified_at' => 'immutable_datetime',
+            'privacy_notice_acknowledged_at' => 'immutable_datetime',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
@@ -105,6 +110,18 @@ class User extends Authenticatable
     {
         return array_values(array_map('strval', DB::table('user_roles')->join('roles', 'roles.id', '=', 'user_roles.role_id')
             ->where('user_roles.user_id', $this->id)->orderBy('roles.sort_order')->pluck('roles.key')->all()));
+    }
+
+    /** Passwort-Link deutsch und über die Warteschlange (#41). */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /** Registrierung noch nicht per E-Mail bestätigt (#41). */
+    public function isPending(): bool
+    {
+        return $this->status === 'pending';
     }
 
     /** Nicht gesperrt (#37). */
