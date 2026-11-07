@@ -89,4 +89,3 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 Die CI erzeugt den Bericht bei jeder Prüfung und warnt bei starkem Copyleft, nicht-kommerziellen oder fehlenden
 Lizenzangaben. Jedes Release erhält ihn als Anhang `license-report.md` (Workflow `license-report`). Offen: den
 Lizenztext der SIL OFL 1.1 für die Schrift Inter als Datei beilegen.
-
