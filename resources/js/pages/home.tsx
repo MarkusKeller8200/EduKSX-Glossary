@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
@@ -29,8 +30,9 @@ function initial(b: Begriff): string {
 
 /** Startseite: veröffentlichte Begriffe mit Suche, Index A–Z und Kategorien (#24, PUB-01/02). */
 export default function Home({ begriffe }: { begriffe: Begriff[] }) {
-    const { links } = usePage().props;
+    const { links, auth } = usePage().props;
     const [suche, setSuche] = useState('');
+    const [pdf, setPdf] = useState(false);
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
     const [kategorie, setKategorie] = useState<string | null>(null);
 
@@ -176,6 +178,41 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 <p className="mt-6 text-muted-foreground">
                     Noch keine Begriffe veröffentlicht.
                 </p>
+            ) : null}
+
+            {auth.can.export ? (
+                <p className="mt-8 text-sm">
+                    Veröffentlichte Begriffe herunterladen (CC BY 4.0):{' '}
+                    <a
+                        href="/export"
+                        className="text-link underline underline-offset-4"
+                    >
+                        Excel
+                    </a>
+                    {' · '}
+                    <a
+                        href="/export?format=csv"
+                        className="text-link underline underline-offset-4"
+                    >
+                        CSV
+                    </a>
+                    {' · '}
+                    <button
+                        type="button"
+                        onClick={() => setPdf(true)}
+                        className="text-link underline underline-offset-4"
+                    >
+                        PDF
+                    </button>
+                </p>
+            ) : null}
+            {pdf ? (
+                <GlossaryPdfDialog
+                    open={pdf}
+                    onOpenChange={setPdf}
+                    quelle="/export?format=json"
+                    gefiltert={liste.map((b) => b.slug)}
+                />
             ) : null}
 
             {links.githubRepo ? (
