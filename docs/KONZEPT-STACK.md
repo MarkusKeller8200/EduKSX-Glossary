@@ -1,10 +1,10 @@
 # Konzept: Programmierstack
 
-**Entwurf** vom 07.11.2026 zur Abnahme (#5; DEC-009, DEC-010, DEC-014). Ziel: am sek-intranet ausrichten, damit
+**Abgenommen** am 07.11.2026 (#5; DEC-009, DEC-010, DEC-014). Ziel: am sek-intranet ausrichten, damit
 Bausteine, Werkzeuge und Arbeitsweise gleich bleiben. Anpassung 07.11.2026: **kein PostgreSQL** – für die
 Datenmenge reicht SQLite vollauf.
 
-## Vorschlag
+## Stack
 
 | Schicht       | Technologie                                                                                     | wie im Intranet        |
 | ------------- | ----------------------------------------------------------------------------------------------- | ---------------------- |

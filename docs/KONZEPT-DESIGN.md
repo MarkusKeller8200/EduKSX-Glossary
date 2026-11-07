@@ -1,6 +1,6 @@
 # Konzept: Auftritt (CI) und GUI-Bausteine
 
-**Entwurf** vom 07.11.2026 zur Abnahme (#9; DEC-015). Grundsatz des Projektverantwortlichen: Der **Auftritt** kommt anders als
+**Abgenommen** am 07.11.2026 (#9; DEC-015). Grundsatz des Projektverantwortlichen: Der **Auftritt** kommt anders als
 im Intranet aus dem CI von MarKusSXCH; die **GUI-Bausteine** werden aus dem bestehenden Intranet übernommen und
 nicht neu entwickelt.
 
@@ -22,7 +22,7 @@ Farben und Marke das CI, für Bedienung und Barrierefreiheit das Intranet; Barri
   Layouts (Seitenleiste, Kopf) und die Glossar-Seiten (`pages/glossary/*`) als Ausgangspunkt.
 - Die Bausteine bleiben **farbneutral**: Farben nur über Farbwerte (`bg-primary`, `text-muted-foreground` …), nie
   fest im Code – so wie im Intranet vorgeschrieben. Darum genügt für das neue Aussehen ein eigener Satz Farbwerte.
-- **Vorschlag – Übernahme als Kopie mit Herkunft:** Jede übernommene Datei bekommt einen Kopfkommentar
+- **Übernahme als Kopie mit Herkunft** (abgenommen): Jede übernommene Datei bekommt einen Kopfkommentar
   `Übernommen aus sek-intranet <Pfad> @ <Commit>`; eine Liste in `docs/UEBERNAHME-INTRANET.md` hält Datei,
   Version und Abweichung fest. Verbesserungen fliessen als Issue in beide Projekte. Später, wenn mehrere EduKSX-
   Projekte dieselben Bausteine nutzen (Codex), ein gemeinsames Paket prüfen (eigenes Repository als npm-Paket).
@@ -43,7 +43,7 @@ Farben und Marke das CI, für Bedienung und Barrierefreiheit das Intranet; Barri
 - Fusszeile: «Developed by MarKusSXCH», Link auf markussx.ch/eduksx. Kein Arbeitgeber im öffentlichen Auftritt.
 - Kein selbst erfundenes Favicon/Signet; bis zur Freigabe eines Signets ein neutrales Platzhalter-Favicon.
 
-### Farben (Vorschlag für die Farbwerte)
+### Farben
 
 Markenfarben gemäss CI; für Bedienelemente kontrastgeprüfte **funktionale** Töne (CI-Manual Abschnitt 2 und 5:
 EduKSX hat Orange als primären UI-Akzent, Blau und Violett ergänzend). Kontraste nach WCAG berechnet.
@@ -94,7 +94,7 @@ Befunde aus der Prüfung:
 
 ## Offen
 
-- Übernahme als Kopie (Vorschlag) oder gemeinsames Paket von Beginn an.
+- Gemeinsames Paket der Bausteine, sobald ein weiteres EduKSX-Projekt sie braucht (Codex).
 - Signet/Favicon (CI: separat zu entwickeln und freizugeben).
-- Welche Intranet-Bausteine im ersten Schritt nötig sind (Vorschlag: nur die für Website, Tabelle, Formular,
-  Import und Begriff).
+- Welche Intranet-Bausteine als Nächstes übernommen werden (Tabelle, Formular, Import und Begriff) – mit den
+  Issues der Etappe 0.2.

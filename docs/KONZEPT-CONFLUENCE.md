@@ -1,6 +1,6 @@
 # Konzept: Confluence-Publisher (spätere Etappe)
 
-**Entwurf** vom 07.11.2026, aus Konzept V1.2 (Abschnitt 8a) und CONFLUENCE_PUBLISHER. Entscheide DEC-006 und DEC-007.
+**Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8a) und CONFLUENCE_PUBLISHER. Entscheide DEC-006 und DEC-007.
 
 ## Beschlossen
 

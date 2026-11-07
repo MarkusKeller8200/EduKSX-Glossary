@@ -1,6 +1,6 @@
 # Konzept: REST-API und Synchronisation
 
-**Entwurf** vom 07.11.2026, aus Konzept V1.2 (Abschnitt 8) und dem Sync-Vertrag. Entscheide DEC-004 und DEC-005.
+**Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8) und dem Sync-Vertrag. Entscheide DEC-004 und DEC-005.
 
 ## Grundsatz (beschlossen)
 

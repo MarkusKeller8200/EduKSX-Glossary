@@ -1,6 +1,6 @@
 # Konzept: Versionen und Versionshistorie
 
-**Entwurf** vom 07.11.2026 zur Abnahme (#6). Der allgemeine Ablauf – Issues mit Freigabe, Status-Labels,
+**Abgenommen** am 07.11.2026 (#6). Der allgemeine Ablauf – Issues mit Freigabe, Status-Labels,
 Meilensteine, Releases – kommt aus dem [GitHub-Blueprint](https://github.com/MarkusKeller8200/my-github-blueprint)
 und steht in [GITHUB-ABLAUF.md](GITHUB-ABLAUF.md). Hier steht, was im Glossar dazukommt; angelehnt an
 `docs/KONZEPT-VERSIONIERUNG.md` im sek-intranet.

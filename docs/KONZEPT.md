@@ -1,6 +1,6 @@
 # Konzept: EduKSX-Glossary
 
-**Entwurf** vom 07.11.2026 zur Abnahme (#3). Grundlage: Projektkonzept V1.2 (mit ChatGPT erarbeitet, 07.11.2026)
+**Abgenommen** am 07.11.2026 (#3). Grundlage: Projektkonzept V1.2 (mit ChatGPT erarbeitet, 07.11.2026)
 und das Glossar-Modul des Intranets (`docs/KONZEPT-GLOSSAR.md` im sek-intranet). Konzept V1.2 und seine
 Beilagen (Entscheidungsregister, Sync-Vertrag, Confluence-Publisher, MCP-Readiness) sind in diese Konzepte
 zusammengeführt; der Originaltext steht im Git-Verlauf (Commit `8d4367b`). Bei Widersprüchen gilt
@@ -17,8 +17,9 @@ zusammengeführt; der Originaltext steht im Git-Verlauf (Commit `8d4367b`). Bei 
 | [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)   | Confluence-Publisher (später)                      |
 | [KONZEPT-MCP.md](KONZEPT-MCP.md)                 | MCP-Server für Rovo (später)                       |
 
-Kennzeichnung: **Entscheid** = vom Projektverantwortlichen festgelegt · **Vorschlag** = zur Abnahme · **offen** =
-noch zu klären.
+Kennzeichnung: **Entscheid** = vom Projektverantwortlichen festgelegt · **Vorschlag** = mit der Abnahme vom
+07.11.2026 als Planungsgrundlage übernommen, Einzelheiten werden bei der Umsetzung im jeweiligen Issue festgelegt ·
+**offen** = wird geklärt, wenn benötigt.
 
 ## Ziel
 
@@ -154,11 +155,11 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 - Hosting: [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (Entscheid DEC-013): Hostinger-VPS, `glossary.eduksx.ch`,
   GitHub Pages als reduzierte Fassung.
-- Stack: [KONZEPT-STACK.md](KONZEPT-STACK.md) (Entwurf).
-- Auftritt und GUI-Bausteine: [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md) (Entwurf) – Auftritt nach CI MarKusSXCH,
+- Stack: [KONZEPT-STACK.md](KONZEPT-STACK.md).
+- Auftritt und GUI-Bausteine: [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md) – Auftritt nach CI MarKusSXCH,
   Bausteine aus dem Intranet übernommen, nicht neu entwickelt.
 - Issues, Versionen, Releases: Blueprint-Ablauf ([GITHUB-ABLAUF.md](GITHUB-ABLAUF.md)),
-  [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) (Entwurf).
+  [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md).
 
 ## Datenschutz und Sicherheit
 

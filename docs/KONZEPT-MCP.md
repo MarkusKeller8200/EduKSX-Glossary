@@ -1,6 +1,6 @@
 # Konzept: MCP-Server für Rovo (spätere Etappe)
 
-**Entwurf** vom 07.11.2026, aus Konzept V1.2 (Abschnitt 8b) und MCP_READINESS. Entscheide DEC-008 und DEC-011.
+**Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8b) und MCP_READINESS. Entscheide DEC-008 und DEC-011.
 
 ## Beschlossen
 
