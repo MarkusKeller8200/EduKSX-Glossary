@@ -1,15 +1,15 @@
 name: license-report
 
-# Lizenzbericht der Pakete (#73) als Anhang des GitHub-Release. Läuft, wenn der Workflow «release» fertig ist
-# (Releases mit GITHUB_TOKEN lösen sonst keine weiteren Workflows aus), oder von Hand für einen Tag.
+# Lizenzbericht der Pakete (#73) als Anhang des neuesten GitHub-Release. Läuft täglich (und von Hand) und hängt den
+# Bericht an, wenn er beim Release noch fehlt – erzeugt aus dem Stand des Tags. Kein workflow_run, damit nie fremder
+# Code in einem Kontext mit Schreibrecht ausgecheckt wird.
 on:
-  workflow_run:
-    workflows: [release]
-    types: [completed]
+  schedule:
+    - cron: '17 4 * * *'
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag, z. B. v0.6.0 (leer = aus VERSION)'
+        description: 'Tag, z. B. v0.6.0 (leer = neuestes Release)'
         required: false
 
 permissions:
@@ -17,29 +17,29 @@ permissions:
 
 jobs:
   report:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
-          persist-credentials: false
-
-      - name: Release vorhanden?
+      - name: Release ohne Bericht?
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_INPUT: ${{ inputs.tag }}
         run: |
-          tag="${TAG_INPUT:-v$(tr -d '[:space:]' < VERSION)}"
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' 2>/dev/null | grep -qx "license-report.md"; then
+          tag="${TAG_INPUT:-$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null || true)}"
+          if [ -z "$tag" ]; then
+            echo "Kein Release – nichts zu tun."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx "license-report.md"; then
             echo "Bericht für $tag liegt schon vor."
             echo "skip=true" >> "$GITHUB_OUTPUT"
-          elif ! gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            echo "Kein Release $tag – nichts zu tun."
-            echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        if: steps.release.outputs.skip != 'true'
+        with:
+          ref: refs/tags/${{ steps.release.outputs.tag }}
+          persist-credentials: false
 
       - name: Setup PHP
         if: steps.release.outputs.skip != 'true'

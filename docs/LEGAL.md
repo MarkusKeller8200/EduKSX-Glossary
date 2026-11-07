@@ -87,5 +87,5 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 
 `scripts/license-report.mjs` listet alle Composer- und npm-Pakete der Laufzeit (direkt und transitiv) mit Lizenz.
 Die CI erzeugt den Bericht bei jeder Prüfung und warnt bei starkem Copyleft, nicht-kommerziellen oder fehlenden
-Lizenzangaben. Jedes Release erhält ihn als Anhang `license-report.md` (Workflow `license-report`). Offen: den
+Lizenzangaben. Jedes Release erhält ihn als Anhang `license-report.md` (Workflow `license-report`, täglich bzw. von Hand). Offen: den
 Lizenztext der SIL OFL 1.1 für die Schrift Inter als Datei beilegen.
