@@ -88,7 +88,7 @@ class LegacyValueController extends Controller
             $term = $first->term->mergeTarget() ?? $first->term;
             $accepted = $group->filter(fn (TermLegacyValue $v): bool => in_array($action, self::ALLOWED[$v->field] ?? [], true));
             foreach ($group->diff($accepted) as $v) {
-                $skipped[] = "{$v->value} ({$term->title()}): bei «".(TermLegacyValue::FIELDS[$v->field] ?? $v->field)."» nicht möglich";
+                $skipped[] = "{$v->value} ({$term->title()}): bei «".(TermLegacyValue::FIELDS[$v->field] ?? $v->field).'» nicht möglich';
             }
             if ($accepted->isEmpty()) {
                 continue;

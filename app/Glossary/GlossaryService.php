@@ -40,6 +40,9 @@ final class GlossaryService
         'official_abbreviation', 'official_name', 'short_description', 'description', 'note', 'url', 'search_terms',
     ];
 
+    /** Persönliche Darstellungen beim letzten merge(), die wegen Widerspruch am alten Begriff geblieben sind. */
+    public int $lastMergeConflicts = 0;
+
     /**
      * Begriff anlegen (ohne $term) oder ändern. Ergebnis ist immer ein Entwurf; veröffentlicht wird mit publish().
      *
@@ -304,9 +307,6 @@ final class GlossaryService
             return $target->refresh();
         });
     }
-
-    /** Persönliche Darstellungen beim letzten merge(), die wegen Widerspruch am alten Begriff geblieben sind. */
-    public int $lastMergeConflicts = 0;
 
     /** Persönliche Darstellungen von $from auf $to übertragen; Rückgabe: Anzahl mit Widerspruch (bleiben bei $from). */
     private function moveOverrides(Term $from, Term $to): int
