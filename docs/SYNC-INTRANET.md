@@ -12,12 +12,12 @@ Er ist ohne Laravel-Abhängigkeiten geschrieben und wird in der CI geprüft (`te
    `meta.next_cursor`, solange `meta.has_more` wahr ist. Den neuen Cursor erst speichern, wenn die Seite
    verarbeitet ist.
 3. **Ereignisse in fester Reihenfolge anwenden:**
-   - `published`: `term` übernehmen (Begriff in genau dieser Revision). Ist `term.is_active` falsch, den
-     Begriff lokal entfernen oder ausblenden.
-   - `unpublished`: Begriff lokal entfernen oder ausblenden (Tombstone).
-   - `merged`: Begriff lokal entfernen und Verweise von `term_id` auf `merged_into` umleiten. Der
-     verbleibende Begriff kommt als eigenes `published`-Ereignis.
-   - Unbekannte Ereignisarten überspringen. Neue Arten sind möglich, ohne dass die Version wechselt.
+    - `published`: `term` übernehmen (Begriff in genau dieser Revision). Ist `term.is_active` falsch, den
+      Begriff lokal entfernen oder ausblenden.
+    - `unpublished`: Begriff lokal entfernen oder ausblenden (Tombstone).
+    - `merged`: Begriff lokal entfernen und Verweise von `term_id` auf `merged_into` umleiten. Der
+      verbleibende Begriff kommt als eigenes `published`-Ereignis.
+    - Unbekannte Ereignisarten überspringen. Neue Arten sind möglich, ohne dass die Version wechselt.
 4. **Listen separat:** Kategorien und Herkunft über `GET /api/v1/categories` und `/sources` holen. Im Begriff
    zählt der Schlüssel (`key`). Bezeichnungen können sich ändern, ohne dass der Begriff ein Ereignis erhält.
 
