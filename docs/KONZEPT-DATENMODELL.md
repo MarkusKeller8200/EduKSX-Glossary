@@ -8,21 +8,21 @@ Austausch- und Startformat (Übernahme aus dem Intranet, Export, GitHub Pages).
 
 ## Felder aus dem Intranet (beschlossen: Ausgangsbasis)
 
-| Feld im Intranet                     | Zweck                                  | Besonderheit                                |
-| ------------------------------------ | -------------------------------------- | ------------------------------------------- |
-| `kategorien`                         | Mehrfachzuordnung                      | erweiterbare Liste                          |
-| `abk_offiziell`, `aliase_offiziell`  | offizielle Abkürzung und Schreibweisen | ändern nur mit Sonderrecht                  |
-| `abk_eigen`, `alias_eigen`           | lokal bzw. anders verwendete Form      | getrennt von der offiziellen                |
-| `bez_offiziell`, `bez_eigen`         | offizielle bzw. eigene Bezeichnung     | eigene kann im Intranet Vorrang haben       |
-| `kurzbeschreibung`                   | Tooltip                                | max. 160 Zeichen                            |
-| `beschreibung`                       | ausführliche Erklärung                 | mit Quellenbezug                            |
-| `url`, `herkunft`                    | Beleg, Quelleninstitution              | mehrere Herkünfte möglich                   |
-| `notiz`                              | redaktionelle Ergänzung                | Markdown                                    |
-| `genutzt_in`                         | Bezüge zu Anwendungen                  | neu unabhängig vom Intranet                 |
-| `status`                             | aktuell, historisch, zu prüfen         | nicht dasselbe wie die Freigabe             |
-| `suchbegriffe`                       | Suche                                  |                                             |
-| `gueltig_ab`, `gueltig_bis`          | zeitliche Geltung                      | optional                                    |
-| `aktiv`                              | anzeigen/ausblenden                    | getrennt von der Veröffentlichung           |
+| Feld im Intranet                    | Zweck                                  | Besonderheit                          |
+| ----------------------------------- | -------------------------------------- | ------------------------------------- |
+| `kategorien`                        | Mehrfachzuordnung                      | erweiterbare Liste                    |
+| `abk_offiziell`, `aliase_offiziell` | offizielle Abkürzung und Schreibweisen | ändern nur mit Sonderrecht            |
+| `abk_eigen`, `alias_eigen`          | lokal bzw. anders verwendete Form      | getrennt von der offiziellen          |
+| `bez_offiziell`, `bez_eigen`        | offizielle bzw. eigene Bezeichnung     | eigene kann im Intranet Vorrang haben |
+| `kurzbeschreibung`                  | Tooltip                                | max. 160 Zeichen                      |
+| `beschreibung`                      | ausführliche Erklärung                 | mit Quellenbezug                      |
+| `url`, `herkunft`                   | Beleg, Quelleninstitution              | mehrere Herkünfte möglich             |
+| `notiz`                             | redaktionelle Ergänzung                | Markdown                              |
+| `genutzt_in`                        | Bezüge zu Anwendungen                  | neu unabhängig vom Intranet           |
+| `status`                            | aktuell, historisch, zu prüfen         | nicht dasselbe wie die Freigabe       |
+| `suchbegriffe`                      | Suche                                  |                                       |
+| `gueltig_ab`, `gueltig_bis`         | zeitliche Geltung                      | optional                              |
+| `aktiv`                             | anzeigen/ausblenden                    | getrennt von der Veröffentlichung     |
 
 Regeln (beschlossen, wie im Intranet): mehrdeutige Abkürzungen erlaubt; Doppelte nur bei gleicher Abkürzung **und**
 Bedeutung zusammenführen, nie automatisch, Kategorien/Aliase/Herkunft bleiben erhalten; offizielle Felder geschützt;
@@ -53,11 +53,11 @@ Abbildung: Die deutschen Feldnamen des Intranets werden beim Import auf diese Sp
 
 ## Drei Statusachsen
 
-| Achse                          | Werte                                   | Wirkung                                   |
-| ------------------------------ | --------------------------------------- | ----------------------------------------- |
-| `terms.lifecycle_status`       | aktuell, historisch, zu prüfen          | Anzeige und Filter                        |
-| `proposals.status`             | eingereicht … veröffentlicht            | Moderation                                |
-| `term_revisions.published_at`  | gesetzt = öffentlich                     | was Website und API zeigen                |
+| Achse                         | Werte                          | Wirkung                    |
+| ----------------------------- | ------------------------------ | -------------------------- |
+| `terms.lifecycle_status`      | aktuell, historisch, zu prüfen | Anzeige und Filter         |
+| `proposals.status`            | eingereicht … veröffentlicht   | Moderation                 |
+| `term_revisions.published_at` | gesetzt = öffentlich           | was Website und API zeigen |
 
 Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht abrufbar.
 

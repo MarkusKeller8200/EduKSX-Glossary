@@ -18,8 +18,7 @@ void createInertiaApp({
         return (module.default ?? module) as never;
     },
     title: (title) => (title ? `${title} – ${appName}` : appName),
-    layout: (name) =>
-        name.startsWith('admin/') ? AdminLayout : PublicLayout,
+    layout: (name) => (name.startsWith('admin/') ? AdminLayout : PublicLayout),
     strictMode: true,
     progress: {
         color: '#007EBB',

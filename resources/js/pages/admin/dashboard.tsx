@@ -1,11 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { versionLabel } from '@/components/version-label';
 
 /** Startseite der Administration. Redaktion, Import und Moderation folgen ab 0.2. */

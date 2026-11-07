@@ -59,12 +59,12 @@ rm /root/.ssh/glossary-deploy                        # privater Schlüssel nur i
 
 Repository → Settings → Secrets and variables → Actions:
 
-| Typ      | Name              | Inhalt                                              |
-| -------- | ----------------- | --------------------------------------------------- |
-| Secret   | `VPS_SSH_KEY`     | ganzer Inhalt von `glossary-deploy`                 |
-| Secret   | `VPS_KNOWN_HOSTS` | Ausgabe von `ssh-keyscan`                           |
-| Variable | `VPS_HOST`        | `76.13.156.138`                                     |
-| Variable | `GLOSSARY_HOST`   | `glossary.eduksx.ch`                                |
+| Typ      | Name              | Inhalt                                                |
+| -------- | ----------------- | ----------------------------------------------------- |
+| Secret   | `VPS_SSH_KEY`     | ganzer Inhalt von `glossary-deploy`                   |
+| Secret   | `VPS_KNOWN_HOSTS` | Ausgabe von `ssh-keyscan`                             |
+| Variable | `VPS_HOST`        | `76.13.156.138`                                       |
+| Variable | `GLOSSARY_HOST`   | `glossary.eduksx.ch`                                  |
 | Variable | `DEPLOY_ENABLED`  | `true` – erst setzen, wenn Schritte 2–4 erledigt sind |
 
 Solange `DEPLOY_ENABLED` fehlt, prüft der Workflow «deploy» nur (Job ci) und überspringt das Ausrollen.
@@ -89,12 +89,12 @@ docker compose exec app php artisan glossary:admin
 
 ## Betrieb
 
-| Aufgabe              | Befehl auf dem Server (`cd /docker/glossary`)                    |
-| -------------------- | ---------------------------------------------------------------- |
-| Status               | `docker compose ps`                                              |
-| Logs                 | `docker compose logs -f app`                                     |
-| Admin/Passwort       | `docker compose exec app php artisan glossary:admin`             |
-| Sicherungen ansehen  | `docker compose exec app ls storage/app/backups`                 |
+| Aufgabe             | Befehl auf dem Server (`cd /docker/glossary`)        |
+| ------------------- | ---------------------------------------------------- |
+| Status              | `docker compose ps`                                  |
+| Logs                | `docker compose logs -f app`                         |
+| Admin/Passwort      | `docker compose exec app php artisan glossary:admin` |
+| Sicherungen ansehen | `docker compose exec app ls storage/app/backups`     |
 
 - Vor jedem Start sichert der Container die SQLite-Datei nach `storage/app/backups` (die letzten 10). Eine Sicherung
   ausser Haus folgt (offener Punkt im Hosting-Konzept).

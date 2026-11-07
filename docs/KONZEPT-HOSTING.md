@@ -31,13 +31,13 @@ Browser ─► Cloudflare (DNS, Proxy, WAF) ─► Hostinger-VPS ─► Traefik 
                                                                               └─ Datenbank (Volumen)
 ```
 
-| Was                   | Wert                                                                  |
-| --------------------- | --------------------------------------------------------------------- |
+| Was                   | Wert                                                                 |
+| --------------------- | -------------------------------------------------------------------- |
 | Server                | Hostinger-VPS srv1807739 (gleicher Server wie der Intranet-Prototyp) |
-| Ordner auf dem Server | `/docker/glossary` (Compose-Datei, `.env`, Quellcode in `src/`)       |
-| Adresse               | `https://glossary.eduksx.ch`                                           |
-| Prüfadresse           | `https://glossary.eduksx.ch/up`                                        |
-| Daten                 | eigenes Docker-Volumen, getrennt vom Intranet                         |
+| Ordner auf dem Server | `/docker/glossary` (Compose-Datei, `.env`, Quellcode in `src/`)      |
+| Adresse               | `https://glossary.eduksx.ch`                                         |
+| Prüfadresse           | `https://glossary.eduksx.ch/up`                                      |
+| Daten                 | eigenes Docker-Volumen, getrennt vom Intranet                        |
 
 - **Getrennt vom Intranet:** eigenes Compose-Projekt, eigenes Netzwerk, eigenes Volumen, eigener App-Schlüssel,
   eigener Deploy-Schlüssel. Gemeinsam sind nur Server und Traefik.
@@ -66,10 +66,10 @@ Die Nameserver von `eduksx.ch` sind noch nicht auf Cloudflare aktiv. Reihenfolge
    Intranet; danach auf «Proxied» (orange Wolke) umstellen.
 3. SSL/TLS-Modus **Full (strict)**: Cloudflare spricht mit dem Server nur über ein gültiges Zertifikat.
 4. Zertifikat auf dem Server, eine der zwei Varianten (Entscheid bei der Einrichtung, offener Punkt):
-   - **Let's Encrypt über Traefik** wie beim Intranet. Hinter dem Proxy erneuert sich das Zertifikat in der Regel
-     weiter; bei Problemen auf die DNS-Prüfung mit einem Cloudflare-API-Token (nur «Zone DNS: Edit» für
-     `eduksx.ch`) umstellen. Diese deckt auch spätere Subdomains ab.
-   - **Cloudflare Origin Certificate** (bis 15 Jahre gültig, nur für Cloudflare gültig) in Traefik hinterlegen.
+    - **Let's Encrypt über Traefik** wie beim Intranet. Hinter dem Proxy erneuert sich das Zertifikat in der Regel
+      weiter; bei Problemen auf die DNS-Prüfung mit einem Cloudflare-API-Token (nur «Zone DNS: Edit» für
+      `eduksx.ch`) umstellen. Diese deckt auch spätere Subdomains ab.
+    - **Cloudflare Origin Certificate** (bis 15 Jahre gültig, nur für Cloudflare gültig) in Traefik hinterlegen.
 5. Optional später: Zugriff auf den Server nur noch von Cloudflare-Adressen (Firewall), Cloudflare-Regeln gegen
    Spam für das Vorschlagsformular (Rate Limiting, Turnstile).
 
@@ -79,7 +79,6 @@ eigene Regel.
 ## Offene Punkte
 
 Werden geklärt, wenn sie benötigt werden:
-
 
 - Zertifikat: Let's Encrypt (HTTP- oder DNS-Prüfung) oder Cloudflare Origin Certificate.
 - Sicherung der Datenbank (Ziel, Intervall, Wiederherstellungstest) – mit dem Stack-Entscheid.

@@ -83,8 +83,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         href="https://markussx.ch/eduksx"
                         className="underline-offset-4 hover:underline"
                     >
-                        Developed by{' '}
-                        <BrandWordmark brand="developer" />
+                        Developed by <BrandWordmark brand="developer" />
                     </a>
                 </div>
             </footer>

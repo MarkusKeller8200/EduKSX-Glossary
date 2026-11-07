@@ -26,14 +26,14 @@ Online stellen auf `https://glossary.eduksx.ch` (Hostinger-VPS, Docker, Traefik,
 
 ## Aufbau
 
-| Pfad | Inhalt |
-|---|---|
-| `app/`, `routes/`, `database/` | Laravel: Website, Anmeldung, Administration, API `/api/v1` |
-| `resources/js/` | React-Seiten und Bausteine (aus dem Intranet, [Liste](docs/UEBERNAHME-INTRANET.md)) |
-| `openapi/glossary-v1.yaml` | Beschreibung der API (OpenAPI 3.1) |
-| `site/` | reduzierte Lesefassung über GitHub Pages |
-| `VERSION`, `CHANGELOG.md` | Version und Versionshistorie (Seite «Versionen») |
-| `docs/` | Konzepte, Entscheide, Ablauf auf GitHub |
+| Pfad                           | Inhalt                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| `app/`, `routes/`, `database/` | Laravel: Website, Anmeldung, Administration, API `/api/v1`                          |
+| `resources/js/`                | React-Seiten und Bausteine (aus dem Intranet, [Liste](docs/UEBERNAHME-INTRANET.md)) |
+| `openapi/glossary-v1.yaml`     | Beschreibung der API (OpenAPI 3.1)                                                  |
+| `site/`                        | reduzierte Lesefassung über GitHub Pages                                            |
+| `VERSION`, `CHANGELOG.md`      | Version und Versionshistorie (Seite «Versionen»)                                    |
+| `docs/`                        | Konzepte, Entscheide, Ablauf auf GitHub                                             |
 
 ## Mitmachen
 
