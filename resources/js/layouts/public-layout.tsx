@@ -98,6 +98,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         </Link>
                         {' · '}
                         <Link
+                            href="/datenschutz"
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            Datenschutz
+                        </Link>
+                        {' · '}
+                        <Link
                             href="/legals"
                             className="text-link underline-offset-4 hover:underline"
                         >

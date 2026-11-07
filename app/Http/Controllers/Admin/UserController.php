@@ -40,6 +40,10 @@ class UserController extends Controller
         'account.password' => 'Passwort geändert',
         'account.deleted' => 'Konto gelöscht',
         'system.testmail' => 'Testmail ausgelöst',
+        'account.registered' => 'Registriert',
+        'account.verified' => 'E-Mail bestätigt',
+        'account.password_reset' => 'Passwort über Link zurückgesetzt',
+        'privacy.acknowledged' => 'Datenschutzerklärung zur Kenntnis genommen',
     ];
 
     public function __construct(private readonly RoleManager $roles, private readonly AccountManager $accounts) {}

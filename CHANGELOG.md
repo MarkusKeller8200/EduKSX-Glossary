@@ -46,6 +46,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   werden nach 7 Tagen gelöscht (`glossary:loeschfristen`, täglich). «Passwort vergessen» schickt einen einmaligen
   Link; die Antworten verraten nicht, ob eine Adresse ein Konto hat. Beides nur mit eingerichtetem Mailversand.
 
+- **Datenschutz (#42):** Seite `/datenschutz` mit Version und Hinweis «Entwurf» (Link im Fuss). Angemeldete Konten
+  nehmen jede neue Version einmal zur Kenntnis (gespeichert mit Zeitpunkt, getrennt von Einwilligungen).
+  Löschkonzept in `docs/LOESCHKONZEPT.md`; `glossary:loeschfristen` löscht täglich unbestätigte Registrierungen,
+  inaktive Community-Konten nach 24 Monaten (Hinweis per Mail 30 Tage vorher) und Protokolleinträge nach der Frist.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.
