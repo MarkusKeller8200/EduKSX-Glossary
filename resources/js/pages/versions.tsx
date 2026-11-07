@@ -17,7 +17,7 @@ export default function Versions({ releases }: { releases: Release[] }) {
         <>
             <Head title="Versionen" />
             <h1 className="text-3xl font-semibold tracking-tight">Versionen</h1>
-            <p className="mt-2 text-muted-foreground">
+            <p className="mt-2 max-w-prose text-muted-foreground">
                 Laufend: <strong>{versionLabel(appVersion)}</strong>
                 {appVersion.dev
                     ? ` – geplant als ${appVersion.dev.planned}`
@@ -44,7 +44,7 @@ export default function Versions({ releases }: { releases: Release[] }) {
                 </p>
             ) : null}
 
-            <ol className="mt-8 space-y-8">
+            <ol className="mt-8 max-w-prose space-y-8">
                 {releases.map((release) => (
                     <li key={release.version}>
                         <h2 className="flex items-center gap-2 text-xl font-semibold">

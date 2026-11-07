@@ -43,7 +43,7 @@ export default function Privacy({
                 </Alert>
             ) : null}
             <article
-                className="markdown max-w-3xl"
+                className="markdown max-w-prose"
                 // eigener Inhalt aus docs/DATENSCHUTZ-ENTWURF.md, serverseitig ohne HTML-Eingaben gerendert
                 dangerouslySetInnerHTML={{ __html: html }}
             />

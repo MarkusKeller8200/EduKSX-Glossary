@@ -5,13 +5,14 @@ import { cn } from '@/lib/utils';
 /**
  * Einfaches Auswahlfeld des Browsers im Stil des Intranets. Für kurze Listen, in Tabellenzellen und auf
  * dem Handy (öffnet die Auswahl des Geräts). GUI-Prototyp «Dropdown».
+ * Optionen mit Hinter- und Vordergrund des Designs, sonst im Dunkelmodus helle Schrift auf hellem Grund (#107).
  */
 function NativeSelect({ className, children, ...props }: ComponentProps<'select'>) {
     return (
         <div className={cn('relative w-full', className)}>
             <select
                 {...props}
-                className="h-9 w-full appearance-none rounded-md border border-input bg-transparent pr-8 pl-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 aria-invalid:border-destructive"
+                className="h-9 w-full appearance-none rounded-md border border-input bg-transparent pr-8 pl-3 text-sm shadow-xs outline-none [&_option]:bg-popover [&_option]:text-popover-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50 aria-invalid:border-destructive"
             >
                 {children}
             </select>

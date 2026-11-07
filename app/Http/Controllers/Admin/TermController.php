@@ -61,6 +61,8 @@ class TermController extends Controller
                 'aktiv' => $t->is_active,
                 'revision' => $t->revision,
                 'veroeffentlicht' => $t->publishedRevision?->revision,
+                'angelegt' => $t->created_at?->toIso8601String(),
+                'geaendert' => $t->updated_at?->toIso8601String(),
             ])
             ->all();
 

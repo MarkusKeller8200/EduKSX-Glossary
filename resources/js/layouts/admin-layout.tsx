@@ -2,6 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import BrandWordmark from '@/components/brand-wordmark';
 import CookieNotice from '@/components/cookie-notice';
+import SiteFooter from '@/components/site-footer';
 import ViewWidthTabs from '@/components/view-width-tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -110,6 +111,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 ) : null}
                 {children}
             </main>
+            <SiteFooter narrow="max-w-6xl" />
         </div>
     );
 }
