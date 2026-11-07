@@ -41,10 +41,11 @@ jede Änderung nachvollziehbar.
 - `proposals`: neuer Begriff oder Änderung, Ziel-Begriff und Basisrevision, Änderung als JSON, Status, Begründung,
   Bezug zur einreichenden Person, Zeitstempel.
 - `proposal_events`: Statuswechsel, Prüfvermerke, Ablehnungsgründe, Kommentare; nicht öffentlich.
-- `users`, `roles`, `permissions`, `user_roles`: Redaktion und Administration.
+- `users`, `roles`, `permissions`/`role_permissions`, `user_roles`, `user_identities`, `user_audit`: persönliche Benutzerkonten und Berechtigungen; Details in [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md).
+- `service_accounts`, `service_account_tokens`, `service_account_audit`: eigenständige Maschinenidentitäten; getrennt von persönlichen Benutzerkonten, statt einer `API`-Benutzerrolle.
+- `user_consents`: gesonderte Einwilligungen, soweit erforderlich; Datenschutzkenntnisnahme mit Version und Zeitpunkt getrennt dokumentieren.
 - `import_batches`, `import_rows`: Datei-Angaben, Vorschau, Entscheide, Fehler; befristet aufbewahrt.
-- `publication_releases`: Datenstand mit Nummer, Zeitpunkt, Prüfsumme; `api_clients` nur, wenn Abnehmer sich
-  anmelden müssen.
+- `publication_releases`: Datenstand mit Nummer, Zeitpunkt, Prüfsumme; `service_accounts` für authentisierte technische Schreibzugriffe; keine parallele Tabelle `api_clients`.
 - später `term_relations`: verwandt, Synonym, ersetzt durch.
 
 Abbildung: Die deutschen Feldnamen des Intranets werden beim Import auf diese Spalten abgebildet (Tabelle oben);
@@ -97,3 +98,12 @@ Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht ab
   noch Weiterleitung (Website und API 301, Excel-Import meldet die neue ID). War einer veröffentlicht, wird das
   Ergebnis gleich veröffentlicht – ein Datenstand.
 - Noch nicht umgesetzt: `proposals`, `import_batches` (mit #15), `term_relations` (später).
+
+## Identitätsmodell, Datenschutz und Veröffentlichungsgrenze (DEC-017 bis DEC-019)
+
+- Externe Identitäten werden eindeutig nach Anbieter, vertrauenswürdigem Aussteller und stabilem Subject zugeordnet. Eine gleiche E-Mail-Adresse reicht nicht für automatische Kontoverknüpfungen.
+- Bei der Migration wird `is_admin` ausschliesslich in die Rolle Admin überführt. Die Developer-Rolle wird nur über geschützte Verfahren vergeben. Für effektiv privilegierte Konten gilt MFA unabhängig von einer veränderbaren Rollenmatrix.
+- Die Kenntnisnahme der Datenschutzerklärung wird mit `privacy_notice_version` und `privacy_notice_acknowledged_at` dokumentiert. Erforderliche Einwilligungen sind separat mit Zweck, Fassung, Erteilung und gegebenenfalls Widerruf zu speichern.
+- `proposals` und `proposal_events` enthalten interne Personenzuordnungen und Moderationsinformationen; diese gelangen nicht automatisch in veröffentlichte Revisionen.
+- Öffentliche Ausgaben erfolgen nur über explizit definierte DTOs/Resources für veröffentlichte Revisionen (z. B. `PublicTermResource`). Website, API, Voll-Export, Change-Feed und GitHub Pages verwenden dieselbe Freigabegrenze.
+- Die Tabellen und Migrationen dieses Abschnitts sind **Planungssoll**, soweit sie nicht ausdrücklich als umgesetzt dokumentiert sind. Die bestehende SQLite-Architektur bleibt unverändert.
