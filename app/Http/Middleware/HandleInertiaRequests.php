@@ -28,7 +28,10 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user?->only(['id', 'name', 'email', 'is_admin']),
+                'user' => $user?->only(['id', 'name', 'email']),
+                // Rechte für die Anzeige (Knöpfe, Navigation); geprüft wird immer serverseitig (#36)
+                'can' => $user !== null ? array_fill_keys($user->permissions(), true) : (object) [],
+                'roles' => $user?->roleKeys() ?? [],
             ],
             'appVersion' => AppVersion::info(),
             'links' => [

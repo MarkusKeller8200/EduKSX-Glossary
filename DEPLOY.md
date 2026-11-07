@@ -19,6 +19,7 @@ cd EduKSX-Glossary
 git checkout geruest        # bis der PR gemergt ist
 composer setup              # Pakete, .env, Schlüssel, SQLite-Datei, Migrationen, npm install, Build
 php artisan glossary:admin  # ersten Admin anlegen (fragt E-Mail, Name, Passwort ≥ 12 Zeichen)
+php artisan glossary:developer E-MAIL --grund="Erstes Setup"  # optional: Rolle Developer (protokolliert)
 composer dev                # http://localhost:8000, Administration unter /admin
 ```
 
@@ -83,18 +84,20 @@ Solange `DEPLOY_ENABLED` fehlt, prüft der Workflow «deploy» nur (Job ci) und 
 ```bash
 cd /docker/glossary
 docker compose exec app php artisan glossary:admin
+docker compose exec app php artisan glossary:developer E-MAIL --grund="Erstes Setup"   # Developer nur so
 ```
 
 3. Prüfen: `https://glossary.eduksx.ch/up`, `https://glossary.eduksx.ch/versionen`, Anmelden unter `/anmelden`.
 
 ## Betrieb
 
-| Aufgabe             | Befehl auf dem Server (`cd /docker/glossary`)        |
-| ------------------- | ---------------------------------------------------- |
-| Status              | `docker compose ps`                                  |
-| Logs                | `docker compose logs -f app`                         |
-| Admin/Passwort      | `docker compose exec app php artisan glossary:admin` |
-| Sicherungen ansehen | `docker compose exec app ls storage/app/backups`     |
+| Aufgabe             | Befehl auf dem Server (`cd /docker/glossary`)                                   |
+| ------------------- | ------------------------------------------------------------------------------- |
+| Status              | `docker compose ps`                                                             |
+| Logs                | `docker compose logs -f app`                                                    |
+| Admin/Passwort      | `docker compose exec app php artisan glossary:admin`                            |
+| Developer           | `docker compose exec app php artisan glossary:developer E-MAIL` (`--entziehen`) |
+| Sicherungen ansehen | `docker compose exec app ls storage/app/backups`                                |
 
 - Vor jedem Start sichert der Container die SQLite-Datei nach `storage/app/backups` (die letzten 10). Eine Sicherung
   ausser Haus folgt (offener Punkt im Hosting-Konzept).

@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -24,13 +25,27 @@ abstract class TestCase extends BaseTestCase
     /** Admin mit eingerichtetem zweitem Faktor (Pflicht in der Administration). */
     protected function admin(): User
     {
+        return $this->userWithRoles([Role::ADMIN], 'admin@example.org');
+    }
+
+    /**
+     * Konto mit Rollen (Schlüssel) und – ausser abgeschaltet – bestätigtem zweitem Faktor (#36).
+     *
+     * @param  list<string>  $roles
+     */
+    protected function userWithRoles(array $roles, string $email, bool $twoFactor = true): User
+    {
         $user = User::query()->create([
-            'name' => 'Admin Test',
-            'email' => 'admin@example.org',
+            'name' => 'Test '.implode('+', $roles),
+            'email' => $email,
             'password' => 'ein-langes-Test-Passwort-1',
-            'is_admin' => true,
         ]);
-        $user->forceFill(['two_factor_secret' => self::TOTP_SECRET, 'two_factor_confirmed_at' => now()])->save();
+        if ($twoFactor) {
+            $user->forceFill(['two_factor_secret' => self::TOTP_SECRET, 'two_factor_confirmed_at' => now()])->save();
+        }
+        foreach ($roles as $key) {
+            $user->roles()->attach(Role::byKey($key)->id);
+        }
 
         return $user;
     }

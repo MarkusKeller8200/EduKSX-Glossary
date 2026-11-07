@@ -6,18 +6,18 @@ Beilagen (Entscheidungsregister, Sync-Vertrag, Confluence-Publisher, MCP-Readine
 zusammengeführt; der Originaltext steht im Git-Verlauf (Commit `8d4367b`). Bei Widersprüchen gilt
 [ENTSCHEIDE.md](ENTSCHEIDE.md).
 
-| Konzept                                              | Inhalt                                           |
-| ---------------------------------------------------- | ------------------------------------------------ |
-| [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md) | Konten, Identitäten, Rollen, MFA und Servicekonten |
-| [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) | Datenschutzerklärung – vor Veröffentlichung noch rechtlich und betrieblich zu prüfen |
-| [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md)     | Felder, Tabellen, Statusachsen, Import           |
-| [KONZEPT-API.md](KONZEPT-API.md)                     | REST-API, Synchronisation, Intranet als Abnehmer |
-| [KONZEPT-STACK.md](KONZEPT-STACK.md)                 | Technik, SQLite, Anmeldung                       |
-| [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)               | Auftritt nach CI, GUI-Bausteine aus dem Intranet |
-| [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)             | Hostinger, Cloudflare, GitHub Pages              |
-| [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) | Versionen, Versionshistorie                      |
-| [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)       | Confluence-Publisher (später)                    |
-| [KONZEPT-MCP.md](KONZEPT-MCP.md)                     | MCP-Server für Rovo (später)                     |
+| Konzept                                              | Inhalt                                                                               |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md)           | Konten, Identitäten, Rollen, MFA und Servicekonten                                   |
+| [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md)     | Datenschutzerklärung – vor Veröffentlichung noch rechtlich und betrieblich zu prüfen |
+| [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md)     | Felder, Tabellen, Statusachsen, Import                                               |
+| [KONZEPT-API.md](KONZEPT-API.md)                     | REST-API, Synchronisation, Intranet als Abnehmer                                     |
+| [KONZEPT-STACK.md](KONZEPT-STACK.md)                 | Technik, SQLite, Anmeldung                                                           |
+| [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md)               | Auftritt nach CI, GUI-Bausteine aus dem Intranet                                     |
+| [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)             | Hostinger, Cloudflare, GitHub Pages                                                  |
+| [KONZEPT-VERSIONIERUNG.md](KONZEPT-VERSIONIERUNG.md) | Versionen, Versionshistorie                                                          |
+| [KONZEPT-CONFLUENCE.md](KONZEPT-CONFLUENCE.md)       | Confluence-Publisher (später)                                                        |
+| [KONZEPT-MCP.md](KONZEPT-MCP.md)                     | MCP-Server für Rovo (später)                                                         |
 
 Kennzeichnung: **Entscheid** = vom Projektverantwortlichen festgelegt · **Vorschlag** = mit der Abnahme vom
 07.11.2026 als Planungsgrundlage übernommen, Einzelheiten werden bei der Umsetzung im jeweiligen Issue festgelegt ·

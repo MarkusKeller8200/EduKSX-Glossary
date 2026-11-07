@@ -10,13 +10,17 @@ export type AuthUser = {
     id: string;
     name: string;
     email: string;
-    is_admin: boolean;
 };
 
 /** Daten, die jede Seite erhält (HandleInertiaRequests::share). */
 export type SharedData = {
     name: string;
-    auth: { user: AuthUser | null };
+    auth: {
+        user: AuthUser | null;
+        /** Rechte des Kontos (#36); nur für die Anzeige */
+        can: Record<string, true>;
+        roles: string[];
+    };
     appVersion: AppVersion;
     links: { githubRepo: string | null; pages: string | null };
     flash: { status: string | null };

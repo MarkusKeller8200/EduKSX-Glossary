@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Access\Permission;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -24,10 +25,12 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
 
-        // Rechte: Daten ändern nur mit Anmeldung (DEC-014). Feinere Rollen (Redaktion) folgen mit der Redaktion.
-        Gate::define('administer', fn (User $user): bool => $user->is_admin === true);
-        // Offizielle Abkürzung, Bezeichnung und Aliase ändern (wie im Intranet: Vorgabe Administration)
-        Gate::define('edit-official', fn (User $user): bool => $user->is_admin === true);
+        // Rechte aus Rollen (#36, DEC-017): je Recht ein Gate; Prüfung immer serverseitig
+        foreach (Permission::keys() as $permission) {
+            Gate::define($permission, fn (User $user): bool => $user->hasPermission($permission));
+        }
+        // Zugang zur Administration: irgendein Recht ausser «Vorschläge einreichen»
+        Gate::define('administer', fn (User $user): bool => $user->needsTwoFactor());
 
         // Öffentliche Lese-API: 120 Abrufe pro Minute und Adresse
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));

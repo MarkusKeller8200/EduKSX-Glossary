@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Glossary\TwoFactor;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Totp;
 use Illuminate\Support\Facades\Hash;
@@ -50,7 +51,8 @@ class AuthTest extends TestCase
 
     public function test_ohne_zweiten_faktor_zuerst_einrichten(): void
     {
-        $user = User::query()->create(['name' => 'Neu', 'email' => 'neu@example.org', 'password' => 'ein-langes-Test-Passwort-4', 'is_admin' => true]);
+        $user = User::query()->create(['name' => 'Neu', 'email' => 'neu@example.org', 'password' => 'ein-langes-Test-Passwort-4']);
+        $user->roles()->attach(Role::byKey(Role::ADMIN)->id);
 
         $this->post('/anmelden', ['email' => 'neu@example.org', 'password' => 'ein-langes-Test-Passwort-4'])->assertRedirect('/admin');
         $this->get('/admin')->assertRedirect('/admin/zwei-faktor');
@@ -115,7 +117,7 @@ class AuthTest extends TestCase
         ])->assertSuccessful();
 
         $user = User::query()->where('email', 'neu@example.org')->firstOrFail();
-        $this->assertTrue($user->is_admin);
+        $this->assertSame([Role::ADMIN], $user->roleKeys());   // nie automatisch Developer (#36)
         $this->assertTrue(Hash::check('noch-ein-langes-Passwort-3', $user->password));
     }
 

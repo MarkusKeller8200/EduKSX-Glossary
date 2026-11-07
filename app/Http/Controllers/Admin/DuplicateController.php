@@ -109,6 +109,11 @@ class DuplicateController extends Controller
         }
         $others = array_values($terms->except([$target->id])->all());
 
+        // Ein veröffentlichter Begriff wird beim Zusammenführen neu veröffentlicht → Recht «publish» nötig (#36)
+        if ($terms->contains(fn (Term $t): bool => $t->published_revision_id !== null) && ! Gate::allows('publish')) {
+            throw ValidationException::withMessages(['form' => 'Veröffentlichte Begriffe zusammenführen braucht das Recht «Veröffentlichen».']);
+        }
+
         $choices = [];
         foreach (GlossaryService::MERGE_CHOICE as $field) {
             $choice = $data['auswahl'][$field] ?? null;
