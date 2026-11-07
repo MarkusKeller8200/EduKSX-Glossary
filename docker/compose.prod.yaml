@@ -1,0 +1,30 @@
+# Produktion auf dem Hostinger-VPS (Traefik läuft bereits als eigenes Projekt «traefik», wie für das Intranet).
+# Aufbau gleich wie sek-intranet docker/compose.prod.yaml, damit Traefik den Container gleich findet.
+# Liegt auf dem Server als /docker/glossary/docker-compose.yml, der Quellcode in ./src.
+# Wird bei jedem Deployment von GitHub Actions überschrieben – Einstellungen in ./.env ändern.
+
+name: glossary
+
+services:
+    app:
+        build:
+            context: ./src
+        image: eduksx-glossary:latest
+        restart: unless-stopped
+        env_file:
+            - path: ./.env
+              required: false
+        environment:
+            APP_URL: https://${GLOSSARY_HOST:-glossary.eduksx.ch}
+            APP_NAME: EduKSX-Glossary
+        volumes:
+            - glossary-storage:/var/www/html/storage
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.glossary.rule=Host(`${GLOSSARY_HOST:-glossary.eduksx.ch}`)
+            - traefik.http.routers.glossary.entrypoints=websecure
+            - traefik.http.routers.glossary.tls.certresolver=letsencrypt
+            - traefik.http.services.glossary.loadbalancer.server.port=80
+
+volumes:
+    glossary-storage:

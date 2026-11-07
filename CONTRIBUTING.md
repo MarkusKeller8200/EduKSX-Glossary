@@ -35,7 +35,7 @@ Status eines Issues:
 1. Nur freigegebene Issues (`_1 bereit`) umsetzen; grössere Vorhaben zuerst als Issue abstimmen.
 2. Commit-Nachricht: erste Zeile kurz, darunter das Warum; mit `Refs #n` auf Issues verweisen.
 3. **CHANGELOG.md:** Eintrag unter «Unveröffentlicht» (Neu / Geändert / Behoben).
-4. Pull Request gegen `main` mit ausgefüllter Checkliste; `python3 .github/blueprint/release.py check` muss grün sein.
+4. Pull Request gegen `main` mit ausgefüllter Checkliste; `composer ci:check` muss grün sein.
 
 ## Versionen und Releases
 
@@ -44,4 +44,4 @@ Ablauf in [docs/GITHUB-ABLAUF.md](docs/GITHUB-ABLAUF.md).
 
 ## Entwicklungsumgebung
 
-Die Website liegt im Ordner `site/` und wird bei jedem Push auf `main` über GitHub Pages veröffentlicht. Lokal ansehen: `python3 -m http.server -d site 8000`, dann http://localhost:8000 öffnen.
+Voraussetzungen: PHP 8.4, Composer, Node 22. Einrichten: `composer setup`, Admin anlegen: `php artisan glossary:admin`, starten: `composer dev` (http://localhost:8000). Prüfen wie in der CI: `composer ci:check`. Die reduzierte Fassung für GitHub Pages liegt in `site/`.

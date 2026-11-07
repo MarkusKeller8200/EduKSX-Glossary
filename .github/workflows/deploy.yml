@@ -1,0 +1,82 @@
+name: deploy
+
+# Jede geprüfte Änderung auf main wird auf den Hostinger-VPS gebracht (docs/KONZEPT-HOSTING.md, DEPLOY.md).
+# Aus sek-intranet _deploy.yml übernommen. Läuft erst, wenn die Variable DEPLOY_ENABLED=true gesetzt ist
+# (Settings → Secrets and variables → Actions → Variables), damit vor der Einrichtung nichts fehlschlägt.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'site/**', '.github/dependabot.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-glossary
+      cancel-in-progress: false
+    environment:
+      name: produktion
+      url: https://${{ vars.GLOSSARY_HOST || 'glossary.eduksx.ch' }}
+    env:
+      HOST: ${{ vars.VPS_HOST }}
+      GLOSSARY_HOST: ${{ vars.GLOSSARY_HOST || 'glossary.eduksx.ch' }}
+      TARGET: /docker/glossary
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # Tags für «Developer Release» (git describe)
+
+      - name: SSH vorbereiten
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          test -n "$HOST" || { echo "Variable VPS_HOST fehlt"; exit 1; }
+          test -n "$SSH_KEY" || { echo "Secret VPS_SSH_KEY fehlt"; exit 1; }
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf 'Host vps\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/id_deploy\n  IdentitiesOnly yes\n' "$HOST" > ~/.ssh/config
+
+      - name: Quellcode übertragen
+        run: |
+          ssh vps "mkdir -p $TARGET && rm -rf $TARGET/src.new && mkdir $TARGET/src.new"
+          git archive --format=tar HEAD | ssh vps "tar -x -C $TARGET/src.new"
+          ssh vps "cd $TARGET && rm -rf src.old && { [ -d src ] && mv src src.old || true; } && mv src.new src && cp src/docker/compose.prod.yaml docker-compose.yml"
+
+      - name: Bauen und starten
+        run: |
+          ssh vps "cd $TARGET && touch .env && grep -q '^GLOSSARY_HOST=' .env || echo 'GLOSSARY_HOST=$GLOSSARY_HOST' >> .env"
+          describe="$(git describe --tags --long --match 'v[0-9]*' 2>/dev/null || true)"
+          ssh vps "cd $TARGET && sed -i '/^GLOSSARY_BUILD/d' .env && echo 'GLOSSARY_BUILD=${GITHUB_SHA::7}' >> .env && echo 'GLOSSARY_BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)' >> .env && echo 'GLOSSARY_BUILD_DESCRIBE=$describe' >> .env"
+          ssh vps "cd $TARGET && docker compose up -d --build --remove-orphans && docker image prune -f"
+
+      # Massgebend ist die Prüfung auf dem Server selbst (Traefik, Zertifikat, App).
+      - name: Erreichbarkeit prüfen
+        run: |
+          ok=
+          for i in $(seq 1 36); do
+            if ssh vps "curl -fsS -o /dev/null --max-time 10 --resolve $GLOSSARY_HOST:443:127.0.0.1 https://$GLOSSARY_HOST/up" 2> check-error.txt; then
+              ok=1; break
+            fi
+            sleep 5
+          done
+          if [ -z "$ok" ]; then
+            ssh vps "cd $TARGET && docker compose ps && docker compose logs --tail=60 app" > app-logs.txt 2>&1 || true
+            cat check-error.txt app-logs.txt > failure.txt
+            .github/scripts/report-failure.sh failure.txt 'Glossary startet nicht'
+            exit 1
+          fi
+          echo "Online auf dem Server: https://$GLOSSARY_HOST"
