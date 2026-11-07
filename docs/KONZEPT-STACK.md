@@ -63,11 +63,11 @@ site/           reduzierte statische Fassung (GitHub Pages), Daten aus dem Expor
 
 ## Varianten
 
-| Punkt     | Vorschlag              | Alternative                              | Abwägung                                                                                                                            |
-| --------- | ---------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Speicher  | SQLite                 | JSON-Dateien wie im Intranet-Prototyp    | JSON: Repositories 1:1 aus dem Intranet. SQLite: Transaktionen für Revisionen und Sync ohne späteren Umbau.                         |
-| Website   | Inertia (wie Intranet) | eigenes statisches Frontend über die API | Inertia: ein Code für Website und Redaktion. Statisch: zweites Projekt. Für Suchmaschinen bei Bedarf Inertia mit SSR (`build:ssr`). |
-| 2. Faktor | eigenes TOTP (umgesetzt) | Laravel Fortify oder Passkeys          | Fortify ist offiziell und gepflegt; das Intranet hat es bewusst weggelassen (dort später OIDC).                                     |
+| Punkt     | Vorschlag                | Alternative                              | Abwägung                                                                                                                            |
+| --------- | ------------------------ | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Speicher  | SQLite                   | JSON-Dateien wie im Intranet-Prototyp    | JSON: Repositories 1:1 aus dem Intranet. SQLite: Transaktionen für Revisionen und Sync ohne späteren Umbau.                         |
+| Website   | Inertia (wie Intranet)   | eigenes statisches Frontend über die API | Inertia: ein Code für Website und Redaktion. Statisch: zweites Projekt. Für Suchmaschinen bei Bedarf Inertia mit SSR (`build:ssr`). |
+| 2. Faktor | eigenes TOTP (umgesetzt) | Laravel Fortify oder Passkeys            | Fortify ist offiziell und gepflegt; das Intranet hat es bewusst weggelassen (dort später OIDC).                                     |
 
 ## Offen (wird geklärt, wenn benötigt)
 
