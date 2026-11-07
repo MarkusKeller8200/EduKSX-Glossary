@@ -32,7 +32,7 @@ jobs:
       TARGET: /docker/glossary
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           fetch-depth: 0 # Tags für «Developer Release» (git describe)
