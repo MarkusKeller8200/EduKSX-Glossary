@@ -151,3 +151,11 @@ Entscheid zum offenen Punkt 5 aus [KONZEPT.md](KONZEPT.md) (DEC-016).
   OpenAPI-Beschreibung.
 - Feld `license` (Name, URL, Nennung) in `/api/v1` und `/api/v1/exports`.
 - Kopfzeilen `Deprecation`/`Sunset` erst, wenn eine v2 kommt.
+
+## Identitäten und Datenschutzgrenze für API und Integrationen (DEC-017/018)
+
+- **Öffentliches Lesen bleibt anonym:** `GET /api/v1/...`, veröffentlichter Voll-Export und Change-Feed benötigen weiterhin keinen Schlüssel.
+- **Schreibende Zugriffe** wie `POST /api/v1/proposals` und spätere MCP-Werkzeuge erfordern die passende Berechtigung einer authentifizierten Person oder eines eigenständigen Servicekontos mit eng begrenzten Scopes. Ein Token berechtigt nicht automatisch zur Veröffentlichung.
+- Die öffentliche API serialisiert ausschliesslich kontrollierte Veröffentlichungsfelder. Benutzerprofile, externe Identitätskennungen, private Vorschläge, Moderationskommentare, Sicherheits-Audits und Token werden niemals in öffentlichen JSON-Ausgaben geliefert.
+- **Abnahmetests:** Testdaten mit privaten Vorschlägen, Identitäten und Geheimnissen dürfen in keiner Antwort der Lese-API, im Export, im Change-Feed, in API-Beispielen oder im GitHub-Pages-Build erscheinen.
+- Die vereinbarte Versionierungs- und Stabilitätszusage sowie das bestehende Rate-Limit bleiben unverändert.
