@@ -38,7 +38,10 @@ class PersonalDisplayController extends Controller
         )));
         $values['aliases_override'] = $aliases === [] ? null : $aliases;
 
-        $override = TermUserOverride::query()->firstOrNew(['term_id' => $term->id, 'user_id' => $user->id]);
+        $override = TermUserOverride::query()->where('term_id', $term->id)->where('user_id', $user->id)->first()
+            ?? new TermUserOverride;
+        $override->term_id = $term->id;
+        $override->user_id = $user->id;
         $override->fill($values);
         if ($override->isEmpty()) {
             if ($override->exists) {
