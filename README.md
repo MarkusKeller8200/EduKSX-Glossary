@@ -13,8 +13,9 @@ dem Intranet übernommen. Konzepte: [docs/KONZEPT.md](docs/KONZEPT.md), Entschei
 
 ## Starten
 
-Voraussetzungen: PHP 8.4, Composer, Node 22. Unter Windows genügt ein Doppelklick auf **`start.bat`**
-(`start.bat --pull` holt zuerst den neuesten Stand). Von Hand:
+Voraussetzungen: PHP 8.4, Composer, Node 22. Unter Windows genügt ein Doppelklick auf **`start.bat`**: holt den neuesten
+Stand des aktuellen Branches, richtet ein und startet. `start.bat BRANCH` checkt zuerst einen anderen Branch aus
+(z. B. `start.bat excel-import`, zurück mit `start.bat main`), `start.bat --ohne-pull` startet ohne GitHub. Von Hand:
 
 ```bash
 composer setup              # Pakete, .env, Schlüssel, SQLite, Migrationen, Build
