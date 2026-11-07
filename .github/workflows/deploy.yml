@@ -6,7 +6,13 @@ name: deploy
 on:
   push:
     branches: [main]
-    paths-ignore: ['**/*.md', 'site/**', '.github/dependabot.yml']
+    # Doku allein löst nichts aus – ausser CHANGELOG.md (Seite «Versionen», Release nach grünem deploy)
+    paths:
+      - '**'
+      - '!**/*.md'
+      - 'CHANGELOG.md'
+      - '!site/**'
+      - '!.github/dependabot.yml'
   workflow_dispatch:
 
 permissions:
