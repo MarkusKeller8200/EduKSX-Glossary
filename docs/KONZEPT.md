@@ -8,6 +8,8 @@ zusammengeführt; der Originaltext steht im Git-Verlauf (Commit `8d4367b`). Bei 
 
 | Konzept                                              | Inhalt                                           |
 | ---------------------------------------------------- | ------------------------------------------------ |
+| [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md) | Konten, Identitäten, Rollen, MFA und Servicekonten |
+| [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) | Datenschutzerklärung – vor Veröffentlichung noch rechtlich und betrieblich zu prüfen |
 | [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md)     | Felder, Tabellen, Statusachsen, Import           |
 | [KONZEPT-API.md](KONZEPT-API.md)                     | REST-API, Synchronisation, Intranet als Abnehmer |
 | [KONZEPT-STACK.md](KONZEPT-STACK.md)                 | Technik, SQLite, Anmeldung                       |
@@ -99,6 +101,7 @@ Regeln wie im Intranet (**Entscheid**):
 - Veröffentlicht wird **nur nach Freigabe** durch Projektverantwortliche:n bzw. Admin-Gruppe (DEC-003).
 - **Vorschlag – Ablauf:** eingereicht → in Prüfung → angenommen → veröffentlicht; daneben Rückfrage, abgelehnt
   (mit Begründung), zurückgezogen. Vorschlags-Nummer zum Nachverfolgen.
+- Vorschläge innerhalb der Anwendung setzen ein bestätigtes persönliches Benutzerkonto voraus (DEC-017).
 - Schutz vor Missbrauch: Rate-Limit, Spam-Schutz (z. B. Cloudflare Turnstile), keine öffentliche Anzeige von
   E-Mail oder IP.
 - Bis zur Umsetzung bleiben die **GitHub-Issue-Formulare** der Weg für Vorschläge.
@@ -116,20 +119,9 @@ Recherche gelten **nicht automatisch** als offizielle Definition.
 Liste der Doppelten vor der Veröffentlichung; Mehrdeutigkeiten bewusst erhalten; jährliche Wiedervorlage für
 veränderliche Begriffe; Änderungsjournal.
 
-## Rollen (Vorschlag)
+## Benutzer, Rollen und Zugangsregeln (DEC-017)
 
-> Wird mit DEC-017 durch [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md) ersetzt (#34).
-
-| Rolle                                  | lesen | vorschlagen                 | prüfen | freigeben | Import / Listen |
-| -------------------------------------- | ----- | --------------------------- | ------ | --------- | --------------- |
-| Öffentlichkeit                         | ja    | ja (geschützt)              | –      | –         | –               |
-| Community-Mitglied                     | ja    | ja, eigene Vorschläge sehen | –      | –         | –               |
-| Redaktion                              | ja    | ja                          | ja     | –         | nach Recht      |
-| Admin-Gruppe, Projektverantwortliche:r | ja    | ja                          | ja     | ja        | ja              |
-
-**Beschlossen (DEC-014):** Ein lokaler Admin steht **ab dem ersten Deployment** zur Verfügung; ohne Anmeldung
-lassen sich keine Daten ändern. Admin-Zugang mit zweitem Faktor. **Offen:** Einreichen ohne Konto, mit E-Mail-Bestätigung oder mit Login (GitHub,
-Microsoft, Edulog).
+Die verbindlichen Regeln zu persönlichen Konten, geschützter Developer-Rolle, Berechtigungen, verpflichtender MFA, getrennten Servicekonten und lokalen beziehungsweise föderierten Anmeldungen stehen in [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md). Öffentliche Lesezugriffe benötigen kein Konto. Vorschläge innerhalb der Anwendung benötigen ein bestätigtes persönliches Konto. GitHub-Issue-Formulare bleiben bis zur Community-Umsetzung als Übergangskanal bestehen.
 
 ## Schnittstellen
 
@@ -143,7 +135,7 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 - **REST-API `/api/v1`** (Entscheid, DEC-005): nur veröffentlichte Daten, JSON, OpenAPI 3.1, stabile UUID und
   Slugs, Pagination, ETag/304, Fehler als `application/problem+json`, Rate-Limit. Lesen ohne Schlüssel;
   Schreiben (Vorschläge) geschützt. Endpunkte und Sync-Vertrag: [KONZEPT-API.md](KONZEPT-API.md).
-- **Intranet:** holt die Daten regelmässig ab (Vorschlag 15–60 Minuten) über Vollstand und Änderungen seit
+- **Intranet:** holt die Daten regelmässig ab (aktuelles API-Konzept empfiehlt 5–15 Minuten) über Vollstand und Änderungen seit
   `since` (inkl. zurückgezogener Einträge), behält bei Fehlern den letzten gültigen Stand. Tooltip und Erkennung im
   Freitext bleiben im Intranet; `/glossar/begriffe` wird dort zum Adapter. Änderungen aus dem Intranet kommen als
   Vorschläge.
@@ -165,11 +157,11 @@ Recherche / Excel / Community ─► Prüfung ─► Freigabe ─► veröffentl
 
 ## Datenschutz und Sicherheit
 
-- Öffentliche Begriffe; Personendaten nur minimal bei Vorschlägen (Kontakt freiwillig, Aufbewahrung befristet,
-  getrennt von den veröffentlichten Daten).
-- Admin mit zweitem Faktor, Rollen und Rechte, Eingaben prüfen, Markdown sicher darstellen, Upload (Excel) prüfen,
-  Secrets nie im Repository, Dependabot und CodeQL, Sicherung mit Wiederherstellungstest.
-- **Offen:** Betreiberrolle, Datenschutzerklärung, Aufbewahrungsfristen, Nutzungsbedingungen der API.
+- Öffentliche Fachdaten und personenbezogene Konten, private Vorschläge, Moderationsinformationen und Sicherheits-Audits werden strikt getrennt (DEC-018).
+- Für persönliche Konten gelten die für Anmeldung und Kommunikation erforderlichen Pflichtattribute gemäss [KONZEPT-BENUTZER.md](KONZEPT-BENUTZER.md). Freiwillige Community-Angaben bleiben optional.
+- Die öffentliche API, Exporte, GitHub Pages und spätere Confluence-Ausgaben verwenden ausschliesslich geprüfte Veröffentlichungsfelder; keine privaten Identitäts- oder Moderationsdaten.
+- MFA für privilegierte Personenrechte, serverseitige Berechtigungsprüfung, Eingaben validieren, Markdown sicher darstellen, Excel-Uploads prüfen, Secrets nicht im Repository, Dependabot/CodeQL, Sicherungen mit Wiederherstellungstest.
+- [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) bleibt bis zur rechtlichen und betrieblichen Prüfung Entwurf. Datenstandorte, Auftragsbearbeitung, Auslandübermittlungen und Aufbewahrung sind vor dem öffentlichen Betrieb zu klären (DEC-019).
 
 ## Lizenzen (offen)
 
@@ -195,7 +187,7 @@ Termine erst mit Ressourcenplanung.
 ## Offene Entscheide
 
 1. Stack und Datenbank ([KONZEPT-STACK.md](KONZEPT-STACK.md)).
-2. Anmeldung für Community und Admin.
+2. Community-Anmeldung mit bestätigtem Konto entschieden (DEC-017), Admin ab Deployment bereits entschieden (DEC-014); technische SSO-Anbindung, Microsoft-App-Registrierung und Edulog-Aufnahme bleiben umzusetzen.
 3. Rechte- und Lizenzprüfung bei Übernahme aus dem Intranet; Software- und Datenlizenz.
 4. Freigabe-, Versions- und Rollback-Regeln für Revisionen.
 5. API: Nutzungsbedingungen, Gesamt-Export, Rate-Limits, Stabilitätszusage.
