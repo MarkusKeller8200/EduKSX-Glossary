@@ -1,6 +1,6 @@
 # Konzept: Auftritt (CI) und GUI-Bausteine
 
-**Entwurf** vom 07.11.2026 zur Abnahme. Grundsatz des Projektverantwortlichen: Der **Auftritt** kommt anders als
+**Entwurf** vom 07.11.2026 zur Abnahme (#9; DEC-015). Grundsatz des Projektverantwortlichen: Der **Auftritt** kommt anders als
 im Intranet aus dem CI von MarKusSXCH; die **GUI-Bausteine** werden aus dem bestehenden Intranet übernommen und
 nicht neu entwickelt.
 
@@ -53,10 +53,10 @@ EduKSX hat Orange als primären UI-Akzent, Blau und Violett ergänzend). Kontras
 | `--brand-violet/-orange/-blue`   | `#7952B3` / `#FF8A00` / `#007EBB` | `#B59AFF` / `#FF8A00` / `#32B8F2` | nur Wortmarke und Akzente                               |
 | `--background`, `--card`         | `#FFFFFF`                     | `#151B24`                     |                                                             |
 | `--foreground`                   | `#222222`                     | `#F2F5F8`                     | 15.9 : 1                                                    |
-| `--muted-foreground`             | `#64748B`                     | `#AAB6C7`                     | 4.76 : 1 / 8.42 : 1                                         |
+| `--muted-foreground`             | `#5A6678`                     | `#AAB6C7`                     | 5.37 : 1 auf `--muted` / 6.96 : 1 – CI-Wert `#64748B` erreicht auf `--muted` nur 4.39 : 1 |
 | `--primary` (Hauptknopf)         | `#FF8A00`                     | `#FF8A00`                     | Orange als Fläche                                           |
 | `--primary-foreground`           | `#222222`                     | `#151B24`                     | 6.73 : 1 / 7.32 : 1 – **dunkle Schrift auf Orange**, nie weiss (2.36 : 1) |
-| Links, `--ring` (Fokus)          | `#0272AD`                     | `#32B8F2`                     | 5.23 : 1 / 7.64 : 1                                         |
+| Links (`--link`), `--ring` (Fokus) | `#0272AD`                     | `#32B8F2`                     | 5.23 : 1 / 7.64 : 1                                         |
 | `--term-underline`               | `#7952B3`                     | `#B59AFF`                     | Linie, mind. 3 : 1                                          |
 | Status (Erfolg, Warnung, Fehler) | wie Intranet                  | wie Intranet                  | nicht durch Markenfarben ersetzen                           |
 
@@ -67,6 +67,10 @@ Befunde aus der Prüfung:
 - **Blau `#007EBB` auf Weiss** liegt mit 4.47 : 1 knapp unter AA (4.5 : 1) für normalen Text. Für Links und
   Fliesstext darum der funktionale Ton `#0272AD` (5.23 : 1, gleicher Ton wie die Hauptfarbe im Intranet); `#007EBB`
   bleibt für die Wortmarke und grosse Schrift.
+- **Sekundärtext `#64748B`** (CI: «ggf. prüfen») hat auf Weiss 4.76 : 1, auf der grauen Fläche `--muted` aber nur
+  4.39 : 1; darum `#5A6678`.
+- Shadcn-Variante «Link» des Buttons nutzt im Intranet `text-primary`; im Glossary `text-link` (Orange als Schrift
+  wäre zu schwach).
 - Die Warnfarbe des Intranets (`#a35a00`) liegt nahe am Marken-Orange; Warnungen immer mit Symbol und Text.
 
 ### Schrift und Formen
