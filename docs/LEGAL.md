@@ -11,7 +11,7 @@
 | --- | --- |
 | EduKSX-Glossary: eigener Anwendungscode | **Softwarelizenz noch nicht festgelegt.** Eine öffentliche GitHub-Ablage ersetzt keine ausdrückliche Nutzungslizenz. Urheber- und Mitwirkendenrechte prüfen. |
 | Glossary-Daten | **CC BY 4.0 vorläufig beschlossen** (DEC-016); nur eigene oder rechtmässig entsprechend lizenzierbare Texte. Quellenhinweise und Lizenzangabe bei Nachnutzung. |
-| Übernommener Code aus `MarkusKeller8200/sek-intranet` | **Rechteklärung offen**: Inhaberschaft, Arbeits-/Auftragsverhältnisse, Drittlizenzen und tatsächliche Dateiprovenienz prüfen. Keine automatische Gleichsetzung von gleichem GitHub-Account mit ausschliesslichen Nutzungsrechten. |
+| Übernommener eigener Code aus `MarkusKeller8200/sek-intranet` und `MarkusKeller8200/my-github-blueprint` | **Eigene Quell-Repositories des Projektverantwortlichen.** Für selbst entwickelte Bestandteile ist keine zusätzliche Fremdcode-Lizenzfreigabe nötig. Zu prüfen sind ausschliesslich enthaltene oder daraus weiter übernommene **fremde Codeanteile, Bibliotheken, Vorlagen, Schriften und Assets** sowie deren Lizenzbedingungen. |
 | Drittbibliotheken und kopierte Komponenten | Unter den jeweiligen Originalbedingungen; nicht durch spätere eigene Softwarelizenz ersetzen oder Einschränkungen auf fremden Code ausweiten. |
 | Marke MarKusSXCH / EduKSX | Marken-/Kennzeichnungsrechte getrennt von Software- und Datenlizenz behandeln. |
 
@@ -21,12 +21,12 @@
 
 | Herkunft / Repository | Verwendete Bestandteile | Rechtebasis / Pflichten | Prüfstatus |
 | --- | --- | --- | --- |
-| [MarkusKeller8200/sek-intranet](https://github.com/MarkusKeller8200/sek-intranet) | UI-Komponenten, Hooks, CSS-Konzept, Middleware, Konfiguration, Docker-/CI-Dateien und weitere Grundlagen; genaue Liste: [UEBERNAHME-INTRANET.md](UEBERNAHME-INTRANET.md) | Originalurheberschaft und Berechtigung für öffentliche Weitergabe **pro Dateigruppe** nachweisen; enthaltene Fremdanteile separat lizenzieren; Herkunfts-Commit und Änderungen ergänzen | **OFFEN – vor Freigabe klären** |
+| [MarkusKeller8200/sek-intranet](https://github.com/MarkusKeller8200/sek-intranet) | Eigener Quellcode: UI-Komponenten, Hooks, CSS-Konzept, Middleware, Konfiguration, Docker-/CI-Dateien; Liste: [UEBERNAHME-INTRANET.md](UEBERNAHME-INTRANET.md) | Keine zusätzliche Lizenzfreigabe für eigene Anteile; **nur enthaltene Fremdkomponenten und deren Weitergabe-/Hinweispflichten überprüfen**. Herkunftspfad und Commit zur Nachvollziehbarkeit dokumentieren | **Eigenes Repository; Drittanteile prüfen** |
 | [shadcn-ui/ui](https://github.com/shadcn-ui/ui) | Kopierte und angepasste Komponenten unter `resources/js/components/ui/` | **MIT**: Copyright- und vollständigen Erlaubnishinweis in Kopien/wesentlichen Teilen erhalten; [Original-Lizenz](https://github.com/shadcn-ui/ui/blob/main/LICENSE.md) | **Lizenztyp verifiziert; Hinweise in übernommenen Dateien/Distribution noch prüfen** |
 | [Laravel Application Skeleton](https://github.com/laravel/laravel) / [Framework](https://github.com/laravel/framework) | Typische Bootstrap-Dateien und Laravel-Grundgerüst; genaue Provenienz zwischen Framework, Skeleton und Intranet prüfen | Laravel unter **MIT**; originale Copyright-/Lizenztexte für kopierte Teile beibehalten | **Provenienz pro Datei offen** |
-| [MarkusKeller8200/my-github-blueprint](https://github.com/MarkusKeller8200/my-github-blueprint) | GitHub-Projektvorlagen / Workflow-Konfiguration gemäss README | Lizenz und ursprüngliche Herkunft tatsächlich kopierter Dateien prüfen; eigene Projektanpassungen dokumentieren | **OFFEN** |
+| [MarkusKeller8200/my-github-blueprint](https://github.com/MarkusKeller8200/my-github-blueprint) | Eigene GitHub-Projektvorlagen / Workflow-Konfiguration gemäss README | Keine erneute Lizenzprüfung selbst entwickelter Vorlagen; **nur gegebenenfalls enthaltenen fremden Code oder fremde Vorlagen samt deren Lizenz- und Copyrightpflichten prüfen** | **Eigenes Repository; Drittanteile prüfen** |
 
-Die bestehende [Übernahmeliste](UEBERNAHME-INTRANET.md) ist verbindlicher Einstieg. Darin genannte Kopien sind **keine pauschale rechtliche Freigabe**. Der in [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md) geforderte Dateikopf mit Quellpfad und Commit ist anhand der realen Dateien zu prüfen; bei shadcn-Komponenten dürfen Originalurheberhinweise nicht durch reine Intranet-Herkunftsangaben ersetzt werden.
+Die bestehende [Übernahmeliste](UEBERNAHME-INTRANET.md) dient der **technischen Herkunftsdokumentation**, nicht der erneuten Lizenzierung eigenen Codes. Bei Dateien aus den beiden eigenen Repositories wird die Herkunftskette nur so weit geprüft, bis fremde Bestandteile erkennbar sind. Für diese gelten die Original-Lizenzen samt Copyright- und Notice-Pflichten. Der in [KONZEPT-DESIGN.md](KONZEPT-DESIGN.md) vorgesehene Herkunftskommentar kann zur Nachvollziehbarkeit erhalten bleiben; bei shadcn-Komponenten ersetzt er keinesfalls die Originalurheberhinweise.
 
 ## 3. Eingebundene Frameworks und Bibliotheken (Auswahl)
 
@@ -58,7 +58,7 @@ Nicht jedes Entwicklungswerkzeug muss im laufenden Produkt enthalten sein. Die t
 
 ## 5. Erforderliche Lizenzhinweise und Veröffentlichung
 
-1. **In GitHub:** eigene Software-Lizenz erst nach Rechteklärung festlegen; `LICENSE`/Lizenztext ergänzen. Keine Lizenzbehauptung ohne Beschluss.
+1. **In GitHub:** Softwarelizenz für die eigenen EduKSX-Glossary-Anteile festlegen und als `LICENSE` veröffentlichen; dabei Rechte Dritter aus übernommenen Fremdkomponenten unverändert respektieren. Keine Lizenzbehauptung ohne Beschluss.
 2. **Bei kopierten Komponenten:** vollständige ursprüngliche MIT-Hinweise, Copyright-Zuordnung und Herkunft beibehalten; zentrale `THIRD_PARTY_NOTICES` plus gegebenenfalls Lizenzdateien im verteilten Artefakt vorsehen.
 3. **Bei Paketdistribution:** alle tatsächlich enthaltenen Paketlizenzen aus `composer.lock` und `package-lock.json` mit Version, SPDX-Ausdruck, Copyrightinhaber, Quell-URL und Volltext/mitgeliefertem Lizenzort erfassen; Ausnahmen und Copyleft gesondert prüfen.
 4. **Bei Schrift- und Asset-Verteilung:** OFL-/ISC- bzw. sonstige Hinweise entsprechend Originalbedingungen mitliefern.
@@ -69,9 +69,9 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 
 ## 6. Abnahmekriterien vor öffentlicher Quellcode-/Produktdistribution
 
-- [ ] Eigentums- und Weitergaberechte am ursprünglichen `sek-intranet` schriftlich geprüft, einschliesslich etwaiger Arbeitgeber-/Drittrechte.
-- [ ] Pro übernommener Datei Quellpfad, Ursprungs-Commit, eigene Änderungen und Lizenz-/Copyrightinhaber identifiziert.
-- [ ] `my-github-blueprint`-Vorlagen auf Lizenz und geschützte Fremdanteile geprüft.
+- [x] `sek-intranet` und `my-github-blueprint` sind vom Projektverantwortlichen als eigene Quell-Repositories bezeichnet.
+- [ ] Bei übernommenen Dateien dieser Repositories **fremde** Bestandteile (einschliesslich kopierter UI-Komponenten, Boilerplates, Assets und weiterer Quellen) identifiziert und deren jeweilige Lizenz-/Copyrightpflichten geprüft.
+- [ ] Technische Herkunft über Quellpfad/Commit dokumentiert, soweit zur Verfolgung solcher Fremdanteile nötig.
 - [ ] MIT-Originalhinweise der shadcn-Komponenten und weiterer Kopien korrekt beibehalten.
 - [ ] Softwarelizenz für **eigene** Anteile beschlossen, ohne Drittkomponenten unzulässig umzuzertifizieren.
 - [ ] Automatischer Composer-/NPM-Lizenzreport mit vollständigen direkten und transitiven Paketen pro Release erstellt.
@@ -81,4 +81,4 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 - [ ] Öffentliche Legal-Seite und Notice-Dateien zeigen dieselbe geprüfte Version.
 - [ ] Fachliche bzw. erforderlichenfalls juristische Freigabe protokolliert.
 
-**Pflege:** Bei neuer Abhängigkeit, Copy/Paste aus fremdem Repository, neuem Asset oder einer neuen Release-Version ist dieses Register vor Veröffentlichung zu aktualisieren. Lizenzscanner unterstützen die Prüfung, ersetzen sie aber nicht.
+**Pflege:** Eigene Codeübernahmen aus `sek-intranet` und `my-github-blueprint` erfordern keine erneute Eigenlizenzprüfung. Bei darin enthaltenen fremden Bestandteilen, neuen Abhängigkeiten, Copy/Paste aus fremden Repositories, Assets oder einer neuen Release-Version ist dieses Register vor Veröffentlichung zu aktualisieren. Lizenzscanner unterstützen die Prüfung, ersetzen sie aber nicht.
