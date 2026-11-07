@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\GlossaryApiController;
 use App\Http\Controllers\Api\OpenApiController;
+use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StatusController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,9 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
     Route::get('releases/latest', [GlossaryApiController::class, 'latestRelease'])->name('api.v1.releases.latest');
     Route::get('changes', [GlossaryApiController::class, 'changes'])->name('api.v1.changes');
     Route::get('exports', [GlossaryApiController::class, 'export'])->name('api.v1.exports');
+
+    // Servicekonten (#47): Token prüfen; schreibende Endpunkte (Vorschläge, Scope «propose») folgen mit #113
+    Route::get('service/whoami', [ServiceController::class, 'whoami'])->middleware('service.token')->name('api.v1.service.whoami');
 });
 
 // Maschinenlesbare Beschreibung (OpenAPI 3.1) als YAML und JSON

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateServiceToken;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -40,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
+
+        // Schreibende API mit Token eines Servicekontos (#47)
+        $middleware->alias(['service.token' => AuthenticateServiceToken::class]);
 
         // Nicht angemeldet → Anmeldeseite
         $middleware->redirectGuestsTo('/anmelden');

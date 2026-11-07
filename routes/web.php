@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SourceCheckController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
@@ -140,6 +141,16 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
         Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');
         Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');
+    });
+
+    // Servicekonten mit Token (#47): ab Organisations-Admin
+    Route::middleware('can:service-tokens')->group(function () {
+        Route::get('servicekonten', [ServiceAccountController::class, 'index'])->name('admin.service');
+        Route::post('servicekonten', [ServiceAccountController::class, 'store'])->name('admin.service.store');
+        Route::get('servicekonten/{account}', [ServiceAccountController::class, 'show'])->whereUuid('account')->name('admin.service.show');
+        Route::post('servicekonten/{account}/token', [ServiceAccountController::class, 'createToken'])->whereUuid('account')->middleware('throttle:10,1')->name('admin.service.token');
+        Route::post('servicekonten/{account}/status', [ServiceAccountController::class, 'status'])->whereUuid('account')->name('admin.service.status');
+        Route::delete('servicekonten/token/{token}', [ServiceAccountController::class, 'revokeToken'])->whereUuid('token')->name('admin.service.revoke');
     });
 
     // System (#40): nur Developer (Recht «system»)

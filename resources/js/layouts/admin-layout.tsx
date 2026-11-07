@@ -20,6 +20,11 @@ const NAV = [
     { href: '/admin/listen', label: 'Listen', recht: 'lists' },
     { href: '/admin/import', label: 'Excel-Import', recht: 'import' },
     { href: '/admin/benutzer', label: 'Benutzer', recht: 'manage-users' },
+    {
+        href: '/admin/servicekonten',
+        label: 'Servicekonten',
+        recht: 'service-tokens',
+    },
     { href: '/admin/system', label: 'System', recht: 'system' },
 ];
 
