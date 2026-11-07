@@ -145,8 +145,8 @@ Ersetzt für diese Punkte die unveränderte Übernahme der Intranet-Felder aus D
 - Gesetzt auf der Begriffsseite unter **«Meine Darstellung»** von jedem angemeldeten, aktiven Konto, nur für sich
   selbst (Zugriff ausschliesslich über `user_id = angemeldetes Konto`). Keine Moderation, keine Revision.
 - **Anzeige:** Auf der öffentlichen Website gelten die eigenen Anpassungen nur, wenn man angemeldet ist (Liste,
-  Suche und Detail; die gemeinsame Form bleibt sichtbar). Solche Antworten tragen `Cache-Control: private,
-no-store`. Abgemeldet und für alle anderen gilt die gemeinsame Form.
+  Suche und Detail; die gemeinsame Form bleibt sichtbar). Solche Antworten werden nie zwischengespeichert
+  (`Cache-Control: private, no-store`). Abgemeldet und für alle anderen gilt die gemeinsame Form.
 - Nie in Revisionen, Datenständen, API, Vollstand, Change-Feed, GitHub Pages, Confluence oder Excel.
 - Beim Zusammenführen gehen Anpassungen auf den verbleibenden Begriff über; hat dieselbe Person dort schon eine,
   werden nur leere Felder ergänzt, bei Widerspruch bleibt die Anpassung am alten Begriff (Meldung, nichts wird
