@@ -24,6 +24,7 @@ class ExportPages extends Command
             'published_at' => $release['published_at'],
             'version' => (string) config('glossary.version'),
             'full_url' => 'https://glossary.eduksx.ch',
+            'license' => $presenter->license(),
             'categories' => $presenter->categoryList(),
             'terms' => array_map(fn (array $t): array => array_intersect_key($t, array_flip([
                 'id', 'slug', 'abbreviation', 'name', 'aliases', 'short_description', 'categories', 'status', 'url',

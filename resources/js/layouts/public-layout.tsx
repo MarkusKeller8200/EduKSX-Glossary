@@ -82,6 +82,13 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         >
                             Administration
                         </Link>
+                        {' · '}
+                        <a
+                            href="https://creativecommons.org/licenses/by/4.0/deed.de"
+                            className="text-link underline-offset-4 hover:underline"
+                        >
+                            Daten CC BY 4.0
+                        </a>
                         {links.pages ? (
                             <>
                                 {' · '}

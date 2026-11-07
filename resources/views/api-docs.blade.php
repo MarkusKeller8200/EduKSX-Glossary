@@ -13,6 +13,8 @@
             .api-head a { color: #0272ad; }
             .wm { font-weight: 600; font-size: 1.1rem; color: #222; text-decoration: none; }
             .wm .v { color: #7952b3; } .wm .o { color: #ff8a00; } .wm .b { color: #007ebb; }
+            .api-note { margin: 0; padding: .5rem 1rem; background: #fff3e5; color: #5c3200; font-size: .85rem; }
+            .api-note a { color: inherit; }
             noscript { display: block; padding: 2rem 1rem; }
         </style>
     </head>
@@ -27,6 +29,20 @@
                 <a href="/">Website</a>
             </nav>
         </header>
+
+        {{-- Nutzung und Stabilität (DEC-016, #30) --}}
+        <p class="api-note" role="note">
+            @if (config('glossary.api_stability') === 'preview')
+                <strong>Vorschau:</strong> Bis zum öffentlichen Betrieb können sich Felder und Endpunkte noch ändern
+                (Hinweise im <a href="/versionen">Versionsverlauf</a>). Danach gilt: v1 bleibt rückwärtskompatibel.
+            @else
+                <strong>Stabil:</strong> v1 bleibt rückwärtskompatibel; Brüche nur in einer neuen Version mit
+                mindestens 12 Monaten Parallelbetrieb.
+            @endif
+            Ohne Schlüssel, 120 Abrufe pro Minute, ohne Zusage zur Verfügbarkeit.
+            Daten unter <a href="{{ config('glossary.license.url') }}">{{ config('glossary.license.name') }}</a>
+            – Nennung «{{ config('glossary.license.attribution') }}».
+        </p>
 
         <noscript>Die interaktive Dokumentation braucht JavaScript. Die Beschreibung der API steht als
             <a href="/api/openapi.json">OpenAPI-Datei</a> zur Verfügung.</noscript>

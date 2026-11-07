@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Nutzung und Stabilität der API (#30, DEC-016):** Die API ist bis zum öffentlichen Betrieb eine Vorschau
+  (`stability: preview` auf `/api/v1`, Hinweis auf `/api/docs`). Danach bleibt v1 rückwärtskompatibel. Die Daten
+  stehen vorerst unter CC BY 4.0 (Feld `license` in `/api/v1` und im Vollstand, Hinweis im Fuss der Website und der
+  Lesefassung).
 - **Sync für Abnehmer (#29):** Vollstand und Datenstand der API enthalten den `cursor` für den Change-Feed. Neuer
   Befehl `php artisan glossary:sync-check URL` synchronisiert wie ein Abnehmer (z. B. das Intranet) und vergleicht
   mit dem Vollstand. Ein automatischer Test spielt Veröffentlichen, Ändern, Zurückziehen, Wiederaufnahme und

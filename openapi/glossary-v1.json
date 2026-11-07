@@ -2,16 +2,16 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EduKSX-Glossary API",
-    "version": "1.0.0",
+    "version": "0.3.0-preview",
     "summary": "Öffentliche Lese-API des EduKSX-Glossary",
-    "description": "Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.\n\n- Liefert **nur veröffentlichte** Daten (freigegebene Revisionen). Entwürfe, Vorschläge und redaktionelle Notizen sind nie enthalten.\n- Lesen ohne Schlüssel; Rate-Limit 120 Abrufe pro Minute und Adresse.\n- Jede Antwort hat einen **ETag**; mit `If-None-Match` kommt bei unverändertem Inhalt `304`.\n- Fehler als `application/problem+json` (RFC 9457).\n- **Sync** (z. B. Intranet): einmal `/exports?format=json` (Vollstand), danach periodisch `/changes?since=<next_cursor>`; `/releases/latest` zeigt günstig, ob sich etwas geändert hat.\n- Versionierung: `/api/v1` bleibt rückwärtskompatibel (Felder kommen nur dazu); Brüche nur in `/api/v2`.\n\nKonzept: docs/KONZEPT-API.md im Repository.",
+    "description": "Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.\n\n- Liefert **nur veröffentlichte** Daten (freigegebene Revisionen). Entwürfe, Vorschläge und redaktionelle Notizen sind nie enthalten.\n- Lesen ohne Schlüssel; Rate-Limit 120 Abrufe pro Minute und Adresse.\n- Jede Antwort hat einen **ETag**; mit `If-None-Match` kommt bei unverändertem Inhalt `304`.\n- Fehler als `application/problem+json` (RFC 9457).\n- **Sync** (z. B. Intranet): einmal `/exports?format=json` (Vollstand), danach periodisch `/changes?since=<next_cursor>`; `/releases/latest` zeigt günstig, ob sich etwas geändert hat.\n- **Vorschau:** Bis zum öffentlichen Betrieb können sich Felder und Endpunkte noch ändern (Hinweise im CHANGELOG). Danach gilt die Stabilitätszusage: `/api/v1` bleibt rückwärtskompatibel (Felder kommen nur dazu), Brüche nur in `/api/v2` mit mindestens 12 Monaten Parallelbetrieb.\n- Keine Zusage zur Verfügbarkeit: Abnehmer halten einen lokalen Stand.\n- **Daten unter CC BY 4.0** – Nennung «EduKSX-Glossary, glossary.eduksx.ch».\n\nKonzept: docs/KONZEPT-API.md im Repository.",
     "contact": {
       "name": "EduKSX-Glossary auf GitHub",
       "url": "https://github.com/MarkusKeller8200/EduKSX-Glossary"
     },
     "license": {
-      "name": "noch festzulegen",
-      "url": "https://github.com/MarkusKeller8200/EduKSX-Glossary"
+      "name": "CC BY 4.0 (Daten)",
+      "url": "https://creativecommons.org/licenses/by/4.0/deed.de"
     }
   },
   "servers": [
@@ -649,6 +649,30 @@
           }
         }
       },
+      "License": {
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "attribution"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "examples": [
+              "CC BY 4.0"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "attribution": {
+            "type": "string",
+            "description": "So nennen bei der Nutzung der Daten"
+          }
+        }
+      },
       "Term": {
         "type": "object",
         "required": [
@@ -1026,6 +1050,9 @@
             "type": "integer",
             "description": "Letztes Ereignis im Change-Feed zu diesem Stand; danach mit `/api/v1/changes?since=<cursor>` weiterfragen."
           },
+          "license": {
+            "$ref": "#/components/schemas/License"
+          },
           "checksum": {
             "type": "string"
           },
@@ -1093,6 +1120,17 @@
                 "type": "string"
               }
             }
+          },
+          "stability": {
+            "type": "string",
+            "enum": [
+              "preview",
+              "stable"
+            ],
+            "description": "`preview` bis zum öffentlichen Betrieb, danach `stable` mit Stabilitätszusage"
+          },
+          "license": {
+            "$ref": "#/components/schemas/License"
           },
           "release": {
             "$ref": "#/components/schemas/Release"

@@ -13,6 +13,8 @@ class ApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('api_version', 'v1')
             ->assertJsonPath('release.release', 0)
+            ->assertJsonPath('stability', 'preview')
+            ->assertJsonPath('license.name', 'CC BY 4.0')
             ->assertJsonStructure(['name', 'api_version', 'app_version', 'release', 'openapi', 'docs', 'endpoints']);
     }
 
@@ -42,7 +44,10 @@ class ApiTest extends TestCase
 
     public function test_doku_seite(): void
     {
-        $this->get('/api/docs')->assertOk()->assertSee('api-reference', false)->assertSee('/api/openapi.json', false);
+        $this->get('/api/docs')->assertOk()->assertSee('api-reference', false)->assertSee('/api/openapi.json', false)
+            ->assertSee('Vorschau')->assertSee('CC BY 4.0');
+        $this->getJson('/api/v1/exports?format=json')->assertJsonPath('license.attribution', 'EduKSX-Glossary, glossary.eduksx.ch');
+        $this->assertSame('CC BY 4.0 (Daten)', $this->get('/api/openapi.json')->json('info.license.name'));
     }
 
     public function test_unbekannter_pfad_als_problem_json(): void

@@ -117,6 +117,19 @@ final class ApiPresenter
         ];
     }
 
+    /**
+     * Lizenz der Daten (DEC-016) für Einstieg und Vollstand.
+     *
+     * @return array{name: string, url: string, attribution: string}
+     */
+    public function license(): array
+    {
+        /** @var array{name: string, url: string, attribution: string} $license */
+        $license = config('glossary.license');
+
+        return $license;
+    }
+
     /** @return list<array{key: string, label: string, name: string, url: string|null}> */
     public function categoryList(): array
     {
