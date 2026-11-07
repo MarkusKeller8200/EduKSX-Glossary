@@ -86,6 +86,21 @@ Befunde aus der Prüfung:
   wie im Intranet.
 - Hinweis «In Entwicklung», solange 0.x (Markenfortschreibung v1.1: keine erfundenen Releases oder Versprechen).
 
+## Seitenbreite und Lesebreite (DEC-023, beschlossen 07.11.2026)
+
+Angelehnt an die Container-Breiten von Bootstrap 5 (lg 960 px, xl 1140 px, xxl 1320 px):
+
+| Ansicht (#76)             | Breite                | Verwendung                                    |
+| ------------------------- | --------------------- | --------------------------------------------- |
+| Mobil                     | 384 px (`max-w-sm`)   | Prüfen der mobilen Darstellung                |
+| Desktop schmal (Standard) | 1152 px (`max-w-6xl`) | Website und Administration einheitlich (≈ xl) |
+| Ganze Breite              | volle Fensterbreite   | grosse Tabellen                               |
+
+- **Fliesstext** (Beschreibung auf der Detailseite, Datenschutzerklärung, Rechtliches, Versionen) auf Lesebreite
+  begrenzen: `max-w-prose`, etwa 65 Zeichen pro Zeile (Richtwert 60–75).
+- **Listen, Tabellen und kurze Hinweise** unter Seitentiteln nutzen die volle Seitenbreite (#89).
+- Vorher hatte die Website 1024 px und die Administration 1152 px, ohne festgehaltenen Grund. Umsetzung: #99.
+
 ## Prüfung
 
 - Abnahmecheckliste des CI-Manuals (Abschnitt 13) als Punkte in der PR-Vorlage bzw. als Test: exakte Wortmarke,
