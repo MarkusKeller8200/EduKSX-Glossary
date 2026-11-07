@@ -900,6 +900,10 @@
             "type": "integer",
             "description": "Nummer des Datenstands (0 = noch nie veröffentlicht)"
           },
+          "cursor": {
+            "type": "integer",
+            "description": "Letztes Ereignis im Change-Feed zu diesem Stand; danach mit `/api/v1/changes?since=<cursor>` weiterfragen."
+          },
           "published_at": {
             "type": [
               "string",
@@ -1017,6 +1021,10 @@
         "properties": {
           "release": {
             "type": "integer"
+          },
+          "cursor": {
+            "type": "integer",
+            "description": "Letztes Ereignis im Change-Feed zu diesem Stand; danach mit `/api/v1/changes?since=<cursor>` weiterfragen."
           },
           "checksum": {
             "type": "string"

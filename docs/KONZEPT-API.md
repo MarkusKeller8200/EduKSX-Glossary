@@ -89,6 +89,9 @@ Beispiel-URL und -Datum sind Platzhalter.
 - **Change-Feed:** Tabelle `term_publication_events`; jede Veröffentlichung und jeder Rückzug ist ein Ereignis, die
   ID ist der Cursor. «published» enthält den Begriff in genau der veröffentlichten Revision, «unpublished» ist der
   Tombstone. Veröffentlichen mehrerer Begriffe in einem Schritt ergibt mehrere Ereignisse, aber einen Datenstand.
+- **Cursor im Vollstand (#29):** `/api/v1/exports` und `/api/v1/releases/latest` liefern `cursor` (letztes
+  Ereignis). Abnehmer holen danach nur noch `/api/v1/changes?since=<cursor>`. Ablauf und Referenzclient:
+  [SYNC-INTRANET.md](SYNC-INTRANET.md), Prüfung mit `php artisan glossary:sync-check`.
 - **Zusammengeführt (#16):** Ereignis «merged» mit `merged_into` (verbleibender Begriff), danach folgt dieser als
   «published». `GET /api/v1/terms/{alte-id-oder-slug}` antwortet mit `301` und `Location` auf den verbleibenden
   Begriff; die Website leitet `/begriffe/{alter-slug}` ebenso dauerhaft weiter.

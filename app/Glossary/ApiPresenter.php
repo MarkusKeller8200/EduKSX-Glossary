@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\PublicationRelease;
 use App\Models\Source;
 use App\Models\Term;
+use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 
 /**
@@ -98,7 +99,10 @@ final class ApiPresenter
     /**
      * Aktueller Datenstand (Release 0, wenn noch nie veröffentlicht wurde).
      *
-     * @return array{release: int, published_at: string|null, checksum: string, term_count: int}
+     * «cursor» ist das letzte Ereignis im Change-Feed: Wer den Vollstand holt, fragt danach mit
+     * /api/v1/changes?since=<cursor> weiter (#29).
+     *
+     * @return array{release: int, cursor: int, published_at: string|null, checksum: string, term_count: int}
      */
     public function release(): array
     {
@@ -106,6 +110,7 @@ final class ApiPresenter
 
         return [
             'release' => $release !== null ? $release->id : 0,
+            'cursor' => (int) TermPublicationEvent::query()->max('id'),
             'published_at' => $release?->created_at->toIso8601ZuluString(),
             'checksum' => $release !== null ? $release->checksum : hash('sha256', '[]'),
             'term_count' => $release !== null ? $release->term_count : 0,
