@@ -49,18 +49,7 @@
 
         <div id="api-reference"></div>
 
-        {{-- Scalar API Reference (wie die API-Seite im Intranet), hier über das CDN jsDelivr eingebunden --}}
-        <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1"></script>
-        <script>
-            Scalar.createApiReference('#api-reference', {
-                url: '/api/openapi.json',
-                withDefaultFonts: false,
-                hideDownloadButton: false,
-                // Entwickler-Leiste von Scalar (nur auf localhost sichtbar, Teilen über die Scalar Registry) aus
-                showDeveloperTools: 'never',
-                defaultHttpClient: { targetKey: 'shell', clientKey: 'curl' },
-                metaData: { title: 'API – EduKSX-Glossary' },
-            });
-        </script>
+        {{-- Scalar API Reference (wie die API-Seite im Intranet), selbst ausgeliefert über Vite (#44) --}}
+        @vite('resources/js/api-docs.ts')
     </body>
 </html>

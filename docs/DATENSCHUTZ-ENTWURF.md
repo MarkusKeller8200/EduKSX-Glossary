@@ -58,7 +58,7 @@ Wir verwenden Dienstleister ausschliesslich für dokumentierte Zwecke. Die konkr
 | Microsoft, nur bei Nutzung der Anmeldung                      | Authentifizierungsdaten und angeforderte Attribute                                      | [vertragliche Hinweise / Auslandbearbeitung prüfen]         |
 | Edulog/angeschlossene Identitätsdienste, erst bei Aktivierung | pseudonyme Kennungen und vereinbarte Attribute                                          | [Föderationsbedingungen / konkrete Stellen prüfen]          |
 | GitHub                                                        | öffentliche statische Lesefassung; personenbezogene GitHub-Issues nur bei deren Nutzung | [Datenflüsse und Hinweise prüfen]                           |
-| jsDelivr / Bunny Fonts, sofern tatsächlich extern geladen     | technische Verbindungsdaten beim Abruf                                                  | [möglichst selbst hosten; tatsächlichen Zustand prüfen]     |
+| jsDelivr / Bunny Fonts                                        | keine – Schrift und API-Doku werden selbst ausgeliefert (#44)                           | entfällt; Zustand bei Änderungen erneut prüfen              |
 
 Daten werden weder verkauft noch für fremde Werbung bereitgestellt. Internationale Übermittlungen werden anhand der tatsächlich beteiligten Empfänger und einer im Einzelfall einschlägigen Grundlage abgesichert. Die Verfügbarkeit eines Datenschutzrahmens oder von Standardvertragsklauseln darf **nicht pauschal für jeden Anbieter oder jede Bearbeitung** unterstellt werden.
 
