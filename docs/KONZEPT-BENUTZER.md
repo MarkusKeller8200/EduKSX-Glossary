@@ -33,6 +33,8 @@ Servicekonten sind **keine Benutzerrolle** und werden getrennt von Personenkonte
 
 Jedes Servicekonto erhält einen Namen, Zweck, verantwortliche natürliche Person, Status und eng begrenzte Scopes. Token werden kryptografisch zufällig erzeugt, nur einmal angezeigt, ausschliesslich als sichere Hashwerte abgelegt, befristet, einzeln widerrufbar und nach Möglichkeit regelmässig rotiert. Token und Identitäten werden von anderen Rollen unabhängig geprüft. Schreibende Servicezugriffe verwenden dieselbe Geschäftslogik, Validierung, Auditierung und Moderationskette wie schreibende Personenzugriffe. Ein Servicekonto darf nicht unmittelbar veröffentlichen, solange dafür kein gesonderter Entscheid getroffen wurde.
 
+Umsetzung (0.7.0, #47): Anlegen ab Recht `service-tokens` (Organisations-Admin, Admin), verantwortlich ist die anlegende Person; verwalten kann sie selbst, mit `manage-users` alle. Scopes nur im Rahmen der eigenen Rechte (vorerst `propose`). Token «gls_» + 40 Zeichen, SHA-256-Hash, 1–365 Tage, einzeln widerrufbar; Sperren des Kontos macht alle Token ungültig. Protokoll `service_account_audit` mit Änderungen und abgewiesenen Zugriffen bekannter Token. Selbstauskunft `GET /api/v1/service/whoami`.
+
 ## 3. Berechtigungsmodell
 
 | Gate / Recht                       | Gast | Benutzer | Org.-Admin | Moderator | Admin         | Developer | Servicekonto (Default) |
