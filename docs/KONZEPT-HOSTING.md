@@ -1,6 +1,7 @@
 # Konzept: Hosting und Domain
 
-Entscheid des Projektverantwortlichen vom 07.11.2026 (#4), nach Entscheidungsvorlage im Chat. Betrifft DEC-012
+Entscheid des Projektverantwortlichen vom 07.11.2026 (#4), nach Entscheidungsvorlage im Chat; abgenommen mit
+Anpassungen am selben Tag. Betrifft DEC-012
 (Hosting) in [DECISIONS_V1.2.md](DECISIONS_V1.2.md).
 
 ## Entscheid
@@ -16,8 +17,11 @@ Entscheid des Projektverantwortlichen vom 07.11.2026 (#4), nach Entscheidungsvor
 3. **Infomaniak später prüfen**, sobald einer dieser Punkte eintritt: produktiver Betrieb mit Community-Konten,
    Umzug des Intranets auf Infomaniak (gemeinsamer Betrieb), Wunsch nach eigenem Server statt Platz neben dem
    Prototyp. Weil das Glossar ein Container ist, bleibt der Umzug einfach (Image, Volumen, Datenbank-Dump).
-4. **Domain:** `glossar.eduksx.ch`. Die Domain `eduksx.ch` ist registriert und wird über **Cloudflare** geschützt.
+4. **Domain:** `glossary.eduksx.ch`. Die Domain `eduksx.ch` ist registriert und wird über **Cloudflare** geschützt.
    Weitere Einträge (CNAME) für andere EduKSX-Projekte kommen später dazu.
+5. **Immer «Glossary»:** Subdomain, Ordner, Container und technische Namen heissen «glossary», wie im Produktnamen
+   EduKSX-Glossary (englischer Funktionsbegriff) – nie «glossar».
+6. **GitHub Pages bleibt** in reduzierter Form und wird künftig mitgepflegt (Abschnitt unten).
 
 ## Aufbau
 
@@ -31,17 +35,27 @@ Browser ─► Cloudflare (DNS, Proxy, WAF) ─► Hostinger-VPS ─► Traefik 
 | --------------------- | --------------------------------------------------------------------- |
 | Server                | Hostinger-VPS srv1807739 (gleicher Server wie der Intranet-Prototyp) |
 | Ordner auf dem Server | `/docker/glossary` (Compose-Datei, `.env`, Quellcode in `src/`)       |
-| Adresse               | `https://glossar.eduksx.ch`                                           |
-| Prüfadresse           | `https://glossar.eduksx.ch/up`                                        |
+| Adresse               | `https://glossary.eduksx.ch`                                           |
+| Prüfadresse           | `https://glossary.eduksx.ch/up`                                        |
 | Daten                 | eigenes Docker-Volumen, getrennt vom Intranet                         |
 
 - **Getrennt vom Intranet:** eigenes Compose-Projekt, eigenes Netzwerk, eigenes Volumen, eigener App-Schlüssel,
   eigener Deploy-Schlüssel. Gemeinsam sind nur Server und Traefik.
 - **Suchmaschinen erlaubt:** Das Intranet sperrt Suchmaschinen aus; das Glossar soll gefunden werden (eigene
   `robots.txt`, kein `noindex`).
-- **GitHub Pages bleibt Übergang:** Die statische Seite in `site/` bleibt unter
-  `markuskeller8200.github.io/EduKSX-Glossary` erreichbar, bis die Anwendung auf `glossar.eduksx.ch` läuft. Danach
-  wird Pages abgeschaltet (eigener Issue, nicht ohne Plan).
+
+## GitHub Pages (reduzierte Fassung)
+
+Neben der Anwendung bleibt unter `markuskeller8200.github.io/EduKSX-Glossary` eine schlanke, statische Fassung
+bestehen und wird mitgepflegt:
+
+- **Inhalt:** nur veröffentlichte Begriffe zum Lesen (Liste mit Suche, Index A–Z, Versionsangabe); keine Redaktion,
+  keine Vorschläge, keine API. Vorschläge laufen über den Link zur Anwendung bzw. die GitHub-Issue-Formulare.
+- **Daten:** `site/begriffe.json` ist ein Export des veröffentlichten Datenstands (gleiches Format wie
+  `/api/v1/exports?format=json`), nicht von Hand gepflegt, sobald die Anwendung läuft. Aktualisiert wird beim
+  Release bzw. per Workflow.
+- **Hinweis** auf jeder Seite: «Vollständige Fassung: glossary.eduksx.ch».
+- Ordner `site/`, Workflow `.github/workflows/pages.yml`; keine Abhängigkeit von der Anwendung zur Laufzeit.
 
 ## Cloudflare und Zertifikate
 
@@ -59,10 +73,13 @@ Die Nameserver von `eduksx.ch` sind noch nicht auf Cloudflare aktiv. Reihenfolge
 5. Optional später: Zugriff auf den Server nur noch von Cloudflare-Adressen (Firewall), Cloudflare-Regeln gegen
    Spam für das Vorschlagsformular (Rate Limiting, Turnstile).
 
-Weitere Subdomains (CNAME) zeigen auf `glossar.eduksx.ch` oder direkt auf den Server; jede bekommt in Traefik eine
+Weitere Subdomains (CNAME) zeigen auf `glossary.eduksx.ch` oder direkt auf den Server; jede bekommt in Traefik eine
 eigene Regel.
 
-## Offen
+## Offene Punkte
+
+Werden geklärt, wenn sie benötigt werden:
+
 
 - Zertifikat: Let's Encrypt (HTTP- oder DNS-Prüfung) oder Cloudflare Origin Certificate.
 - Sicherung der Datenbank (Ziel, Intervall, Wiederherstellungstest) – mit dem Stack-Entscheid.
