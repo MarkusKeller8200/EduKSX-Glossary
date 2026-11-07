@@ -40,6 +40,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Developer mit Stand des Versands und Testmail. Mails laufen im Betrieb über eine Warteschlange mit Wiederholung;
   dafür kommen die Dienste `worker` und `scheduler` dazu.
 
+- **Konto anlegen und Passwort vergessen (#41):** Selbstregistrierung mit Bestätigungslink per E-Mail (60 Minuten,
+  Double-Opt-in), Spam-Schutz mit Cloudflare Turnstile (wenn eingerichtet) und Kenntnisnahme der
+  Datenschutzerklärung (Version und Zeitpunkt gespeichert). Neue Konten haben nur Community-Rechte; unbestätigte
+  werden nach 7 Tagen gelöscht (`glossary:loeschfristen`, täglich). «Passwort vergessen» schickt einen einmaligen
+  Link; die Antworten verraten nicht, ob eine Adresse ein Konto hat. Beides nur mit eingerichtetem Mailversand.
+
 ### Geändert
 
 - Bestehende Admin-Konten haben jetzt die Rolle Admin (nicht Developer); `glossary:admin` vergibt Admin.

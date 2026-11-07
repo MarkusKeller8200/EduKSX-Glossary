@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\MailSetup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class LoginController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('auth/login');
+        return Inertia::render('auth/login', ['registrierung' => MailSetup::configured()]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -47,6 +48,11 @@ class LoginController extends Controller
             throw ValidationException::withMessages(['email' => 'E-Mail oder Passwort stimmt nicht.']);
         }
         RateLimiter::clear($key);
+        if ($user->isPending()) {
+            RegisterController::sendConfirmation($user);
+
+            throw ValidationException::withMessages(['email' => 'Bitte zuerst die E-Mail-Adresse bestätigen – der Link ist nochmals unterwegs.']);
+        }
         if (! $user->isActive()) {
             throw ValidationException::withMessages(['email' => 'Anmeldung nicht möglich. Bitte an die Administration wenden.']);
         }

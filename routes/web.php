@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\PageController;
 use App\Http\Middleware\RequireTwoFactor;
@@ -30,8 +32,19 @@ Route::middleware('guest')->group(function () {
     Route::post('anmelden', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
     Route::get('anmelden/code', [TwoFactorController::class, 'challenge'])->name('login.two-factor');
     Route::post('anmelden/code', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('login.two-factor.verify');
+
+    // Selbstregistrierung mit Double-Opt-in und «Passwort vergessen» (#41); nur mit eingerichtetem Mailversand
+    Route::get('registrieren', [RegisterController::class, 'create'])->name('register');
+    Route::post('registrieren', [RegisterController::class, 'store'])->middleware('throttle:5,1')->name('register.store');
+    Route::get('passwort-vergessen', [PasswordResetController::class, 'create'])->name('password.request');
+    Route::post('passwort-vergessen', [PasswordResetController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::get('passwort-zuruecksetzen/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+    Route::post('passwort-zuruecksetzen', [PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 Route::post('abmelden', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+// Bestätigungslink der Registrierung (signiert, 60 Minuten; ohne Anmeldung)
+Route::get('registrieren/bestaetigen/{user}/{hash}', [RegisterController::class, 'verify'])
+    ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('register.verify');
 
 // Mein Konto (#39): für alle angemeldeten Konten, auch Community
 Route::middleware('auth')->prefix('konto')->group(function () {
