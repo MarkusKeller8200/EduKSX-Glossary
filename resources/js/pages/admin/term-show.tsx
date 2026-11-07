@@ -99,7 +99,7 @@ export default function TermShow({
         if (key === 'is_active') {
             return v ? 'ja' : 'nein';
         }
-        return String(v ?? '');
+        return typeof v === 'string' || typeof v === 'number' ? String(v) : '';
     };
     const post = (url: string) => {
         setSending(true);
