@@ -105,11 +105,10 @@ class RegistrationTest extends TestCase
         $this->post('/registrieren', [...self::FORM, 'datenschutz' => false])->assertSessionHasErrors('datenschutz');
 
         config(['glossary.turnstile.site_key' => 'site', 'glossary.turnstile.secret' => 'secret']);
-        Http::fake(['challenges.cloudflare.com/*' => Http::response(['success' => false])]);
+        Http::fake(['challenges.cloudflare.com/*' => Http::sequence()->push(['success' => false])->push(['success' => true])]);
         $this->post('/registrieren', [...self::FORM, 'cf-turnstile-response' => 'token'])->assertSessionHasErrors('form');
         $this->assertSame(0, User::query()->count());
 
-        Http::fake(['challenges.cloudflare.com/*' => Http::response(['success' => true])]);
         $this->post('/registrieren', [...self::FORM, 'cf-turnstile-response' => 'token'])->assertSessionHasNoErrors();
         $this->assertSame(1, User::query()->count());
     }
