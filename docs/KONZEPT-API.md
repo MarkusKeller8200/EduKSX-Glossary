@@ -160,3 +160,20 @@ Entscheid zum offenen Punkt 5 aus [KONZEPT.md](KONZEPT.md) (DEC-016).
 - Die öffentliche API serialisiert ausschliesslich kontrollierte Veröffentlichungsfelder. Benutzerprofile, externe Identitätskennungen, private Vorschläge, Moderationskommentare, Sicherheits-Audits und Token werden niemals in öffentlichen JSON-Ausgaben geliefert.
 - **Abnahmetests:** Testdaten mit privaten Vorschlägen, Identitäten und Geheimnissen dürfen in keiner Antwort der Lese-API, im Export, im Change-Feed, in API-Beispielen oder im GitHub-Pages-Build erscheinen.
 - Die vereinbarte Versionierungs- und Stabilitätszusage sowie das bestehende Rate-Limit bleiben unverändert.
+
+## Gemeinsame Felder und berechnete Werte (DEC-020, #83)
+
+Die API v1 ist bis zum öffentlichen Betrieb eine Vorschau (DEC-016). Deshalb werden die Felder direkt bereinigt,
+ohne v2 und ohne Übergangsfrist; der CHANGELOG nennt die Änderung.
+
+- **Entfallen:** `own_abbreviation`, `own_name`. Persönliche Darstellungen, Altwerte («Intern genutzt in»),
+  `change_set`, Akteure und interne Autoren-IDs erscheinen nie.
+- `abbreviation`, `name` = gemeinsame veröffentlichte Werte (gleich `official_abbreviation`, `official_name`), nie
+  personalisiert.
+- **Neu:** `official_aliases`, `alternative_aliases` (gemeinsam freigegeben), `display_label`, `is_full_term`;
+  `aliases` bleibt Sammelliste aus beiden.
+- **Nur in** `/terms`, `/terms/{idOrSlug}` und `/exports`: `is_ambiguous`, `meaning_count` (vom Gesamtstand
+  abhängig). Im Change-Feed fehlen sie, damit ein altes Ereignis keine Zahlen eines späteren Stands zeigt.
+- Positivliste `ApiPresenter::PUBLIC_TERM_FIELDS` (mit `CONTEXT_FIELDS`), `openapi/glossary-v1.json` nachgeführt.
+- Das Intranet synchronisiert nur gemeinsame, veröffentlichte Felder und IDs und berechnet «Intern genutzt in»,
+  Tooltips und lokale Benennungen selbst (eigener Auftrag im Repository `sek-intranet`).
