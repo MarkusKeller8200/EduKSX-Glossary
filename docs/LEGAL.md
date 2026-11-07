@@ -82,3 +82,23 @@ Ein blosser Link zur Upstream-Lizenz ersetzt **nicht automatisch** die Pflicht z
 - [ ] Fachliche bzw. erforderlichenfalls juristische Freigabe protokolliert.
 
 **Pflege:** Eigene Codeübernahmen aus `sek-intranet` und `my-github-blueprint` erfordern keine erneute Eigenlizenzprüfung. Bei darin enthaltenen fremden Bestandteilen, neuen Abhängigkeiten, Copy/Paste aus fremden Repositories, Assets oder einer neuen Release-Version ist dieses Register vor Veröffentlichung zu aktualisieren. Lizenzscanner unterstützen die Prüfung, ersetzen sie aber nicht.
+
+## Softwarelizenz – Vorschlag (DEC-021)
+
+**Status: Vorschlag zur Entscheidung (#65).** Gilt nur für den eigenen Anwendungscode. Drittkomponenten behalten ihre
+Lizenz, die Daten bleiben unter CC BY 4.0 (DEC-016), Marke und Wortmarke MarKusSXCH/EduKSX sind nicht Teil der
+Softwarelizenz.
+
+| Option              | Kurz                                                                                                         | Passt, wenn …                                                                                                 | Nachteil                                                                                                     |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **MIT** (empfohlen) | Freie Nutzung, Änderung, Weitergabe; nur Copyright- und Lizenzhinweis behalten                               | Schulen, Gemeinden und Dienstleister den Code ohne Hürden übernehmen sollen; gleich wie Laravel und shadcn/ui | Änderungen an betriebenen Kopien müssen nicht zurückfliessen; kein ausdrückliches Patentrecht                |
+| Apache-2.0          | wie MIT, dazu ausdrückliche Patentlizenz und NOTICE-Datei                                                    | Patentfragen eine Rolle spielen oder grössere Organisationen beitragen                                        | etwas mehr Pflichten (Änderungsvermerk, NOTICE)                                                              |
+| AGPL-3.0-or-later   | starkes Copyleft auch beim Betrieb übers Netz: wer eine geänderte Fassung anbietet, muss den Code offenlegen | Verbesserungen gehosteter Varianten zwingend öffentlich werden sollen                                         | schreckt kommerzielle und manche öffentliche Betreiber ab; eigene kommerzielle Angebote nur mit Doppellizenz |
+
+**Begründung der Empfehlung:** Das Glossary soll als offene Referenz von möglichst vielen Schulen, Gemeinden und
+Anbietern genutzt werden; der Wert liegt in den gemeinsam gepflegten Daten (CC BY 4.0) und im Betrieb, nicht in der
+Exklusivität des Codes. MIT ist mit allen eingesetzten Paketen verträglich (Bericht #73) und für öffentliche Stellen
+leicht zu prüfen.
+
+**Nach Entscheid:** Datei `LICENSE` (Text der gewählten Lizenz, Inhaber «Markus Keller»), `license` in
+`composer.json` und `package.json`, Hinweis auf `/legals` und in der README, Register DEC-021 auf «beschlossen».
