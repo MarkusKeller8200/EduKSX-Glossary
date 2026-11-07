@@ -14,6 +14,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Unbekannte Kategorien und Herkünfte auf Wunsch neu anlegen. Importierte Begriffe sind Entwürfe. Export aller
   Begriffe und leere Vorlage. Neue Seite «Begriffe» in der Administration (Liste mit Filter und Stand der
   Veröffentlichung).
+- **Ausgewählte veröffentlichen (#23):** in der Begriffsliste Einträge auswählen (einzeln, alle gefilterten oder
+  «Alle Entwürfe auswählen») und in einem Schritt veröffentlichen – ein gemeinsamer Datenstand; Begriffe ohne
+  Änderung seit der letzten Freigabe werden übersprungen.
 - **Weg in die Administration:** Knopf «Anmelden» bzw. «Administration» oben auf der Website; in der Übersicht der
   Administration Knöpfe zu Excel-Import, Begriffen und Excel-Export.
 - **Datenmodell (#12):** Begriffe, Kategorien, Herkunft, Schreibweisen und Revisionen in SQLite. Jede Änderung

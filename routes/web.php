@@ -22,6 +22,7 @@ Route::post('abmelden', [LoginController::class, 'destroy'])->middleware('auth')
 Route::middleware(['auth', 'can:administer'])->prefix('admin')->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
     Route::get('begriffe', [TermController::class, 'index'])->name('admin.terms');
+    Route::post('begriffe/veroeffentlichen', [TermController::class, 'publish'])->name('admin.terms.publish');
 
     // Excel (#13, #15): Export, Vorlage, Import mit Vorschau
     Route::get('export', [ExcelController::class, 'export'])->name('admin.export');

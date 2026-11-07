@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Glossary\GlossaryService;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Term;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,5 +33,17 @@ class TermController extends Controller
             ->all();
 
         return Inertia::render('admin/terms', ['begriffe' => $terms]);
+    }
+
+    /** Ausgewählte Begriffe veröffentlichen (#23); unveränderte werden übersprungen. */
+    public function publish(Request $request, GlossaryService $glossary): RedirectResponse
+    {
+        $data = $request->validate(['ids' => ['required', 'array', 'max:5000'], 'ids.*' => ['string']]);
+        $user = $request->user();
+        $terms = Term::query()->whereIn('id', $data['ids'])->get();
+        $count = $glossary->publishMany($terms, $user instanceof User ? $user : null);
+        $skipped = $terms->count() - $count;
+
+        return back()->with('status', "{$count} Begriffe veröffentlicht".($skipped > 0 ? ", {$skipped} waren schon auf dem veröffentlichten Stand." : '.'));
     }
 }

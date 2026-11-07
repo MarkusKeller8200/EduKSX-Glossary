@@ -1,7 +1,8 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 
 type Begriff = {
@@ -26,6 +27,46 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                   .includes(q),
           )
         : begriffe;
+    const [auswahl, setAuswahl] = useState<Set<string>>(new Set());
+    const [sending, setSending] = useState(false);
+    const alleGewaehlt =
+        liste.length > 0 && liste.every((b) => auswahl.has(b.id));
+    const umschalten = (id: string, an: boolean) =>
+        setAuswahl((alt) => {
+            const neu = new Set(alt);
+            if (an) {
+                neu.add(id);
+            } else {
+                neu.delete(id);
+            }
+            return neu;
+        });
+    const alleUmschalten = (an: boolean) =>
+        setAuswahl((alt) => {
+            const neu = new Set(alt);
+            liste.forEach((b) => (an ? neu.add(b.id) : neu.delete(b.id)));
+            return neu;
+        });
+    const entwuerfeWaehlen = () =>
+        setAuswahl(
+            new Set(
+                liste
+                    .filter((b) => b.veroeffentlicht !== b.revision)
+                    .map((b) => b.id),
+            ),
+        );
+    const veroeffentlichen = () => {
+        setSending(true);
+        router.post(
+            '/admin/begriffe/veroeffentlichen',
+            { ids: [...auswahl] },
+            {
+                preserveScroll: true,
+                onSuccess: () => setAuswahl(new Set()),
+                onFinish: () => setSending(false),
+            },
+        );
+    };
 
     return (
         <>
@@ -52,23 +93,43 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                 </div>
             </div>
 
-            <div className="mt-6 max-w-sm">
-                <label htmlFor="suche" className="sr-only">
-                    Begriffe filtern
-                </label>
-                <Input
-                    id="suche"
-                    type="search"
-                    placeholder="Filtern …"
-                    value={suche}
-                    onChange={(e) => setSuche(e.target.value)}
-                />
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="w-full max-w-sm">
+                    <label htmlFor="suche" className="sr-only">
+                        Begriffe filtern
+                    </label>
+                    <Input
+                        id="suche"
+                        type="search"
+                        placeholder="Filtern …"
+                        value={suche}
+                        onChange={(e) => setSuche(e.target.value)}
+                    />
+                </div>
+                <Button variant="outline" onClick={entwuerfeWaehlen}>
+                    Alle Entwürfe auswählen
+                </Button>
+                <Button
+                    onClick={veroeffentlichen}
+                    disabled={auswahl.size === 0 || sending}
+                >
+                    Ausgewählte veröffentlichen ({auswahl.size})
+                </Button>
             </div>
 
             <div className="mt-4 overflow-x-auto rounded-lg border border-border">
                 <table className="w-full text-sm">
                     <thead className="bg-muted text-left">
                         <tr>
+                            <th scope="col" className="w-10 px-3 py-2">
+                                <Checkbox
+                                    aria-label="Alle gefilterten auswählen"
+                                    checked={alleGewaehlt}
+                                    onCheckedChange={(v) =>
+                                        alleUmschalten(v === true)
+                                    }
+                                />
+                            </th>
                             <th scope="col" className="px-3 py-2 font-medium">
                                 Abkürzung
                             </th>
@@ -92,6 +153,15 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                                 key={b.id}
                                 className="border-t border-border align-top"
                             >
+                                <td className="px-3 py-2">
+                                    <Checkbox
+                                        aria-label={`${b.abkuerzung || b.bezeichnung} auswählen`}
+                                        checked={auswahl.has(b.id)}
+                                        onCheckedChange={(v) =>
+                                            umschalten(b.id, v === true)
+                                        }
+                                    />
+                                </td>
                                 <td
                                     className="px-3 py-2 font-medium"
                                     translate="no"
@@ -132,7 +202,7 @@ export default function Terms({ begriffe }: { begriffe: Begriff[] }) {
                         {liste.length === 0 ? (
                             <tr>
                                 <td
-                                    colSpan={5}
+                                    colSpan={6}
                                     className="px-3 py-6 text-center text-muted-foreground"
                                 >
                                     {begriffe.length === 0

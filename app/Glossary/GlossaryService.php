@@ -105,26 +105,57 @@ final class GlossaryService
     public function publish(Term $term, ?User $approver): Term
     {
         return DB::transaction(function () use ($term, $approver): Term {
-            /** @var TermRevision|null $latest */
-            $latest = $term->revisions()->where('revision', $term->revision)->first();
-            if ($latest === null) {
-                throw new InvalidArgumentException('Begriff hat noch keine Revision.');
+            if ($this->markPublished($term, $approver)) {
+                $this->newRelease($term->id, 'published', $approver);
             }
-            if ($term->published_revision_id === $latest->id) {
-                return $term;
-            }
-
-            $latest->published_at = now()->toImmutable();
-            $latest->approved_by = $approver?->id;
-            $latest->save();
-
-            $term->published_revision_id = $latest->id;
-            $term->save();
-
-            $this->newRelease($term, 'published', $approver);
 
             return $term->refresh();
         });
+    }
+
+    /**
+     * Mehrere Begriffe in einem Schritt veröffentlichen (#23): ein gemeinsamer Datenstand statt einer pro Begriff.
+     *
+     * @param  iterable<Term>  $terms
+     * @return int Anzahl tatsächlich veröffentlichter Begriffe (unveränderte werden übersprungen)
+     */
+    public function publishMany(iterable $terms, ?User $approver): int
+    {
+        return DB::transaction(function () use ($terms, $approver): int {
+            $count = 0;
+            foreach ($terms as $term) {
+                if ($this->markPublished($term, $approver)) {
+                    $count++;
+                }
+            }
+            if ($count > 0) {
+                $this->newRelease(null, 'published', $approver);
+            }
+
+            return $count;
+        });
+    }
+
+    /** Neueste Revision freigeben; false, wenn sie schon veröffentlicht ist. */
+    private function markPublished(Term $term, ?User $approver): bool
+    {
+        /** @var TermRevision|null $latest */
+        $latest = $term->revisions()->where('revision', $term->revision)->first();
+        if ($latest === null) {
+            throw new InvalidArgumentException('Begriff hat noch keine Revision.');
+        }
+        if ($term->published_revision_id === $latest->id) {
+            return false;
+        }
+
+        $latest->published_at = now()->toImmutable();
+        $latest->approved_by = $approver?->id;
+        $latest->save();
+
+        $term->published_revision_id = $latest->id;
+        $term->save();
+
+        return true;
     }
 
     /** Veröffentlichung zurückziehen: Begriff ist danach nicht mehr öffentlich (Tombstone im Change-Feed). */
@@ -137,7 +168,7 @@ final class GlossaryService
         return DB::transaction(function () use ($term, $user): Term {
             $term->published_revision_id = null;
             $term->save();
-            $this->newRelease($term, 'unpublished', $user);
+            $this->newRelease($term->id, 'unpublished', $user);
 
             return $term->refresh();
         });
@@ -316,10 +347,10 @@ final class GlossaryService
         }
     }
 
-    private function newRelease(Term $term, string $action, ?User $user): void
+    private function newRelease(?string $termId, string $action, ?User $user): void
     {
         PublicationRelease::query()->create([
-            'term_id' => $term->id,
+            'term_id' => $termId,
             'action' => $action,
             'checksum' => $this->checksum(),
             'term_count' => Term::query()->published()->count(),
