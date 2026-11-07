@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\MailSetup;
@@ -23,7 +24,10 @@ class LoginController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('auth/login', ['registrierung' => MailSetup::configured()]);
+        return Inertia::render('auth/login', [
+            'registrierung' => MailSetup::configured(),
+            'microsoft' => app(MicrosoftLogin::class)->enabled(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

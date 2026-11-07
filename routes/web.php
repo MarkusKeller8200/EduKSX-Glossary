@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PrivacyController;
@@ -49,6 +50,10 @@ Route::middleware('guest')->group(function () {
     Route::post('passwort-zuruecksetzen', [PasswordResetController::class, 'update'])->middleware('throttle:10,1')->name('password.update');
 });
 Route::post('abmelden', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+// Anmeldung mit Microsoft (#45): auch für angemeldete Konten (Verknüpfen nach Passwortbestätigung)
+Route::get('anmelden/microsoft', [SsoController::class, 'redirect'])->middleware('throttle:20,1')->name('sso.microsoft');
+Route::get('anmelden/microsoft/rueckkehr', [SsoController::class, 'callback'])->middleware('throttle:20,1')->name('sso.microsoft.callback');
+
 // Bestätigungslink der Registrierung (signiert, 60 Minuten; ohne Anmeldung)
 Route::get('registrieren/bestaetigen/{user}/{hash}', [RegisterController::class, 'verify'])
     ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('register.verify');
@@ -59,6 +64,8 @@ Route::middleware('auth')->prefix('konto')->group(function () {
     Route::put('/', [AccountController::class, 'update'])->name('account.update');
     Route::put('passwort', [AccountController::class, 'password'])->middleware('throttle:10,1')->name('account.password');
     Route::post('loeschen', [AccountController::class, 'destroy'])->middleware('throttle:5,1')->name('account.destroy');
+    Route::post('anmeldedienste/microsoft', [SsoController::class, 'startLink'])->middleware('throttle:5,1')->name('account.identities.microsoft');
+    Route::delete('anmeldedienste/{identity}', [SsoController::class, 'unlink'])->whereNumber('identity')->middleware('throttle:5,1')->name('account.identities.destroy');
 
     // Zweiter Faktor (#11, #37): Pflicht für privilegierte Rechte, sonst freiwillig
     Route::get('zwei-faktor', [TwoFactorController::class, 'setup'])->name('account.two-factor');

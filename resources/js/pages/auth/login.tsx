@@ -8,7 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 /** Anmeldung lokaler Konten (DEC-014); Registrierung und «Passwort vergessen» nur mit Mailversand (#41). */
-export default function Login({ registrierung }: { registrierung: boolean }) {
+export default function Login({
+    registrierung,
+    microsoft,
+}: {
+    registrierung: boolean;
+    microsoft: boolean;
+}) {
     const form = useForm({ email: '', password: '', remember: false });
     const { flash } = usePage().props;
 
@@ -83,6 +89,21 @@ export default function Login({ registrierung }: { registrierung: boolean }) {
                         Anmelden
                     </Button>
                 </form>
+                {microsoft ? (
+                    <div className="mt-4">
+                        <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+                            <span className="h-px flex-1 bg-border" />
+                            oder
+                            <span className="h-px flex-1 bg-border" />
+                        </div>
+                        <Button asChild variant="outline" className="w-full">
+                            {/* volle Seitennavigation: Weiterleitung zu Microsoft */}
+                            <a href="/anmelden/microsoft">
+                                Mit Microsoft anmelden
+                            </a>
+                        </Button>
+                    </div>
+                ) : null}
                 {registrierung ? (
                     <p className="mt-6 flex flex-wrap justify-between gap-2 text-sm">
                         <Link
