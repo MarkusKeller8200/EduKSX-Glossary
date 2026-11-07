@@ -81,7 +81,7 @@ final class Totp
         }
         $out = '';
         foreach (str_split($bits, 5) as $chunk) {
-            $out .= self::BASE32[bindec(str_pad($chunk, 5, '0'))];
+            $out .= self::BASE32[(int) bindec(str_pad($chunk, 5, '0'))];
         }
 
         return $out;
