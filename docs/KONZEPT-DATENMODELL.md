@@ -215,7 +215,7 @@ Nicht gespeichert, eine Regel für Website und API:
 
 ## Freigabe und Rücknahme von Revisionen (DEC-022)
 
-**Vorschlag 07.11.2026 (#74), Umsetzung freigegeben.** Ergänzt die drei Statusachsen und das Journal (DEC-020).
+**Beschlossen 08.11.2026 (#74), Vorschlag vom 07.11.2026.** Ergänzt die drei Statusachsen und das Journal (DEC-020).
 
 ### Grundsätze
 
