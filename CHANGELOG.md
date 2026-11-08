@@ -57,6 +57,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Behoben
 
+- **Tabellenbreite (#123):** Tabellen der Administration füllen bei «Ganze Breite» den ganzen Platz; die breiteste
+  Textspalte nimmt den freien Platz auf.
+
 - **Auswahllisten im Dunkelmodus (#107):** Einträge sind lesbar (heller Text auf dunklem Grund).
 
 ## [0.6.0] – 2026-11-07

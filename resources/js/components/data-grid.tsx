@@ -32,6 +32,8 @@ export type GridColumn<T> = {
     /** Breite fest (z. B. Auswahl), kein Splitter */
     fixed?: boolean;
     sticky?: 'left' | 'right';
+    /** nimmt den freien Platz auf, wenn die Tabelle breiter ist als die Spalten (Vorgabe: breiteste Textspalte) */
+    grow?: boolean;
     className?: string;
     headerClassName?: string;
     /** `translate="no"` für Daten (Abkürzungen) */
@@ -162,6 +164,15 @@ export default function DataGrid<T>({
     };
 
     const total = columns.reduce((n, c) => n + width(c), 0);
+    // Spalte für den freien Platz (#123): ausdrücklich gewählt, sonst die breiteste ohne feste Breite und Fixierung
+    const growId =
+        columns.find((c) => c.grow)?.id ??
+        columns
+            .filter((c) => !c.fixed && !c.sticky)
+            .reduce<GridColumn<T> | null>(
+                (best, c) => (!best || width(c) > width(best) ? c : best),
+                null,
+            )?.id;
     // Abstand der rechten fixierten Spalten
     const rightOffset = (index: number) =>
         columns
@@ -193,14 +204,21 @@ export default function DataGrid<T>({
         <div className="overflow-x-auto rounded-lg border border-border">
             <table
                 className="text-sm"
-                style={{ tableLayout: 'fixed', width: Math.max(total, 0) }}
+                // mindestens so breit wie der Platz (#123); die Spalte growId nimmt den Rest auf
+                style={{ tableLayout: 'fixed', width: `max(${total}px, 100%)` }}
             >
                 {caption ? (
                     <caption className="sr-only">{caption}</caption>
                 ) : null}
                 <colgroup>
                     {columns.map((c) => (
-                        <col key={c.id} style={{ width: width(c) }} />
+                        <col
+                            key={c.id}
+                            style={{
+                                width: c.id === growId ? undefined : width(c),
+                                minWidth: width(c),
+                            }}
+                        />
                     ))}
                 </colgroup>
                 <thead className="text-left">
