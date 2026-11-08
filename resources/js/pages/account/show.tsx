@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Konto = {
     first_name: string;
@@ -567,10 +568,10 @@ function Anmeldedienste({
 
 function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
     const form = useForm({ password: '' });
-    const submit = (e: FormEvent) => {
+    const submit = async (e: FormEvent) => {
         e.preventDefault();
         if (
-            window.confirm(
+            await confirmAction(
                 'Konto endgültig löschen? Die Anmeldung ist danach nicht mehr möglich.',
             )
         ) {

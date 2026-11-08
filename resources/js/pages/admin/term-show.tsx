@@ -8,6 +8,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { can } from '@/lib/access';
 import { RevisionBadges, StateBadge, StatusBadge } from '@/components/tags';
 import { stateClasses } from '@/lib/colors';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Begriff = Record<string, unknown> & {
     id: string;
@@ -121,11 +122,14 @@ export default function TermShow({
     )?.form;
     const darfBearbeiten = can(auth, 'edit-terms');
     // Revision wiederherstellen bzw. Entwurf verwerfen (DEC-022)
-    const wiederherstellen = (revision: number, veroeffentlichen: boolean) => {
+    const wiederherstellen = async (
+        revision: number,
+        veroeffentlichen: boolean,
+    ) => {
         const text = veroeffentlichen
             ? `Revision ${revision} wiederherstellen und gleich veröffentlichen?`
             : `Revision ${revision} als neue Revision wiederherstellen (Entwurf)?`;
-        if (window.confirm(text)) {
+        if (await confirmAction(text)) {
             post(`/admin/begriffe/${b.id}/wiederherstellen`, {
                 revision,
                 veroeffentlichen,
@@ -232,9 +236,9 @@ export default function TermShow({
                             <Button
                                 variant="outline"
                                 disabled={sending}
-                                onClick={() => {
+                                onClick={async () => {
                                     if (
-                                        window.confirm(
+                                        await confirmAction(
                                             `Entwurf verwerfen? Der veröffentlichte Stand V${b.veroeffentlicht} wird als neue Revision wiederhergestellt.`,
                                         )
                                     ) {
@@ -262,9 +266,9 @@ export default function TermShow({
                                     <Button
                                         variant="outline"
                                         disabled={sending}
-                                        onClick={() => {
+                                        onClick={async () => {
                                             if (
-                                                window.confirm(
+                                                await confirmAction(
                                                     'Veröffentlichung zurückziehen? Der Begriff ist danach nicht mehr öffentlich.',
                                                 )
                                             ) {

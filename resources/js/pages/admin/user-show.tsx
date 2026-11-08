@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Benutzer = {
     id: string;
@@ -76,8 +77,8 @@ export default function UserShow({
         e.preventDefault();
         form.put(`/admin/benutzer/${b.id}/rollen`, { preserveScroll: true });
     };
-    const aktion = (pfad: string, frage: string) => {
-        if (!window.confirm(frage)) {
+    const aktion = async (pfad: string, frage: string) => {
+        if (!(await confirmAction(frage))) {
             return;
         }
         setSending(true);

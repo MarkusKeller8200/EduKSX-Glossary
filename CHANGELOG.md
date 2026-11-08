@@ -20,6 +20,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Symbolen. Formulare und Detailseiten bleiben bei «Breit» und «Voll» optimiert breit und zentriert.
 - **Filter (#145):** Kategorie und Herkunft als farbige Labels in der Listenfarbe, Mehrfachauswahl, Zurücksetzen –
   auf der Startseite und in der Begriffstabelle.
+- **Bedienung (#139):** Bestätigungen als Dialog statt Browser-Fenster, Meldungen auf der Website einheitlich oben,
+  erste Spalte der Vergleichstabellen fixiert; Prüfprotokoll `docs/BARRIEREFREIHEIT.md`.
 - **Begriffstabelle (#143):** Darstellung (Tabelle/Kacheln), Gruppierung und Sortierung in einem Menü «Ansicht» mit
   «Ansicht zurücksetzen».
 
