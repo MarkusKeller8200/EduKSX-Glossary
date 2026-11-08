@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Proposals\ProposalService;
 use App\Support\MailSetup;
+use App\Support\Settings;
 use DateTimeInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -36,10 +37,11 @@ class ApplyRetention extends Command
     public function handle(): int
     {
         $dry = (bool) $this->option('trocken');
-        $config = (array) config('glossary.retention');
-        $months = (int) ($config['inactive_months'] ?? 24);
-        $noticeDays = (int) ($config['notice_days'] ?? 30);
-        $auditYears = (int) ($config['audit_years'] ?? 5);
+        // Fristen aus den Einstellungen (#106), Vorgabe aus config/glossary.php
+        $months = Settings::int('retention.inactive_months');
+        $noticeDays = Settings::int('retention.notice_days');
+        $auditYears = Settings::int('retention.audit_years');
+        $proposalMonths = Settings::int('retention.proposal_months');
 
         // 1. Unbestätigte Registrierungen
         $pending = User::query()->where('status', 'pending')->where('created_at', '<', now()->subDays(7))->get();
@@ -71,9 +73,9 @@ class ApplyRetention extends Command
 
         // 4. Vorschläge (#113, DEC-024): 24 Monate nach Abschluss ohne Personenbezug
         $proposals = $dry
-            ? Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', now()->subMonths(ProposalService::RETENTION_MONTHS))
+            ? Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', now()->subMonths($proposalMonths))
                 ->whereNotNull('user_id')->count()
-            : app(ProposalService::class)->anonymizeResolvedBefore(now()->subMonths(ProposalService::RETENTION_MONTHS));
+            : app(ProposalService::class)->anonymizeResolvedBefore(now()->subMonths($proposalMonths));
 
         // 5. Import-Protokoll (#64): 12 Monate
         $importQuery = ImportBatch::query()->where('created_at', '<', now()->subMonths(ImportBatch::RETENTION_MONTHS));

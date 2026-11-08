@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Glossary\FourEyesRequired;
 use App\Glossary\GlossaryService;
 use App\Glossary\OfficialFieldLocked;
 use App\Http\Controllers\Controller;
@@ -221,7 +222,11 @@ class TermController extends Controller
     public function publishOne(Request $request, Term $term): RedirectResponse
     {
         $before = $term->published_revision_id;
-        $term = $this->glossary->publish($term, $this->user($request));
+        try {
+            $term = $this->glossary->publish($term, $this->user($request));
+        } catch (FourEyesRequired $e) {
+            return back()->withErrors(['veroeffentlichen' => $e->getMessage()])->with('status', $e->getMessage());
+        }
 
         return back()->with('status', $term->published_revision_id === $before ? 'War schon veröffentlicht.' : "Revision {$term->revision} veröffentlicht.");
     }
@@ -239,9 +244,12 @@ class TermController extends Controller
         $data = $request->validate(['ids' => ['required', 'array', 'max:5000'], 'ids.*' => ['string']]);
         $terms = Term::query()->whereIn('id', $data['ids'])->get();
         $count = $this->glossary->publishMany($terms, $this->user($request));
-        $skipped = $terms->count() - $count;
+        $fourEyes = $this->glossary->lastFourEyesSkipped;
+        $skipped = $terms->count() - $count - $fourEyes;
 
-        return back()->with('status', "{$count} Begriffe veröffentlicht".($skipped > 0 ? ", {$skipped} waren schon auf dem veröffentlichten Stand." : '.'));
+        return back()->with('status', "{$count} Begriffe veröffentlicht"
+            .($skipped > 0 ? ", {$skipped} waren schon auf dem veröffentlichten Stand" : '')
+            .($fourEyes > 0 ? ", {$fourEyes} mit eigener letzter Änderung übersprungen (Vier-Augen-Prinzip)" : '').'.');
     }
 
     // ---------- intern ----------

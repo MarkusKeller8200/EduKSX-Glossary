@@ -26,6 +26,7 @@ const NAV = [
         label: 'Servicekonten',
         recht: 'service-tokens',
     },
+    { href: '/admin/einstellungen', label: 'Einstellungen', recht: 'settings' },
     { href: '/admin/system', label: 'System', recht: 'system' },
 ];
 

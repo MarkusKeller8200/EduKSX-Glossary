@@ -8,6 +8,13 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Listen per Excel (#101):** Kategorien und Herkunft je Liste exportieren und mit Vorschau importieren (neu,
+  geändert, Fehler; nie löschen). Spalten wie das Formular, Format wie der Listen-Export des Intranets
+  (sek-intranet#157); Zuordnung über Schlüssel, sonst Kürzel oder Label.
+- **Allgemeine Einstellungen (#106):** neue Seite für Löschfristen, Wiedervorlage der Quellenprüfung,
+  Vier-Augen-Prinzip bei der Freigabe (DEC-022, Vorgabe aus) sowie Hinweise und Links; neues Recht «Allgemeine
+  Einstellungen» (systemkritisch), jede Änderung im Protokoll.
+
 - **Vorschläge und Moderation (#113, DEC-024):** Ab Benutzer neuen Begriff oder Korrektur einreichen («Begriff
   vorschlagen», «Korrektur vorschlagen»); Stand, Rückfragen und Zurückziehen unter «Meine Vorschläge». Die Moderation
   vergleicht feldweise Basis, Arbeitsstand und Vorschlag (Konflikte markiert), nimmt gewählte Felder als Entwurf an,

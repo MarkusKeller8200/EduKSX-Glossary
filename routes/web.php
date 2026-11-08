@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceAccountController;
+use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SourceCheckController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
@@ -137,6 +138,9 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     // Listen: Kategorien und Herkunft
     Route::middleware('can:lists')->group(function () {
         Route::get('listen', [ListController::class, 'index'])->name('admin.lists');
+        Route::get('listen/{list}/export', [ListController::class, 'export'])->whereIn('list', ['kategorien', 'herkunft'])->name('admin.lists.export');
+        Route::post('listen/{list}/import', [ListController::class, 'preview'])->whereIn('list', ['kategorien', 'herkunft'])->middleware('throttle:20,1')->name('admin.lists.import');
+        Route::post('listen/{list}/import/{token}', [ListController::class, 'apply'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('token')->name('admin.lists.import.apply');
         Route::post('listen/{list}', [ListController::class, 'store'])->whereIn('list', ['kategorien', 'herkunft'])->name('admin.lists.store');
         Route::put('listen/{list}/{id}', [ListController::class, 'update'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('id')->name('admin.lists.update');
         Route::delete('listen/{list}/{id}', [ListController::class, 'destroy'])->whereIn('list', ['kategorien', 'herkunft'])->whereUuid('id')->name('admin.lists.destroy');
@@ -173,6 +177,12 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('servicekonten/{account}/token', [ServiceAccountController::class, 'createToken'])->whereUuid('account')->middleware('throttle:10,1')->name('admin.service.token');
         Route::post('servicekonten/{account}/status', [ServiceAccountController::class, 'status'])->whereUuid('account')->name('admin.service.status');
         Route::delete('servicekonten/token/{token}', [ServiceAccountController::class, 'revokeToken'])->whereUuid('token')->name('admin.service.revoke');
+    });
+
+    // Allgemeine Einstellungen (#106): Recht «settings» (systemkritisch)
+    Route::middleware('can:settings')->group(function () {
+        Route::get('einstellungen', [SettingsController::class, 'index'])->name('admin.settings');
+        Route::put('einstellungen', [SettingsController::class, 'update'])->name('admin.settings.update');
     });
 
     // System (#40): nur Developer (Recht «system»)

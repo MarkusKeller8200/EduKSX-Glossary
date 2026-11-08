@@ -11,6 +11,7 @@ use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 use App\Models\TermUserOverride;
 use App\Models\User;
+use App\Support\Settings;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -42,6 +43,9 @@ final class GlossaryService
 
     /** Persönliche Darstellungen beim letzten merge(), die wegen Widerspruch am alten Begriff geblieben sind. */
     public int $lastMergeConflicts = 0;
+
+    /** Begriffe, die publishMany() wegen des Vier-Augen-Prinzips übersprungen hat (#106). */
+    public int $lastFourEyesSkipped = 0;
 
     /**
      * Begriff anlegen (ohne $term) oder ändern. Ergebnis ist immer ein Entwurf; veröffentlicht wird mit publish().
@@ -123,9 +127,15 @@ final class GlossaryService
         });
     }
 
-    /** Aktuellen Arbeitsstand veröffentlichen (Freigabe). Ohne Änderung seit der letzten Freigabe: nichts tun. */
+    /**
+     * Aktuellen Arbeitsstand veröffentlichen (Freigabe). Ohne Änderung seit der letzten Freigabe: nichts tun.
+     *
+     * @throws FourEyesRequired mit Vier-Augen-Prinzip, wenn $approver die letzte Änderung gemacht hat
+     */
     public function publish(Term $term, ?User $approver): Term
     {
+        $this->guardFourEyes($term, $approver);
+
         return DB::transaction(function () use ($term, $approver): Term {
             $event = $this->markPublished($term, $approver);
             if ($event !== null) {
@@ -144,9 +154,18 @@ final class GlossaryService
      */
     public function publishMany(iterable $terms, ?User $approver): int
     {
+        $this->lastFourEyesSkipped = 0;
+
         return DB::transaction(function () use ($terms, $approver): int {
             $events = [];
             foreach ($terms as $term) {
+                try {
+                    $this->guardFourEyes($term, $approver);
+                } catch (FourEyesRequired) {
+                    $this->lastFourEyesSkipped++;
+
+                    continue;
+                }
                 $event = $this->markPublished($term, $approver);
                 if ($event !== null) {
                     $events[] = $event;
@@ -158,6 +177,21 @@ final class GlossaryService
 
             return count($events);
         });
+    }
+
+    /**
+     * Vier-Augen-Prinzip (DEC-022, Einstellung «publish.four_eyes», #106): freigeben nicht durch die Person der letzten
+     * Änderung. Gilt nicht für den Serverprozess ($approver null), Zusammenführen und Wiederherstellen.
+     */
+    private function guardFourEyes(Term $term, ?User $approver): void
+    {
+        if ($approver === null || ! Settings::bool('publish.four_eyes')) {
+            return;
+        }
+        $author = $term->revisions()->where('revision', $term->revision)->value('author_id');
+        if ($author !== null && $author === $approver->id && $term->hasUnpublishedChanges()) {
+            throw new FourEyesRequired($term);
+        }
     }
 
     /** Neueste Revision freigeben und Ereignis für den Change-Feed schreiben; null, wenn schon veröffentlicht. */

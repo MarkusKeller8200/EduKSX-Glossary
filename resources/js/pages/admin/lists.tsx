@@ -97,7 +97,10 @@ function Tabelle({
 
     return (
         <section className="mt-8">
-            <h2 className="text-xl font-semibold">{TITEL[liste]}</h2>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <h2 className="text-xl font-semibold">{TITEL[liste]}</h2>
+                <ExcelListe liste={liste} />
+            </div>
             <div className="mt-3 overflow-x-auto rounded-lg border border-border">
                 <table className="w-full text-sm">
                     <thead className="bg-muted text-left">
@@ -384,5 +387,46 @@ function Formular({
                 ) : null}
             </div>
         </form>
+    );
+}
+
+/** Excel-Export und -Import der Liste (#101); der Import zeigt zuerst eine Vorschau. */
+function ExcelListe({ liste }: { liste: Liste }) {
+    const form = useForm<{ datei: File | null }>({ datei: null });
+    const errors = form.errors as Record<string, string | undefined>;
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.post(`/admin/listen/${liste}/import`, { forceFormData: true });
+    };
+
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+                <a href={`/admin/listen/${liste}/export`}>Excel-Export</a>
+            </Button>
+            <form onSubmit={submit} className="flex items-center gap-2">
+                <Label htmlFor={`import-${liste}`} className="sr-only">
+                    Datei für den Import ({TITEL[liste]})
+                </Label>
+                <Input
+                    id={`import-${liste}`}
+                    type="file"
+                    accept=".xlsx,.csv"
+                    className="h-8 max-w-56 text-xs"
+                    onChange={(e) =>
+                        form.setData('datei', e.target.files?.[0] ?? null)
+                    }
+                />
+                <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    disabled={!form.data.datei || form.processing}
+                >
+                    Import prüfen
+                </Button>
+            </form>
+            <InputError message={errors.datei} />
+        </div>
     );
 }
