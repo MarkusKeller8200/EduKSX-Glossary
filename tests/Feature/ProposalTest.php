@@ -36,7 +36,9 @@ class ProposalTest extends TestCase
     private function benutzer(string $email = 'b@example.org'): User
     {
         $user = $this->userWithRoles([Role::USER], $email, twoFactor: false);
-        $user->forceFill(['community_name' => 'Anna'])->save();
+        if ($email === 'b@example.org') {
+            $user->forceFill(['community_name' => 'Anna'])->save();
+        }
 
         return $user;
     }
