@@ -5,6 +5,7 @@ namespace App\Glossary;
 use App\Models\Category;
 use App\Models\Source;
 use App\Support\Palette;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -47,10 +48,16 @@ final class ListTransfer
     public function rows(string $list): array
     {
         $model = self::LISTS[$list];
+        $rows = [];
+        foreach ($model::query()->orderBy('sort_order')->orderBy('name')->get() as $item) {
+            $row = [];
+            foreach (self::COLUMNS as $field) {
+                $row[] = $this->text($item->getAttribute($field));
+            }
+            $rows[] = $row;
+        }
 
-        return $model::query()->orderBy('sort_order')->orderBy('name')->get()
-            ->map(fn (Category|Source $i): array => array_map(fn (string $f): string => (string) $i->getAttribute($f), array_values(self::COLUMNS)))
-            ->values()->all();
+        return $rows;
     }
 
     /**
@@ -64,11 +71,11 @@ final class ListTransfer
         $model = self::LISTS[$list];
         $items = $model::query()->get();
         $byKey = $items->keyBy('key');
-        $find = function (string $value, string $field) use ($items): Category|Source|null {
+        $find = function (string $value, string $field) use ($items): ?Model {
             if ($value === '') {
                 return null;
             }
-            $hits = $items->filter(fn (Category|Source $i): bool => mb_strtolower((string) $i->getAttribute($field)) === mb_strtolower($value));
+            $hits = $items->filter(fn (Model $i): bool => mb_strtolower((string) $i->getAttribute($field)) === mb_strtolower($value));
 
             return $hits->count() === 1 ? $hits->first() : null;
         };
@@ -85,12 +92,12 @@ final class ListTransfer
             $key = $fields['key'] ?? '';
             $existing = $key !== '' ? $byKey->get($key) : null;
             $existing ??= $key === '' ? ($find($fields['abbreviation'] ?? '', 'abbreviation') ?? $find($fields['label'] ?? '', 'label')) : null;
-            $title = trim(($fields['abbreviation'] ?? (string) $existing?->abbreviation).' – '.($fields['name'] ?? (string) $existing?->name), ' –');
+            $title = trim(($fields['abbreviation'] ?? $this->text($existing?->getAttribute('abbreviation'))).' – '.($fields['name'] ?? $this->text($existing?->getAttribute('name'))), ' –');
 
             $errors = [];
             $data = $this->check($fields, $existing, $errors);
-            if ($existing !== null && isset($seen[$existing->id])) {
-                $errors[] = 'Eintrag kommt in der Datei mehrfach vor (Zeile '.$seen[$existing->id].').';
+            if ($existing !== null && isset($seen[(string) $existing->getKey()])) {
+                $errors[] = 'Eintrag kommt in der Datei mehrfach vor (Zeile '.$seen[(string) $existing->getKey()].').';
             }
             if ($existing === null) {
                 if ($key !== '' && preg_match('/^[a-z0-9-]+$/', $key) !== 1) {
@@ -108,14 +115,14 @@ final class ListTransfer
                 continue;
             }
             if ($existing !== null) {
-                $seen[$existing->id] = $n + 2;
+                $seen[(string) $existing->getKey()] = $n + 2;
                 unset($data['key']);
                 $changes = array_filter($data, fn (mixed $v, string $f): bool => $this->text($existing->getAttribute($f)) !== $this->text($v), ARRAY_FILTER_USE_BOTH);
                 if ($changes === []) {
                     continue;
                 }
                 $plan[] = [
-                    'zeile' => $n + 2, 'art' => 'geaendert', 'titel' => $title, 'meldungen' => [], 'id' => $existing->id,
+                    'zeile' => $n + 2, 'art' => 'geaendert', 'titel' => $title, 'meldungen' => [], 'id' => (string) $existing->getKey(),
                     'aenderungen' => $this->labels($changes, $existing), 'daten' => $changes,
                 ];
 
@@ -153,7 +160,7 @@ final class ListTransfer
                     $data['sort_order'] ??= ++$order;
                     $model::query()->create($data);
                     $new++;
-                } elseif (($p['art'] ?? '') === 'geaendert' && ($item = $model::query()->find($p['id'] ?? null)) !== null) {
+                } elseif (($p['art'] ?? '') === 'geaendert' && ($item = $model::query()->whereKey((string) ($p['id'] ?? ''))->first()) !== null) {
                     $item->fill($data)->save();
                     $changed++;
                 }
@@ -170,7 +177,7 @@ final class ListTransfer
      * @param  list<string>  $errors
      * @return array<string, mixed>
      */
-    private function check(array $fields, Category|Source|null $existing, array &$errors): array
+    private function check(array $fields, ?Model $existing, array &$errors): array
     {
         $value = fn (string $f): string => array_key_exists($f, $fields) ? $fields[$f] : $this->text($existing?->getAttribute($f));
         $label = array_flip(self::COLUMNS);
@@ -226,7 +233,7 @@ final class ListTransfer
      * @param  array<string, mixed>  $changes
      * @return array<string, string>
      */
-    private function labels(array $changes, Category|Source|null $existing): array
+    private function labels(array $changes, ?Model $existing): array
     {
         $label = array_flip(self::COLUMNS);
         $out = [];

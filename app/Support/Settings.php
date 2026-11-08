@@ -121,8 +121,7 @@ final class Settings
 
     private static function validate(string $key, mixed $value): mixed
     {
-        /** @var array<string, mixed> $def */
-        $def = self::DEFINITIONS[$key];
+        $def = self::definition($key);
         $label = (string) $def['label'];
         $min = (int) ($def['min'] ?? 0);
         $max = (int) ($def['max'] ?? PHP_INT_MAX);
@@ -154,6 +153,12 @@ final class Settings
             })(),
             default => throw new InvalidArgumentException("Unbekannter Typ der Einstellung «{$key}»."),
         };
+    }
+
+    /** @return array<string, mixed> */
+    private static function definition(string $key): array
+    {
+        return self::DEFINITIONS[$key];
     }
 
     /** @return array<string, mixed> */
