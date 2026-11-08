@@ -192,7 +192,7 @@ Termine erst mit Ressourcenplanung.
 1. Stack und Datenbank ([KONZEPT-STACK.md](KONZEPT-STACK.md)).
 2. Community-Anmeldung entschieden (DEC-017) und mit 0.4.0 umgesetzt (Registrierung mit Double-Opt-in, Microsoft). Offen: Microsoft-App-Tenant für den Betrieb und Edulog-Aufnahme (#46).
 3. Rechte- und Lizenzprüfung bei Übernahme aus dem Intranet. Softwarelizenz MIT (DEC-021), Datenlizenz CC BY 4.0 (DEC-016).
-4. Freigabe-, Versions- und Rollback-Regeln für Revisionen.
+4. ~~Freigabe-, Versions- und Rollback-Regeln für Revisionen.~~ DEC-022 (#74), siehe [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md#freigabe-und-rücknahme-von-revisionen-dec-022).
 5. ~~API: Nutzungsbedingungen, Gesamt-Export, Rate-Limits, Stabilitätszusage.~~ Entschieden mit DEC-016 (#30).
 6. Mandanten-Bezeichnungen und -Notizen.
 7. Umgang mit bestehenden GitHub-Issues beim Start der Vorschlagsfunktion.

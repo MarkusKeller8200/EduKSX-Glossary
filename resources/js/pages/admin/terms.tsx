@@ -23,6 +23,7 @@ type Begriff = {
     aktiv: boolean;
     revision: number;
     veroeffentlicht: number | null;
+    entwurf: boolean;
     angelegt: string | null;
     geaendert: string | null;
 };
@@ -133,13 +134,7 @@ export default function Terms({
             return neu;
         });
     const entwuerfeWaehlen = () =>
-        setAuswahl(
-            new Set(
-                liste
-                    .filter((b) => b.veroeffentlicht !== b.revision)
-                    .map((b) => b.id),
-            ),
-        );
+        setAuswahl(new Set(liste.filter((b) => b.entwurf).map((b) => b.id)));
     const veroeffentlichen = () => {
         setSending(true);
         router.post(
@@ -381,6 +376,7 @@ export default function Terms({
                                         <RevisionBadges
                                             published={b.veroeffentlicht}
                                             revision={b.revision}
+                                            draft={b.entwurf}
                                         />
                                     </td>
                                 </tr>
@@ -446,9 +442,9 @@ function gruppieren(
             add(
                 b.veroeffentlicht === null
                     ? 'nicht veröffentlicht'
-                    : b.veroeffentlicht === b.revision
-                      ? 'veröffentlicht'
-                      : 'veröffentlicht, mit Entwurf',
+                    : b.entwurf
+                      ? 'veröffentlicht, mit Entwurf'
+                      : 'veröffentlicht',
                 b,
             );
         }

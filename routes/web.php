@@ -101,6 +101,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::put('begriffe/{term}', [TermController::class, 'update'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.update');
     Route::patch('begriffe/{term}/feld', [TermController::class, 'updateField'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.field');
     Route::post('begriffe/{term}/veroeffentlichen', [TermController::class, 'publishOne'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.publish-one');
+    Route::post('begriffe/{term}/wiederherstellen', [TermController::class, 'restore'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.restore');
     Route::post('begriffe/{term}/zurueckziehen', [TermController::class, 'unpublish'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.unpublish');
 
     // Doppelte (#16): anzeigen, zusammenführen oder als mehrdeutig belassen

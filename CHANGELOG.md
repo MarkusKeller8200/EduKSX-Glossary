@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
+  wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
+  veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.
 - **Rollen Gast, Benutzer, Organisations-Admin (#110):** neue Rechte «Exportieren», «Persönliche Darstellung» und
   «Servicekonten und Token». Vorschläge einreichen kommt aus der Rolle statt fest für jedes Konto; neue Konten und
   bisherige Konten ohne Rolle sind Benutzer.
