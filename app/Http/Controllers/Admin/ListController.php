@@ -6,10 +6,9 @@ use App\Glossary\ListTransfer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Source;
-use App\Support\Csv;
+use App\Support\Download;
 use App\Support\Palette;
 use App\Support\SpreadsheetReader;
-use App\Support\SpreadsheetWriter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -37,17 +36,7 @@ class ListController extends Controller
     {
         $this->model($list);
         $name = 'glossary-'.$list.'-'.date('Y-m-d');
-        if ($request->query('format') === 'csv') {
-            return response(Csv::make(ListTransfer::header(), $this->transfer->rows($list)), 200, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="'.$name.'.csv"',
-            ]);
-        }
-
-        return response(SpreadsheetWriter::xlsx(ListTransfer::header(), $this->transfer->rows($list), ucfirst($list)), 200, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="'.$name.'.xlsx"',
-        ]);
+        return Download::table($request->query('format') === 'csv' ? 'csv' : 'xlsx', ListTransfer::header(), $this->transfer->rows($list), $name, ucfirst($list));
     }
 
     /** Datei hochladen → Vorschau (neu / geändert / Fehler); gespeichert wird nichts. */

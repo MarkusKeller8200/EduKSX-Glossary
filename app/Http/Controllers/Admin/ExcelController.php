@@ -11,10 +11,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\ExportController;
 use App\Models\ImportBatch;
 use App\Models\Term;
-use App\Models\User;
-use App\Support\Csv;
+use App\Support\Download;
 use App\Support\SpreadsheetReader;
-use App\Support\SpreadsheetWriter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -68,17 +66,7 @@ class ExcelController extends Controller
         $name = $template ? 'glossary-vorlage' : 'glossary-'.date('Y-m-d');
 
         // CSV (#71): gleiche Spalten, UTF-8 mit BOM, Semikolon, Formeln als Text
-        if ($request->query('format') === 'csv') {
-            return response(Csv::make(ExcelFormat::header(), $rows), 200, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="'.$name.'.csv"',
-            ]);
-        }
-
-        return response(SpreadsheetWriter::xlsx(ExcelFormat::header(), $rows, 'Glossary'), 200, [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'Content-Disposition' => 'attachment; filename="'.$name.'.xlsx"',
-        ]);
+        return Download::table($request->query('format') === 'csv' ? 'csv' : 'xlsx', ExcelFormat::header(), $rows, $name);
     }
 
     public function create(): Response
@@ -125,10 +113,10 @@ class ExcelController extends Controller
         }
 
         $createLists = $request->boolean('listen_anlegen');
-        $result = $this->importer->run($table['rows'], $createLists, $this->user($request), $this->official(), dryRun: true);
+        $result = $this->importer->run($table['rows'], $createLists, $this->currentUserOrNull($request), $this->official(), dryRun: true);
         $token = (string) Str::uuid();
         Cache::put(self::CACHE.$token, [
-            'user' => $this->user($request)?->id,
+            'user' => $this->currentUserOrNull($request)?->id,
             'rows' => $table['rows'],
             'listen_anlegen' => $createLists,
             'datei' => mb_substr($file->getClientOriginalName(), 0, 255),
@@ -149,11 +137,11 @@ class ExcelController extends Controller
     public function apply(Request $request, string $token): RedirectResponse
     {
         $cached = Cache::pull(self::CACHE.$token);
-        abort_if(! is_array($cached) || ($cached['user'] ?? null) !== $this->user($request)?->id, 404);
+        abort_if(! is_array($cached) || ($cached['user'] ?? null) !== $this->currentUserOrNull($request)?->id, 404);
 
         /** @var list<array<string, string>> $rows */
         $rows = $cached['rows'];
-        $user = $this->user($request);
+        $user = $this->currentUserOrNull($request);
         $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $user, $this->official(), dryRun: false);
 
         $errors = [];
@@ -177,13 +165,6 @@ class ExcelController extends Controller
 
         return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe."
             .($result['altwerte'] > 0 ? " {$result['altwerte']} Altwerte gesichert (Seite «Altwerte»)." : ''));
-    }
-
-    private function user(Request $request): ?User
-    {
-        $user = $request->user();
-
-        return $user instanceof User ? $user : null;
     }
 
     private function official(): bool

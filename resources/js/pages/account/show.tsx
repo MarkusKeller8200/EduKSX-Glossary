@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
 import { confirmAction } from '@/components/confirm-dialog';
+import ExportMenu from '@/components/export-menu';
 
 type Konto = {
     first_name: string;
@@ -146,13 +147,9 @@ function Export() {
                 ohne Entwürfe und redaktionelle Notizen. Die Daten stehen unter
                 CC BY 4.0 (Quelle «EduKSX-Glossary» angeben).
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-                <Button asChild variant="outline">
-                    <a href="/export">Excel herunterladen</a>
-                </Button>
-                <Button asChild variant="outline">
-                    <a href="/export?format=csv">CSV herunterladen</a>
-                </Button>
+            <div className="mt-3">
+                {/* gleiches Menü wie auf der Startseite (#138), hier mit allen Begriffen */}
+                <ExportMenu endpoint="/export" allowed />
             </div>
         </Abschnitt>
     );

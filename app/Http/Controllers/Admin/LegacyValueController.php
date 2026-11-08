@@ -7,7 +7,6 @@ use App\Glossary\OfficialFieldLocked;
 use App\Http\Controllers\Controller;
 use App\Models\Term;
 use App\Models\TermLegacyValue;
-use App\Models\User;
 use App\Support\Csv;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,7 +78,7 @@ class LegacyValueController extends Controller
         ]);
         $action = (string) $data['zuordnung'];
         $values = TermLegacyValue::query()->open()->whereIn('id', $data['ids'])->with('term')->get();
-        $user = $this->user($request);
+        $user = $this->currentUserOrNull($request);
 
         $done = 0;
         $skipped = [];
@@ -175,12 +174,5 @@ class LegacyValueController extends Controller
             'search' => ['search_terms' => $search],
             default => ['official_aliases' => $official],
         };
-    }
-
-    private function user(Request $request): ?User
-    {
-        $user = $request->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

@@ -178,7 +178,7 @@ class TermController extends Controller
         $field = (string) $data['feld'];
         $before = $term->revision;
         try {
-            $term = $this->glossary->save($term, [$field => $data['wert'] ?? ''], $this->user($request), Gate::allows('edit-official'), null, 'updated', ['via' => 'tabelle']);
+            $term = $this->glossary->save($term, [$field => $data['wert'] ?? ''], $this->currentUserOrNull($request), Gate::allows('edit-official'), null, 'updated', ['via' => 'tabelle']);
         } catch (OfficialFieldLocked $e) {
             throw ValidationException::withMessages(['wert' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
@@ -204,7 +204,7 @@ class TermController extends Controller
         $before = $term->revision;
         $publishedBefore = $term->published_revision_id;
         try {
-            $term = $this->glossary->restore($term, (int) $data['revision'], $this->user($request), Gate::allows('edit-official'), $publish);
+            $term = $this->glossary->restore($term, (int) $data['revision'], $this->currentUserOrNull($request), Gate::allows('edit-official'), $publish);
         } catch (OfficialFieldLocked $e) {
             throw ValidationException::withMessages(['form' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
@@ -224,7 +224,7 @@ class TermController extends Controller
     {
         $before = $term->published_revision_id;
         try {
-            $term = $this->glossary->publish($term, $this->user($request));
+            $term = $this->glossary->publish($term, $this->currentUserOrNull($request));
         } catch (FourEyesRequired $e) {
             return back()->withErrors(['veroeffentlichen' => $e->getMessage()])->with('status', $e->getMessage());
         }
@@ -234,7 +234,7 @@ class TermController extends Controller
 
     public function unpublish(Request $request, Term $term): RedirectResponse
     {
-        $this->glossary->unpublish($term, $this->user($request));
+        $this->glossary->unpublish($term, $this->currentUserOrNull($request));
 
         return back()->with('status', 'Veröffentlichung zurückgezogen – der Begriff ist nicht mehr öffentlich.');
     }
@@ -244,7 +244,7 @@ class TermController extends Controller
     {
         $data = $request->validate(['ids' => ['required', 'array', 'max:5000'], 'ids.*' => ['string']]);
         $terms = Term::query()->whereIn('id', $data['ids'])->get();
-        $count = $this->glossary->publishMany($terms, $this->user($request));
+        $count = $this->glossary->publishMany($terms, $this->currentUserOrNull($request));
         $fourEyes = $this->glossary->lastFourEyesSkipped;
         $skipped = $terms->count() - $count - $fourEyes;
 
@@ -281,7 +281,7 @@ class TermController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         try {
-            return $this->glossary->save($term, $data, $this->user($request), Gate::allows('edit-official'));
+            return $this->glossary->save($term, $data, $this->currentUserOrNull($request), Gate::allows('edit-official'));
         } catch (OfficialFieldLocked $e) {
             throw ValidationException::withMessages([$e->field => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
@@ -396,12 +396,5 @@ class TermController extends Controller
         }
 
         return $options;
-    }
-
-    private function user(Request $request): ?User
-    {
-        $user = $request->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

@@ -31,7 +31,7 @@ class ServiceAccountController extends Controller
 
     public function index(Request $request): Response
     {
-        $accounts = $this->manager->visibleFor($this->actor($request))->with('responsible')->withCount([
+        $accounts = $this->manager->visibleFor($this->currentUser($request))->with('responsible')->withCount([
             'tokens as aktive_token' => fn ($q) => $q->whereNull('revoked_at')->where('expires_at', '>', now()),
         ])->orderBy('name')->get()->map(fn (ServiceAccount $a): array => [
             'id' => $a->id,
@@ -55,7 +55,7 @@ class ServiceAccountController extends Controller
             'scopes.*' => ['string'],
         ]);
         try {
-            $account = $this->manager->create($this->actor($request), (string) $data['name'], (string) $data['zweck'],
+            $account = $this->manager->create($this->currentUser($request), (string) $data['name'], (string) $data['zweck'],
                 array_values(array_map('strval', (array) ($data['scopes'] ?? []))));
         } catch (AccessDenied $e) {
             throw ValidationException::withMessages(['scopes' => $e->getMessage()]);
@@ -66,7 +66,7 @@ class ServiceAccountController extends Controller
 
     public function show(Request $request, ServiceAccount $account): Response
     {
-        $actor = $this->actor($request);
+        $actor = $this->currentUser($request);
         abort_unless($this->manager->canManage($actor, $account), 403);
 
         return Inertia::render('admin/service-account-show', [
@@ -110,7 +110,7 @@ class ServiceAccountController extends Controller
             'tage' => ['required', 'integer', 'min:1', 'max:'.ServiceAccountManager::MAX_DAYS],
         ]);
         try {
-            ['plain' => $plain] = $this->manager->createToken($this->actor($request), $account, (string) $data['name'], (int) $data['tage']);
+            ['plain' => $plain] = $this->manager->createToken($this->currentUser($request), $account, (string) $data['name'], (int) $data['tage']);
         } catch (AccessDenied $e) {
             throw ValidationException::withMessages(['name' => $e->getMessage()]);
         }
@@ -121,7 +121,7 @@ class ServiceAccountController extends Controller
     public function revokeToken(Request $request, ServiceAccountToken $token): RedirectResponse
     {
         try {
-            $this->manager->revokeToken($this->actor($request), $token);
+            $this->manager->revokeToken($this->currentUser($request), $token);
         } catch (AccessDenied) {
             abort(403);
         }
@@ -133,19 +133,11 @@ class ServiceAccountController extends Controller
     {
         $active = $request->boolean('aktiv');
         try {
-            $this->manager->setStatus($this->actor($request), $account, $active);
+            $this->manager->setStatus($this->currentUser($request), $account, $active);
         } catch (AccessDenied) {
             abort(403);
         }
 
         return back()->with('status', $active ? 'Servicekonto entsperrt.' : 'Servicekonto gesperrt – Token gelten nicht mehr.');
-    }
-
-    private function actor(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

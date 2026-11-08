@@ -22,6 +22,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   auf der Startseite und in der Begriffstabelle.
 - **Bedienung (#139):** Bestätigungen als Dialog statt Browser-Fenster, Meldungen auf der Website einheitlich oben,
   erste Spalte der Vergleichstabellen fixiert; Prüfprotokoll `docs/BARRIEREFREIHEIT.md`.
+- **Aufgeräumt (#138):** Konto der Anfrage im Basis-Controller statt 13 Kopien, ein Baustein für Datei-Downloads,
+  gemeinsamer Titel aus Abbildern; «Mein Konto» nutzt das Export-Menü.
 - **Begriffstabelle (#143):** Darstellung (Tabelle/Kacheln), Gruppierung und Sortierung in einem Menü «Ansicht» mit
   «Ansicht zurücksetzen».
 

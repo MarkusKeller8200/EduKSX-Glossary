@@ -34,8 +34,8 @@ export default function ExportMenu({
 }: {
     /** `/export` (veröffentlicht) bzw. `/admin/export` (Arbeitsstand) */
     endpoint: string;
-    /** IDs oder Slugs der sichtbaren Zeilen in angezeigter Reihenfolge */
-    keys: string[];
+    /** IDs oder Slugs der sichtbaren Zeilen in angezeigter Reihenfolge; ohne Angabe alle */
+    keys?: string[];
     allowed: boolean;
     /** Hinweis ohne Recht, z. B. «Zum Exportieren anmelden» */
     hint?: { text: string; href?: string; link?: string };
@@ -43,7 +43,7 @@ export default function ExportMenu({
 }) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const n = keys.length;
+    const n = keys?.length ?? null;
 
     const download = async (format: Format, umfang: Umfang) => {
         setBusy(true);
@@ -58,7 +58,9 @@ export default function ExportMenu({
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-XSRF-TOKEN': xsrf(),
                 },
-                body: JSON.stringify({ format, umfang, keys }),
+                body: JSON.stringify(
+                    keys ? { format, umfang, keys } : { format, umfang },
+                ),
             });
             if (!res.ok) {
                 throw new Error(String(res.status));
@@ -119,7 +121,7 @@ export default function ExportMenu({
         );
     }
 
-    const zeilen = `sichtbare Zeilen (${n})`;
+    const zeilen = n === null ? 'alle Begriffe' : `sichtbare Zeilen (${n})`;
 
     return (
         <span className="inline-flex flex-wrap items-center gap-2">

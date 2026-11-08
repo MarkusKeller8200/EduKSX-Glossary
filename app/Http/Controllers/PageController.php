@@ -18,7 +18,7 @@ class PageController extends Controller
     /** Startseite: veröffentlichte Begriffe mit Suche, A–Z und Kategorien (#24). */
     public function home(Request $request, PublicGlossary $glossary): SymfonyResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUserOrNull($request);
 
         return $this->personal(Inertia::render('home', ['begriffe' => $glossary->list($user)])->toResponse($request), $user);
     }
@@ -29,7 +29,7 @@ class PageController extends Controller
      */
     public function term(Request $request, string $slug, PublicGlossary $glossary): SymfonyResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUserOrNull($request);
         $term = $glossary->find($slug, $user);
         if ($term === null) {
             $target = Term::query()->where('slug', $slug)->whereNotNull('merged_into_id')->first()?->mergeTarget();
@@ -49,13 +49,6 @@ class PageController extends Controller
         }
 
         return $response;
-    }
-
-    private function user(Request $request): ?User
-    {
-        $user = $request->user();
-
-        return $user instanceof User ? $user : null;
     }
 
     /** Hilfe: Felder eines Begriffs (#135). */

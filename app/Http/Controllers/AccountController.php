@@ -27,7 +27,7 @@ class AccountController extends Controller
 {
     public function show(Request $request, MicrosoftLogin $microsoft): Response
     {
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
 
         return Inertia::render('account/show', [
             'konto' => [
@@ -57,7 +57,7 @@ class AccountController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:80'],
             'last_name' => ['required', 'string', 'max:80'],
@@ -81,7 +81,7 @@ class AccountController extends Controller
 
     public function password(Request $request): RedirectResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
         $data = $request->validate([
             'current_password' => ['required', 'string'],
             'password' => ['required', 'confirmed', Password::defaults()],
@@ -104,7 +104,7 @@ class AccountController extends Controller
     /** Konto löschen: Passwort bestätigen; Schutzregeln (letzter Developer bzw. letzte Verwaltung) gelten. */
     public function destroy(Request $request, AccountManager $accounts): RedirectResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
         $data = $request->validate(['password' => ['required', 'string']]);
         // ohne eigenes Passwort (nur Anmeldedienst, #45): Eingabe «LÖSCHEN» als Bestätigung
         $ok = $user->password_set ? Hash::check((string) $data['password'], $user->password) : $data['password'] === 'LÖSCHEN';
@@ -122,13 +122,5 @@ class AccountController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/')->with('status', 'Konto gelöscht.');
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

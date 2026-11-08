@@ -83,7 +83,7 @@ class UserController extends Controller
             'first_name' => $data['first_name'], 'last_name' => $data['last_name'],
             'email' => strtolower((string) $data['email']), 'password' => $data['password'],
         ]);
-        Audit::log($this->actor($request), $user, 'account.created');
+        Audit::log($this->currentUser($request), $user, 'account.created');
         $this->roles->assignDefault($user, 'Kontoanlage');
 
         return redirect("/admin/benutzer/{$user->id}")->with('status', 'Konto angelegt (Rolle Benutzer). Weitere Rollen jetzt zuweisen.');
@@ -91,7 +91,7 @@ class UserController extends Controller
 
     public function show(Request $request, User $user): Response
     {
-        $actor = $this->actor($request);
+        $actor = $this->currentUser($request);
         $assigned = $user->roleKeys();
         $roles = Role::query()->orderBy('sort_order')->get()->map(fn (Role $r): array => [
             'key' => $r->key,
@@ -144,7 +144,7 @@ class UserController extends Controller
         $data = $request->validate(['rollen' => ['array'], 'rollen.*' => ['string']]);
         $wanted = array_values(array_map('strval', (array) ($data['rollen'] ?? [])));
         $current = $user->roleKeys();
-        $actor = $this->actor($request);
+        $actor = $this->currentUser($request);
 
         try {
             DB::transaction(function () use ($actor, $user, $wanted, $current): void {
@@ -167,22 +167,22 @@ class UserController extends Controller
 
     public function block(Request $request, User $user): RedirectResponse
     {
-        return $this->account(fn () => $this->accounts->block($this->actor($request), $user), 'Konto gesperrt – Sitzungen beendet.');
+        return $this->account(fn () => $this->accounts->block($this->currentUser($request), $user), 'Konto gesperrt – Sitzungen beendet.');
     }
 
     public function unblock(Request $request, User $user): RedirectResponse
     {
-        return $this->account(fn () => $this->accounts->unblock($this->actor($request), $user), 'Konto entsperrt.');
+        return $this->account(fn () => $this->accounts->unblock($this->currentUser($request), $user), 'Konto entsperrt.');
     }
 
     public function sendPasswordReset(Request $request, User $user): RedirectResponse
     {
-        return $this->account(fn () => $this->accounts->sendPasswordReset($this->actor($request), $user), 'Link zum Zurücksetzen des Passworts gesendet (60 Minuten gültig).');
+        return $this->account(fn () => $this->accounts->sendPasswordReset($this->currentUser($request), $user), 'Link zum Zurücksetzen des Passworts gesendet (60 Minuten gültig).');
     }
 
     public function resetTwoFactor(Request $request, User $user): RedirectResponse
     {
-        return $this->account(fn () => $this->accounts->resetTwoFactor($this->actor($request), $user), 'Zweiter Faktor zurückgesetzt – bei der nächsten Anmeldung neu einrichten.');
+        return $this->account(fn () => $this->accounts->resetTwoFactor($this->currentUser($request), $user), 'Zweiter Faktor zurückgesetzt – bei der nächsten Anmeldung neu einrichten.');
     }
 
     // ---------- intern ----------
@@ -196,13 +196,5 @@ class UserController extends Controller
         }
 
         return back()->with('status', $message);
-    }
-
-    private function actor(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

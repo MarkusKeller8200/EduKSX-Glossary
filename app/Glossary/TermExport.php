@@ -3,8 +3,7 @@
 namespace App\Glossary;
 
 use App\Models\Term;
-use App\Support\Csv;
-use App\Support\SpreadsheetWriter;
+use App\Support\Download;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -86,22 +85,9 @@ final class TermExport
      */
     public function response(array $table, string $format, string $name, bool $license): Response
     {
-        $headers = ['Cache-Control' => 'private, no-store'];
-
-        return match ($format) {
-            'csv' => response(Csv::make($table['header'], $table['rows']), 200, $headers + [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="'.$name.'.csv"',
-            ]),
-            'md' => response($this->markdown($table, $license), 200, $headers + [
-                'Content-Type' => 'text/markdown; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="'.$name.'.md"',
-            ]),
-            default => response(SpreadsheetWriter::xlsx($table['header'], $table['rows'], 'Glossary'), 200, $headers + [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition' => 'attachment; filename="'.$name.'.xlsx"',
-            ]),
-        };
+        return $format === 'md'
+            ? Download::file($this->markdown($table, $license), 'text/markdown; charset=UTF-8', $name.'.md')
+            : Download::table($format, $table['header'], $table['rows'], $name);
     }
 
     /**
