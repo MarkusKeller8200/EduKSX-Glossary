@@ -69,6 +69,8 @@ class ServiceAccountController extends Controller
         $actor = $this->currentUser($request);
         abort_unless($this->manager->canManage($actor, $account), 403);
 
+        $names = User::query()->whereIn('id', ServiceAccountAudit::query()->where('service_account_id', $account->id)->whereNotNull('actor_id')->select('actor_id'))->pluck('name', 'id');
+
         return Inertia::render('admin/service-account-show', [
             'konto' => [
                 'id' => $account->id,
@@ -92,9 +94,10 @@ class ServiceAccountController extends Controller
             'neuesToken' => $request->session()->get('neues_token'),
             'protokoll' => ServiceAccountAudit::query()->where('service_account_id', $account->id)->latest('id')->limit(50)->get()
                 ->map(fn (ServiceAccountAudit $e): array => [
+                    // Namen einmal laden statt je Eintrag (#137)
                     'am' => $e->created_at->toIso8601String(),
                     'aktion' => self::ACTIONS[$e->action] ?? $e->action,
-                    'von' => $e->actor_id !== null ? (User::query()->find($e->actor_id)->name ?? '(gelöscht)') : $e->actor_label,
+                    'von' => $e->actor_id !== null ? (string) ($names[$e->actor_id] ?? '(gelöscht)') : $e->actor_label,
                     'ergebnis' => $e->result,
                     'details' => $e->details,
                 ])->all(),

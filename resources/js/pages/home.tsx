@@ -1,11 +1,15 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, lazy, Suspense } from 'react';
 import ExportMenu from '@/components/export-menu';
 import LabelFilter from '@/components/label-filter';
-import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
+
+// PDF-Dialog und Druckansicht erst beim Öffnen laden (#137)
+const GlossaryPdfDialog = lazy(
+    () => import('@/components/glossary-pdf-dialog'),
+);
 
 type Begriff = {
     slug: string;
@@ -203,12 +207,14 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             ) : null}
 
             {pdf ? (
-                <GlossaryPdfDialog
-                    open={pdf}
-                    onOpenChange={setPdf}
-                    quelle="/export?format=json"
-                    gefiltert={liste.map((b) => b.slug)}
-                />
+                <Suspense fallback={null}>
+                    <GlossaryPdfDialog
+                        open={pdf}
+                        onOpenChange={setPdf}
+                        quelle="/export?format=json"
+                        gefiltert={liste.map((b) => b.slug)}
+                    />
+                </Suspense>
             ) : null}
 
             <p className="mt-8 text-sm">

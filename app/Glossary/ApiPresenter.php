@@ -49,6 +49,13 @@ final class ApiPresenter
      */
     public function terms(): array
     {
+        // je Datenstand zwischengespeichert (#137)
+        return app(PublicCache::class)->remember('api.terms', fn (): array => $this->buildTerms());
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function buildTerms(): array
+    {
         $revisions = $this->visible();
         $display = $this->display($revisions);
         $terms = [];

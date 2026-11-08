@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
-import { useMemo, useState, type KeyboardEvent } from 'react';
+import { useMemo, useState, type KeyboardEvent, lazy, Suspense } from 'react';
 import {
     ListBadges,
     RevisionBadges,
@@ -9,7 +9,6 @@ import {
 } from '@/components/tags';
 import DataGrid, { type GridSort } from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
-import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import IconAction from '@/components/icon-action';
 import LabelFilter from '@/components/label-filter';
 import ViewMenu, { type ViewLayout } from '@/components/view-menu';
@@ -17,6 +16,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { can } from '@/lib/access';
+
+// PDF-Dialog und Druckansicht erst beim Öffnen laden (#137)
+const GlossaryPdfDialog = lazy(
+    () => import('@/components/glossary-pdf-dialog'),
+);
 
 type Begriff = {
     id: string;
@@ -202,14 +206,16 @@ export default function Terms({
                         onPdf={() => setPdf(true)}
                     />
                     {pdf ? (
-                        <GlossaryPdfDialog
-                            open={pdf}
-                            onOpenChange={setPdf}
-                            quelle="/admin/export?format=json"
-                            titel="Glossary – Arbeitsstand"
-                            gefiltert={sichtbar}
-                            ausgewaehlt={[...auswahl]}
-                        />
+                        <Suspense fallback={null}>
+                            <GlossaryPdfDialog
+                                open={pdf}
+                                onOpenChange={setPdf}
+                                quelle="/admin/export?format=json"
+                                titel="Glossary – Arbeitsstand"
+                                gefiltert={sichtbar}
+                                ausgewaehlt={[...auswahl]}
+                            />
+                        </Suspense>
                     ) : null}
                     {darfImport ? (
                         <Button asChild variant="outline">

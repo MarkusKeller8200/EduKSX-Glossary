@@ -210,14 +210,19 @@ final class PublicGlossary
      */
     private function published(): Collection
     {
+        // Abbilder je Datenstand zwischengespeichert (#137)
         /** @var list<array<string, mixed>> $snapshots */
-        $snapshots = [];
-        foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
-            $snapshot = $term->publishedRevision?->snapshot;
-            if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
-                $snapshots[] = $snapshot;
+        $snapshots = app(PublicCache::class)->remember('snapshots', function (): array {
+            $snapshots = [];
+            foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
+                $snapshot = $term->publishedRevision?->snapshot;
+                if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
+                    $snapshots[] = $snapshot;
+                }
             }
-        }
+
+            return $snapshots;
+        });
 
         return new Collection($snapshots);
     }
