@@ -50,6 +50,7 @@ Route::middleware(['auth', 'can:propose'])->prefix('vorschlaege')->group(functio
 
 // Export veröffentlichter Daten (#111): ab Benutzer, ausserhalb der Administration
 Route::get('export', ExportController::class)->middleware(['auth', 'can:export', 'throttle:20,1'])->name('export');
+Route::post('export', [ExportController::class, 'selection'])->middleware(['auth', 'can:export', 'throttle:30,1'])->name('export.selection');
 
 // Meine Darstellung (DEC-020): persönliche Anpassung eines Begriffs, nur für das eigene Konto, ab Benutzer (#114)
 Route::middleware(['auth', 'can:personal-display', 'throttle:30,1'])->group(function () {
@@ -193,6 +194,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
 
     // Excel (#13, #15, #111): Export des Arbeitsstands (Redaktion) getrennt vom Import mit Vorschau
     Route::get('export', [ExcelController::class, 'export'])->middleware(['can:edit-terms', 'can:export'])->name('admin.export');
+    Route::post('export', [ExcelController::class, 'exportSelection'])->middleware(['can:edit-terms', 'can:export', 'throttle:30,1'])->name('admin.export.selection');
     Route::middleware('can:import')->group(function () {
         Route::get('import', [ExcelController::class, 'create'])->name('admin.import');
         Route::post('import', [ExcelController::class, 'preview'])->middleware('throttle:20,1')->name('admin.import.preview');

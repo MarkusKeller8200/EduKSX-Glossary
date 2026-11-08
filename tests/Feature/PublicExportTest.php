@@ -95,4 +95,48 @@ class PublicExportTest extends TestCase
         $this->assertContains('Geheime Notiz', array_column($zeilen, 'notiz'));
         $this->assertContains('Entwurfstext', array_column($zeilen, 'kurz'));
     }
+
+    public function test_export_menue_sichtbare_zeilen_und_spalten(): void
+    {
+        $term = $this->daten();
+        $second = $this->glossary->publish($this->glossary->save(null, ['official_abbreviation' => 'AA', 'official_name' => 'Anfang'], null, true), null);
+        $this->actingAs($this->userWithRoles([Role::USER], 'b@example.org', twoFactor: false));
+
+        // Reihenfolge wie übergeben, nur sichtbare Spalten
+        $csv = (string) $this->postJson('/export', ['format' => 'csv', 'umfang' => 'sichtbar', 'keys' => [$term->slug, $second->slug]])
+            ->assertOk()->getContent();
+        $lines = array_values(array_filter(explode("\n", trim($csv))));
+        $this->assertStringContainsString('"Abkürzung offiziell";"Bezeichnung offiziell";Kurzbeschreibung;Kategorien;Status', $lines[0]);
+        $this->assertStringStartsWith('SL;', $lines[1]);
+        $this->assertStringStartsWith('AA;', $lines[2]);
+        $this->assertStringNotContainsString('Geheime Notiz', $csv);
+
+        // nur ein Begriff, vollständig, Markdown mit Lizenz
+        $md = (string) $this->postJson('/export', ['format' => 'md', 'umfang' => 'vollstaendig', 'keys' => [$second->id]])->assertOk()->getContent();
+        $this->assertStringContainsString('| AA |', $md);
+        $this->assertStringContainsString('Anfang', $md);
+        $this->assertStringNotContainsString('Schulleitung', $md);
+        $this->assertStringContainsString('CC BY 4.0', $md);
+        $this->postJson('/export', ['format' => 'xlsx', 'umfang' => 'sichtbar'])->assertOk()
+            ->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $this->postJson('/export', ['format' => 'pdf', 'umfang' => 'sichtbar'])->assertUnprocessable();
+    }
+
+    public function test_export_menue_nur_mit_recht(): void
+    {
+        $this->postJson('/export', ['format' => 'csv', 'umfang' => 'sichtbar'])->assertUnauthorized();
+        $this->actingAs($this->userWithRoles([Role::GUEST], 'g@example.org', twoFactor: false));
+        $this->postJson('/export', ['format' => 'csv', 'umfang' => 'sichtbar'])->assertForbidden();
+        $this->postJson('/admin/export', ['format' => 'csv', 'umfang' => 'sichtbar'])->assertForbidden();
+    }
+
+    public function test_export_menue_redaktion_mit_arbeitsstand(): void
+    {
+        $term = $this->daten();
+        $this->actingAs($this->userWithRoles([Role::MODERATOR], 'm@example.org'));
+        $csv = (string) $this->postJson('/admin/export', ['format' => 'csv', 'umfang' => 'vollstaendig', 'keys' => [$term->id]])->assertOk()->getContent();
+        $this->assertStringContainsString('Entwurfstext', $csv);
+        $this->assertStringContainsString('Geheime Notiz', $csv);
+        $this->assertStringNotContainsString('Lehrperson Entwurf', $csv);
+    }
 }

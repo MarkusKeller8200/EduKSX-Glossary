@@ -103,6 +103,7 @@ export default function DataGrid<T>({
     caption,
     initialSort = null,
     rowClassName,
+    onVisibleRows,
 }: {
     /** Schlüssel zum Merken von Breiten und Sortierung */
     id: string;
@@ -115,6 +116,8 @@ export default function DataGrid<T>({
     caption?: string;
     initialSort?: Sort;
     rowClassName?: (row: T) => string | undefined;
+    /** sichtbare Zeilen in angezeigter Reihenfolge (z. B. für den Export, #131) */
+    onVisibleRows?: (rows: T[]) => void;
 }) {
     const [stored] = useState<Stored>(() => load(id));
     const [widths, setWidths] = useState<Record<string, number>>(
@@ -203,6 +206,13 @@ export default function DataGrid<T>({
                 .join('|'),
         [sections, getRowId],
     );
+    const visibleRef = useRef(onVisibleRows);
+    visibleRef.current = onVisibleRows;
+    useEffect(() => {
+        visibleRef.current?.(sections.flatMap((g) => g.rows));
+        // nur wenn sich die sichtbaren Zeilen ändern
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dataKey]);
     const lastData = useRef(dataKey);
     useEffect(() => {
         if (lastData.current !== dataKey) {

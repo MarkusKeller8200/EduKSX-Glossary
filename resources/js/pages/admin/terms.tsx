@@ -8,6 +8,7 @@ import {
     StatusBadge,
 } from '@/components/tags';
 import DataGrid from '@/components/data-grid';
+import ExportMenu from '@/components/export-menu';
 import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import IconAction from '@/components/icon-action';
 import { Button } from '@/components/ui/button';
@@ -102,6 +103,8 @@ export default function Terms({
     const darfImport = can(auth, 'import');
     const darfExport = can(auth, 'export');
     const [pdf, setPdf] = useState(false);
+    // sichtbare Zeilen in angezeigter Reihenfolge (Suche, Gruppen, Sortierung) für den Export (#131)
+    const [sichtbar, setSichtbar] = useState<string[]>([]);
     const [suche, setSuche] = useState('');
     const [gruppierung, setGruppierung] = useState<Gruppierung>('');
     const q = suche.trim().toLowerCase();
@@ -162,33 +165,24 @@ export default function Terms({
                     <Button asChild variant="outline">
                         <Link href="/admin/doppelte">Doppelte prüfen</Link>
                     </Button>
-                    {darfExport ? (
-                        <>
-                            <Button asChild variant="outline">
-                                <a href="/admin/export">Excel-Export</a>
-                            </Button>
-                            <Button asChild variant="outline">
-                                <a href="/admin/export?format=csv">
-                                    CSV-Export
-                                </a>
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => setPdf(true)}
-                            >
-                                PDF
-                            </Button>
-                            {pdf ? (
-                                <GlossaryPdfDialog
-                                    open={pdf}
-                                    onOpenChange={setPdf}
-                                    quelle="/admin/export?format=json"
-                                    titel="Glossary – Arbeitsstand"
-                                    gefiltert={liste.map((b) => b.id)}
-                                    ausgewaehlt={[...auswahl]}
-                                />
-                            ) : null}
-                        </>
+                    <ExportMenu
+                        endpoint="/admin/export"
+                        keys={sichtbar}
+                        allowed={darfExport}
+                        hint={{
+                            text: 'Export braucht das Recht «Exportieren»',
+                        }}
+                        onPdf={() => setPdf(true)}
+                    />
+                    {pdf ? (
+                        <GlossaryPdfDialog
+                            open={pdf}
+                            onOpenChange={setPdf}
+                            quelle="/admin/export?format=json"
+                            titel="Glossary – Arbeitsstand"
+                            gefiltert={sichtbar}
+                            ausgewaehlt={[...auswahl]}
+                        />
                     ) : null}
                     {darfImport ? (
                         <Button asChild variant="outline">
@@ -260,6 +254,9 @@ export default function Terms({
                     id="admin.terms"
                     caption="Begriffe"
                     getRowId={(b: Begriff) => b.id}
+                    onVisibleRows={(rows) =>
+                        setSichtbar([...new Set(rows.map((b) => b.id))])
+                    }
                     groups={gruppen.map((g) => ({
                         key: g.titel,
                         title: g.titel,

@@ -1,5 +1,6 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import ExportMenu from '@/components/export-menu';
 import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -65,17 +66,34 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 Erklärung, Quelle und Gültigkeit.
             </p>
 
-            <div className="mt-6 max-w-xl">
-                <label htmlFor="suche" className="sr-only">
-                    Begriff suchen
-                </label>
-                <Input
-                    id="suche"
-                    type="search"
-                    placeholder="Begriff oder Abkürzung suchen …"
-                    value={suche}
-                    onChange={(e) => setSuche(e.target.value)}
-                    autoFocus
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+                <div className="w-full max-w-xl">
+                    <label htmlFor="suche" className="sr-only">
+                        Begriff suchen
+                    </label>
+                    <Input
+                        id="suche"
+                        type="search"
+                        placeholder="Begriff oder Abkürzung suchen …"
+                        value={suche}
+                        onChange={(e) => setSuche(e.target.value)}
+                        autoFocus
+                    />
+                </div>
+                {/* Export der sichtbaren Begriffe (#131): ab Recht «export», sonst ausgegraut mit Hinweis */}
+                <ExportMenu
+                    endpoint="/export"
+                    keys={liste.map((b) => b.slug)}
+                    allowed={auth.can.export === true}
+                    hint={
+                        auth.user
+                            ? { text: 'Export ab Rolle Benutzer' }
+                            : {
+                                  text: 'Zum Exportieren anmelden',
+                                  href: '/anmelden',
+                              }
+                    }
+                    onPdf={() => setPdf(true)}
                 />
             </div>
 
@@ -180,32 +198,6 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 </p>
             ) : null}
 
-            {auth.can.export ? (
-                <p className="mt-8 text-sm">
-                    Veröffentlichte Begriffe herunterladen (CC BY 4.0):{' '}
-                    <a
-                        href="/export"
-                        className="text-link underline underline-offset-4"
-                    >
-                        Excel
-                    </a>
-                    {' · '}
-                    <a
-                        href="/export?format=csv"
-                        className="text-link underline underline-offset-4"
-                    >
-                        CSV
-                    </a>
-                    {' · '}
-                    <button
-                        type="button"
-                        onClick={() => setPdf(true)}
-                        className="text-link underline underline-offset-4"
-                    >
-                        PDF
-                    </button>
-                </p>
-            ) : null}
             {pdf ? (
                 <GlossaryPdfDialog
                     open={pdf}
