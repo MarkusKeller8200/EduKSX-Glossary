@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
     { href: '/admin', label: 'Übersicht', recht: null },
     { href: '/admin/begriffe', label: 'Begriffe', recht: 'edit-terms' },
+    { href: '/admin/vorschlaege', label: 'Vorschläge', recht: 'moderate' },
     { href: '/admin/doppelte', label: 'Doppelte', recht: 'edit-terms' },
     { href: '/admin/altwerte', label: 'Altwerte', recht: 'edit-terms' },
     { href: '/admin/pruefung', label: 'Prüfung', recht: 'edit-terms' },

@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Begriff vorschlagen oder korrigieren
+    url: https://glossary.eduksx.ch/vorschlaege/neu
+    about: Begriffe und Korrekturen bitte direkt im Glossary einreichen (mit Konto) – hier nur Meldungen zur Software (DEC-024).
   - name: Sicherheitslücke melden (privat)
     url: https://github.com/MarkusKeller8200/EduKSX-Glossary/blob/main/SECURITY.md
     about: Sicherheitsprobleme bitte nicht öffentlich, sondern privat melden – Vorgehen in SECURITY.md.

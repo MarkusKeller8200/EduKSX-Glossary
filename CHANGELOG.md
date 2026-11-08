@@ -8,6 +8,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Vorschläge und Moderation (#113, DEC-024):** Ab Benutzer neuen Begriff oder Korrektur einreichen («Begriff
+  vorschlagen», «Korrektur vorschlagen»); Stand, Rückfragen und Zurückziehen unter «Meine Vorschläge». Die Moderation
+  vergleicht feldweise Basis, Arbeitsstand und Vorschlag (Konflikte markiert), nimmt gewählte Felder als Entwurf an,
+  lehnt mit Begründung ab oder fragt nach. Servicekonten reichen per `POST /api/v1/proposals` ein. Nie öffentlich;
+  Personenbezug 24 Monate nach Abschluss bzw. bei Kontolöschung entfernt. GitHub nur noch für Software-Meldungen.
+
 - **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
   wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
   veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.

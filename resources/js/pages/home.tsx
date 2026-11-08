@@ -30,7 +30,7 @@ function initial(b: Begriff): string {
 
 /** Startseite: veröffentlichte Begriffe mit Suche, Index A–Z und Kategorien (#24, PUB-01/02). */
 export default function Home({ begriffe }: { begriffe: Begriff[] }) {
-    const { links, auth } = usePage().props;
+    const { auth } = usePage().props;
     const [suche, setSuche] = useState('');
     const [pdf, setPdf] = useState(false);
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
@@ -215,17 +215,15 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 />
             ) : null}
 
-            {links.githubRepo ? (
-                <p className="mt-8 text-sm">
-                    Fehlt ein Begriff oder stimmt eine Erklärung nicht?{' '}
-                    <a
-                        href={`https://github.com/${links.githubRepo}/issues/new/choose`}
-                        className="text-link underline underline-offset-4"
-                    >
-                        Begriff vorschlagen oder Fehler melden
-                    </a>
-                </p>
-            ) : null}
+            <p className="mt-8 text-sm">
+                Fehlt ein Begriff?{' '}
+                <Link
+                    href="/vorschlaege/neu"
+                    className="text-link underline underline-offset-4"
+                >
+                    Begriff vorschlagen
+                </Link>
+            </p>
         </>
     );
 }

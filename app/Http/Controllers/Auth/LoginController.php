@@ -74,7 +74,7 @@ class LoginController extends Controller
         $request->session()->regenerate();
         $user->forceFill(['last_login_on' => today(), 'inactivity_notice_sent_at' => null])->save();   // nur das Datum (Löschfristen, #39, #42)
 
-        return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
+        return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect()->intended('/');
     }
 
     public function destroy(Request $request): RedirectResponse

@@ -65,6 +65,17 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     >
                         Daten CC BY 4.0
                     </a>
+                    {links.githubRepo ? (
+                        <>
+                            {' · '}
+                            <a
+                                href={`https://github.com/${links.githubRepo}/issues/new/choose`}
+                                className="text-link underline-offset-4 hover:underline"
+                            >
+                                Fehler auf der Website melden
+                            </a>
+                        </>
+                    ) : null}
                     {links.pages ? (
                         <>
                             {' · '}

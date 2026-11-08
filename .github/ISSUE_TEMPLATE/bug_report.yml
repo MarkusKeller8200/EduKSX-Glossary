@@ -1,5 +1,5 @@
 name: Fehler melden
-description: Etwas funktioniert nicht wie erwartet.
+description: Etwas funktioniert nicht wie erwartet. Begriffe bitte direkt im Glossary vorschlagen (glossary.eduksx.ch/vorschlaege/neu).
 title: "Fehler: "
 labels: ["fehler", "triage"]
 body:
