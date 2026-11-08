@@ -40,7 +40,7 @@ final class ProposalService
     ];
 
     /** Listenfelder. */
-    private const LISTS = ['alternative_aliases', 'categories'];
+    public const LIST_FIELDS = ['alternative_aliases', 'categories'];
 
     /** Aufbewahrung mit Personenbezug nach Abschluss (Entscheid 08.11.2026). */
     public const RETENTION_MONTHS = 24;
@@ -265,7 +265,7 @@ final class ProposalService
                 continue;
             }
             $v = $values[$field];
-            if (in_array($field, self::LISTS, true)) {
+            if (in_array($field, self::LIST_FIELDS, true)) {
                 $list = is_array($v) ? $v : explode(';', (string) $v);
                 $list = array_values(array_unique(array_filter(array_map(fn (mixed $x): string => trim((string) $x), $list), fn (string $x): bool => $x !== '')));
                 $out[$field] = $list;

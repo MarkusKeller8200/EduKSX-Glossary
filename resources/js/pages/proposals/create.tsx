@@ -37,9 +37,17 @@ export default function ProposalCreate({
 }) {
     const form = useForm<Form>({
         begriff: begriff?.slug ?? '',
+        // robust gegen fehlende Werte älterer Abbilder (#133)
         werte: {
-            ...werte,
-            alternative_aliases: werte.alternative_aliases.join('; '),
+            official_abbreviation: werte.official_abbreviation ?? '',
+            official_name: werte.official_name ?? '',
+            short_description: werte.short_description ?? '',
+            description: werte.description ?? '',
+            url: werte.url ?? '',
+            alternative_aliases: Array.isArray(werte.alternative_aliases)
+                ? werte.alternative_aliases.join('; ')
+                : '',
+            categories: Array.isArray(werte.categories) ? werte.categories : [],
         },
         begruendung: '',
     });

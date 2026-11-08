@@ -28,9 +28,12 @@ class ProposalController extends Controller
         $term = $this->published($request->query('begriff'));
         $snapshot = $term?->publishedRevision->snapshot ?? [];
         $werte = [];
+        // Listenfelder immer als Liste: ältere Abbilder (vor DEC-020) kennen z. B. alternative_aliases nicht (#133)
         foreach (array_keys(ProposalService::FIELDS) as $field) {
-            $v = $snapshot[$field] ?? '';
-            $werte[$field] = is_array($v) ? array_values(array_map('strval', $v)) : (string) $v;
+            $v = $snapshot[$field] ?? null;
+            $werte[$field] = in_array($field, ProposalService::LIST_FIELDS, true)
+                ? (is_array($v) ? array_values(array_map('strval', $v)) : [])
+                : (is_scalar($v) ? (string) $v : '');
         }
 
         return Inertia::render('proposals/create', [
