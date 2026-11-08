@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Hilfe (#135):** Seite «Hilfe» mit allen Feldern eines Begriffs – Bedeutung, Format und Beispiel, Pflicht,
+  Sichtbarkeit (öffentlich, Suche, intern), Excel-Spalte und API-Name; Link in der Fusszeile.
+
 - **Export-Menü (#131):** Auf der Startseite und bei den Begriffen der Administration ein Knopf «Export» wie im
   Intranet: Excel und CSV (sichtbare Spalten), Excel vollständig, PDF und Markdown – jeweils für die sichtbaren
   Zeilen in angezeigter Reihenfolge. Website: veröffentlichte Daten ab Rolle Benutzer; ohne Recht ist der Knopf

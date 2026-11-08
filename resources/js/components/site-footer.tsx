@@ -46,6 +46,13 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     </Link>
                     {' · '}
                     <Link
+                        href="/hilfe"
+                        className="text-link underline-offset-4 hover:underline"
+                    >
+                        Hilfe
+                    </Link>
+                    {' · '}
+                    <Link
                         href="/datenschutz"
                         className="text-link underline-offset-4 hover:underline"
                     >

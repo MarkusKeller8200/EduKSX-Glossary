@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Glossary\FieldGuide;
 use App\Glossary\PublicGlossary;
 use App\Models\Term;
 use App\Models\User;
@@ -55,6 +56,12 @@ class PageController extends Controller
         $user = $request->user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    /** Hilfe: Felder eines Begriffs (#135). */
+    public function help(): Response
+    {
+        return Inertia::render('help', ['felder' => FieldGuide::FIELDS, 'weiteres' => FieldGuide::EXTRAS]);
     }
 
     /** Rechtliches, verwendete Quellprojekte und Drittlizenzen (Prüfstand). */

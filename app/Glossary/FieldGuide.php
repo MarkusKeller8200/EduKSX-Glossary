@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Glossary;
+
+/**
+ * Felder eines Begriffs für die Hilfeseite (#135). Eine Stelle für Bedeutung, Pflicht, Format, Sichtbarkeit,
+ * Excel-Spalte (ExcelFormat) und API-Name (ApiPresenter::PUBLIC_TERM_FIELDS); der Test prüft die Übereinstimmung.
+ *
+ * Sichtbarkeit: «öffentlich» (Website, API, Exporte), «Suche» (nur für die Suche), «intern» (nur Redaktion),
+ * «automatisch» (vom System gesetzt).
+ */
+final class FieldGuide
+{
+    /**
+     * @var list<array{gruppe: string, feld: string, beschreibung: string, format: string, beispiel: string, pflicht: string, sichtbar: string, excel: string|null, api: string|null}>
+     */
+    public const FIELDS = [
+        ['gruppe' => 'Bezeichnung', 'feld' => 'Abkürzung (offiziell)', 'beschreibung' => 'Amtliche bzw. gebräuchliche Abkürzung. Offizielles Feld: ändern nur mit dem Recht «Offizielle Felder ändern» (leer → Wert setzen ist erlaubt).', 'format' => 'Text, höchstens 60 Zeichen', 'beispiel' => 'VSA', 'pflicht' => 'Abkürzung oder Bezeichnung', 'sichtbar' => 'öffentlich', 'excel' => 'Abkürzung offiziell', 'api' => 'official_abbreviation'],
+        ['gruppe' => 'Bezeichnung', 'feld' => 'Bezeichnung (offiziell)', 'beschreibung' => 'Ausgeschriebener Name. Ohne Abkürzung ist der Begriff ein «voller Begriff» (Anzeige kursiv). Offizielles Feld.', 'format' => 'Text, höchstens 255 Zeichen', 'beispiel' => 'Volksschulamt', 'pflicht' => 'Abkürzung oder Bezeichnung', 'sichtbar' => 'öffentlich', 'excel' => 'Bezeichnung offiziell', 'api' => 'official_name'],
+        ['gruppe' => 'Bezeichnung', 'feld' => 'Aliase (offiziell)', 'beschreibung' => 'Weitere amtliche Formen derselben Sache. Offizielles Feld.', 'format' => 'Liste, mit Strichpunkt getrennt', 'beispiel' => 'VSA ZH; Volksschulamt Zürich', 'pflicht' => 'nein', 'sichtbar' => 'öffentlich', 'excel' => 'Aliase offiziell', 'api' => 'official_aliases'],
+        ['gruppe' => 'Bezeichnung', 'feld' => 'Alternative Schreibweisen', 'beschreibung' => 'Gebräuchliche andere Schreibweisen; werden angezeigt und gefunden.', 'format' => 'Liste, mit Strichpunkt getrennt', 'beispiel' => 'V.S.A.', 'pflicht' => 'nein', 'sichtbar' => 'öffentlich', 'excel' => 'Alternative Schreibweisen', 'api' => 'alternative_aliases'],
+        ['gruppe' => 'Bezeichnung', 'feld' => 'Suchbegriffe', 'beschreibung' => 'Zusätzliche Wörter, unter denen der Begriff gefunden wird (z. B. Tippfehler, frühere Namen); werden nicht angezeigt.', 'format' => 'Text, Wörter mit Strichpunkt getrennt', 'beispiel' => 'Schulamt; Volksschulbehörde', 'pflicht' => 'nein', 'sichtbar' => 'Suche', 'excel' => 'Suchbegriffe', 'api' => 'search_terms'],
+        ['gruppe' => 'Inhalt', 'feld' => 'Kurzbeschreibung', 'beschreibung' => 'Ein Satz, der in Listen und Tabellen erscheint.', 'format' => 'Text, höchstens 160 Zeichen', 'beispiel' => 'Kantonale Fachstelle für die Volksschule', 'pflicht' => 'empfohlen', 'sichtbar' => 'öffentlich', 'excel' => 'Kurzbeschreibung', 'api' => 'short_description'],
+        ['gruppe' => 'Inhalt', 'feld' => 'Beschreibung', 'beschreibung' => 'Ausführliche Erklärung auf der Seite des Begriffs; Zeilenumbrüche bleiben erhalten.', 'format' => 'Text, mehrzeilig', 'beispiel' => 'Das Volksschulamt ist zuständig für …', 'pflicht' => 'nein', 'sichtbar' => 'öffentlich', 'excel' => 'Beschreibung', 'api' => 'description'],
+        ['gruppe' => 'Inhalt', 'feld' => 'URL', 'beschreibung' => 'Weiterführende Seite, möglichst die amtliche Quelle.', 'format' => 'Adresse mit http:// oder https://', 'beispiel' => 'https://www.zh.ch/vsa', 'pflicht' => 'nein', 'sichtbar' => 'öffentlich', 'excel' => 'URL', 'api' => 'url'],
+        ['gruppe' => 'Einordnung', 'feld' => 'Kategorien', 'beschreibung' => 'Themen aus der Liste «Kategorien» (Administration → Listen); farbige Labels.', 'format' => 'Liste; Excel: Labels mit Strichpunkt', 'beispiel' => 'Personal; Schule', 'pflicht' => 'empfohlen', 'sichtbar' => 'öffentlich', 'excel' => 'Kategorien', 'api' => 'categories'],
+        ['gruppe' => 'Einordnung', 'feld' => 'Herkunft', 'beschreibung' => 'Quelle bzw. herausgebende Stelle aus der Liste «Herkunft». Prüfdatum und Belegstatus je Herkunft pflegt die Redaktion (Seite «Prüfung»).', 'format' => 'Liste; Excel: Labels mit Strichpunkt', 'beispiel' => 'VSA', 'pflicht' => 'empfohlen', 'sichtbar' => 'öffentlich (Prüfdatum und Beleg intern)', 'excel' => 'Herkunft', 'api' => 'sources'],
+        ['gruppe' => 'Einordnung', 'feld' => 'Status', 'beschreibung' => '«aktuell», «historisch» (nicht mehr in Gebrauch) oder «zu prüfen».', 'format' => 'aktuell | historisch | zu prüfen', 'beispiel' => 'aktuell', 'pflicht' => 'ja (Vorgabe aktuell)', 'sichtbar' => 'öffentlich', 'excel' => 'Status', 'api' => 'status'],
+        ['gruppe' => 'Einordnung', 'feld' => 'Gültig ab / Gültig bis', 'beschreibung' => 'Zeitraum, in dem die Bezeichnung gilt (z. B. bei Umbenennungen).', 'format' => 'Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ)', 'beispiel' => '2026-08-01', 'pflicht' => 'nein', 'sichtbar' => 'öffentlich', 'excel' => 'Gültig ab / Gültig bis', 'api' => 'valid_from / valid_until'],
+        ['gruppe' => 'Einordnung', 'feld' => 'Aktiv', 'beschreibung' => 'Inaktive Begriffe sind nicht öffentlich, bleiben aber erhalten.', 'format' => 'ja | nein', 'beispiel' => 'ja', 'pflicht' => 'ja (Vorgabe ja)', 'sichtbar' => 'öffentlich', 'excel' => 'Aktiv', 'api' => 'is_active'],
+        ['gruppe' => 'Redaktion', 'feld' => 'Notiz', 'beschreibung' => 'Redaktionelle Notiz, z. B. offene Fragen. Nie öffentlich, nicht in öffentlichen Exporten.', 'format' => 'Text, mehrzeilig', 'beispiel' => 'Bezeichnung mit VSA klären', 'pflicht' => 'nein', 'sichtbar' => 'intern', 'excel' => 'Notiz', 'api' => null],
+        ['gruppe' => 'System', 'feld' => 'ID', 'beschreibung' => 'Eindeutige, dauerhafte Kennung (UUID); beim Import aus dem Intranet übernommen.', 'format' => 'UUID', 'beispiel' => '0195f6a2-7c1e-7a3b-9b2d-3f4e5a6b7c8d', 'pflicht' => 'automatisch', 'sichtbar' => 'automatisch', 'excel' => 'ID', 'api' => 'id'],
+        ['gruppe' => 'System', 'feld' => 'Adresse (Slug)', 'beschreibung' => 'Teil der Adresse /begriffe/…, aus Abkürzung und Bezeichnung gebildet; bleibt stabil.', 'format' => 'Kleinbuchstaben, Ziffern, Bindestrich', 'beispiel' => 'vsa-volksschulamt', 'pflicht' => 'automatisch', 'sichtbar' => 'automatisch', 'excel' => null, 'api' => 'slug'],
+        ['gruppe' => 'System', 'feld' => 'Revision und Veröffentlichung', 'beschreibung' => 'Jede Änderung ist eine neue, unveränderliche Revision. Öffentlich ist genau eine («V3»); Änderungen danach sind ein Entwurf bis zur Freigabe (DEC-022).', 'format' => 'Nummer, Datum', 'beispiel' => 'V3, veröffentlicht am 08.11.2026', 'pflicht' => 'automatisch', 'sichtbar' => 'öffentlich (nur veröffentlichte Revisionen)', 'excel' => null, 'api' => 'revision / published_at / updated_at'],
+        ['gruppe' => 'System', 'feld' => 'Mehrdeutig', 'beschreibung' => 'Berechnet: Dieselbe Abkürzung hat mehrere Bedeutungen (hochgestellte Zahl im PDF).', 'format' => 'ja/nein, Anzahl', 'beispiel' => 'SL²', 'pflicht' => 'automatisch', 'sichtbar' => 'öffentlich', 'excel' => null, 'api' => 'is_ambiguous / meaning_count'],
+    ];
+
+    /** Nicht Teil des Begriffs, aber oft gefragt. */
+    public const EXTRAS = [
+        ['feld' => 'Persönliche Darstellung', 'beschreibung' => 'Angemeldete Konten ab Rolle Benutzer können Abkürzung, Bezeichnung, Kurzbeschreibung, Beschreibung und Aliase nur für sich anders anzeigen («Meine Darstellung», DEC-020). Nie öffentlich, keine Revision.'],
+        ['feld' => 'Vorschläge', 'beschreibung' => 'Korrekturen und neue Begriffe reicht man ab Rolle Benutzer ein («Korrektur vorschlagen»); die Redaktion prüft und übernimmt sie als Entwurf (DEC-024).'],
+        ['feld' => 'Lizenz', 'beschreibung' => 'Die Daten stehen unter CC BY 4.0: Nutzung frei mit Quellenangabe «EduKSX-Glossary (glossary.eduksx.ch)».'],
+    ];
+}
