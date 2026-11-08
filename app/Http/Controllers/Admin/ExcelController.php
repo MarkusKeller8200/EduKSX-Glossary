@@ -6,7 +6,9 @@ use App\Glossary\ExcelFormat;
 use App\Glossary\GlossaryImporter;
 use App\Glossary\Journal;
 use App\Glossary\PrintRow;
+use App\Glossary\TermExport;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\ExportController;
 use App\Models\ImportBatch;
 use App\Models\Term;
 use App\Models\User;
@@ -33,6 +35,15 @@ class ExcelController extends Controller
     private const CACHE = 'glossary-import:';
 
     public function __construct(private readonly GlossaryImporter $importer) {}
+
+    /** Export-Menü der Redaktion (#131): sichtbare Zeilen des Arbeitsstands als Excel, CSV oder Markdown. */
+    public function exportSelection(Request $request, TermExport $export): HttpResponse
+    {
+        $data = ExportController::validateSelection($request);
+        $table = $export->working($data['keys'], $data['umfang']);
+
+        return $export->response($table, $data['format'], 'glossary-arbeitsstand-'.date('Y-m-d'), false);
+    }
 
     /** Alle Begriffe (Arbeitsstand) bzw. leere Vorlage als .xlsx oder mit ?format=csv als CSV (Format Version 2). */
     public function export(Request $request): HttpResponse

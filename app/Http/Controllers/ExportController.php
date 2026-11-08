@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Glossary\ApiPresenter;
 use App\Glossary\ExcelFormat;
 use App\Glossary\PrintRow;
+use App\Glossary\TermExport;
 use App\Support\Csv;
 use App\Support\SpreadsheetWriter;
 use Illuminate\Http\Request;
@@ -17,6 +18,34 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
  */
 class ExportController extends Controller
 {
+    /** Export-Menü (#131): sichtbare Zeilen (IDs oder Slugs) als Excel, CSV oder Markdown, Spalten sichtbar/vollständig. */
+    public function selection(Request $request, TermExport $export): HttpResponse
+    {
+        $data = self::validateSelection($request);
+        $table = $export->published($data['keys'], $data['umfang']);
+
+        return $export->response($table, $data['format'], 'glossary-'.date('Y-m-d'), true);
+    }
+
+    /**
+     * @return array{keys: list<string>|null, format: string, umfang: string}
+     */
+    public static function validateSelection(Request $request): array
+    {
+        $data = $request->validate([
+            'format' => ['required', 'string', 'in:'.implode(',', TermExport::FORMATS)],
+            'umfang' => ['required', 'string', 'in:sichtbar,vollstaendig'],
+            'keys' => ['nullable', 'array', 'max:10000'],
+            'keys.*' => ['string', 'max:200'],
+        ]);
+
+        return [
+            'keys' => isset($data['keys']) ? array_values(array_map('strval', (array) $data['keys'])) : null,
+            'format' => (string) $data['format'],
+            'umfang' => (string) $data['umfang'],
+        ];
+    }
+
     public function __invoke(Request $request, ApiPresenter $presenter): HttpResponse
     {
         $terms = $presenter->terms();

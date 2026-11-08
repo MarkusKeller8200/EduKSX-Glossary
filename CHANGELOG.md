@@ -8,6 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Export-Menü (#131):** Auf der Startseite und bei den Begriffen der Administration ein Knopf «Export» wie im
+  Intranet: Excel und CSV (sichtbare Spalten), Excel vollständig, PDF und Markdown – jeweils für die sichtbaren
+  Zeilen in angezeigter Reihenfolge. Website: veröffentlichte Daten ab Rolle Benutzer; ohne Recht ist der Knopf
+  ausgegraut mit Hinweis zur Anmeldung. Administration: Arbeitsstand.
+
 - **Tabellen (#103, #108):** Alle Listen der Administration (Begriffe, Benutzer, Listen, Prüfung, Altwerte,
   Import-Vorschau, Vorschläge, Servicekonten) mit verstellbaren Spaltenbreiten (Splitter, auch mit Pfeiltasten) und
   Sortierung per Klick auf den Spaltenkopf; Breiten und Sortierung bleiben im Browser. Beim horizontalen Scrollen

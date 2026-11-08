@@ -12,7 +12,7 @@ steht unter MIT (DEC-021, `LICENSE`).
 | Datei im Glossary                                                                                                               | Herkunft im Intranet |
 | ------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
 | `resources/js/components/ui/{card,input,label,badge,separator,alert,checkbox}.tsx`                                              | gleicher Pfad        |
-| `resources/js/components/ui/{dialog,toggle,toggle-group}.tsx` (#112), `ui/tooltip.tsx` (#108)                                   | gleicher Pfad        |
+| `resources/js/components/ui/{dialog,toggle,toggle-group}.tsx` (#112), `ui/tooltip.tsx` (#108), `ui/dropdown-menu.tsx` (#131)    | gleicher Pfad        |
 | `resources/js/hooks/use-appearance.tsx`, `resources/js/lib/utils.ts`                                                            | gleicher Pfad        |
 | `resources/js/components/{input-error,text-link,appearance-tabs}.tsx`                                                           | gleicher Pfad        |
 | `resources/js/types/vite-env.d.ts`                                                                                              | gleicher Pfad        |
