@@ -119,3 +119,5 @@ Unterbruch wenige Sekunden. 200 Instanzen in zwei Ringen sind in einer Nacht akt
 | #179  | Anleitung «Selbst hosten»                                                           |
 | #180  | Abgleich der Inhalte mit dem zentralen Glossary (U11)                               |
 | #181  | Variante ohne Docker (U12, optional)                                                |
+
+Deployment und Installationsarten (eigener VPS, Schulnetz, verteilt, Infomaniak, Anbindung an die Plattform): [KONZEPT-DEPLOYMENT.md](KONZEPT-DEPLOYMENT.md), #194–#202.
