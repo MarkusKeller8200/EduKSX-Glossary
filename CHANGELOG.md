@@ -49,6 +49,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Fusszeile (#125):** kürzere Links «Fehler melden» und «GitHub Pages».
+
 - **Farbwahl (#107):** Farben in «Listen» als farbige Labels wählbar, neu mit den CI-Farben Violett, Orange und Blau.
 - **Fusszeile (#102):** auch in der Administration immer sichtbar.
 - **Kategorien (#105):** werden überall untereinander angezeigt.
