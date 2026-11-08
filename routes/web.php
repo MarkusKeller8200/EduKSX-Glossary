@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');
+Route::get('hilfe', [PageController::class, 'help'])->name('help');
 // Datenschutzerklärung (#42); Kenntnisnahme für angemeldete Konten
 Route::get('datenschutz', [PrivacyController::class, 'show'])->name('privacy');
 Route::middleware('auth')->group(function () {
