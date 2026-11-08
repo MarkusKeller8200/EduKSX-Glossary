@@ -107,7 +107,7 @@ Intranet verwaltet seine Modulverwendungen und lokalen Benennungen selbst. Detai
 - Vorschläge innerhalb der Anwendung setzen ein bestätigtes persönliches Benutzerkonto voraus (DEC-017).
 - Schutz vor Missbrauch: Rate-Limit, Spam-Schutz (z. B. Cloudflare Turnstile), keine öffentliche Anzeige von
   E-Mail oder IP.
-- Bis zur Umsetzung bleiben die **GitHub-Issue-Formulare** der Weg für Vorschläge.
+- Kanal und Umgang mit GitHub-Issues: [KONZEPT-VORSCHLAEGE.md](KONZEPT-VORSCHLAEGE.md) (DEC-024, #75).
 - **GitHub Pages** bleibt dauerhaft als reduzierte, statische Lesefassung (Export des veröffentlichten Datenstands,
   [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md)).
 
@@ -195,5 +195,5 @@ Termine erst mit Ressourcenplanung.
 4. ~~Freigabe-, Versions- und Rollback-Regeln für Revisionen.~~ DEC-022 (#74), siehe [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md#freigabe-und-rücknahme-von-revisionen-dec-022).
 5. ~~API: Nutzungsbedingungen, Gesamt-Export, Rate-Limits, Stabilitätszusage.~~ Entschieden mit DEC-016 (#30).
 6. Mandanten-Bezeichnungen und -Notizen.
-7. Umgang mit bestehenden GitHub-Issues beim Start der Vorschlagsfunktion.
+7. Umgang mit bestehenden GitHub-Issues beim Start der Vorschlagsfunktion – entschieden mit DEC-024 (Variante A, nur im Glossary): [KONZEPT-VORSCHLAEGE.md](KONZEPT-VORSCHLAEGE.md) (#75).
 8. Confluence-Format und Mehrfachziele; Rovo-MCP (Transport, Identität, Rechte).
