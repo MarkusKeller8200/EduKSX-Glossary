@@ -31,6 +31,7 @@ final class Permission
         'import' => ['label' => 'Excel-Import', 'class' => self::PRIVILEGED],
         'lists' => ['label' => 'Listen (Kategorien, Herkunft) pflegen', 'class' => self::PRIVILEGED],
         'service-tokens' => ['label' => 'Servicekonten und Token verwalten', 'class' => self::PRIVILEGED],
+        'settings' => ['label' => 'Allgemeine Einstellungen', 'class' => self::SYSTEM],
         'system' => ['label' => 'System und Sicherheit', 'class' => self::SYSTEM],
     ];
 

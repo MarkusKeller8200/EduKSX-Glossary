@@ -2,6 +2,9 @@ import { Head, Link } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { proposalStatusClass } from '@/lib/proposals';
+import DataGrid from '@/components/data-grid';
+import IconAction from '@/components/icon-action';
+import { Eye } from 'lucide-react';
 
 type Vorschlag = {
     id: number;
@@ -51,71 +54,106 @@ export default function Proposals({
                     Keine {filter === 'offen' ? 'offenen ' : ''}Vorschläge.
                 </p>
             ) : (
-                <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-left">
-                            <tr>
-                                <th className="px-3 py-2 font-medium">Nr.</th>
-                                <th className="px-3 py-2 font-medium">
-                                    Begriff
-                                </th>
-                                <th className="px-3 py-2 font-medium">
-                                    Felder
-                                </th>
-                                <th className="px-3 py-2 font-medium">Von</th>
-                                <th className="px-3 py-2 font-medium">
-                                    Eingereicht
-                                </th>
-                                <th className="px-3 py-2 font-medium">
-                                    Status
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {vorschlaege.map((v) => (
-                                <tr
-                                    key={v.id}
-                                    className="border-t border-border align-top"
-                                >
-                                    <td className="px-3 py-2">
-                                        <Link
-                                            href={`/admin/vorschlaege/${v.id}`}
-                                            className="font-medium text-link underline-offset-4 hover:underline"
-                                        >
-                                            {v.id}
-                                        </Link>
-                                    </td>
-                                    <td className="px-3 py-2">
+                <div className="mt-6">
+                    <DataGrid
+                        id="admin.proposals"
+                        caption="Vorschläge"
+                        rows={vorschlaege}
+                        getRowId={(v: Vorschlag) => String(v.id)}
+                        columns={[
+                            {
+                                id: 'nr',
+                                header: 'Nr.',
+                                width: 70,
+                                sticky: 'left',
+                                className: 'tabular-nums',
+                                sortValue: (v) => v.id,
+                                cell: (v) => (
+                                    <Link
+                                        href={`/admin/vorschlaege/${v.id}`}
+                                        className="font-medium text-link underline-offset-4 hover:underline"
+                                    >
+                                        {v.id}
+                                    </Link>
+                                ),
+                            },
+                            {
+                                id: 'begriff',
+                                header: 'Begriff',
+                                width: 240,
+                                noTranslate: true,
+                                sortValue: (v) => v.titel,
+                                cell: (v) => (
+                                    <>
                                         <span className="block text-xs text-muted-foreground">
                                             {v.art}
                                         </span>
                                         {v.titel || '–'}
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        {v.felder.join(', ')}
-                                    </td>
-                                    <td className="px-3 py-2">{v.von}</td>
-                                    <td className="px-3 py-2">
-                                        {v.eingereicht
-                                            ? new Date(
-                                                  v.eingereicht,
-                                              ).toLocaleDateString('de-CH')
-                                            : '–'}
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        <Badge
-                                            variant="outline"
-                                            className={proposalStatusClass(
-                                                v.status,
-                                            )}
-                                        >
-                                            {v.status_label}
-                                        </Badge>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </>
+                                ),
+                            },
+                            {
+                                id: 'felder',
+                                header: 'Felder',
+                                width: 200,
+                                sortValue: (v) => v.felder.join(', '),
+                                cell: (v) => v.felder.join(', '),
+                            },
+                            {
+                                id: 'von',
+                                header: 'Von',
+                                width: 160,
+                                sortValue: (v) => v.von,
+                                cell: (v) => v.von,
+                            },
+                            {
+                                id: 'eingereicht',
+                                header: 'Eingereicht',
+                                width: 120,
+                                sortValue: (v) => v.eingereicht ?? '',
+                                cell: (v) =>
+                                    v.eingereicht
+                                        ? new Date(
+                                              v.eingereicht,
+                                          ).toLocaleDateString('de-CH')
+                                        : '–',
+                            },
+                            {
+                                id: 'status',
+                                header: 'Status',
+                                width: 130,
+                                sortValue: (v) => v.status_label,
+                                cell: (v) => (
+                                    <Badge
+                                        variant="outline"
+                                        className={proposalStatusClass(
+                                            v.status,
+                                        )}
+                                    >
+                                        {v.status_label}
+                                    </Badge>
+                                ),
+                            },
+                            {
+                                id: 'aktionen',
+                                label: 'Aktionen',
+                                header: (
+                                    <span className="sr-only">Aktionen</span>
+                                ),
+                                width: 56,
+                                fixed: true,
+                                sticky: 'right',
+                                className: 'py-1',
+                                cell: (v) => (
+                                    <IconAction
+                                        icon={Eye}
+                                        label={`Vorschlag Nr. ${v.id} prüfen`}
+                                        href={`/admin/vorschlaege/${v.id}`}
+                                    />
+                                ),
+                            },
+                        ]}
+                    />
                 </div>
             )}
         </>

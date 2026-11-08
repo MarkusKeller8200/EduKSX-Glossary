@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { NativeSelect } from '@/components/ui/native-select';
+import DataGrid from '@/components/data-grid';
 
 type Wert = {
     id: number;
@@ -143,11 +144,18 @@ export default function LegacyValues({
                 </Button>
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                    <thead className="bg-muted text-left">
-                        <tr>
-                            <th scope="col" className="w-10 px-3 py-2">
+            <div className="mt-4">
+                <DataGrid
+                    id="admin.legacy-values"
+                    caption="Altwerte"
+                    rows={sichtbar}
+                    getRowId={(w: Wert) => String(w.id)}
+                    empty="Keine Altwerte – alles ist zugeordnet."
+                    columns={[
+                        {
+                            id: 'auswahl',
+                            label: 'Auswahl',
+                            header: (
                                 <Checkbox
                                     aria-label="Alle sichtbaren wählen"
                                     checked={
@@ -164,42 +172,30 @@ export default function LegacyValues({
                                         )
                                     }
                                 />
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Begriff
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Feld
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Wert
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Herkunft
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Zuordnung
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sichtbar.map((w) => (
-                            <tr
-                                key={w.id}
-                                className="border-t border-border align-top"
-                            >
-                                <td className="px-3 py-2">
-                                    {w.zuordnung === null ? (
-                                        <Checkbox
-                                            aria-label={`${w.wert} wählen`}
-                                            checked={auswahl.includes(w.id)}
-                                            onCheckedChange={(c) =>
-                                                toggle(w.id, c === true)
-                                            }
-                                        />
-                                    ) : null}
-                                </td>
-                                <td className="px-3 py-2" translate="no">
+                            ),
+                            width: 44,
+                            fixed: true,
+                            sticky: 'left',
+                            cell: (w) =>
+                                w.zuordnung === null ? (
+                                    <Checkbox
+                                        aria-label={`${w.wert} wählen`}
+                                        checked={auswahl.includes(w.id)}
+                                        onCheckedChange={(c) =>
+                                            toggle(w.id, c === true)
+                                        }
+                                    />
+                                ) : null,
+                        },
+                        {
+                            id: 'begriff',
+                            header: 'Begriff',
+                            width: 220,
+                            sticky: 'left',
+                            noTranslate: true,
+                            sortValue: (w) => w.titel,
+                            cell: (w) => (
+                                <>
                                     <Link
                                         href={`/admin/begriffe/${w.term_id}`}
                                         className="text-link underline-offset-4 hover:underline"
@@ -214,9 +210,24 @@ export default function LegacyValues({
                                             zusammengeführt
                                         </Badge>
                                     ) : null}
-                                </td>
-                                <td className="px-3 py-2">{w.feld_label}</td>
-                                <td className="px-3 py-2" translate="no">
+                                </>
+                            ),
+                        },
+                        {
+                            id: 'feld',
+                            header: 'Feld',
+                            width: 150,
+                            sortValue: (w) => w.feld_label,
+                            cell: (w) => w.feld_label,
+                        },
+                        {
+                            id: 'wert',
+                            header: 'Wert',
+                            width: 240,
+                            noTranslate: true,
+                            sortValue: (w) => w.wert,
+                            cell: (w) => (
+                                <>
                                     {w.wert}
                                     {w.offiziell !== '' &&
                                     w.offiziell !== w.wert ? (
@@ -230,27 +241,28 @@ export default function LegacyValues({
                                             verwalten)
                                         </span>
                                     ) : null}
-                                </td>
-                                <td className="px-3 py-2">{w.herkunft}</td>
-                                <td className="px-3 py-2">
-                                    {w.zuordnung ?? (
-                                        <Badge variant="secondary">offen</Badge>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                        {sichtbar.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={6}
-                                    className="px-3 py-6 text-center text-muted-foreground"
-                                >
-                                    Keine Altwerte – alles ist zugeordnet.
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
+                                </>
+                            ),
+                        },
+                        {
+                            id: 'herkunft',
+                            header: 'Herkunft',
+                            width: 160,
+                            sortValue: (w) => w.herkunft,
+                            cell: (w) => w.herkunft,
+                        },
+                        {
+                            id: 'zuordnung',
+                            header: 'Zuordnung',
+                            width: 160,
+                            sortValue: (w) => w.zuordnung ?? '',
+                            cell: (w) =>
+                                w.zuordnung ?? (
+                                    <Badge variant="secondary">offen</Badge>
+                                ),
+                        },
+                    ]}
+                />
             </div>
         </>
     );

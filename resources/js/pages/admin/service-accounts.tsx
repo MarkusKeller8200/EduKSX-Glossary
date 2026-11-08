@@ -6,6 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import DataGrid from '@/components/data-grid';
+import IconAction from '@/components/icon-action';
+import { KeyRound } from 'lucide-react';
 
 type Konto = {
     id: string;
@@ -44,28 +47,21 @@ export default function ServiceAccounts({
                     Noch keine Servicekonten.
                 </p>
             ) : (
-                <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/50 text-left">
-                            <tr>
-                                <th className="px-3 py-2 font-medium">Name</th>
-                                <th className="px-3 py-2 font-medium">Zweck</th>
-                                <th className="px-3 py-2 font-medium">
-                                    Verantwortlich
-                                </th>
-                                <th className="px-3 py-2 font-medium">
-                                    Scopes
-                                </th>
-                                <th className="px-3 py-2 font-medium">Token</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {konten.map((k) => (
-                                <tr
-                                    key={k.id}
-                                    className="border-t border-border align-top"
-                                >
-                                    <td className="px-3 py-2">
+                <div className="mt-6">
+                    <DataGrid
+                        id="admin.service-accounts"
+                        caption="Servicekonten"
+                        rows={konten}
+                        getRowId={(k: Konto) => k.id}
+                        columns={[
+                            {
+                                id: 'name',
+                                header: 'Name',
+                                width: 200,
+                                sticky: 'left',
+                                sortValue: (k) => k.name,
+                                cell: (k) => (
+                                    <>
                                         <Link
                                             href={`/admin/servicekonten/${k.id}`}
                                             className="font-medium text-link underline-offset-4 hover:underline"
@@ -80,21 +76,57 @@ export default function ServiceAccounts({
                                                 gesperrt
                                             </Badge>
                                         ) : null}
-                                    </td>
-                                    <td className="px-3 py-2">{k.zweck}</td>
-                                    <td className="px-3 py-2">
-                                        {k.verantwortlich ?? '–'}
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        {k.scopes.join(', ') || '–'}
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        {k.aktive_token} gültig
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                                    </>
+                                ),
+                            },
+                            {
+                                id: 'zweck',
+                                header: 'Zweck',
+                                width: 280,
+                                sortValue: (k) => k.zweck,
+                                cell: (k) => k.zweck,
+                            },
+                            {
+                                id: 'verantwortlich',
+                                header: 'Verantwortlich',
+                                width: 180,
+                                sortValue: (k) => k.verantwortlich,
+                                cell: (k) => k.verantwortlich ?? '–',
+                            },
+                            {
+                                id: 'scopes',
+                                header: 'Scopes',
+                                width: 120,
+                                sortValue: (k) => k.scopes.join(', '),
+                                cell: (k) => k.scopes.join(', ') || '–',
+                            },
+                            {
+                                id: 'token',
+                                header: 'Token',
+                                width: 110,
+                                sortValue: (k) => k.aktive_token,
+                                cell: (k) => `${k.aktive_token} gültig`,
+                            },
+                            {
+                                id: 'aktionen',
+                                label: 'Aktionen',
+                                header: (
+                                    <span className="sr-only">Aktionen</span>
+                                ),
+                                width: 56,
+                                fixed: true,
+                                sticky: 'right',
+                                className: 'py-1',
+                                cell: (k) => (
+                                    <IconAction
+                                        icon={KeyRound}
+                                        label={`${k.name}: Token und Protokoll`}
+                                        href={`/admin/servicekonten/${k.id}`}
+                                    />
+                                ),
+                            },
+                        ]}
+                    />
                 </div>
             )}
 

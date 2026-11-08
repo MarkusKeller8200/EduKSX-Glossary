@@ -1,4 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
+import DataGrid from '@/components/data-grid';
+import IconAction from '@/components/icon-action';
+import { Pencil } from 'lucide-react';
 
 type Zeile = {
     id: string;
@@ -30,53 +33,73 @@ export default function SourceCheck({
                 offizieller Form ohne amtlichen Beleg. Prüfdatum und Belegstatus
                 je Herkunft auf der Seite des Begriffs eintragen.
             </p>
-            <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                    <thead className="bg-muted text-left">
-                        <tr>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Begriff
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Gründe
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {begriffe.map((b) => (
-                            <tr
-                                key={b.id}
-                                className="border-t border-border align-top"
-                            >
-                                <td className="px-3 py-2" translate="no">
-                                    <Link
-                                        href={`/admin/begriffe/${b.id}#herkunft`}
-                                        className="text-link underline-offset-4 hover:underline"
-                                    >
-                                        {b.titel || '(ohne Bezeichnung)'}
-                                    </Link>
-                                </td>
-                                <td className="px-3 py-2">
-                                    <ul className="list-disc pl-4">
-                                        {b.gruende.map((g) => (
-                                            <li key={g}>{g}</li>
-                                        ))}
-                                    </ul>
-                                </td>
-                            </tr>
-                        ))}
-                        {begriffe.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={2}
-                                    className="px-3 py-6 text-center text-muted-foreground"
+            <div className="mt-6">
+                <DataGrid
+                    id="admin.source-check"
+                    caption="Begriffe zur Wiedervorlage"
+                    rows={begriffe}
+                    getRowId={(b: Zeile) => b.id}
+                    empty="Alles geprüft."
+                    columns={[
+                        {
+                            id: 'begriff',
+                            header: 'Begriff',
+                            width: 260,
+                            sticky: 'left',
+                            noTranslate: true,
+                            sortValue: (b) => b.titel,
+                            cell: (b) => (
+                                <Link
+                                    href={`/admin/begriffe/${b.id}#herkunft`}
+                                    className="text-link underline-offset-4 hover:underline"
                                 >
-                                    Alles geprüft.
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
+                                    {b.titel || '(ohne Bezeichnung)'}
+                                </Link>
+                            ),
+                        },
+                        {
+                            id: 'gruende',
+                            header: 'Gründe',
+                            width: 420,
+                            sortValue: (b) => b.gruende.length,
+                            cell: (b) => (
+                                <ul className="list-disc pl-4">
+                                    {b.gruende.map((g) => (
+                                        <li key={g}>{g}</li>
+                                    ))}
+                                </ul>
+                            ),
+                        },
+                        {
+                            id: 'aeltestes',
+                            header: 'Ältestes Prüfdatum',
+                            width: 160,
+                            sortValue: (b) => b.aeltestes ?? '',
+                            cell: (b) =>
+                                b.aeltestes
+                                    ? new Date(b.aeltestes).toLocaleDateString(
+                                          'de-CH',
+                                      )
+                                    : 'nie',
+                        },
+                        {
+                            id: 'aktionen',
+                            label: 'Aktionen',
+                            header: <span className="sr-only">Aktionen</span>,
+                            width: 56,
+                            fixed: true,
+                            sticky: 'right',
+                            className: 'py-1',
+                            cell: (b) => (
+                                <IconAction
+                                    icon={Pencil}
+                                    label={`${b.titel || 'Begriff'}: Herkunft prüfen`}
+                                    href={`/admin/begriffe/${b.id}#herkunft`}
+                                />
+                            ),
+                        },
+                    ]}
+                />
             </div>
         </>
     );

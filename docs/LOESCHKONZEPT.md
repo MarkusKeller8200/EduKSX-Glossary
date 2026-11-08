@@ -32,3 +32,6 @@ sperren.
 ## Änderungen
 
 Änderungen an Fristen erhöhen die Version dieses Dokuments und werden in der Datenschutzerklärung nachgeführt.
+
+Die Fristen für inaktive Konten, den Hinweis vorher, das Audit-Protokoll und die Vorschläge sind seit 0.7.0 unter
+«Einstellungen» anpassbar (#106); die Werte oben sind die Vorgaben.

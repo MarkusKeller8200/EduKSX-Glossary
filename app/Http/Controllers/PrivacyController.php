@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Access\Audit;
 use App\Models\User;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -48,7 +49,7 @@ class PrivacyController extends Controller
             // Str::markdown nutzt GitHub-Flavored Markdown (Tabellen, Aufgabenlisten)
             'html' => (string) Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false]),
             'version' => (string) config('glossary.privacy_version'),
-            'entwurf' => (bool) config('glossary.privacy_draft'),
+            'entwurf' => Settings::bool('privacy.draft_notice'),
         ];
     }
 }

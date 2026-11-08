@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { isColorName, palette } from '@/lib/colors';
 import { cn } from '@/lib/utils';
+import DataGrid from '@/components/data-grid';
+import IconAction from '@/components/icon-action';
+import { Pencil, Trash2 } from 'lucide-react';
 
 type Eintrag = {
     id: string;
@@ -94,146 +97,161 @@ function Tabelle({
     farben: string[];
 }) {
     const [bearbeiten, setBearbeiten] = useState<string | null>(null);
+    const bearbeitet = eintraege.find((e) => e.id === bearbeiten) ?? null;
 
     return (
         <section className="mt-8">
-            <h2 className="text-xl font-semibold">{TITEL[liste]}</h2>
-            <div className="mt-3 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                    <thead className="bg-muted text-left">
-                        <tr>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Schlüssel
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Kürzel
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Bezeichnung
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Label
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Farbe
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                URL
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Begriffe
-                            </th>
-                            <th scope="col" className="px-3 py-2">
-                                <span className="sr-only">Aktionen</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {eintraege.map((e) =>
-                            bearbeiten === e.id ? (
-                                <tr
-                                    key={e.id}
-                                    className="border-t border-border"
-                                >
-                                    <td colSpan={8} className="px-3 py-3">
-                                        <Formular
-                                            liste={liste}
-                                            farben={farben}
-                                            eintrag={e}
-                                            onFertig={() => setBearbeiten(null)}
-                                        />
-                                    </td>
-                                </tr>
-                            ) : (
-                                <tr
-                                    key={e.id}
-                                    className="border-t border-border align-top"
-                                >
-                                    <td className="px-3 py-2 font-mono text-xs">
-                                        {e.key}
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        {e.abbreviation}
-                                    </td>
-                                    <td className="px-3 py-2">{e.name}</td>
-                                    <td className="px-3 py-2">{e.label}</td>
-                                    <td className="px-3 py-2">
-                                        <Badge
-                                            variant="outline"
-                                            className={
-                                                palette[
-                                                    isColorName(e.color)
-                                                        ? e.color
-                                                        : 'slate'
-                                                ].badge
-                                            }
-                                        >
-                                            {e.label ||
-                                                e.abbreviation ||
-                                                e.name}
-                                        </Badge>
-                                        <span className="sr-only">
-                                            {' '}
-                                            Farbe {e.color ?? 'keine'}
-                                        </span>
-                                    </td>
-                                    <td className="px-3 py-2 break-all">
-                                        {e.url}
-                                    </td>
-                                    <td className="px-3 py-2 tabular-nums">
-                                        {e.begriffe}
-                                    </td>
-                                    <td className="px-3 py-2 text-right whitespace-nowrap">
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => setBearbeiten(e.id)}
-                                        >
-                                            Bearbeiten
-                                        </Button>{' '}
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            disabled={e.begriffe > 0}
-                                            title={
-                                                e.begriffe > 0
-                                                    ? 'Wird noch verwendet'
-                                                    : undefined
-                                            }
-                                            onClick={() => {
-                                                if (
-                                                    window.confirm(
-                                                        `«${e.name}» löschen?`,
-                                                    )
-                                                ) {
-                                                    router.delete(
-                                                        `/admin/listen/${liste}/${e.id}`,
-                                                        {
-                                                            preserveScroll: true,
-                                                        },
-                                                    );
-                                                }
-                                            }}
-                                        >
-                                            Löschen
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ),
-                        )}
-                        {eintraege.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={8}
-                                    className="px-3 py-4 text-center text-muted-foreground"
-                                >
-                                    Noch keine Einträge.
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+                <h2 className="text-xl font-semibold">{TITEL[liste]}</h2>
+                <ExcelListe liste={liste} />
             </div>
+            <div className="mt-3">
+                <DataGrid
+                    id={`admin.lists.${liste}`}
+                    caption={TITEL[liste]}
+                    rows={eintraege}
+                    getRowId={(e: Eintrag) => e.id}
+                    empty="Noch keine Einträge."
+                    columns={[
+                        {
+                            id: 'kuerzel',
+                            header: 'Kürzel',
+                            width: 110,
+                            sticky: 'left',
+                            className: 'font-medium',
+                            noTranslate: true,
+                            sortValue: (e) => e.abbreviation,
+                            cell: (e) => e.abbreviation,
+                        },
+                        {
+                            id: 'bezeichnung',
+                            header: 'Bezeichnung',
+                            width: 240,
+                            sortValue: (e) => e.name,
+                            cell: (e) => e.name,
+                        },
+                        {
+                            id: 'schluessel',
+                            header: 'Schlüssel',
+                            width: 130,
+                            className: 'font-mono text-xs',
+                            sortValue: (e) => e.key,
+                            cell: (e) => e.key,
+                        },
+                        {
+                            id: 'label',
+                            header: 'Label',
+                            width: 130,
+                            sortValue: (e) => e.label,
+                            cell: (e) => e.label,
+                        },
+                        {
+                            id: 'farbe',
+                            header: 'Farbe',
+                            width: 150,
+                            sortValue: (e) => e.color,
+                            cell: (e) => (
+                                <>
+                                    <Badge
+                                        variant="outline"
+                                        className={
+                                            palette[
+                                                isColorName(e.color)
+                                                    ? e.color
+                                                    : 'slate'
+                                            ].badge
+                                        }
+                                    >
+                                        {e.label || e.abbreviation || e.name}
+                                    </Badge>
+                                    <span className="sr-only">
+                                        {' '}
+                                        Farbe {e.color ?? 'keine'}
+                                    </span>
+                                </>
+                            ),
+                        },
+                        {
+                            id: 'url',
+                            header: 'URL',
+                            width: 200,
+                            className: 'break-all',
+                            sortValue: (e) => e.url,
+                            cell: (e) => e.url,
+                        },
+                        {
+                            id: 'reihenfolge',
+                            header: 'Reihenfolge',
+                            width: 110,
+                            className: 'tabular-nums',
+                            sortValue: (e) => e.sort_order,
+                            cell: (e) => e.sort_order,
+                        },
+                        {
+                            id: 'begriffe',
+                            header: 'Begriffe',
+                            width: 100,
+                            className: 'tabular-nums',
+                            sortValue: (e) => e.begriffe,
+                            cell: (e) => e.begriffe,
+                        },
+                        {
+                            id: 'aktionen',
+                            label: 'Aktionen',
+                            header: <span className="sr-only">Aktionen</span>,
+                            width: 96,
+                            fixed: true,
+                            sticky: 'right',
+                            className: 'py-1 whitespace-nowrap',
+                            cell: (e) => (
+                                <div className="flex">
+                                    <IconAction
+                                        icon={Pencil}
+                                        label={`«${e.name}» bearbeiten`}
+                                        onClick={() => setBearbeiten(e.id)}
+                                    />
+                                    <IconAction
+                                        icon={Trash2}
+                                        destructive
+                                        label={
+                                            e.begriffe > 0
+                                                ? `«${e.name}» wird noch verwendet – nicht löschbar`
+                                                : `«${e.name}» löschen`
+                                        }
+                                        disabled={e.begriffe > 0}
+                                        onClick={() => {
+                                            if (
+                                                window.confirm(
+                                                    `«${e.name}» löschen?`,
+                                                )
+                                            ) {
+                                                router.delete(
+                                                    `/admin/listen/${liste}/${e.id}`,
+                                                    { preserveScroll: true },
+                                                );
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
+            </div>
+            {bearbeitet ? (
+                <div className="mt-3 rounded-lg border border-border p-4">
+                    <h3 className="mb-3 font-semibold">
+                        «{bearbeitet.name}» bearbeiten
+                    </h3>
+                    <Formular
+                        key={bearbeitet.id}
+                        liste={liste}
+                        farben={farben}
+                        eintrag={bearbeitet}
+                        onFertig={() => setBearbeiten(null)}
+                    />
+                </div>
+            ) : null}
             <details className="mt-3">
                 <summary className="cursor-pointer text-sm text-link">
                     Neuer Eintrag in «{TITEL[liste]}»
@@ -384,5 +402,46 @@ function Formular({
                 ) : null}
             </div>
         </form>
+    );
+}
+
+/** Excel-Export und -Import der Liste (#101); der Import zeigt zuerst eine Vorschau. */
+function ExcelListe({ liste }: { liste: Liste }) {
+    const form = useForm<{ datei: File | null }>({ datei: null });
+    const errors = form.errors as Record<string, string | undefined>;
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.post(`/admin/listen/${liste}/import`, { forceFormData: true });
+    };
+
+    return (
+        <div className="flex flex-wrap items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+                <a href={`/admin/listen/${liste}/export`}>Excel-Export</a>
+            </Button>
+            <form onSubmit={submit} className="flex items-center gap-2">
+                <Label htmlFor={`import-${liste}`} className="sr-only">
+                    Datei für den Import ({TITEL[liste]})
+                </Label>
+                <Input
+                    id={`import-${liste}`}
+                    type="file"
+                    accept=".xlsx,.csv"
+                    className="h-8 max-w-56 text-xs"
+                    onChange={(e) =>
+                        form.setData('datei', e.target.files?.[0] ?? null)
+                    }
+                />
+                <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    disabled={!form.data.datei || form.processing}
+                >
+                    Import prüfen
+                </Button>
+            </form>
+            <InputError message={errors.datei} />
+        </div>
     );
 }

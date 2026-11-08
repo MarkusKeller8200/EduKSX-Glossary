@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Source;
 use App\Models\Term;
+use App\Support\Settings;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\RedirectResponse;
@@ -27,13 +28,13 @@ class SourceCheckController extends Controller
         'offen' => 'offen',
     ];
 
-    /** Wiedervorlage nach Monaten. */
-    public const MONTHS = 12;
+    /** Wiedervorlage nach Monaten: Einstellung «source_check.months» (#106, Vorgabe 12). */
 
     /** Begriffe zur Wiedervorlage: Prüfung fehlt oder älter als ein Jahr, Status «zu prüfen», offiziell ohne amtlichen Beleg. */
     public function index(): Response
     {
-        $limit = CarbonImmutable::now()->subMonths(self::MONTHS);
+        $months = Settings::int('source_check.months');
+        $limit = CarbonImmutable::now()->subMonths($months);
         $rows = [];
         foreach (Term::query()->current()->with('sources')->get() as $term) {
             $reasons = [];
@@ -65,7 +66,7 @@ class SourceCheckController extends Controller
         }
         usort($rows, fn (array $a, array $b): int => strcmp((string) $a['aeltestes'], (string) $b['aeltestes']) ?: strcasecmp($a['titel'], $b['titel']));
 
-        return Inertia::render('admin/source-check', ['begriffe' => $rows, 'monate' => self::MONTHS]);
+        return Inertia::render('admin/source-check', ['begriffe' => $rows, 'monate' => $months]);
     }
 
     /** Prüfdatum, Belegstatus und Hinweis je Herkunft eines Begriffs speichern. */

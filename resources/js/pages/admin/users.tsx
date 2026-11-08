@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import DataGrid from '@/components/data-grid';
+import IconAction from '@/components/icon-action';
+import { Pencil } from 'lucide-react';
 
 type Konto = {
     id: string;
@@ -92,31 +95,24 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                 ))}
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                    <thead className="bg-muted text-left">
-                        <tr>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Name
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                E-Mail
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Rollen
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Status
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {liste.map((b) => (
-                            <tr
-                                key={b.id}
-                                className="border-t border-border align-top"
-                            >
-                                <td className="px-3 py-2 font-medium">
+            <div className="mt-4">
+                <DataGrid
+                    id="admin.users"
+                    caption="Benutzer"
+                    rows={liste}
+                    getRowId={(b: Konto) => b.id}
+                    empty="Keine Treffer."
+                    initialSort={{ id: 'name', desc: false }}
+                    columns={[
+                        {
+                            id: 'name',
+                            header: 'Name',
+                            width: 220,
+                            sticky: 'left',
+                            className: 'font-medium',
+                            sortValue: (b) => b.name,
+                            cell: (b) => (
+                                <>
                                     <Link
                                         href={`/admin/benutzer/${b.id}`}
                                         className="text-link underline-offset-4 hover:underline"
@@ -124,60 +120,82 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                                         {b.name}
                                     </Link>
                                     {b.einrichtung ? (
-                                        <span className="block text-muted-foreground">
+                                        <span className="block font-normal text-muted-foreground">
                                             {b.einrichtung}
                                         </span>
                                     ) : null}
-                                </td>
-                                <td className="px-3 py-2">{b.email}</td>
-                                <td className="px-3 py-2">
-                                    <div className="flex flex-wrap gap-1">
-                                        {b.rollen.length === 0 ? (
-                                            <span className="text-muted-foreground">
-                                                ohne Rolle
-                                            </span>
-                                        ) : (
-                                            b.rollen.map((r) => (
-                                                <Badge
-                                                    key={r}
-                                                    variant="outline"
-                                                >
-                                                    {r}
-                                                </Badge>
-                                            ))
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="px-3 py-2">
-                                    <div className="flex flex-wrap gap-1">
-                                        {b.status === 'blocked' ? (
-                                            <Badge variant="secondary">
-                                                gesperrt
+                                </>
+                            ),
+                        },
+                        {
+                            id: 'email',
+                            header: 'E-Mail',
+                            width: 240,
+                            sortValue: (b) => b.email,
+                            cell: (b) => b.email,
+                        },
+                        {
+                            id: 'rollen',
+                            header: 'Rollen',
+                            width: 220,
+                            sortValue: (b) => b.rollen.join(', '),
+                            cell: (b) => (
+                                <div className="flex flex-wrap gap-1">
+                                    {b.rollen.length === 0 ? (
+                                        <span className="text-muted-foreground">
+                                            ohne Rolle
+                                        </span>
+                                    ) : (
+                                        b.rollen.map((r) => (
+                                            <Badge key={r} variant="outline">
+                                                {r}
                                             </Badge>
-                                        ) : (
-                                            <span>aktiv</span>
-                                        )}
-                                        {b.zweiter_faktor ? null : (
-                                            <Badge variant="outline">
-                                                ohne zweiten Faktor
-                                            </Badge>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                        {liste.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={4}
-                                    className="px-3 py-6 text-center text-muted-foreground"
-                                >
-                                    Keine Treffer.
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
+                                        ))
+                                    )}
+                                </div>
+                            ),
+                        },
+                        {
+                            id: 'status',
+                            header: 'Status',
+                            width: 200,
+                            sortValue: (b) =>
+                                `${b.status}${b.zweiter_faktor ? '' : ' ohne2fa'}`,
+                            cell: (b) => (
+                                <div className="flex flex-wrap gap-1">
+                                    {b.status === 'blocked' ? (
+                                        <Badge variant="secondary">
+                                            gesperrt
+                                        </Badge>
+                                    ) : (
+                                        <span>aktiv</span>
+                                    )}
+                                    {b.zweiter_faktor ? null : (
+                                        <Badge variant="outline">
+                                            ohne zweiten Faktor
+                                        </Badge>
+                                    )}
+                                </div>
+                            ),
+                        },
+                        {
+                            id: 'aktionen',
+                            label: 'Aktionen',
+                            header: <span className="sr-only">Aktionen</span>,
+                            width: 56,
+                            fixed: true,
+                            sticky: 'right',
+                            className: 'py-1',
+                            cell: (b) => (
+                                <IconAction
+                                    icon={Pencil}
+                                    label={`${b.name}: Rollen und Konto`}
+                                    href={`/admin/benutzer/${b.id}`}
+                                />
+                            ),
+                        },
+                    ]}
+                />
             </div>
         </>
     );
