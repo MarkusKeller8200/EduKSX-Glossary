@@ -1,6 +1,6 @@
-# Konzept Einbindung: Permalink, Renderer, Browser-Erweiterung (DEC-026, Entwurf)
+# Konzept Einbindung: Permalink, Renderer, Browser-Erweiterung (DEC-026)
 
-Stand: Entwurf 08.11.2026 zur Abnahme (#153, #154, #155). Umsetzung erst nach Freigabe.
+Stand: beschlossen 08.11.2026 (#153, #154, #155); Präfix «g» für Glossary.
 
 ## Ziel
 
@@ -127,7 +127,17 @@ Drei Wege, von einfach bis kontrolliert:
   Dritter an uns senden (Datenschutz, Last). Nicht vorgesehen; bei Bedarf ein eigenes Paket für Node/PHP mit
   demselben Kern.
 
-## Entscheide (zur Abnahme)
+## 5. API für Entwickler (#157, #158, #159)
+
+- **Anpassungen:** Felder `code` und `permalink` je Begriff; `/api/v1/terms/{idOrSlug}` akzeptiert auch den Code;
+  kompakter Index `/api/v1/index` mit ETag; CORS erlaubt zusätzlich `Authorization` (Organisations-API aus
+  Browser-Anwendungen, weiterhin ohne Cookies).
+- **Swagger-Seite** `/api/swagger`: Swagger UI, selbst ausgeliefert, mit «Try it out» und «Authorize» für Token
+  (nur im Browser, nicht gespeichert). Die bisherige Dokumentation `/api/docs` bleibt.
+- **Postman-Sammlung** `/api/postman.json` (Collection v2.1), aus der OpenAPI-Beschreibung erzeugt, mit Variablen
+  `baseUrl` und `token`; die CI prüft, dass jeder Endpunkt enthalten ist.
+
+## Entscheide (abgenommen 08.11.2026)
 
 | Nr. | Vorschlag                                                                                            |
 | --- | ---------------------------------------------------------------------------------------------------- |
@@ -138,6 +148,7 @@ Drei Wege, von einfach bis kontrolliert:
 | E5  | Erweiterung mit Manifest V3, Standard `activeTab` + Freigabe je Website; Chrome, Edge, Firefox       |
 | E6  | Erklärbox per Hover und Tastatur, mit Permalink und Quellenhinweis CC BY 4.0                         |
 | E7  | Einbindung per Script (automatisch im Bereich) und `<glossary-term>`; versioniert, SRI, ohne Cookies |
+| E9  | Swagger-Seite mit «Try it out» und Postman-Sammlung zum Import (Chat 08.11.2026)                     |
 | E8  | Darstellung der Organisation in der Erweiterung erst in einer späteren Phase (Token `read-org`)      |
 
 ## Reihenfolge
