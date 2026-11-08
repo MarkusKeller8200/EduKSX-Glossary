@@ -6,6 +6,17 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Permalink (#154, DEC-026):** Jeder Begriff hat eine kurze, unveränderliche Adresse `/g/{Code}` («g» für
+  Glossary), z. B. `/g/7KQ2MX`; leitet auch nach dem Zusammenführen weiter. Auf der Seite des Begriffs mit «Link
+  kopieren».
+- **API (#159):** Felder `code` und `permalink`, Abruf über den Code, kompakter Index `/api/v1/index` mit ETag für
+  Renderer und Browser-Erweiterung; CORS erlaubt `Authorization`.
+- **Swagger-Seite (#157):** `/api/swagger` mit «Try it out» und «Authorize» für Token, selbst ausgeliefert.
+- **Postman-Sammlung (#158):** `/api/postman.json` zum Import mit Variablen `baseUrl` und `token`; aus der
+  OpenAPI-Beschreibung erzeugt (`scripts/postman.py`), die CI prüft den Stand.
+
 ## [0.8.0] – 2026-11-08
 
 ### Neu

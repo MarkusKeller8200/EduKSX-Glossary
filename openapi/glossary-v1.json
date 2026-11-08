@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "EduKSX-Glossary API",
-    "version": "0.3.0-preview",
+    "version": "0.4.0-preview",
     "summary": "Öffentliche Lese-API des EduKSX-Glossary",
     "description": "Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.\n\n- Liefert **nur veröffentlichte** Daten (freigegebene Revisionen). Entwürfe, Vorschläge, redaktionelle Notizen, persönliche Darstellungen und das Änderungsjournal sind nie enthalten.\n- Lesen ohne Schlüssel; Rate-Limit 120 Abrufe pro Minute und Adresse.\n- Jede Antwort hat einen **ETag**; mit `If-None-Match` kommt bei unverändertem Inhalt `304`.\n- Fehler als `application/problem+json` (RFC 9457).\n- **Sync** (z. B. Intranet): einmal `/exports?format=json` (Vollstand), danach periodisch `/changes?since=<next_cursor>`; `/releases/latest` zeigt günstig, ob sich etwas geändert hat.\n- **Vorschau:** Bis zum öffentlichen Betrieb können sich Felder und Endpunkte noch ändern (Hinweise im CHANGELOG). Danach gilt die Stabilitätszusage: `/api/v1` bleibt rückwärtskompatibel (Felder kommen nur dazu), Brüche nur in `/api/v2` mit mindestens 12 Monaten Parallelbetrieb.\n- Keine Zusage zur Verfügbarkeit: Abnehmer halten einen lokalen Stand.\n- **Daten unter CC BY 4.0** – Nennung «EduKSX-Glossary, glossary.eduksx.ch».\n\nKonzept: docs/KONZEPT-API.md im Repository.",
     "contact": {
@@ -188,7 +188,7 @@
             "name": "idOrSlug",
             "in": "path",
             "required": true,
-            "description": "UUID oder Slug",
+            "description": "UUID, Slug oder Code des Permalinks",
             "schema": {
               "type": "string"
             },
@@ -238,6 +238,7 @@
                   "data": {
                     "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
                     "slug": "klassenlehrperson",
+                    "code": "7KQ2MX",
                     "abbreviation": "KLP",
                     "name": "Klassenlehrperson",
                     "official_abbreviation": "KLP",
@@ -289,7 +290,8 @@
                     "revision": 3,
                     "published_at": "2026-11-07T00:00:00Z",
                     "updated_at": "2026-11-06T14:30:00Z",
-                    "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson"
+                    "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson",
+                    "permalink": "https://glossary.eduksx.ch/g/7KQ2MX"
                   }
                 }
               }
@@ -314,6 +316,123 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/v1/index": {
+      "get": {
+        "tags": [
+          "Begriffe"
+        ],
+        "summary": "Kompakter Index für Renderer und Browser-Erweiterung",
+        "operationId": "getIndex",
+        "description": "Alle veröffentlichten Begriffe mit den Angaben zum Erkennen und für die Erklärbox (DEC-026). Mit ETag; Abnehmer laden ihn höchstens einmal täglich bzw. nach neuem Datenstand (Kopfzeile X-Glossary-Release).",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Index",
+            "headers": {
+              "ETag": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Glossary-Release": {
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "release": {
+                      "type": "integer"
+                    },
+                    "license": {
+                      "type": "object"
+                    },
+                    "terms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "example": "7KQ2MX"
+                          },
+                          "abbreviation": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "example": "SL"
+                          },
+                          "name": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "example": "Schulleitung"
+                          },
+                          "aliases": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "short_description": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "is_ambiguous": {
+                            "type": "boolean"
+                          },
+                          "categories": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "permalink": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uri",
+                            "example": "https://glossary.eduksx.ch/g/7KQ2MX"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Nicht geändert (ETag stimmt)"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           }
         }
       }
@@ -1071,6 +1190,15 @@
             "type": "string",
             "description": "Stabiler Teil der Adresse /begriffe/{slug}"
           },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9A-HJKMNP-TV-Z]{6}$",
+            "description": "Code des Permalinks (6 Zeichen, Crockford-Base32), unveränderlich",
+            "example": "7KQ2MX"
+          },
           "abbreviation": {
             "type": [
               "string",
@@ -1219,11 +1347,21 @@
           "web_url": {
             "type": "string",
             "format": "uri"
+          },
+          "permalink": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "description": "Kurze, unveränderliche Adresse des Begriffs (/g/{code}); leitet auf die Seite des Begriffs",
+            "example": "https://glossary.eduksx.ch/g/7KQ2MX"
           }
         },
         "example": {
           "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
           "slug": "klassenlehrperson",
+          "code": "7KQ2MX",
           "abbreviation": "KLP",
           "name": "Klassenlehrperson",
           "official_abbreviation": "KLP",
@@ -1275,7 +1413,8 @@
           "revision": 3,
           "published_at": "2026-11-07T00:00:00Z",
           "updated_at": "2026-11-06T14:30:00Z",
-          "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson"
+          "web_url": "https://glossary.eduksx.ch/begriffe/klassenlehrperson",
+          "permalink": "https://glossary.eduksx.ch/g/7KQ2MX"
         }
       },
       "TermPage": {

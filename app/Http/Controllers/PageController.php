@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Glossary\FieldGuide;
+use App\Glossary\Permalink;
 use App\Glossary\PublicGlossary;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\AppVersion;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -39,6 +41,22 @@ class PageController extends Controller
         }
 
         return $this->personal(Inertia::render('term', ['begriff' => $term])->toResponse($request), $user);
+    }
+
+    /**
+     * Permalink /g/{code} (#154, DEC-026): leitet auf die Seite des Begriffs; zusammengeführte Begriffe auf den
+     * verbleibenden. Nur veröffentlichte, öffentlich sichtbare Begriffe; sonst 404.
+     */
+    public function permalink(string $code, PublicGlossary $glossary): RedirectResponse
+    {
+        $normalized = Permalink::normalize($code);
+        $term = $normalized === null ? null : Term::query()->where('code', $normalized)->first();
+        if ($term !== null && $term->merged_into_id !== null) {
+            $term = $term->mergeTarget();
+        }
+        abort_if($term === null || $glossary->find($term->slug) === null, 404);
+
+        return redirect("/begriffe/{$term->slug}", 302);
     }
 
     /** Angemeldet enthält die Antwort die persönliche Darstellung (DEC-020): nie zwischenspeichern. */
