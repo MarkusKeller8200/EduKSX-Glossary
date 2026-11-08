@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.7.0] – 2026-11-08
+
 ### Neu
 
 - **Hilfe (#135):** Seite «Hilfe» mit allen Feldern eines Begriffs – Bedeutung, Format und Beispiel, Pflicht,
