@@ -121,33 +121,38 @@ final class Settings
 
     private static function validate(string $key, mixed $value): mixed
     {
+        /** @var array<string, mixed> $def */
         $def = self::DEFINITIONS[$key];
+        $label = (string) $def['label'];
+        $min = (int) ($def['min'] ?? 0);
+        $max = (int) ($def['max'] ?? PHP_INT_MAX);
 
-        return match ($def['typ']) {
-            'int' => (function () use ($def, $value): int {
-                if (! is_numeric($value) || (int) $value != $value || (int) $value < ($def['min'] ?? 0) || (int) $value > ($def['max'] ?? PHP_INT_MAX)) {
-                    throw new InvalidArgumentException("«{$def['label']}»: ganze Zahl von ".($def['min'] ?? 0).' bis '.($def['max'] ?? '…').'.');
+        return match ((string) $def['typ']) {
+            'int' => (function () use ($label, $min, $max, $value): int {
+                if (! is_numeric($value) || (int) $value != $value || (int) $value < $min || (int) $value > $max) {
+                    throw new InvalidArgumentException("«{$label}»: ganze Zahl von {$min} bis {$max}.");
                 }
 
                 return (int) $value;
             })(),
             'bool' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
-            'repo' => (function () use ($def, $value): string {
+            'repo' => (function () use ($label, $value): string {
                 $v = trim((string) $value);
                 if ($v !== '' && preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $v) !== 1) {
-                    throw new InvalidArgumentException("«{$def['label']}»: Form «Besitzer/Repository».");
+                    throw new InvalidArgumentException("«{$label}»: Form «Besitzer/Repository».");
                 }
 
                 return $v;
             })(),
-            'url' => (function () use ($def, $value): string {
+            'url' => (function () use ($label, $value): string {
                 $v = trim((string) $value);
                 if ($v !== '' && preg_match('#^https://\S+$#i', $v) !== 1) {
-                    throw new InvalidArgumentException("«{$def['label']}»: Adresse mit https://.");
+                    throw new InvalidArgumentException("«{$label}»: Adresse mit https://.");
                 }
 
                 return $v;
             })(),
+            default => throw new InvalidArgumentException("Unbekannter Typ der Einstellung «{$key}»."),
         };
     }
 
