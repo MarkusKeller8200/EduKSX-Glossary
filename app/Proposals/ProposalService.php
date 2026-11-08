@@ -86,7 +86,7 @@ final class ProposalService
         $label = $service !== null ? 'Servicekonto «'.$service->name.'»' : (string) Journal::actorLabel($user);
         // Mitglieder einer Organisation: zuerst Bestätigung durch einen Organisations-Admin (#148); Vorschläge von
         // Organisations-Admins und Servicekonten gehen direkt in die Moderation
-        $member = $service === null && $user !== null ? app(OrganizationService::class)->membershipOf($user) : null;
+        $member = $service === null ? app(OrganizationService::class)->membershipOf($user) : null;
         $member = $member !== null && $member->isActive() ? $member : null;
         $status = $member !== null && ! $member->isAdmin() ? Proposal::ORG_REVIEW : 'eingereicht';
 
@@ -336,7 +336,7 @@ final class ProposalService
      * Vorschläge, die auf die Organisation warten, direkt in die Moderation geben (Austritt, Entfernen, Organisation
      * gelöscht).
      *
-     * @param  list<int>  $ids
+     * @param  array<int, int>  $ids
      */
     public static function forwardFromOrganization(array $ids, string $reason): void
     {

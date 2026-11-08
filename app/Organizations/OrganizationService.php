@@ -172,7 +172,7 @@ final class OrganizationService
             return [];
         }
 
-        return array_values(array_map(fn (OrganizationInvitation $i): string => $i->organization->name, $this->invitationsFor($user)));
+        return array_map(fn (OrganizationInvitation $i): string => $i->organization->name, $this->invitationsFor($user));
     }
 
     /**
