@@ -69,6 +69,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Behoben
 
+- **Korrektur vorschlagen (#133):** Die Seite bricht bei älteren Begriffen (Abbild vor DEC-020) nicht mehr ab.
+
 - **Tabellenbreite (#123):** Tabellen der Administration füllen bei «Ganze Breite» den ganzen Platz; die breiteste
   Textspalte nimmt den freien Platz auf.
 

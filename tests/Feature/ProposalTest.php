@@ -234,4 +234,26 @@ class ProposalTest extends TestCase
         $this->assertSame(Proposal::ANONYMOUS, $fresh->author_label);
         $this->assertSame('Neu', $fresh->changes['description']);
     }
+
+    public function test_korrektur_bei_altem_abbild_ohne_listenfelder(): void
+    {
+        $term = $this->published();
+        // Abbild wie vor DEC-020 (#84): ohne alternative_aliases und categories (#133)
+        $revision = $term->publishedRevision;
+        $this->assertNotNull($revision);
+        $snapshot = $revision->snapshot;
+        unset($snapshot['alternative_aliases'], $snapshot['categories']);
+        $revision->newQuery()->whereKey($revision->id)->toBase()->update(['snapshot' => json_encode($snapshot)]);
+
+        $this->actingAs($this->benutzer());
+        $this->get("/vorschlaege/neu?begriff={$term->slug}")->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->component('proposals/create')->where('werte.alternative_aliases', [])->where('werte.categories', [])
+            ->where('werte.official_name', 'Schulleitung'));
+
+        $this->post('/vorschlaege', [
+            'begriff' => $term->slug,
+            'werte' => ['official_name' => 'Schulleitung', 'alternative_aliases' => '', 'categories' => [], 'short_description' => 'Neu'],
+        ])->assertRedirect();
+        $this->assertSame(['short_description' => 'Neu'], Proposal::query()->latest('id')->firstOrFail()->changes);
+    }
 }
