@@ -5,6 +5,7 @@ namespace App\Glossary;
 use App\Models\Category;
 use App\Models\PublicationRelease;
 use App\Models\Source;
+use Closure;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -17,16 +18,16 @@ final class PublicCache
 {
     private const TTL = 3600;
 
-    /** @var array<string, string> Schlüssel je Anfrage nur einmal berechnen */
+    /** @var array<int, string> Schlüssel je Anfrage nur einmal berechnen */
     private array $keys = [];
 
     /**
      * @template T
      *
-     * @param  callable(): T  $build
+     * @param  Closure(): T  $build
      * @return T
      */
-    public function remember(string $name, callable $build): mixed
+    public function remember(string $name, Closure $build): mixed
     {
         return Cache::remember($this->key().':'.$name, self::TTL, $build);
     }

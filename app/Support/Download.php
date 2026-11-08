@@ -16,7 +16,7 @@ final class Download
      */
     public static function table(string $format, array $header, iterable $rows, string $name, string $sheet = 'Glossary'): Response
     {
-        $rows = array_map(fn (array $r): array => array_values(array_map('strval', $r)), [...$rows]);
+        $rows = array_values(array_map(fn (array $r): array => array_values(array_map('strval', $r)), [...$rows]));
 
         return match ($format) {
             'csv' => self::file(Csv::make($header, $rows), 'text/csv; charset=UTF-8', $name.'.csv'),
