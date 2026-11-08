@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import ExportMenu from '@/components/export-menu';
+import LabelFilter from '@/components/label-filter';
 import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -12,6 +13,7 @@ type Begriff = {
     bezeichnung: string;
     kurz: string;
     kategorien: string[];
+    herkunft: string[];
     status: string;
     suche: string;
 };
@@ -35,12 +37,21 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     const [suche, setSuche] = useState('');
     const [pdf, setPdf] = useState(false);
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
-    const [kategorie, setKategorie] = useState<string | null>(null);
+    // Filter Kategorie und Herkunft, Mehrfachauswahl (#145)
+    const [gewaehlt, setGewaehlt] = useState<string[]>([]);
+    const [herkunft, setHerkunft] = useState<string[]>([]);
 
     const kategorien = useMemo(
         () =>
             [...new Set(begriffe.flatMap((b) => b.kategorien))].sort((a, b) =>
                 a.localeCompare(b, 'de-CH'),
+            ),
+        [begriffe],
+    );
+    const herkuenfte = useMemo(
+        () =>
+            [...new Set(begriffe.flatMap((b) => b.herkunft ?? []))].sort(
+                (a, b) => a.localeCompare(b, 'de-CH'),
             ),
         [begriffe],
     );
@@ -51,7 +62,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
         (b) =>
             (q === '' || b.suche.includes(q)) &&
             (buchstabe === null || initial(b) === buchstabe) &&
-            (kategorie === null || b.kategorien.includes(kategorie)),
+            (gewaehlt.length === 0 ||
+                b.kategorien.some((k) => gewaehlt.includes(k))) &&
+            (herkunft.length === 0 ||
+                b.herkunft.some((h) => herkunft.includes(h))),
     );
 
     return (
@@ -120,32 +134,22 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 ))}
             </nav>
 
-            {kategorien.length > 0 ? (
-                <div
-                    className="mt-3 flex flex-wrap gap-2"
-                    role="group"
-                    aria-label="Kategorie"
-                >
-                    {kategorien.map((k) => (
-                        <button
-                            key={k}
-                            type="button"
-                            aria-pressed={kategorie === k}
-                            onClick={() =>
-                                setKategorie(kategorie === k ? null : k)
-                            }
-                            className={cn(
-                                'rounded-full border border-border px-3 py-1 text-sm',
-                                kategorie === k
-                                    ? 'border-transparent bg-secondary font-medium text-secondary-foreground'
-                                    : 'hover:bg-accent hover:text-accent-foreground',
-                            )}
-                        >
-                            {k}
-                        </button>
-                    ))}
-                </div>
-            ) : null}
+            <div className="mt-3 grid gap-2">
+                <LabelFilter
+                    list="kategorien"
+                    title="Kategorie"
+                    labels={kategorien}
+                    selected={gewaehlt}
+                    onChange={setGewaehlt}
+                />
+                <LabelFilter
+                    list="herkunft"
+                    title="Herkunft"
+                    labels={herkuenfte}
+                    selected={herkunft}
+                    onChange={setHerkunft}
+                />
+            </div>
 
             <p
                 className="mt-6 text-sm text-muted-foreground"

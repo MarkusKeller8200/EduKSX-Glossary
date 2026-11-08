@@ -6,6 +6,17 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Kopfzeile (#146):** auf Website und Administration gleich – Titel, Ansicht, Farbschema, angemeldete Person mit
+  Rolle bzw. «Gast», Anmelden/Abmelden.
+- **Ansicht (#142, #144):** Mobil, Darstellungsoptimiert, Breit und Voll als Symbole; «Voll» und «System» mit eigenen
+  Symbolen. Formulare und Detailseiten bleiben bei «Breit» und «Voll» optimiert breit und zentriert.
+- **Filter (#145):** Kategorie und Herkunft als farbige Labels in der Listenfarbe, Mehrfachauswahl, Zurücksetzen –
+  auf der Startseite und in der Begriffstabelle.
+- **Begriffstabelle (#143):** Darstellung (Tabelle/Kacheln), Gruppierung und Sortierung in einem Menü «Ansicht» mit
+  «Ansicht zurücksetzen».
+
 ## [0.7.0] – 2026-11-08
 
 ### Neu

@@ -7,14 +7,15 @@ import {
     StateBadge,
     StatusBadge,
 } from '@/components/tags';
-import DataGrid from '@/components/data-grid';
+import DataGrid, { type GridSort } from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
 import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import IconAction from '@/components/icon-action';
+import LabelFilter from '@/components/label-filter';
+import ViewMenu, { type ViewLayout } from '@/components/view-menu';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { NativeSelect } from '@/components/ui/native-select';
 import { can } from '@/lib/access';
 
 type Begriff = {
@@ -23,6 +24,7 @@ type Begriff = {
     bezeichnung: string;
     kurz: string;
     kategorien: string[];
+    herkunft: string[];
     status: string;
     aktiv: boolean;
     revision: number;
@@ -106,15 +108,40 @@ export default function Terms({
     // sichtbare Zeilen in angezeigter Reihenfolge (Suche, Gruppen, Sortierung) für den Export (#131)
     const [sichtbar, setSichtbar] = useState<string[]>([]);
     const [suche, setSuche] = useState('');
-    const [gruppierung, setGruppierung] = useState<Gruppierung>('');
+    // Ansicht (#143): Darstellung, Gruppierung und Sortierung in einem Element, im Browser gemerkt
+    const [ansicht, setAnsicht] = useState<Ansicht>(ladeAnsicht);
+    const gruppierung = ansicht.gruppierung;
+    const aendern = (teil: Partial<Ansicht>) =>
+        setAnsicht((alt) => {
+            const neu = { ...alt, ...teil };
+            speichereAnsicht(neu);
+
+            return neu;
+        });
+    const [resetToken, setResetToken] = useState(0);
+    // Filter Kategorie und Herkunft (#145)
+    const [kategorien, setKategorien] = useState<string[]>([]);
+    const [herkunft, setHerkunft] = useState<string[]>([]);
     const q = suche.trim().toLowerCase();
-    const liste = q
-        ? begriffe.filter((b) =>
-              `${b.abkuerzung} ${b.bezeichnung} ${b.kurz} ${b.kategorien.join(' ')}`
-                  .toLowerCase()
-                  .includes(q),
-          )
-        : begriffe;
+    const liste = begriffe.filter(
+        (b) =>
+            (!q ||
+                `${b.abkuerzung} ${b.bezeichnung} ${b.kurz} ${b.kategorien.join(' ')}`
+                    .toLowerCase()
+                    .includes(q)) &&
+            (kategorien.length === 0 ||
+                b.kategorien.some((k) => kategorien.includes(k))) &&
+            (herkunft.length === 0 ||
+                b.herkunft.some((h) => herkunft.includes(h))),
+    );
+    const alleKategorien = useMemo(
+        () => labelsAus(begriffe.flatMap((b) => b.kategorien)),
+        [begriffe],
+    );
+    const alleHerkunft = useMemo(
+        () => labelsAus(begriffe.flatMap((b) => b.herkunft)),
+        [begriffe],
+    );
     const gruppen = useMemo(
         () => gruppieren(liste, gruppierung),
         [liste, gruppierung],
@@ -219,21 +246,34 @@ export default function Terms({
                         onChange={(e) => setSuche(e.target.value)}
                     />
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                    <span className="text-muted-foreground">Gruppieren</span>
-                    <NativeSelect
-                        value={gruppierung}
-                        onChange={(e) =>
-                            setGruppierung(e.target.value as Gruppierung)
-                        }
-                    >
-                        {(Object.keys(GRUPPEN) as Gruppierung[]).map((g) => (
-                            <option key={g} value={g}>
-                                {GRUPPEN[g]}
-                            </option>
-                        ))}
-                    </NativeSelect>
-                </label>
+                <ViewMenu
+                    layout={ansicht.layout}
+                    onLayout={(layout) => aendern({ layout })}
+                    groups={(Object.keys(GRUPPEN) as Gruppierung[]).map(
+                        (g) => ({
+                            value: g,
+                            label: g === '' ? 'keine' : GRUPPEN[g],
+                        }),
+                    )}
+                    group={gruppierung}
+                    onGroup={(g) => aendern({ gruppierung: g as Gruppierung })}
+                    sorts={SORTIERUNG}
+                    sort={ansicht.sort}
+                    onSort={(sort) => aendern({ sort })}
+                    changed={
+                        JSON.stringify(ansicht) !== JSON.stringify(VORGABE) ||
+                        suche !== '' ||
+                        kategorien.length > 0 ||
+                        herkunft.length > 0
+                    }
+                    onReset={() => {
+                        aendern(VORGABE);
+                        setSuche('');
+                        setKategorien([]);
+                        setHerkunft([]);
+                        setResetToken((t) => t + 1);
+                    }}
+                />
                 {darfVeroeffentlichen ? (
                     <>
                         <Button variant="outline" onClick={entwuerfeWaehlen}>
@@ -249,11 +289,33 @@ export default function Terms({
                 ) : null}
             </div>
 
+            <div className="mt-3 grid gap-2">
+                <LabelFilter
+                    list="kategorien"
+                    title="Kategorie"
+                    labels={alleKategorien}
+                    selected={kategorien}
+                    onChange={setKategorien}
+                />
+                <LabelFilter
+                    list="herkunft"
+                    title="Herkunft"
+                    labels={alleHerkunft}
+                    selected={herkunft}
+                    onChange={setHerkunft}
+                />
+            </div>
+
             <div className="mt-4">
                 <DataGrid
                     id="admin.terms"
                     caption="Begriffe"
                     getRowId={(b: Begriff) => b.id}
+                    sort={ansicht.sort}
+                    onSortChange={(sort) => aendern({ sort })}
+                    layout={ansicht.layout}
+                    resetToken={resetToken}
+                    renderCard={(b) => <Kachel begriff={b} />}
                     onVisibleRows={(rows) =>
                         setSichtbar([...new Set(rows.map((b) => b.id))])
                     }
@@ -424,6 +486,99 @@ export default function Terms({
                 />
             </div>
         </>
+    );
+}
+
+type Ansicht = {
+    layout: ViewLayout;
+    gruppierung: Gruppierung;
+    sort: GridSort;
+};
+
+const VORGABE: Ansicht = { layout: 'table', gruppierung: '', sort: null };
+const ANSICHT_KEY = 'glossary.admin.terms.view';
+
+/** Sortierbare Spalten für das Ansichtsmenü (gleiche IDs wie in der Tabelle). */
+const SORTIERUNG = [
+    { id: 'abkuerzung', label: 'Abkürzung' },
+    { id: 'bezeichnung', label: 'Bezeichnung' },
+    { id: 'kurz', label: 'Kurzbeschreibung' },
+    { id: 'kategorien', label: 'Kategorien' },
+    { id: 'status', label: 'Status' },
+    { id: 'veroeffentlicht', label: 'Veröffentlicht' },
+    { id: 'geaendert', label: 'Geändert' },
+];
+
+function ladeAnsicht(): Ansicht {
+    try {
+        const saved = JSON.parse(
+            localStorage.getItem(ANSICHT_KEY) ?? '{}',
+        ) as Partial<Ansicht>;
+
+        return {
+            layout: saved.layout === 'cards' ? 'cards' : 'table',
+            gruppierung:
+                saved.gruppierung && saved.gruppierung in GRUPPEN
+                    ? saved.gruppierung
+                    : '',
+            sort:
+                saved.sort && SORTIERUNG.some((x) => x.id === saved.sort?.id)
+                    ? saved.sort
+                    : null,
+        };
+    } catch {
+        return VORGABE;
+    }
+}
+
+function speichereAnsicht(ansicht: Ansicht) {
+    try {
+        localStorage.setItem(ANSICHT_KEY, JSON.stringify(ansicht));
+    } catch {
+        // ohne Speicher gilt die Ansicht bis zum Neuladen
+    }
+}
+
+/** Labels einmal, alphabetisch. */
+function labelsAus(labels: string[]): string[] {
+    return [...new Set(labels)].sort((a, b) => a.localeCompare(b, 'de-CH'));
+}
+
+/** Kachel der Begriffstabelle (#143). */
+function Kachel({ begriff: b }: { begriff: Begriff }) {
+    return (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+                <Link
+                    href={`/admin/begriffe/${b.id}`}
+                    className="font-semibold text-link underline-offset-4 hover:underline"
+                    translate="no"
+                >
+                    {[b.abkuerzung, b.bezeichnung]
+                        .filter(Boolean)
+                        .join(' – ') || '(ohne Bezeichnung)'}
+                </Link>
+                {b.kurz ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {b.kurz}
+                    </p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-1">
+                    <ListBadges list="kategorien" labels={b.kategorien} />
+                </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+                <StatusBadge status={b.status} />
+                <RevisionBadges
+                    published={b.veroeffentlicht}
+                    revision={b.revision}
+                    draft={b.entwurf}
+                />
+                {!b.aktiv ? (
+                    <StateBadge state="inactive">inaktiv</StateBadge>
+                ) : null}
+            </div>
+        </div>
     );
 }
 

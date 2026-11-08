@@ -49,7 +49,7 @@ class TermController extends Controller
 
     public function index(): Response
     {
-        $terms = Term::query()->current()->with(['categories', 'publishedRevision', 'latestRevision'])->get()
+        $terms = Term::query()->current()->with(['categories', 'sources', 'publishedRevision', 'latestRevision'])->get()
             ->sortBy(fn (Term $t): string => mb_strtolower($t->displayAbbreviation() ?: $t->displayName()))
             ->values()
             ->map(fn (Term $t): array => [
@@ -58,6 +58,7 @@ class TermController extends Controller
                 'bezeichnung' => $t->displayName(),
                 'kurz' => (string) $t->short_description,
                 'kategorien' => $t->categories->map(fn (Category $c): string => $c->displayLabel())->all(),
+                'herkunft' => $t->sources->map(fn (Source $c): string => $c->displayLabel())->values()->all(),
                 'status' => Term::STATUS[$t->lifecycle_status] ?? $t->lifecycle_status,
                 'aktiv' => $t->is_active,
                 'revision' => $t->revision,
