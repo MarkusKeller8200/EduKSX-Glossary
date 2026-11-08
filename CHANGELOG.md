@@ -36,8 +36,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   und Status als farbige Labels.
 - **Herkunft vor Kategorie (#162):** auf der Startseite (Filter und Liste), in der Begriffstabelle (neue Spalte
   Herkunft) und auf der Detailseite.
-- **Hilfe (#164):** Gültig ab/bis, Revision, Veröffentlicht und Stand je eine Zeile; neue Gruppen «Meine
-  Darstellung» und «Organisation».
+- **Hilfe (#164, #166):** Reiter je Rolle (Gast / Benutzer, Organisations-Admin, Moderator; Admin und Developer nur
+  mit dieser Rolle) mit den passenden Feldern und Abläufen; Gültig ab/bis, Revision, Veröffentlicht und Stand je eine
+  Zeile; neue Gruppen «Meine Darstellung» und «Organisation».
 
 ## [0.8.0] – 2026-11-08
 

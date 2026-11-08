@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Glossary\ApiPresenter;
 use App\Glossary\ExcelFormat;
 use App\Glossary\FieldGuide;
+use App\Models\Role;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -37,5 +38,19 @@ class HelpTest extends TestCase
         foreach (array_diff(ApiPresenter::PUBLIC_TERM_FIELDS, $derived) as $field) {
             $this->assertContains($field, $api, "API-Feld «{$field}» fehlt in der Hilfe");
         }
+    }
+
+    /** Reiter je Rolle (#166): Admin und Developer nur mit dieser Rolle. */
+    public function test_reiter_je_rolle(): void
+    {
+        $keys = fn (array $reiter): array => array_column($reiter, 'key');
+        $this->get('/hilfe')->assertInertia(fn (Assert $p) => $p->where('reiter', fn ($r): bool => $keys(collect($r)->toArray()) === ['benutzer', 'org-admin', 'moderator']));
+
+        $this->actingAs($this->admin())->get('/hilfe')
+            ->assertInertia(fn (Assert $p) => $p->where('reiter', fn ($r): bool => $keys(collect($r)->toArray()) === ['benutzer', 'org-admin', 'moderator', 'admin']));
+
+        $this->actingAs($this->userWithRoles([Role::DEVELOPER], 'dev@example.org'))->get('/hilfe')
+            ->assertInertia(fn (Assert $p) => $p->where('reiter', fn ($r): bool => in_array('developer', $keys(collect($r)->toArray()), true))
+                ->where('weiteres', fn ($w): bool => collect($w)->contains('tab', 'developer')));
     }
 }
