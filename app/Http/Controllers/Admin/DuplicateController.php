@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
-use App\Models\User;
 use DateTimeInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +39,7 @@ class DuplicateController extends Controller
     {
         $data = $request->validate(['signatur' => ['required', 'string', 'size:64']]);
         try {
-            $this->duplicates->dismiss($data['signatur'], $this->user($request));
+            $this->duplicates->dismiss($data['signatur'], $this->currentUserOrNull($request));
         } catch (InvalidArgumentException $e) {
             return back()->with('status', $e->getMessage());
         }
@@ -123,7 +122,7 @@ class DuplicateController extends Controller
         }
 
         try {
-            $term = $this->glossary->merge($target, $others, $choices, $this->user($request), Gate::allows('edit-official'));
+            $term = $this->glossary->merge($target, $others, $choices, $this->currentUserOrNull($request), Gate::allows('edit-official'));
         } catch (OfficialFieldLocked $e) {
             throw ValidationException::withMessages(['form' => $e->getMessage()]);
         } catch (InvalidArgumentException $e) {
@@ -159,12 +158,5 @@ class DuplicateController extends Controller
         }
 
         return $values;
-    }
-
-    private function user(Request $request): ?User
-    {
-        $user = $request->user();
-
-        return $user instanceof User ? $user : null;
     }
 }

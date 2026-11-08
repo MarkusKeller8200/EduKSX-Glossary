@@ -46,7 +46,8 @@ export type GridColumn<T> = {
 
 export type GridGroup<T> = { key: string; title: ReactNode; rows: T[] };
 
-type Sort = { id: string; desc: boolean } | null;
+export type GridSort = { id: string; desc: boolean } | null;
+type Sort = GridSort;
 type Stored = { widths?: Record<string, number>; sort?: Sort };
 
 const STORAGE = 'glossary.grid.';
@@ -104,6 +105,11 @@ export default function DataGrid<T>({
     initialSort = null,
     rowClassName,
     onVisibleRows,
+    sort: sortProp,
+    onSortChange,
+    layout = 'table',
+    renderCard,
+    resetToken = 0,
 }: {
     /** Schlüssel zum Merken von Breiten und Sortierung */
     id: string;
@@ -118,18 +124,46 @@ export default function DataGrid<T>({
     rowClassName?: (row: T) => string | undefined;
     /** sichtbare Zeilen in angezeigter Reihenfolge (z. B. für den Export, #131) */
     onVisibleRows?: (rows: T[]) => void;
+    /** Sortierung von aussen (#143), z. B. aus einem Ansichtsmenü; ohne Angabe verwaltet die Tabelle sie selbst */
+    sort?: Sort;
+    onSortChange?: (sort: Sort) => void;
+    /** «table» (Vorgabe) oder «cards» (Kacheln mit `renderCard`) */
+    layout?: 'table' | 'cards';
+    renderCard?: (row: T) => ReactNode;
+    /** bei Änderung: gespeicherte Breiten verwerfen und nach Inhalt neu messen («Ansicht zurücksetzen») */
+    resetToken?: number;
 }) {
     const [stored] = useState<Stored>(() => load(id));
     const [widths, setWidths] = useState<Record<string, number>>(
         stored.widths ?? {},
     );
-    const [sort, setSort] = useState<Sort>(
+    const [ownSort, setOwnSort] = useState<Sort>(
         stored.sort !== undefined ? stored.sort : initialSort,
     );
+    const controlled = sortProp !== undefined;
+    const sort = controlled ? sortProp : ownSort;
+    const setSort = (next: Sort | ((s: Sort) => Sort)) => {
+        const value = typeof next === 'function' ? next(sort) : next;
+        if (controlled) {
+            onSortChange?.(value);
+        } else {
+            setOwnSort(value);
+        }
+    };
 
     useEffect(() => {
-        save(id, { widths, sort });
-    }, [id, widths, sort]);
+        save(id, controlled ? { widths } : { widths, sort });
+    }, [id, widths, sort, controlled]);
+
+    // «Ansicht zurücksetzen» (#143): Breiten verwerfen, nach Inhalt neu messen
+    const lastReset = useRef(resetToken);
+    useEffect(() => {
+        if (lastReset.current !== resetToken) {
+            lastReset.current = resetToken;
+            setWidths({});
+            setMeasured({});
+        }
+    }, [resetToken]);
 
     // nach Inhalt gemessene Breiten (#128), nicht gespeichert
     const [measured, setMeasured] = useState<Record<string, number>>({});
@@ -296,6 +330,42 @@ export default function DataGrid<T>({
                       : 'shadow-[inset_1px_0_0_var(--border)]',
               )
             : '';
+
+    // Kachelansicht (#143): gleiche Gruppen, Sortierung und Zeilen wie die Tabelle
+    if (layout === 'cards' && renderCard) {
+        return (
+            <div ref={wrapper} className="grid gap-4">
+                {caption ? <h2 className="sr-only">{caption}</h2> : null}
+                {sections.map((g) => (
+                    <section key={g.key || 'alle'} className="grid gap-2">
+                        {g.title ? (
+                            <h3 className="font-semibold">
+                                {g.title}{' '}
+                                <span className="font-normal text-muted-foreground">
+                                    ({g.rows.length})
+                                </span>
+                            </h3>
+                        ) : null}
+                        <ul className="grid gap-2">
+                            {g.rows.map((r) => (
+                                <li
+                                    key={`${g.key}-${getRowId(r)}`}
+                                    className="rounded-lg border border-border p-3"
+                                >
+                                    {renderCard(r)}
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ))}
+                {count === 0 ? (
+                    <p className="rounded-lg border border-border px-3 py-6 text-center text-muted-foreground">
+                        {empty ?? 'Keine Einträge.'}
+                    </p>
+                ) : null}
+            </div>
+        );
+    }
 
     return (
         <div

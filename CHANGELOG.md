@@ -6,6 +6,30 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Passwort-Link (#147):** In der Benutzerverwaltung kann ein Admin einer Person einen Link zum Zurücksetzen des
+  Passworts senden (ohne das Passwort zu sehen, protokolliert); auch für Konten, die sich bisher nur mit Microsoft
+  anmelden.
+
+### Geändert
+
+- **Kopfzeile (#146):** auf Website und Administration gleich – Titel, Ansicht, Farbschema, angemeldete Person mit
+  Rolle bzw. «Gast», Anmelden/Abmelden.
+- **Ansicht (#142, #144):** Mobil, Darstellungsoptimiert, Breit und Voll als Symbole; «Voll» und «System» mit eigenen
+  Symbolen. Formulare und Detailseiten bleiben bei «Breit» und «Voll» optimiert breit und zentriert.
+- **Filter (#145):** Kategorie und Herkunft als farbige Labels in der Listenfarbe, Mehrfachauswahl, Zurücksetzen –
+  auf der Startseite und in der Begriffstabelle.
+- **Bedienung (#139):** Bestätigungen als Dialog statt Browser-Fenster, Meldungen auf der Website einheitlich oben,
+  erste Spalte der Vergleichstabellen fixiert; Prüfprotokoll `docs/BARRIEREFREIHEIT.md`.
+- **Leistung (#137):** Öffentliche Sicht (Startseite, API, Exporte) je Datenstand zwischengespeichert – nach
+  Veröffentlichung und Änderungen an den Listen sofort aktuell; PDF-Dialog wird erst beim Öffnen geladen; weniger
+  Abfragen bei Einstellungen und im Protokoll der Servicekonten.
+- **Aufgeräumt (#138):** Konto der Anfrage im Basis-Controller statt 13 Kopien, ein Baustein für Datei-Downloads,
+  gemeinsamer Titel aus Abbildern; «Mein Konto» nutzt das Export-Menü.
+- **Begriffstabelle (#143):** Darstellung (Tabelle/Kacheln), Gruppierung und Sortierung in einem Menü «Ansicht» mit
+  «Ansicht zurücksetzen».
+
 ## [0.7.0] – 2026-11-08
 
 ### Neu

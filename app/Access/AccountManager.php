@@ -5,7 +5,9 @@ namespace App\Access;
 use App\Glossary\TwoFactor;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\MailSetup;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 
 /**
  * Konten sperren, entsperren und den zweiten Faktor zurücksetzen (#37, docs/KONZEPT-BENUTZER.md 5.3 und 5.4).
@@ -49,6 +51,26 @@ final class AccountManager
         });
         $this->twoFactor->reset($target);
         $this->endSessions($target);
+    }
+
+    /**
+     * Link zum Zurücksetzen des Passworts senden (#147): durch die Verwaltung, ohne das Passwort zu sehen. Gleicher
+     * Link wie «Passwort vergessen» (60 Minuten gültig); auch für Konten ohne eigenes Passwort (Microsoft).
+     */
+    public function sendPasswordReset(?User $actor, User $target): void
+    {
+        $this->authorize($actor, $target, 'password.reset_sent', function () use ($actor, $target): void {
+            if ($actor !== null && $actor->id === $target->id) {
+                throw new AccessDenied('Das eigene Passwort unter «Mein Konto» ändern.');
+            }
+            if (! $target->isActive()) {
+                throw new AccessDenied('Das Konto ist gesperrt oder noch nicht bestätigt.');
+            }
+            if (! MailSetup::configured()) {
+                throw new AccessDenied('Der Mailversand ist nicht eingerichtet.');
+            }
+        });
+        Password::sendResetLink(['email' => $target->email]);
     }
 
     /**

@@ -90,11 +90,18 @@ Befunde aus der Prüfung:
 
 Angelehnt an die Container-Breiten von Bootstrap 5 (lg 960 px, xl 1140 px, xxl 1320 px):
 
-| Ansicht (#76)             | Breite                | Verwendung                                    |
-| ------------------------- | --------------------- | --------------------------------------------- |
-| Mobil                     | 384 px (`max-w-sm`)   | Prüfen der mobilen Darstellung                |
-| Desktop schmal (Standard) | 1152 px (`max-w-6xl`) | Website und Administration einheitlich (≈ xl) |
-| Ganze Breite              | volle Fensterbreite   | grosse Tabellen                               |
+| Ansicht (#76)                                             | Breite                    | Verwendung                                    |
+| --------------------------------------------------------- | ------------------------- | --------------------------------------------- |
+| Mobil                                                     | 384 px (`max-w-sm`)       | Prüfen der mobilen Darstellung                |
+| Darstellungsoptimiert (Standard, früher «Desktop schmal») | 1152 px (`max-w-6xl`)     | Website und Administration einheitlich (≈ xl) |
+| Breit (#144)                                              | 1536 px (`max-w-[96rem]`) | grössere Bildschirme                          |
+| Voll                                                      | volle Fensterbreite       | grosse Tabellen                               |
+
+Darstellungsoptimierte Seiten (Detailseite eines Begriffs, Konto, Anmeldung, Vorschlagsformular, Formulare der
+Administration) bleiben bei «Breit» und «Voll» auf 1152 px und zentriert (#144, `isOptimizedPage` in
+`hooks/use-view-width.tsx`). Ansicht und Farbschema sind Symbol-Knöpfe mit Tooltip; «Voll» und «System» haben eigene
+Symbole (#142). Die Kopfzeile ist auf Website und Administration gleich (#146): Titel, Wechsel Website/Administration,
+Ansicht, Farbschema, Person mit Rolle bzw. «Gast», Anmelden/Abmelden.
 
 - **Fliesstext** (Beschreibung auf der Detailseite) auf Lesebreite
   begrenzen: `max-w-prose`, etwa 65 Zeichen pro Zeile (Richtwert 60–75). Versionen, Datenschutz und Rechtliches

@@ -1,10 +1,13 @@
 import type { LucideIcon } from 'lucide-react';
-import { Maximize2, Monitor, Smartphone } from 'lucide-react';
+import { Laptop, Maximize2, MoveHorizontal, Smartphone } from 'lucide-react';
 import type { ViewWidth } from '@/hooks/use-view-width';
 import { useViewWidth } from '@/hooks/use-view-width';
 import { cn } from '@/lib/utils';
 
-/** Umschalter der Ansicht (#76) neben Hell/Dunkel: Mobil, Desktop schmal, ganze Breite. */
+/**
+ * Umschalter der Ansicht (#76, #142, #144) als Symbole: Mobil, Darstellungsoptimiert, Breit, Voll. Eigene Symbole,
+ * nicht verwechselbar mit «System» beim Farbschema.
+ */
 export default function ViewWidthTabs({
     className = '',
 }: {
@@ -13,8 +16,9 @@ export default function ViewWidthTabs({
     const { view, setView } = useViewWidth();
     const tabs: { value: ViewWidth; icon: LucideIcon; label: string }[] = [
         { value: 'mobile', icon: Smartphone, label: 'Mobil' },
-        { value: 'narrow', icon: Monitor, label: 'Desktop schmal' },
-        { value: 'full', icon: Maximize2, label: 'Ganze Breite' },
+        { value: 'narrow', icon: Laptop, label: 'Darstellungsoptimiert' },
+        { value: 'wide', icon: MoveHorizontal, label: 'Breit' },
+        { value: 'full', icon: Maximize2, label: 'Voll (ganze Breite)' },
     ];
 
     return (
@@ -32,7 +36,7 @@ export default function ViewWidthTabs({
                     type="button"
                     aria-pressed={view === value}
                     aria-label={label}
-                    title={label}
+                    title={`Ansicht: ${label}`}
                     onClick={() => setView(value)}
                     className={cn(
                         'flex items-center rounded-md px-2.5 py-1.5 transition-colors',

@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { confirmAction } from '@/components/confirm-dialog';
 
 /** Zweiter Faktor einrichten bzw. verwalten (#11). Pflicht für privilegierte Rechte, sonst freiwillig (#37, #39). */
 export default function TwoFactorSetup({
@@ -61,9 +62,9 @@ export default function TwoFactorSetup({
                     </p>
                     <Button
                         variant="outline"
-                        onClick={() => {
+                        onClick={async () => {
                             if (
-                                window.confirm(
+                                await confirmAction(
                                     'Neue Wiederherstellungscodes erzeugen? Die bisherigen gelten danach nicht mehr.',
                                 )
                             ) {

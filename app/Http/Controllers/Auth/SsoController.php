@@ -78,7 +78,7 @@ class SsoController extends Controller
     public function startLink(Request $request): RedirectResponse
     {
         abort_unless($this->microsoft->enabled(), 404);
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
         if (! $user->password_set) {
             throw ValidationException::withMessages(['identitaet' => 'Zum Verknüpfen zuerst ein eigenes Passwort setzen («Passwort vergessen»).']);
         }
@@ -91,7 +91,7 @@ class SsoController extends Controller
     /** Verknüpfung lösen – nur mit Bestätigung und wenn eine andere Anmeldemethode bleibt. */
     public function unlink(Request $request, UserIdentity $identity): RedirectResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
         abort_unless($identity->user_id === $user->id, 404);
         if (! $user->password_set) {
             throw ValidationException::withMessages(['identitaet' => 'Das ist die letzte Anmeldemethode. Zuerst ein Passwort setzen («Passwort vergessen»).']);
@@ -216,13 +216,5 @@ class SsoController extends Controller
         if (! $user->password_set || ! Hash::check((string) $request->input('password', ''), $user->password)) {
             throw ValidationException::withMessages([$field => 'Das Passwort stimmt nicht.']);
         }
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

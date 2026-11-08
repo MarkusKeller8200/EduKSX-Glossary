@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Access\Permission;
+use App\Glossary\PublicCache;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -21,7 +22,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // je Anfrage eine Instanz: Schlüssel des Zwischenspeichers nur einmal berechnen (#137)
+        $this->app->scoped(PublicCache::class);
     }
 
     public function boot(): void

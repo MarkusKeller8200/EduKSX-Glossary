@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import DataGrid from '@/components/data-grid';
 import IconAction from '@/components/icon-action';
 import { Pencil, Trash2 } from 'lucide-react';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Eintrag = {
     id: string;
@@ -219,9 +220,9 @@ function Tabelle({
                                                 : `«${e.name}» löschen`
                                         }
                                         disabled={e.begriffe > 0}
-                                        onClick={() => {
+                                        onClick={async () => {
                                             if (
-                                                window.confirm(
+                                                await confirmAction(
                                                     `«${e.name}» löschen?`,
                                                 )
                                             ) {

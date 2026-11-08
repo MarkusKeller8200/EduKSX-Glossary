@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Proposal;
 use App\Models\ProposalEvent;
-use App\Models\User;
+use App\Models\Term;
 use App\Proposals\ProposalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,7 +33,7 @@ class ProposalController extends Controller
                 'id' => $p->id,
                 'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
                 'titel' => $p->kind === 'new'
-                    ? trim(implode(' – ', array_filter([(string) ($p->changes['official_abbreviation'] ?? ''), (string) ($p->changes['official_name'] ?? '')])))
+                    ? Term::titleFrom($p->changes)
                     : ($p->term?->title() ?? '(Begriff gelöscht)'),
                 'felder' => array_map(fn (string $f): string => ProposalService::FIELDS[$f] ?? $f, array_keys($p->changes)),
                 'von' => $p->author_label,
@@ -81,7 +81,7 @@ class ProposalController extends Controller
     {
         $data = $request->validate(['felder' => ['array'], 'felder.*' => ['string'], 'notiz' => ['nullable', 'string', 'max:2000']]);
         try {
-            $term = $this->proposals->accept($proposal, $this->actor($request), array_values(array_map('strval', (array) ($data['felder'] ?? []))),
+            $term = $this->proposals->accept($proposal, $this->currentUser($request), array_values(array_map('strval', (array) ($data['felder'] ?? []))),
                 Gate::allows('edit-official'), $data['notiz'] ?? null);
         } catch (OfficialFieldLocked $e) {
             throw ValidationException::withMessages(['felder' => $e->getMessage().' Feld abwählen oder durch eine Person mit diesem Recht annehmen lassen.']);
@@ -95,7 +95,7 @@ class ProposalController extends Controller
     public function reject(Request $request, Proposal $proposal): RedirectResponse
     {
         $data = $request->validate(['begruendung' => ['required', 'string', 'max:2000']]);
-        $this->guard(fn () => $this->proposals->reject($proposal, $this->actor($request), (string) $data['begruendung']), 'begruendung');
+        $this->guard(fn () => $this->proposals->reject($proposal, $this->currentUser($request), (string) $data['begruendung']), 'begruendung');
 
         return redirect('/admin/vorschlaege')->with('status', "Vorschlag Nr. {$proposal->id} abgelehnt.");
     }
@@ -103,7 +103,7 @@ class ProposalController extends Controller
     public function ask(Request $request, Proposal $proposal): RedirectResponse
     {
         $data = $request->validate(['frage' => ['required', 'string', 'max:2000']]);
-        $this->guard(fn () => $this->proposals->ask($proposal, $this->actor($request), (string) $data['frage']), 'frage');
+        $this->guard(fn () => $this->proposals->ask($proposal, $this->currentUser($request), (string) $data['frage']), 'frage');
 
         return back()->with('status', 'Rückfrage gesendet.');
     }
@@ -116,13 +116,5 @@ class ProposalController extends Controller
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages([$field => $e->getMessage()]);
         }
-    }
-
-    private function actor(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

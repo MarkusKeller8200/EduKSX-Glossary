@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { NativeSelect } from '@/components/ui/native-select';
 import DataGrid from '@/components/data-grid';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Wert = {
     id: number;
@@ -129,12 +130,12 @@ export default function LegacyValues({
                 </label>
                 <Button
                     disabled={auswahl.length === 0 || sending}
-                    onClick={() => {
+                    onClick={async () => {
                         if (
                             zuordnung !== 'discarded' ||
-                            window.confirm(
+                            (await confirmAction(
                                 `${auswahl.length} Altwerte verwerfen? Sie bleiben gesichert, werden aber nicht mehr angeboten.`,
-                            )
+                            ))
                         ) {
                             zuordnen();
                         }

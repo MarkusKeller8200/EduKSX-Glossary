@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Glossary\PublicGlossary;
 use App\Models\Term;
 use App\Models\TermUserOverride;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -17,7 +16,7 @@ class PersonalDisplayController extends Controller
 {
     public function update(Request $request, string $slug, PublicGlossary $glossary): RedirectResponse
     {
-        $user = $this->user($request);
+        $user = $this->currentUser($request);
         $term = $this->term($slug, $glossary);
         $data = $request->validate([
             'abbreviation_override' => ['nullable', 'string', 'max:60'],
@@ -58,7 +57,7 @@ class PersonalDisplayController extends Controller
     public function destroy(Request $request, string $slug, PublicGlossary $glossary): RedirectResponse
     {
         $term = $this->term($slug, $glossary);
-        TermUserOverride::query()->where('term_id', $term->id)->where('user_id', $this->user($request)->id)->delete();
+        TermUserOverride::query()->where('term_id', $term->id)->where('user_id', $this->currentUser($request)->id)->delete();
 
         return back()->with('status', 'Meine Darstellung entfernt – es gilt die gemeinsame.');
     }
@@ -69,13 +68,5 @@ class PersonalDisplayController extends Controller
         abort_if($glossary->find($slug) === null, 404);
 
         return Term::query()->where('slug', $slug)->firstOrFail();
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

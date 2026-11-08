@@ -254,7 +254,7 @@ function Vergleich({
                                         />
                                     </td>
                                 ) : null}
-                                <td className="px-3 py-2 font-medium">
+                                <td className="sticky left-0 z-10 bg-background px-3 py-2 font-medium shadow-[inset_-1px_0_0_var(--border)]">
                                     {z.label}
                                     {z.konflikt ? (
                                         <Badge

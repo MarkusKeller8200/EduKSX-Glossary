@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ListBadges } from '@/components/tags';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Mitglied = {
     id: string;
@@ -65,9 +66,9 @@ export default function Duplicates({
                     <Button
                         variant="outline"
                         disabled={sending}
-                        onClick={() => {
+                        onClick={async () => {
                             if (
-                                window.confirm(
+                                await confirmAction(
                                     `${belassen} Entscheide «mehrdeutig belassen» aufheben? Die Gruppen werden wieder vorgeschlagen.`,
                                 )
                             ) {

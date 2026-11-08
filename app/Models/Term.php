@@ -174,6 +174,18 @@ class Term extends Model
         return (string) $this->official_name;
     }
 
+    /**
+     * Titel «Abkürzung – Bezeichnung» aus Werten bzw. einem Abbild (veröffentlichte Revision, Vorschlag), #138.
+     *
+     * @param  array<string, mixed>  $values
+     */
+    public static function titleFrom(array $values): string
+    {
+        return trim(implode(' – ', array_filter([
+            (string) ($values['official_abbreviation'] ?? ''), (string) ($values['official_name'] ?? ''),
+        ])));
+    }
+
     /** Titel «Abkürzung – Bezeichnung». */
     public function title(): string
     {

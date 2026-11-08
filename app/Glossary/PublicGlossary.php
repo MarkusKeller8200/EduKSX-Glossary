@@ -34,16 +34,17 @@ final class PublicGlossary
     /**
      * Kurzform für Liste und Suche.
      *
-     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, status: string, suche: string, persoenlich?: bool}>
+     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, suche: string, persoenlich?: bool}>
      */
     public function list(?User $user = null): array
     {
         $user = $this->personalFor($user);
         $categories = $this->labels(Category::class);
+        $sources = $this->labels(Source::class);
         $overrides = $this->overrides($user);
 
         $list = $this->published()
-            ->map(function (array $s) use ($categories, $overrides): array {
+            ->map(function (array $s) use ($categories, $sources, $overrides): array {
                 $abk = (string) ($s['official_abbreviation'] ?? '');
                 $name = (string) ($s['official_name'] ?? '');
                 $kurz = (string) ($s['short_description'] ?? '');
@@ -55,6 +56,8 @@ final class PublicGlossary
                     'bezeichnung' => $o->name_override ?? $name,
                     'kurz' => $o->short_description_override ?? $kurz,
                     'kategorien' => $this->mapLabels($categories, $s['categories']),
+                    // Filter nach Herkunft auf der Startseite (#145)
+                    'herkunft' => $this->mapLabels($sources, $s['sources'] ?? []),
                     'status' => Term::STATUS[(string) $s['lifecycle_status']] ?? (string) $s['lifecycle_status'],
                     'suche' => mb_strtolower(implode(' ', array_filter([
                         $abk, $name, $kurz, implode(' ', (array) ($s['official_aliases'] ?? [])),
@@ -207,14 +210,19 @@ final class PublicGlossary
      */
     private function published(): Collection
     {
+        // Abbilder je Datenstand zwischengespeichert (#137)
         /** @var list<array<string, mixed>> $snapshots */
-        $snapshots = [];
-        foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
-            $snapshot = $term->publishedRevision?->snapshot;
-            if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
-                $snapshots[] = $snapshot;
+        $snapshots = app(PublicCache::class)->remember('snapshots', function (): array {
+            $snapshots = [];
+            foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
+                $snapshot = $term->publishedRevision?->snapshot;
+                if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
+                    $snapshots[] = $snapshot;
+                }
             }
-        }
+
+            return $snapshots;
+        });
 
         return new Collection($snapshots);
     }

@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Proposal;
 use App\Models\ProposalEvent;
 use App\Models\Term;
-use App\Models\User;
 use App\Proposals\ProposalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,7 +38,7 @@ class ProposalController extends Controller
         return Inertia::render('proposals/create', [
             'begriff' => $term === null ? null : [
                 'slug' => $term->slug,
-                'titel' => $this->titleOf($snapshot),
+                'titel' => Term::titleFrom($snapshot),
                 'revision' => $term->publishedRevision?->revision,
             ],
             'werte' => $werte,
@@ -62,7 +61,7 @@ class ProposalController extends Controller
             abort_if($term === null, 404);
         }
         try {
-            $proposal = $this->proposals->submit($term, (array) ($data['werte'] ?? []), $data['begruendung'] ?? null, $this->user($request));
+            $proposal = $this->proposals->submit($term, (array) ($data['werte'] ?? []), $data['begruendung'] ?? null, $this->currentUser($request));
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages(['werte' => $e->getMessage()]);
         }
@@ -72,7 +71,7 @@ class ProposalController extends Controller
 
     public function index(Request $request): Response
     {
-        $list = Proposal::query()->where('user_id', $this->user($request)->id)->with('term.publishedRevision')->latest('id')->get()
+        $list = Proposal::query()->where('user_id', $this->currentUser($request)->id)->with('term.publishedRevision')->latest('id')->get()
             ->map(fn (Proposal $p): array => $this->summary($p))->all();
 
         return Inertia::render('proposals/index', ['vorschlaege' => $list]);
@@ -80,7 +79,7 @@ class ProposalController extends Controller
 
     public function show(Request $request, Proposal $proposal): Response
     {
-        abort_unless($proposal->user_id === $this->user($request)->id, 404);
+        abort_unless($proposal->user_id === $this->currentUser($request)->id, 404);
         $categories = Category::query()->get()->mapWithKeys(fn (Category $c): array => [$c->key => $c->displayLabel()])->all();
 
         return Inertia::render('proposals/show', [
@@ -106,14 +105,14 @@ class ProposalController extends Controller
     public function answer(Request $request, Proposal $proposal): RedirectResponse
     {
         $data = $request->validate(['antwort' => ['required', 'string', 'max:2000']]);
-        $this->guard(fn () => $this->proposals->answer($proposal, $this->user($request), (string) $data['antwort']), 'antwort');
+        $this->guard(fn () => $this->proposals->answer($proposal, $this->currentUser($request), (string) $data['antwort']), 'antwort');
 
         return back()->with('status', 'Antwort gesendet.');
     }
 
     public function withdraw(Request $request, Proposal $proposal): RedirectResponse
     {
-        $this->guard(fn () => $this->proposals->withdraw($proposal, $this->user($request)), 'vorschlag');
+        $this->guard(fn () => $this->proposals->withdraw($proposal, $this->currentUser($request)), 'vorschlag');
 
         return back()->with('status', 'Vorschlag zurückgezogen.');
     }
@@ -126,22 +125,16 @@ class ProposalController extends Controller
             'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
             // nur der veröffentlichte Stand – nie Entwürfe der Redaktion
             'begriff' => $p->term?->publishedRevision === null ? null : [
-                'slug' => $p->term->slug, 'titel' => $this->titleOf($p->term->publishedRevision->snapshot),
+                'slug' => $p->term->slug, 'titel' => Term::titleFrom($p->term->publishedRevision->snapshot),
             ],
             'titel' => $p->kind === 'new'
-                ? $this->titleOf($p->changes)
+                ? Term::titleFrom($p->changes)
                 : null,
             'status' => $p->status,
             'status_label' => Proposal::STATUS[$p->status] ?? $p->status,
             'eingereicht' => $p->created_at?->toIso8601String(),
             'offen' => $p->isOpen(),
         ];
-    }
-
-    /** @param  array<string, mixed>  $values */
-    private function titleOf(array $values): string
-    {
-        return trim(implode(' – ', array_filter([(string) ($values['official_abbreviation'] ?? ''), (string) ($values['official_name'] ?? '')])));
     }
 
     private function published(mixed $slug): ?Term
@@ -161,13 +154,5 @@ class ProposalController extends Controller
         } catch (InvalidArgumentException $e) {
             throw ValidationException::withMessages([$field => $e->getMessage()]);
         }
-    }
-
-    private function user(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

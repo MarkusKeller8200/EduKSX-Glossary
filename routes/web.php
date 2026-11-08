@@ -156,6 +156,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::put('benutzer/{user}/rollen', [UserController::class, 'updateRoles'])->whereUuid('user')->name('admin.users.roles');
         Route::post('benutzer/{user}/sperren', [UserController::class, 'block'])->whereUuid('user')->name('admin.users.block');
         Route::post('benutzer/{user}/entsperren', [UserController::class, 'unblock'])->whereUuid('user')->name('admin.users.unblock');
+        Route::post('benutzer/{user}/passwort-link', [UserController::class, 'sendPasswordReset'])->whereUuid('user')->middleware('throttle:10,1')->name('admin.users.password-link');
         Route::post('benutzer/{user}/zwei-faktor', [UserController::class, 'resetTwoFactor'])->whereUuid('user')->name('admin.users.reset-2fa');
         Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
         Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');

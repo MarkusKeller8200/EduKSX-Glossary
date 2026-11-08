@@ -4,8 +4,8 @@ namespace App\Support;
 
 use App\Access\Audit;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
 /**
@@ -168,12 +168,13 @@ final class Settings
             /** @var array<string, mixed> */
             return app(self::BINDING);
         }
-        // vor der Migration (z. B. erster Start) gelten die Vorgaben
-        if (! Schema::hasTable('settings')) {
+        // vor der Migration (z. B. erster Start) gelten die Vorgaben – ohne Schema-Abfrage bei jeder Anfrage (#137)
+        try {
+            $stored = DB::table('settings')->pluck('value', 'key')
+                ->map(fn (mixed $v): mixed => json_decode((string) $v, true))->all();
+        } catch (QueryException) {
             return [];
         }
-        $stored = DB::table('settings')->pluck('value', 'key')
-            ->map(fn (mixed $v): mixed => json_decode((string) $v, true))->all();
         app()->instance(self::BINDING, $stored);
 
         return $stored;

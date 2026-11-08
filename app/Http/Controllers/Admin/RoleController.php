@@ -7,7 +7,6 @@ use App\Access\Permission;
 use App\Access\RoleManager;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +21,7 @@ class RoleController extends Controller
 
     public function index(Request $request): Response
     {
-        $actor = $this->actor($request);
+        $actor = $this->currentUser($request);
         $counts = DB::table('user_roles')->selectRaw('role_id, count(*) as n')->groupBy('role_id')->pluck('n', 'role_id');
         $own = $actor->roleKeys();
 
@@ -61,7 +60,7 @@ class RoleController extends Controller
             'beschreibung' => ['nullable', 'string', 'max:255'],
         ]);
         try {
-            $this->roles->create($this->actor($request), (string) $data['name'], $data['beschreibung'] ?? null);
+            $this->roles->create($this->currentUser($request), (string) $data['name'], $data['beschreibung'] ?? null);
         } catch (AccessDenied $e) {
             throw ValidationException::withMessages(['name' => $e->getMessage()]);
         }
@@ -73,19 +72,11 @@ class RoleController extends Controller
     {
         $data = $request->validate(['rechte' => ['array'], 'rechte.*' => ['string']]);
         try {
-            $this->roles->setPermissions($this->actor($request), $role, array_values(array_map('strval', (array) ($data['rechte'] ?? []))));
+            $this->roles->setPermissions($this->currentUser($request), $role, array_values(array_map('strval', (array) ($data['rechte'] ?? []))));
         } catch (AccessDenied $e) {
             throw ValidationException::withMessages(['rechte' => $e->getMessage()]);
         }
 
         return back()->with('status', "Rechte der Rolle «{$role->name}» gespeichert.");
-    }
-
-    private function actor(Request $request): User
-    {
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-
-        return $user;
     }
 }

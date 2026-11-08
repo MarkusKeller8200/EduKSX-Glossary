@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { stateClasses } from '@/lib/colors';
+import { confirmAction } from '@/components/confirm-dialog';
 
 type Begriff = {
     id: string;
@@ -75,10 +76,10 @@ export default function Merge({
             ziel: id,
             auswahl: vorgaben(begriffe, keys, id),
         });
-    const submit = (e: FormEvent) => {
+    const submit = async (e: FormEvent) => {
         e.preventDefault();
         if (
-            window.confirm(
+            await confirmAction(
                 `${begriffe.length} Begriffe zu «${zielTitel}» zusammenführen? Die anderen werden zur Weiterleitung.`,
             )
         ) {
@@ -124,7 +125,7 @@ export default function Merge({
                             <tr>
                                 <th
                                     scope="col"
-                                    className="w-48 px-3 py-2 font-medium"
+                                    className="sticky left-0 z-10 w-48 bg-muted px-3 py-2 font-medium"
                                 >
                                     Feld
                                 </th>
@@ -157,7 +158,7 @@ export default function Merge({
                             <tr className="border-t border-border bg-secondary/40">
                                 <th
                                     scope="row"
-                                    className="px-3 py-2 text-left font-medium"
+                                    className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-medium shadow-[inset_-1px_0_0_var(--border)]"
                                 >
                                     Bleibt erhalten
                                 </th>
@@ -190,7 +191,7 @@ export default function Merge({
                                     >
                                         <th
                                             scope="row"
-                                            className="px-3 py-2 text-left font-medium"
+                                            className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-medium shadow-[inset_-1px_0_0_var(--border)]"
                                         >
                                             {felder[f]}
                                         </th>
