@@ -28,7 +28,7 @@ Stand: **beschlossen 08.11.2026 – Variante A** (#75, offener Entscheid 7 in [K
 1. **Kanal:** Begriffe werden nur im Glossary vorgeschlagen (neuer Begriff oder Korrektur). Ohne Anmeldung führt
    «Vorschlag einreichen» zur Anmeldung bzw. Registrierung und danach zurück zum Formular.
 2. **Website:** Der Link auf der Startseite heisst neu «Begriff vorschlagen» und führt ins Vorschlagsformular; auf der
-   Begriffsseite «Korrektur vorschlagen». Software-Meldungen («Fehler auf der Website melden») bleiben als kleiner
+   Begriffsseite «Korrektur vorschlagen». Software-Meldungen («Fehler melden») bleiben als kleiner
    Link zu GitHub in der Fusszeile.
 3. **GitHub:** In `.github/ISSUE_TEMPLATE/config.yml` ein Kontakt-Link «Begriff vorschlagen oder korrigieren» auf
    `https://glossary.eduksx.ch/vorschlaege/neu`; die Software-Formulare erhalten den Hinweis «Für Begriffe bitte das

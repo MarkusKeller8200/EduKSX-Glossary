@@ -72,7 +72,7 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                                 href={`https://github.com/${links.githubRepo}/issues/new/choose`}
                                 className="text-link underline-offset-4 hover:underline"
                             >
-                                Fehler auf der Website melden
+                                Fehler melden
                             </a>
                         </>
                     ) : null}
@@ -83,7 +83,7 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                                 href={links.pages}
                                 className="text-link underline-offset-4 hover:underline"
                             >
-                                Lesefassung auf GitHub Pages
+                                GitHub Pages
                             </a>
                         </>
                     ) : null}
