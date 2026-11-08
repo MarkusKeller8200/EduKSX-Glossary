@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Category;
+use App\Models\Proposal;
+use App\Models\ProposalEvent;
+use App\Models\Term;
+use App\Models\User;
+use App\Proposals\ProposalService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
+use Inertia\Response;
+use InvalidArgumentException;
+
+/**
+ * Vorschläge der Community (#113, DEC-024): neuer Begriff oder Korrektur einreichen (Recht «propose», ab Benutzer),
+ * eigene Vorschläge mit Stand, Rückfragen beantworten, zurückziehen. Nur eigene Vorschläge sichtbar.
+ */
+class ProposalController extends Controller
+{
+    public function __construct(private readonly ProposalService $proposals) {}
+
+    public function create(Request $request): Response
+    {
+        $term = $this->published($request->query('begriff'));
+        $snapshot = $term?->publishedRevision->snapshot ?? [];
+        $werte = [];
+        foreach (array_keys(ProposalService::FIELDS) as $field) {
+            $v = $snapshot[$field] ?? '';
+            $werte[$field] = is_array($v) ? array_values(array_map('strval', $v)) : (string) $v;
+        }
+
+        return Inertia::render('proposals/create', [
+            'begriff' => $term === null ? null : [
+                'slug' => $term->slug,
+                'titel' => $this->titleOf($snapshot),
+                'revision' => $term->publishedRevision?->revision,
+            ],
+            'werte' => $werte,
+            'felder' => ProposalService::FIELDS,
+            'kategorien' => Category::query()->orderBy('sort_order')->get()
+                ->map(fn (Category $c): array => ['key' => $c->key, 'label' => $c->displayLabel()])->all(),
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'begriff' => ['nullable', 'string', 'max:200'],
+            'werte' => ['array'],
+            'begruendung' => ['nullable', 'string', 'max:2000'],
+        ]);
+        $term = null;
+        if (($data['begriff'] ?? '') !== '') {
+            $term = $this->published($data['begriff']);
+            abort_if($term === null, 404);
+        }
+        try {
+            $proposal = $this->proposals->submit($term, (array) ($data['werte'] ?? []), $data['begruendung'] ?? null, $this->user($request));
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages(['werte' => $e->getMessage()]);
+        }
+
+        return redirect("/vorschlaege/{$proposal->id}")->with('status', "Danke! Vorschlag Nr. {$proposal->id} ist eingereicht; die Redaktion prüft ihn.");
+    }
+
+    public function index(Request $request): Response
+    {
+        $list = Proposal::query()->where('user_id', $this->user($request)->id)->with('term.publishedRevision')->latest('id')->get()
+            ->map(fn (Proposal $p): array => $this->summary($p))->all();
+
+        return Inertia::render('proposals/index', ['vorschlaege' => $list]);
+    }
+
+    public function show(Request $request, Proposal $proposal): Response
+    {
+        abort_unless($proposal->user_id === $this->user($request)->id, 404);
+        $categories = Category::query()->get()->mapWithKeys(fn (Category $c): array => [$c->key => $c->displayLabel()])->all();
+
+        return Inertia::render('proposals/show', [
+            'vorschlag' => $this->summary($proposal) + [
+                'aenderungen' => array_map(fn (array $r): array => [
+                    'label' => $r['label'],
+                    'vorschlag' => $r['feld'] === 'categories' && is_array($r['vorschlag'])
+                        ? array_map(fn (mixed $k): string => (string) ($categories[(string) $k] ?? $k), $r['vorschlag'])
+                        : $r['vorschlag'],
+                ], $this->proposals->compare($proposal)),
+                'begruendung' => $proposal->reason,
+                'ereignisse' => $proposal->events->map(fn (ProposalEvent $e): array => [
+                    'typ' => $e->type,
+                    'am' => $e->created_at->toIso8601String(),
+                    // Moderation ohne Namen (nicht nötig für die einreichende Person)
+                    'von' => $e->by_author ? 'Sie' : 'Redaktion',
+                    'text' => $e->message,
+                ])->all(),
+            ],
+        ]);
+    }
+
+    public function answer(Request $request, Proposal $proposal): RedirectResponse
+    {
+        $data = $request->validate(['antwort' => ['required', 'string', 'max:2000']]);
+        $this->guard(fn () => $this->proposals->answer($proposal, $this->user($request), (string) $data['antwort']), 'antwort');
+
+        return back()->with('status', 'Antwort gesendet.');
+    }
+
+    public function withdraw(Request $request, Proposal $proposal): RedirectResponse
+    {
+        $this->guard(fn () => $this->proposals->withdraw($proposal, $this->user($request)), 'vorschlag');
+
+        return back()->with('status', 'Vorschlag zurückgezogen.');
+    }
+
+    /** @return array<string, mixed> */
+    private function summary(Proposal $p): array
+    {
+        return [
+            'id' => $p->id,
+            'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
+            // nur der veröffentlichte Stand – nie Entwürfe der Redaktion
+            'begriff' => $p->term?->publishedRevision === null ? null : [
+                'slug' => $p->term->slug, 'titel' => $this->titleOf($p->term->publishedRevision->snapshot),
+            ],
+            'titel' => $p->kind === 'new'
+                ? $this->titleOf($p->changes)
+                : null,
+            'status' => $p->status,
+            'status_label' => Proposal::STATUS[$p->status] ?? $p->status,
+            'eingereicht' => $p->created_at?->toIso8601String(),
+            'offen' => $p->isOpen(),
+        ];
+    }
+
+    /** @param  array<string, mixed>  $values */
+    private function titleOf(array $values): string
+    {
+        return trim(implode(' – ', array_filter([(string) ($values['official_abbreviation'] ?? ''), (string) ($values['official_name'] ?? '')])));
+    }
+
+    private function published(mixed $slug): ?Term
+    {
+        if (! is_string($slug) || $slug === '') {
+            return null;
+        }
+
+        return Term::query()->published()->where('slug', $slug)->whereNull('merged_into_id')->with('publishedRevision')->first();
+    }
+
+    /** @param  callable(): void  $action */
+    private function guard(callable $action, string $field): void
+    {
+        try {
+            $action();
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages([$field => $e->getMessage()]);
+        }
+    }
+
+    private function user(Request $request): User
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+
+        return $user;
+    }
+}

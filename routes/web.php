@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
+use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SourceCheckController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
+use App\Http\Controllers\ProposalController;
 use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +37,16 @@ Route::middleware('auth')->group(function () {
     Route::post('datenschutz/kenntnisnahme', [PrivacyController::class, 'store'])->name('privacy.store');
 });
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
+// Vorschläge (#113, DEC-024): ab Benutzer (Recht «propose»), nur eigene Vorschläge sichtbar
+Route::middleware(['auth', 'can:propose'])->prefix('vorschlaege')->group(function () {
+    Route::get('/', [ProposalController::class, 'index'])->name('proposals');
+    Route::get('neu', [ProposalController::class, 'create'])->name('proposals.create');
+    Route::post('/', [ProposalController::class, 'store'])->middleware('throttle:10,1')->name('proposals.store');
+    Route::get('{proposal}', [ProposalController::class, 'show'])->whereNumber('proposal')->name('proposals.show');
+    Route::post('{proposal}/antwort', [ProposalController::class, 'answer'])->whereNumber('proposal')->middleware('throttle:20,1')->name('proposals.answer');
+    Route::post('{proposal}/zurueckziehen', [ProposalController::class, 'withdraw'])->whereNumber('proposal')->name('proposals.withdraw');
+});
+
 // Export veröffentlichter Daten (#111): ab Benutzer, ausserhalb der Administration
 Route::get('export', ExportController::class)->middleware(['auth', 'can:export', 'throttle:20,1'])->name('export');
 
@@ -142,6 +154,15 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
         Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');
         Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');
+    });
+
+    // Moderation der Vorschläge (#113)
+    Route::middleware('can:moderate')->group(function () {
+        Route::get('vorschlaege', [AdminProposalController::class, 'index'])->name('admin.proposals');
+        Route::get('vorschlaege/{proposal}', [AdminProposalController::class, 'show'])->whereNumber('proposal')->name('admin.proposals.show');
+        Route::post('vorschlaege/{proposal}/annehmen', [AdminProposalController::class, 'accept'])->whereNumber('proposal')->name('admin.proposals.accept');
+        Route::post('vorschlaege/{proposal}/ablehnen', [AdminProposalController::class, 'reject'])->whereNumber('proposal')->name('admin.proposals.reject');
+        Route::post('vorschlaege/{proposal}/rueckfrage', [AdminProposalController::class, 'ask'])->whereNumber('proposal')->name('admin.proposals.ask');
     });
 
     // Servicekonten mit Token (#47): ab Organisations-Admin

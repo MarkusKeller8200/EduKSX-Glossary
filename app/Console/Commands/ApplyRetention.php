@@ -6,8 +6,10 @@ use App\Access\Audit;
 use App\Access\Permission;
 use App\Mail\InactivityNotice;
 use App\Models\ImportBatch;
+use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\User;
+use App\Proposals\ProposalService;
 use App\Support\MailSetup;
 use DateTimeInterface;
 use Illuminate\Console\Command;
@@ -23,6 +25,7 @@ use Throwable;
  * - Inaktive Community-Konten (nur Grundrechte, z. B. Gast oder Benutzer): nach 23 Monaten ohne Anmeldung Hinweis per Mail, 30 Tage danach löschen.
  *   Ohne Mailversand kein Hinweis und darum auch keine Löschung.
  * - Audit-Protokoll: Einträge älter als die Aufbewahrungsfrist (vorläufig 5 Jahre) löschen.
+ * - Vorschläge (#113): 24 Monate nach Abschluss ohne Personenbezug («Community»).
  */
 class ApplyRetention extends Command
 {
@@ -66,13 +69,20 @@ class ApplyRetention extends Command
         $auditQuery = DB::table('user_audit')->where('created_at', '<', now()->subYears($auditYears));
         $audit = $dry ? $auditQuery->count() : $auditQuery->delete();
 
-        // 4. Import-Protokoll (#64): 12 Monate
+        // 4. Vorschläge (#113, DEC-024): 24 Monate nach Abschluss ohne Personenbezug
+        $proposals = $dry
+            ? Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', now()->subMonths(ProposalService::RETENTION_MONTHS))
+                ->whereNotNull('user_id')->count()
+            : app(ProposalService::class)->anonymizeResolvedBefore(now()->subMonths(ProposalService::RETENTION_MONTHS));
+
+        // 5. Import-Protokoll (#64): 12 Monate
         $importQuery = ImportBatch::query()->where('created_at', '<', now()->subMonths(ImportBatch::RETENTION_MONTHS));
         $imports = $dry ? $importQuery->count() : $importQuery->delete();
 
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
-            ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt.");
+            ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt, "
+            ."{$proposals} Vorschläge ohne Personenbezug.");
 
         return self::SUCCESS;
     }

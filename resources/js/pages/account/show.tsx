@@ -82,6 +82,7 @@ export default function AccountShow({
             )}
             <Anmeldedienste konto={konto} microsoft={microsoft} />
             <Export />
+            <MeineVorschlaege />
 
             <Abschnitt titel="Zweiter Faktor">
                 <p className="text-sm text-muted-foreground">
@@ -102,6 +103,31 @@ export default function AccountShow({
 
             <Loeschen passwortGesetzt={konto.passwort_gesetzt} />
         </>
+    );
+}
+
+/** Link zu den eigenen Vorschlägen (#113), nur mit Recht «propose». */
+function MeineVorschlaege() {
+    const { auth } = usePage().props;
+    if (!auth.can.propose) {
+        return null;
+    }
+
+    return (
+        <Abschnitt titel="Meine Vorschläge">
+            <p className="text-sm text-muted-foreground">
+                Eingereichte Begriffe und Korrekturen mit ihrem Stand,
+                Rückfragen der Redaktion beantworten.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+                <Button asChild variant="outline">
+                    <Link href="/vorschlaege">Meine Vorschläge</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <Link href="/vorschlaege/neu">Begriff vorschlagen</Link>
+                </Button>
+            </div>
+        </Abschnitt>
     );
 }
 

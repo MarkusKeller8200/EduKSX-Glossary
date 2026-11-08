@@ -220,7 +220,16 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     />
                 ) : null}
 
-                <p className="mt-10 text-xs text-muted-foreground">
+                <p className="mt-10 text-sm">
+                    Stimmt etwas nicht oder fehlt etwas?{' '}
+                    <Link
+                        href={`/vorschlaege/neu?begriff=${b.slug}`}
+                        className="text-link underline underline-offset-4"
+                    >
+                        Korrektur vorschlagen
+                    </Link>
+                </p>
+                <p className="mt-4 text-xs text-muted-foreground">
                     Erklärungen ohne amtliche Verbindlichkeit; massgebend sind
                     die genannten Quellen.
                 </p>

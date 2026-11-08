@@ -692,6 +692,117 @@
           }
         }
       }
+    },
+    "/v1/proposals": {
+      "post": {
+        "tags": [
+          "Servicekonten"
+        ],
+        "summary": "Vorschlag einreichen",
+        "operationId": "createProposal",
+        "description": "Neuer Begriff (ohne `term`) oder Korrektur zu einem veröffentlichten Begriff (`term` = UUID oder Slug). Felder in `changes`: official_abbreviation, official_name, short_description, description, url, alternative_aliases (Liste), categories (Liste von Schlüsseln). Landet in der Moderation, nie direkt öffentlich (#113). Scope `propose`.",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "changes"
+                ],
+                "properties": {
+                  "term": {
+                    "type": "string"
+                  },
+                  "changes": {
+                    "type": "object"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                }
+              },
+              "example": {
+                "term": "sl-schulleitung",
+                "changes": {
+                  "short_description": "Führt die Schule pädagogisch und organisatorisch"
+                },
+                "reason": "Rückmeldung aus dem Intranet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Eingereicht",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kein gültiges Token mit Scope «propose»"
+          },
+          "404": {
+            "description": "Begriff nicht gefunden oder nicht veröffentlicht"
+          },
+          "422": {
+            "description": "Ungültige Angaben"
+          }
+        }
+      }
+    },
+    "/v1/proposals/{id}": {
+      "get": {
+        "tags": [
+          "Servicekonten"
+        ],
+        "summary": "Stand eines eigenen Vorschlags",
+        "operationId": "getProposal",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "example": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vorschlag",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kein gültiges Token"
+          },
+          "404": {
+            "description": "Nicht gefunden oder von einem anderen Servicekonto"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1348,6 +1459,58 @@
                 "type": "string"
               }
             }
+          }
+        }
+      },
+      "Proposal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "new",
+              "change"
+            ]
+          },
+          "term_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "base_revision": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "changes": {
+            "type": "object"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "eingereicht",
+              "rueckfrage",
+              "angenommen",
+              "abgelehnt",
+              "zurueckgezogen"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           }
         }
       }
