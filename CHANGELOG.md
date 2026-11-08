@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.8.0] – 2026-11-08
+
 ### Neu
 
 - **Organisation (#148, DEC-025):** Benutzer gründen unter «Meine Organisation» eine Organisation und werden
