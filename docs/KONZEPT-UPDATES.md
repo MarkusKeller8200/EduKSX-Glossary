@@ -74,6 +74,29 @@ Administration                App (web)                   Update-Dienst         
 Unser Server folgt demselben Weg: `main` wird wie bisher geprüft und ausgeliefert (Vorschau), ein Release erzeugt
 das signierte Image. So läuft jede Version zuerst bei uns, bevor Schulen sie automatisch erhalten (U10).
 
+## Viele Instanzen: einfach, schnell, kurze Ausfallzeit (Chat 08.11.2026)
+
+Annahme: später rund 200 Kunden. Ziel: Updates für alle in Stunden statt Tagen, ohne Handarbeit je Kunde, mit
+Ausfallzeiten im Sekundenbereich.
+
+**Zuerst die Grundsatzfrage – braucht jeder Kunde eine eigene Instanz?** Der grösste Hebel ist, die meisten Kunden
+im **zentralen Glossary als Organisation** zu führen (DEC-025): ein Update gilt dann für alle auf einmal, ohne
+Aufwand je Kunde. Eigene Instanzen nur für Kunden, die sie wirklich brauchen (eigene Daten im eigenen Netz,
+Vorgaben der Gemeinde). Für diese gilt:
+
+| Nr. | Vorschlag                                                                                                                                                                                                                                                                                                                                                                          |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| U13 | **Alle gleich.** Eine Image-Version für alle, Unterschiede nur über `.env` und Einstellungen in der Datenbank – kein kundenspezifischer Code. Eine compose-Datei, ein Update-Dienst.                                                                                                                                                                                               |
+| U14 | **Leitstand.** Zentrale Übersicht aller Instanzen: Kunde, Version, Zustand, letztes Update, Wartungsfenster, Ring. Die Instanzen melden sich **nur ausgehend** (Heartbeat alle 15 Minuten: Version, Zustand, Update-Ergebnis – keine Inhalte, keine Personendaten) und holen Aufträge ab. Kein Zugriff von aussen ins Netz der Schule, keine offenen Ports, freiwillig vereinbart. |
+| U15 | **Update-Ringe.** Jedes Release geht zuerst auf unseren Server (Ring 0), dann auf wenige Pilotinstanzen (Ring 1, z. B. 5 %), nach einer Beobachtungszeit auf alle (Ring 2). Schlägt die Prüfung in einem Ring fehl oder springen Instanzen zurück, stoppt die Verteilung automatisch.                                                                                              |
+| U16 | **Wartungsfenster und Massenauftrag.** Je Kunde ein Fenster (Vorgabe: nachts); der Leitstand plant das Update für eine Gruppe oder alle; jede Instanz führt es in ihrem Fenster aus und meldet das Ergebnis. Notfall-Updates (Sicherheit) mit kürzerer Frist.                                                                                                                      |
+| U17 | **Fast ohne Ausfall (blau/grün).** Neue Version neben der alten starten, Image vorher geladen, Gesundheitsprüfung, dann leitet Traefik den Verkehr um und die alte Version stoppt. Lesen bleibt durchgehend möglich; nur während einer Migration, die schreibt, kurz Schreibsperre (Hinweis «Wartung, gleich zurück»). Ziel: Unterbruch unter 5 Sekunden.                          |
+| U18 | **Abwärtskompatible Migrationen.** Damit alte und neue Version kurz gleichzeitig mit derselben Datenbank laufen: Änderungen in zwei Schritten über zwei Versionen (erst erweitern, später aufräumen); nie Spalten in derselben Version umbenennen oder löschen, in der sie noch gelesen werden. Die CI prüft das.                                                                  |
+| U19 | **Beobachten statt nachfragen.** Zustand, Fehlerraten und Versionen im Leitstand; Meldung an uns, wenn eine Instanz nicht mehr meldet oder zurückgesprungen ist. Betreiber vor Ort erhalten dieselben Meldungen per Mail.                                                                                                                                                          |
+
+**Grössenordnung:** Mit vorab geladenen Images dauert ein Update je Instanz rund eine Minute, der sichtbare
+Unterbruch wenige Sekunden. 200 Instanzen in zwei Ringen sind in einer Nacht aktualisiert – ohne Handarbeit.
+
 ## Offene Fragen (Entscheid durch die Projektverantwortliche Person)
 
 1. Wer darf aktualisieren: nur Developer (Recht `system`) oder auch Admin?
@@ -81,6 +104,8 @@ das signierte Image. So läuft jede Version zuerst bei uns, bevor Schulen sie au
 3. Soll unser Server künftig nur noch Releases ausliefern statt jeden Merge?
 4. Braucht es die Variante ohne Docker (U12) überhaupt?
 5. Abgleich der Inhalte (U11): automatisch übernehmen oder neue Begriffe zuerst in der lokalen Moderation zeigen?
+6. Ziel für viele Kunden: zuerst zentral mit Organisationen und eigene Instanzen nur auf Wunsch (Vorschlag)?
+7. Leitstand (U14) als Teil des zentralen Glossary oder als eigene, interne Anwendung?
 
 ## Issues (Meilenstein «0.10.0 – Selbst hosten und Updates»)
 
