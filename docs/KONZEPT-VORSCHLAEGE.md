@@ -1,6 +1,6 @@
 # Konzept: Vorschläge – Kanal und Umgang mit GitHub-Issues
 
-Stand: Entwurf 08.11.2026 zur Besprechung (#75, offener Entscheid 7 in [KONZEPT.md](KONZEPT.md)). Vorschlag
+Stand: **beschlossen 08.11.2026 – Variante A** (#75, offener Entscheid 7 in [KONZEPT.md](KONZEPT.md)),
 **DEC-024**. Grundlage für die Vorschlagsfunktion #113 (Release 0.7.0).
 
 ## 1. Ausgangslage
@@ -23,7 +23,7 @@ Stand: Entwurf 08.11.2026 zur Besprechung (#75, offener Entscheid 7 in [KONZEPT.
 | B – parallel                         | Angemeldete im Glossary, Personen ohne Konto weiterhin über ein GitHub-Formular «Begriff»; die Redaktion überträgt von Hand. | niederschwellig ohne Konto                                                                            | zwei Kanäle, doppelte Arbeit, kein Status für Einreichende; GitHub-Datenschutz; externe Texte unvertrauenswürdig |
 | C – Übernahme aus GitHub             | Issues mit Label «Begriff» automatisch als Vorschlag anlegen.                                                                | –                                                                                                     | keine bestätigte Identität, Texte unvertrauenswürdig (AGENTS.md), Personenbezug ausserhalb des Löschkonzepts     |
 
-## 3. Vorschlag (Variante A)
+## 3. Entscheid (Variante A)
 
 1. **Kanal:** Begriffe werden nur im Glossary vorgeschlagen (neuer Begriff oder Korrektur). Ohne Anmeldung führt
    «Vorschlag einreichen» zur Anmeldung bzw. Registrierung und danach zurück zum Formular.
@@ -51,7 +51,6 @@ Stand: Entwurf 08.11.2026 zur Besprechung (#75, offener Entscheid 7 in [KONZEPT.
   Bei Kontolöschung sofort ohne Personenbezug (wie `Journal::forget`). Eintrag in [LOESCHKONZEPT.md](LOESCHKONZEPT.md)
   mit #113.
 
-## 5. Zu entscheiden
+## 5. Entscheid
 
-- Variante A, B oder C (Empfehlung A).
-- Wortlaut der Links auf Website und GitHub.
+Variante A abgenommen am 08.11.2026; Wortlaut der Links wie in Abschnitt 3. Umsetzung mit #113.
