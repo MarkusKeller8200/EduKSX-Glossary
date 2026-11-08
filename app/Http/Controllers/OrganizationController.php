@@ -10,6 +10,7 @@ use App\Models\OrganizationTermOverride;
 use App\Models\Proposal;
 use App\Models\ServiceAccount;
 use App\Models\Term;
+use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Organizations\OrganizationService;
 use App\Proposals\ProposalService;
@@ -45,6 +46,7 @@ class OrganizationController extends Controller
             'anpassungen' => [],
             'servicekonten' => 0,
             'vorschlaege' => [],
+            'darstellungen' => [],
             'meine_einladungen' => array_map(fn (OrganizationInvitation $i): array => [
                 'id' => $i->id,
                 'organisation' => $i->organization->name,
@@ -112,6 +114,21 @@ class OrganizationController extends Controller
                     ], array_keys($p->changes), array_values($p->changes)),
                     'eingereicht' => $p->created_at?->toDateString(),
                 ])->all();
+            // persönliche Darstellungen der Mitglieder zur Freigabe (#148)
+            $props['darstellungen'] = array_map(fn (TermUserOverride $o): array => [
+                'id' => $o->id,
+                'von' => $o->user->name,
+                'slug' => $o->term->slug,
+                'titel' => $o->term->title(),
+                'werte' => array_values(array_filter([
+                    ['feld' => 'Abkürzung', 'wert' => $o->abbreviation_override],
+                    ['feld' => 'Bezeichnung', 'wert' => $o->name_override],
+                    ['feld' => 'Kurzbeschreibung', 'wert' => $o->short_description_override],
+                    ['feld' => 'Beschreibung', 'wert' => $o->description_override],
+                    ['feld' => 'Eigene Schreibweisen', 'wert' => $o->aliases_override === null ? null : implode('; ', $o->aliases_override)],
+                ], fn (array $f): bool => $f['wert'] !== null && $f['wert'] !== '')),
+                'geaendert' => $o->updated_at?->toDateString(),
+            ], $this->organizations->pendingPersonal($organization));
         }
 
         return Inertia::render('organization/show', $props);
@@ -212,6 +229,16 @@ class OrganizationController extends Controller
 
         return $this->run(fn () => $this->organizations->decideProposal($this->currentUser($request), $proposal, false, (string) $data['grund']),
             "Vorschlag Nr. {$proposal->id} abgelehnt.");
+    }
+
+    public function approvePersonal(Request $request, TermUserOverride $override): RedirectResponse
+    {
+        return $this->run(fn () => $this->organizations->decidePersonal($this->currentUser($request), $override, true), 'Persönliche Darstellung freigegeben.');
+    }
+
+    public function rejectPersonal(Request $request, TermUserOverride $override): RedirectResponse
+    {
+        return $this->run(fn () => $this->organizations->decidePersonal($this->currentUser($request), $override, false), 'Persönliche Darstellung abgelehnt und entfernt.');
     }
 
     public function leave(Request $request): RedirectResponse

@@ -35,7 +35,7 @@ jede Änderung nachvollziehbar.
   ohne `own_*` und `used_in`).
 - `term_aliases`: `term_id`, `alias`, `alias_type` (`official`, `alternative`, `search`), Sprache; **nicht
   eindeutig**, weil Mehrdeutigkeit erlaubt ist.
-- `term_user_overrides`: persönliche Darstellung je Begriff und Konto (DEC-020).
+- `term_user_overrides`: persönliche Darstellung je Begriff und Konto (DEC-020); seit #148 mit Freigabe für eine Organisation (`approved_organization_id`, `approved_by`, `approved_at`).
 - `term_legacy_values`: gesicherte Altwerte aus dem Intranet-Format zur Zuordnung (DEC-020).
 - `categories`, `term_categories`: mehrere Kategorien je Begriff.
 - `sources`, `term_sources`: Institution/Herkunft, URL, Abrufdatum, Hinweis, Belegstatus.

@@ -16,6 +16,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   entfernen Mitglieder und ernennen weitere Admins; es bleibt immer mindestens einer. Servicekonto mit Scope
   `read-org` liefert die Begriffe in der Darstellung der Organisation (`/api/v1/org/terms`). Neues Grundrecht
   «Organisation gründen».
+- **Meine Darstellung nur mit Organisation (#148, DEC-025):** persönliche Alternativtexte nur noch für Mitglieder einer
+  Organisation und erst nach Freigabe durch einen Organisations-Admin (eigene Texte der Organisations-Admins sofort).
+  Bisherige Anpassungen bleiben gespeichert und gelten nach Freigabe.
 - **Passwort-Link (#147):** In der Benutzerverwaltung kann ein Admin einer Person einen Link zum Zurücksetzen des
   Passworts senden (ohne das Passwort zu sehen, protokolliert); auch für Konten, die sich bisher nur mit Microsoft
   anmelden.

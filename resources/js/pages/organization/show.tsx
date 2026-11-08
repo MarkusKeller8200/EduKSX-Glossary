@@ -51,6 +51,15 @@ type Vorschlag = {
     eingereicht: string | null;
 };
 
+type PersoenlicheDarstellung = {
+    id: string;
+    von: string;
+    slug: string;
+    titel: string;
+    werte: { feld: string; wert: string }[];
+    geaendert: string | null;
+};
+
 type Props = {
     organisation: Organisation | null;
     mitglieder: Mitglied[];
@@ -58,6 +67,7 @@ type Props = {
     anpassungen: Anpassung[];
     servicekonten: number;
     vorschlaege: Vorschlag[];
+    darstellungen: PersoenlicheDarstellung[];
     meine_einladungen: MeineEinladung[];
     darf_gruenden: boolean;
 };
@@ -90,9 +100,9 @@ export default function OrganizationShow(props: Props) {
             <p className="mt-3 max-w-prose text-sm text-muted-foreground">
                 Mitglieder einer Organisation sehen die Begriffe in der
                 Darstellung ihrer Organisation. Die Organisations-Admins legen
-                diese auf der Seite eines Begriffs fest. Die persönliche
-                Darstellung geht vor; öffentlich bleibt immer die gemeinsame
-                Form.
+                diese auf der Seite eines Begriffs fest und geben die
+                persönliche Darstellung der Mitglieder frei, die dann vorgeht.
+                Öffentlich bleibt immer die gemeinsame Form.
             </p>
 
             <InputError className="mt-4" message={errors.organisation} />
@@ -133,6 +143,9 @@ export default function OrganizationShow(props: Props) {
                     />
                     {org.admin ? (
                         <Vorschlaege vorschlaege={props.vorschlaege} />
+                    ) : null}
+                    {org.admin ? (
+                        <Freigaben darstellungen={props.darstellungen} />
                     ) : null}
                     {org.admin ? (
                         <Einladungen einladungen={props.einladungen} />
@@ -536,6 +549,100 @@ function VorschlagKarte({ v }: { v: Vorschlag }) {
                 </form>
             ) : null}
         </li>
+    );
+}
+
+/** Persönliche Darstellungen der Mitglieder (#148): gelten erst nach Freigabe. */
+function Freigaben({
+    darstellungen,
+}: {
+    darstellungen: PersoenlicheDarstellung[];
+}) {
+    return (
+        <Abschnitt
+            titel={`Persönliche Darstellungen zur Freigabe (${darstellungen.length})`}
+        >
+            <p className="text-sm text-muted-foreground">
+                «Meine Darstellung» der Mitglieder gilt erst nach Ihrer
+                Freigabe; jede Änderung braucht eine neue. Ablehnen entfernt die
+                Anpassung. Ihre eigenen gelten sofort.
+            </p>
+            {darstellungen.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Keine offenen Freigaben.
+                </p>
+            ) : (
+                <ul className="mt-3 grid gap-3">
+                    {darstellungen.map((d) => (
+                        <li
+                            key={d.id}
+                            className="rounded-lg border border-border p-3 text-sm"
+                        >
+                            <p>
+                                <Link
+                                    href={`/begriffe/${d.slug}`}
+                                    className="font-medium text-link underline underline-offset-4"
+                                >
+                                    {d.titel}
+                                </Link>{' '}
+                                <span className="text-muted-foreground">
+                                    – von {d.von}
+                                    {d.geaendert ? `, ${d.geaendert}` : ''}
+                                </span>
+                            </p>
+                            <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[12rem_1fr]">
+                                {d.werte.map((w) => (
+                                    <Fragment key={w.feld}>
+                                        <dt className="text-muted-foreground">
+                                            {w.feld}
+                                        </dt>
+                                        <dd className="whitespace-pre-line">
+                                            {w.wert}
+                                        </dd>
+                                    </Fragment>
+                                ))}
+                            </dl>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <Button
+                                    size="sm"
+                                    onClick={() =>
+                                        router.post(
+                                            `/organisation/darstellungen/${d.id}/freigeben`,
+                                            {},
+                                            opts,
+                                        )
+                                    }
+                                >
+                                    Freigeben
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={async () => {
+                                        const ok = await confirmAction(
+                                            `Persönliche Darstellung von ${d.von} ablehnen und entfernen?`,
+                                            {
+                                                confirmLabel: 'Ablehnen',
+                                                destructive: true,
+                                            },
+                                        );
+                                        if (ok) {
+                                            router.post(
+                                                `/organisation/darstellungen/${d.id}/ablehnen`,
+                                                {},
+                                                opts,
+                                            );
+                                        }
+                                    }}
+                                >
+                                    Ablehnen
+                                </Button>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </Abschnitt>
     );
 }
 

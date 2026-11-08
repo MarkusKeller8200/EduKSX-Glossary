@@ -13,6 +13,7 @@ use App\Models\OrganizationTermOverride;
 use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\Term;
+use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Organizations\OrganizationService;
 use App\Proposals\ProposalService;
@@ -154,9 +155,26 @@ class OrganizationTest extends TestCase
         // Mitglieder ändern nicht
         $this->actingAs($member)->put("/begriffe/{$term->slug}/organisation-darstellung", ['name_override' => 'X'])->assertSessionHasErrors('organisation');
 
-        // persönliche Darstellung geht vor
+        // persönliche Darstellung: erst nach Freigabe, dann vor der Organisation
         $this->actingAs($member)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'Meine SL'])->assertRedirect();
-        $this->actingAs($member)->get("/begriffe/{$term->slug}")->assertInertia(fn (Assert $p) => $p->where('begriff.bezeichnung', 'Meine SL'));
+        $this->actingAs($member)->get("/begriffe/{$term->slug}")->assertInertia(fn (Assert $p) => $p
+            ->where('begriff.bezeichnung', 'Schulleitung Muster')->where('begriff.meine_status', 'wartet')->where('begriff.meine.name_override', 'Meine SL'));
+        $override = TermUserOverride::query()->where('user_id', $member->id)->firstOrFail();
+        $this->actingAs($member)->post("/organisation/darstellungen/{$override->id}/freigeben")->assertSessionHasErrors('organisation');
+        $this->actingAs($admin)->get('/organisation')->assertInertia(fn (Assert $p) => $p->has('darstellungen', 1));
+        $this->actingAs($admin)->post("/organisation/darstellungen/{$override->id}/freigeben")->assertSessionHasNoErrors();
+        $this->actingAs($member)->get("/begriffe/{$term->slug}")->assertInertia(fn (Assert $p) => $p
+            ->where('begriff.bezeichnung', 'Meine SL')->where('begriff.meine_status', 'freigegeben'));
+
+        // Änderung braucht neue Freigabe; ablehnen entfernt
+        $this->actingAs($member)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'Andere SL'])->assertRedirect();
+        $this->actingAs($member)->get("/begriffe/{$term->slug}")->assertInertia(fn (Assert $p) => $p->where('begriff.bezeichnung', 'Schulleitung Muster'));
+        $this->actingAs($admin)->post("/organisation/darstellungen/{$override->id}/ablehnen")->assertSessionHasNoErrors();
+        $this->assertFalse(TermUserOverride::query()->whereKey($override->id)->exists());
+
+        // eigene Texte des Organisations-Admins gelten sofort
+        $this->actingAs($admin)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'Admin SL'])->assertRedirect();
+        $this->actingAs($admin)->get("/begriffe/{$term->slug}")->assertInertia(fn (Assert $p) => $p->where('begriff.bezeichnung', 'Admin SL'));
 
         // Aussenstehende, Gäste ohne Organisation und öffentlich: gemeinsame Form
         $this->actingAs($outsider)->get("/begriffe/{$term->slug}")

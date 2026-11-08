@@ -12,6 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * API, Export, GitHub Pages oder Confluence. NULL = keine Anpassung (gemeinsamer Wert gilt). Wird mit dem Konto
  * gelöscht.
  *
+ * Seit #148 nur für Mitglieder einer Organisation und erst nach Freigabe durch einen Organisations-Admin dieser
+ * Organisation (approved_organization_id); eigene Texte der Organisations-Admins gelten sofort.
+ *
  * @property string $id
  * @property string $term_id
  * @property string $user_id
@@ -20,6 +23,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $short_description_override
  * @property string|null $description_override
  * @property list<string>|null $aliases_override
+ * @property string|null $approved_organization_id freigegeben für diese Organisation; NULL = wartet
+ * @property string|null $approved_by
+ * @property CarbonImmutable|null $approved_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
@@ -42,6 +48,7 @@ class TermUserOverride extends Model
     {
         return [
             'aliases_override' => 'array',
+            'approved_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
             'updated_at' => 'immutable_datetime',
         ];
@@ -63,6 +70,12 @@ class TermUserOverride extends Model
     public function term(): BelongsTo
     {
         return $this->belongsTo(Term::class);
+    }
+
+    /** Für die Organisation $organizationId freigegeben. */
+    public function isApprovedFor(?string $organizationId): bool
+    {
+        return $organizationId !== null && $this->approved_organization_id === $organizationId;
     }
 
     /** @return BelongsTo<User, $this> */

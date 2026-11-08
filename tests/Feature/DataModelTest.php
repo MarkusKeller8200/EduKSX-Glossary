@@ -11,6 +11,7 @@ use App\Models\TermLegacyValue;
 use App\Models\TermRevision;
 use App\Models\TermUserOverride;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use App\Support\SpreadsheetWriter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -100,6 +101,8 @@ class DataModelTest extends TestCase
         $term = $this->published(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung']);
         $a = $this->community('a@example.org');
         $b = $this->community('b@example.org');
+        // seit #148 nur als Mitglied einer Organisation; eigene Texte der Organisations-Admins gelten sofort
+        app(OrganizationService::class)->create($a, 'Schule A');
 
         $this->actingAs($a)->put("/begriffe/{$term->slug}/meine-darstellung", [
             'name_override' => 'Schulleitung Primar', 'aliases_override' => 'SLP; Leitung',
@@ -113,7 +116,8 @@ class DataModelTest extends TestCase
         $this->actingAs($a)->get('/')->assertInertia(fn (Assert $p) => $p->where('begriffe.0.bezeichnung', 'Schulleitung Primar'));
 
         $this->actingAs($b)->get("/begriffe/{$term->slug}")
-            ->assertInertia(fn (Assert $p) => $p->where('begriff.bezeichnung', 'Schulleitung')->where('begriff.persoenlich', false));
+            ->assertInertia(fn (Assert $p) => $p->where('begriff.bezeichnung', 'Schulleitung')->missing('begriff.persoenlich')
+                ->where('begriff.meine_moeglich', false));
 
         $this->app['auth']->forgetGuards();
         $this->get("/begriffe/{$term->slug}")
@@ -145,6 +149,11 @@ class DataModelTest extends TestCase
     {
         $term = $this->published(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung']);
         $this->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'X'])->assertRedirect('/anmelden');
+
+        // ohne Organisation abgewiesen (#148)
+        $this->actingAs($this->community('d@example.org'))
+            ->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'X'])->assertSessionHasErrors('organisation');
+        $this->assertSame(0, TermUserOverride::query()->count());
 
         $draft = $this->glossary->save(null, ['official_abbreviation' => 'LP', 'official_name' => 'Lehrperson'], null, true);
         $this->actingAs($this->community('c@example.org'))

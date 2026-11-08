@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Schema;
  * - `proposals.organization_id`: Vorschläge von Mitgliedern; Status «org_pruefung», bis ein Organisations-Admin
  *   bestätigt (dann Moderation) oder ablehnt.
  * - Einladungen werden nicht automatisch angenommen: die eingeladene Person bestätigt aktiv.
+ * - `term_user_overrides.approved_organization_id`: Die persönliche Darstellung gilt nur für Mitglieder einer
+ *   Organisation und erst nach Freigabe durch einen Organisations-Admin dieser Organisation (eigene Texte der
+ *   Organisations-Admins ohne Freigabe). Bestehende Anpassungen bleiben gespeichert, gelten aber erst nach Freigabe.
  * - Recht «create-organization» (Grundrecht) für Benutzer, Organisations-Admin, Moderator und Admin.
  */
 return new class extends Migration
@@ -77,6 +80,12 @@ return new class extends Migration
             $table->foreignUuid('organization_id')->nullable()->constrained()->nullOnDelete();
         });
 
+        Schema::table('term_user_overrides', function (Blueprint $table) {
+            $table->foreignUuid('approved_organization_id')->nullable()->constrained('organizations')->nullOnDelete();
+            $table->foreignUuid('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->timestamp('approved_at')->nullable();
+        });
+
         foreach (self::ROLES_WITH_CREATE as $key) {
             $roleId = DB::table('roles')->where('key', $key)->value('id');
             if ($roleId !== null) {
@@ -91,6 +100,11 @@ return new class extends Migration
     public function down(): void
     {
         DB::table('role_permissions')->where('permission', 'create-organization')->delete();
+        Schema::table('term_user_overrides', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('approved_by');
+            $table->dropConstrainedForeignId('approved_organization_id');
+            $table->dropColumn('approved_at');
+        });
         Schema::table('proposals', function (Blueprint $table) {
             $table->dropConstrainedForeignId('organization_id');
         });

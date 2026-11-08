@@ -45,6 +45,9 @@ type Begriff = {
         beschreibung: string | null;
     };
     meine?: Meine;
+    // #148: Meine Darstellung wartet auf Freigabe oder ist ohne Organisation nicht möglich
+    meine_status?: 'freigegeben' | 'wartet' | null;
+    meine_moeglich?: boolean;
     // nur für aktive Mitglieder einer Organisation (#148)
     organisation?: {
         name: string;
@@ -238,8 +241,22 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     <MeineDarstellung
                         slug={b.slug}
                         werte={b.meine}
-                        gesetzt={b.persoenlich === true}
+                        gesetzt={b.meine_status != null}
+                        wartet={b.meine_status === 'wartet'}
+                        admin={b.organisation?.bearbeiten === true}
                     />
+                ) : b.meine_moeglich === false ? (
+                    <p className="mt-10 text-sm text-muted-foreground">
+                        «Meine Darstellung» (eigene Texte zu einem Begriff) ist
+                        als Mitglied einer Organisation möglich –{' '}
+                        <Link
+                            href="/organisation"
+                            className="text-link underline underline-offset-4"
+                        >
+                            Meine Organisation
+                        </Link>
+                        .
+                    </p>
                 ) : null}
 
                 <p className="mt-10 text-sm">
@@ -284,18 +301,30 @@ function MeineDarstellung({
     slug,
     werte,
     gesetzt,
+    wartet,
+    admin,
 }: {
     slug: string;
     werte: Meine;
     gesetzt: boolean;
+    wartet: boolean;
+    admin: boolean;
 }) {
+    const freigabe = admin
+        ? 'Als Organisations-Admin gelten deine Texte sofort.'
+        : 'Gilt erst, wenn ein Organisations-Admin sie freigibt; jede Änderung braucht eine neue Freigabe.';
+
     return (
         <Darstellung
-            titel="Meine Darstellung"
+            titel={
+                wartet
+                    ? 'Meine Darstellung (wartet auf Freigabe)'
+                    : 'Meine Darstellung'
+            }
             pfad={`/begriffe/${slug}/meine-darstellung`}
             werte={werte}
             gesetzt={gesetzt}
-            hinweis="Nur für dich sichtbar, wenn du angemeldet bist. Leere Felder zeigen die gemeinsame Form (bzw. die deiner Organisation). Wird nicht veröffentlicht und nicht über die API weitergegeben; mit deinem Konto gelöscht."
+            hinweis={`Nur für dich sichtbar, wenn du angemeldet bist. ${freigabe} Leere Felder zeigen die Form deiner Organisation bzw. die gemeinsame. Wird nicht veröffentlicht und nicht über die API weitergegeben; mit deinem Konto gelöscht.`}
         />
     );
 }

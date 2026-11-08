@@ -13,6 +13,7 @@ use App\Models\OrganizationTermOverride;
 use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\Term;
+use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Proposals\ProposalService;
 use App\Support\MailSetup;
@@ -30,6 +31,7 @@ use Illuminate\Support\Facades\Mail;
  * - Einladungen nimmt die eingeladene Person aktiv an (bestätigt 08.11.2026); nach dem Entfernen ist eine neue
  *   Einladung möglich.
  * - Vorschläge von Mitgliedern bestätigt ein Organisations-Admin, bevor sie in die Moderation gehen.
+ * - Die persönliche Darstellung der Mitglieder gibt ein Organisations-Admin frei (eigene Texte ohne Freigabe).
  * - Wer Organisations-Admin wird, erhält die globale Rolle «Organisations-Admin» (Servicekonten, zweiter Faktor);
  *   beim Entzug wird sie nur entfernt, wenn die Organisation sie vergeben hat.
  *
@@ -342,6 +344,40 @@ final class OrganizationService
             $this->requireAdmin($actor, $organization);
         }, ['organization' => $organization?->name, 'proposal' => $proposal->id]);
         app(ProposalService::class)->decideForOrganization($proposal, $actor, $confirm, $reason);
+    }
+
+    /**
+     * Persönliche Darstellungen der aktiven Mitglieder, die auf die Freigabe warten.
+     *
+     * @return list<TermUserOverride>
+     */
+    public function pendingPersonal(Organization $organization): array
+    {
+        $members = OrganizationMember::query()->where('organization_id', $organization->id)->where('status', 'active')->select('user_id');
+
+        return array_values(TermUserOverride::query()->whereIn('user_id', $members)
+            ->where(fn ($q) => $q->whereNull('approved_organization_id')->orWhere('approved_organization_id', '!=', $organization->id))
+            ->with(['user', 'term'])->orderBy('updated_at')->get()->all());
+    }
+
+    /** Persönliche Darstellung eines Mitglieds freigeben oder ablehnen (ablehnen löscht sie). */
+    public function decidePersonal(User $actor, TermUserOverride $override, bool $approve): void
+    {
+        $member = $this->membershipOf($override->user);
+        $organization = $member?->organization;
+        $this->guard($actor, $override->user, $approve ? 'organization.personal_approved' : 'organization.personal_rejected', function () use ($actor, $member, $organization): void {
+            if ($member === null || $organization === null || ! $member->isActive()) {
+                throw new AccessDenied('Die Person ist kein aktives Mitglied einer Organisation.');
+            }
+            $this->requireAdmin($actor, $organization);
+        }, ['organization' => $organization?->name, 'term' => $override->term->slug]);
+
+        if (! $approve) {
+            $override->delete();
+
+            return;
+        }
+        $override->forceFill(['approved_organization_id' => $organization?->id, 'approved_by' => $actor->id, 'approved_at' => now()])->save();
     }
 
     // ---------- intern ----------

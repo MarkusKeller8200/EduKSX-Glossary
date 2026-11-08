@@ -23,7 +23,8 @@ use Illuminate\Support\Facades\Gate;
  * (PageController setzt «Cache-Control: private, no-store»).
  *
  * Darstellung der Organisation (#148, DEC-025): Aktive Mitglieder sehen die Anpassungen ihrer Organisation.
- * Reihenfolge: persönlich vor Organisation vor gemeinsam; Schreibweisen werden ergänzt.
+ * Reihenfolge: persönlich vor Organisation vor gemeinsam; Schreibweisen werden ergänzt. Die persönliche Darstellung
+ * gilt nur für aktive Mitglieder und nur, wenn ein Organisations-Admin sie für diese Organisation freigegeben hat.
  */
 final class PublicGlossary
 {
@@ -35,7 +36,7 @@ final class PublicGlossary
     ];
 
     /** Zusätzliche Felder nur für das angemeldete Konto selbst (nie öffentlich). */
-    public const PERSONAL_FIELDS = ['persoenlich', 'gemeinsam', 'meine', 'organisation'];
+    public const PERSONAL_FIELDS = ['persoenlich', 'gemeinsam', 'meine', 'meine_status', 'meine_moeglich', 'organisation'];
 
     /**
      * Kurzform für Liste und Suche.
@@ -45,10 +46,10 @@ final class PublicGlossary
     public function list(?User $user = null): array
     {
         $organization = app(OrganizationService::class)->activeOrganizationOf($user);
-        $user = $this->personalFor($user);
+        $user = $this->personalFor($user, $organization);
         $categories = $this->labels(Category::class);
         $sources = $this->labels(Source::class);
-        $overrides = $this->overrides($user);
+        $overrides = array_filter($this->overrides($user), fn (TermUserOverride $o): bool => $o->isApprovedFor($organization?->id));
         $orgOverrides = $this->organizationOverrides($organization);
 
         $list = $this->published()
@@ -104,7 +105,9 @@ final class PublicGlossary
         $organizations = app(OrganizationService::class);
         $organization = $organizations->activeOrganizationOf($user);
         $orgAdmin = $user !== null && $organization !== null && $organizations->isAdmin($user, $organization);
-        $user = $this->personalFor($user);
+        // Recht vorhanden, aber ohne Organisation: Hinweis statt Formular
+        $personalPossible = $user !== null && Gate::forUser($user)->allows('personal-display');
+        $user = $this->personalFor($user, $organization);
         $term = Term::query()->published()->where('slug', $slug)->with('publishedRevision')->first();
         $revision = $term?->publishedRevision;
         if ($term === null || $revision === null || ($revision->snapshot['is_active'] ?? true) !== true) {
@@ -154,6 +157,10 @@ final class PublicGlossary
         $detail = array_intersect_key($detail, array_flip(self::PUBLIC_DETAIL_FIELDS));
 
         if ($user === null && $organization === null) {
+            if ($personalPossible) {
+                $detail['meine_moeglich'] = false;
+            }
+
             return $detail;
         }
 
@@ -171,12 +178,15 @@ final class PublicGlossary
             $detail = self::apply($detail, $g);
         }
 
-        // Persönliche Darstellung: nur für dieses Konto, gemeinsame Werte bleiben sichtbar
+        // Persönliche Darstellung: nur für dieses Konto und erst nach Freigabe; gemeinsame Werte bleiben sichtbar
         if ($user !== null) {
             $o = $this->overrides($user, (string) $s['id'])[(string) $s['id']] ?? null;
-            $detail['persoenlich'] = $o !== null;
+            $approved = $o !== null && $o->isApprovedFor($organization?->id);
+            $detail['persoenlich'] = $approved;
             $detail['meine'] = self::formValues($o);
-            $detail = self::apply($detail, $o);
+            $detail['meine_status'] = $o === null ? null : ($approved ? 'freigegeben' : 'wartet');
+            $detail['meine_moeglich'] = true;
+            $detail = self::apply($detail, $approved ? $o : null);
         }
 
         return $detail;
@@ -237,12 +247,12 @@ final class PublicGlossary
     }
 
     /**
-     * Konto, dessen persönliche Darstellung gilt: nur mit Recht «personal-display» (#114). Ohne Recht (z. B. Gast)
-     * die gemeinsame Sicht; gespeicherte Anpassungen bleiben erhalten.
+     * Konto, dessen persönliche Darstellung gilt: nur mit Recht «personal-display» (#114) und als aktives Mitglied
+     * einer Organisation (#148). Sonst die gemeinsame Sicht; gespeicherte Anpassungen bleiben erhalten.
      */
-    private function personalFor(?User $user): ?User
+    private function personalFor(?User $user, ?Organization $organization): ?User
     {
-        return $user !== null && Gate::forUser($user)->allows('personal-display') ? $user : null;
+        return $user !== null && $organization !== null && Gate::forUser($user)->allows('personal-display') ? $user : null;
     }
 
     /**
