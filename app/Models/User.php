@@ -63,7 +63,7 @@ class User extends Authenticatable
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['status' => 'active', 'password_set' => true];
+    protected $attributes = ['status' => 'active', 'password_set' => true, 'news_opt_in' => false];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
