@@ -1,7 +1,7 @@
 # Konzept Organisation (DEC-025, #148)
 
 Stand: 08.11.2026 – Entscheide O1–O16 von der Projektverantwortlichen Person durchgesehen; Anpassungen bei O6, O8,
-O11, O12 und O13 übernommen; O17 (persönliche Darstellung) ergänzt.
+O11, O12 und O13 übernommen; O17 (persönliche Darstellung) und O18 (Übernehmen) ergänzt.
 
 ## Ziel
 
@@ -38,6 +38,7 @@ Eine Schule, Schulgemeinde, Gemeinde oder ein Team zeigt die Begriffe in einer g
 | O15 | Mitglieder sehen Namen und Rollen der anderen Mitglieder; E-Mail-Adressen und offene Einladungen nur Organisations-Admins.                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | O16 | Jede Aktion (auch abgewiesene) im Audit-Protokoll (`organization.*`), Rollenvergabe im Rollen-Protokoll mit Bezeichnung «Organisation».                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | O17 | **«Meine Darstellung» (persönliche Alternativtexte) nur für Mitglieder einer Organisation** (ab Benutzer) und erst nach **Freigabe durch einen Organisations-Admin** dieser Organisation; eigene Texte der Organisations-Admins gelten sofort. Jede Änderung braucht eine neue Freigabe; Ablehnen entfernt die Anpassung. Ohne Organisation (oder nach Austritt, Sperre, Wechsel) bleiben gespeicherte Anpassungen erhalten, gelten aber nicht; eine Freigabe gilt nur für die Organisation, die sie erteilt hat. Bisherige Anpassungen gelten erst nach Freigabe. |
+| O18 | **Parallel und übertragbar** (Chat 08.11.2026, #165): Meine Darstellung und Darstellung der Organisation bestehen nebeneinander; persönliche Texte sind für die Organisation nicht sichtbar. Organisations-Admins können ihre eigene Darstellung eines Begriffs mit «Übernehmen» als Darstellung der Organisation übertragen (ersetzt die bisherige, sichtbar für alle Mitglieder; Warnung vor dem Übernehmen). Option «Meine Darstellung danach löschen» ist standardmässig an; die Person entscheidet.                                                           |
 
 ## Daten
 

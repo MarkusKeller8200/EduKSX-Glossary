@@ -297,18 +297,18 @@ export default function Terms({
 
             <div className="mt-3 grid gap-2">
                 <LabelFilter
-                    list="kategorien"
-                    title="Kategorie"
-                    labels={alleKategorien}
-                    selected={kategorien}
-                    onChange={setKategorien}
-                />
-                <LabelFilter
                     list="herkunft"
                     title="Herkunft"
                     labels={alleHerkunft}
                     selected={herkunft}
                     onChange={setHerkunft}
+                />
+                <LabelFilter
+                    list="kategorien"
+                    title="Kategorie"
+                    labels={alleKategorien}
+                    selected={kategorien}
+                    onChange={setKategorien}
                 />
             </div>
 
@@ -422,6 +422,20 @@ export default function Terms({
                             ),
                         },
                         {
+                            id: 'herkunft',
+                            header: 'Herkunft',
+                            width: 140,
+                            sortValue: (b) => b.herkunft.join(', '),
+                            cell: (b) => (
+                                <div className="flex flex-wrap gap-1">
+                                    <ListBadges
+                                        list="herkunft"
+                                        labels={b.herkunft}
+                                    />
+                                </div>
+                            ),
+                        },
+                        {
                             id: 'kategorien',
                             header: 'Kategorien',
                             width: 180,
@@ -509,6 +523,7 @@ const SORTIERUNG = [
     { id: 'abkuerzung', label: 'Abkürzung' },
     { id: 'bezeichnung', label: 'Bezeichnung' },
     { id: 'kurz', label: 'Kurzbeschreibung' },
+    { id: 'herkunft', label: 'Herkunft' },
     { id: 'kategorien', label: 'Kategorien' },
     { id: 'status', label: 'Status' },
     { id: 'veroeffentlicht', label: 'Veröffentlicht' },
@@ -570,6 +585,7 @@ function Kachel({ begriff: b }: { begriff: Begriff }) {
                     </p>
                 ) : null}
                 <div className="mt-2 flex flex-wrap gap-1">
+                    <ListBadges list="herkunft" labels={b.herkunft} />
                     <ListBadges list="kategorien" labels={b.kategorien} />
                 </div>
             </div>

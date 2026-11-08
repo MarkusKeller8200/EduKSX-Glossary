@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Glossary\FieldGuide;
 use App\Glossary\Permalink;
 use App\Glossary\PublicGlossary;
+use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\AppVersion;
@@ -86,9 +87,25 @@ class PageController extends Controller
     }
 
     /** Hilfe: Felder eines Begriffs (#135). */
-    public function help(): Response
+    public function help(Request $request): Response
     {
-        return Inertia::render('help', ['felder' => FieldGuide::FIELDS, 'weiteres' => FieldGuide::EXTRAS]);
+        // Reiter je Rolle (#166): Admin und Developer nur mit dieser Rolle
+        $roles = $this->currentUserOrNull($request)?->roleKeys() ?? [];
+        $developer = in_array(Role::DEVELOPER, $roles, true);
+        $tabs = array_filter(FieldGuide::TABS, fn (string $label, string $key): bool => match ($key) {
+            'admin' => $developer || in_array(Role::ADMIN, $roles, true),
+            'developer' => $developer,
+            default => true,
+        }, ARRAY_FILTER_USE_BOTH);
+
+        $fields = array_map(fn (array $f): array => $f + ['tab' => FieldGuide::GROUP_TABS[$f['gruppe']] ?? 'benutzer'], FieldGuide::FIELDS);
+
+        return Inertia::render('help', [
+            'reiter' => array_map(fn (string $key, string $label): array => ['key' => $key, 'label' => $label], array_keys($tabs), array_values($tabs)),
+            // Felder gehören zu den Reitern Gast/Benutzer, Organisations-Admin und Moderator (immer sichtbar)
+            'felder' => array_values($fields),
+            'weiteres' => array_values(array_filter(FieldGuide::EXTRAS, fn (array $e): bool => isset($tabs[$e['tab']]))),
+        ]);
     }
 
     /** Rechtliches, verwendete Quellprojekte und Drittlizenzen (Prüfstand). */

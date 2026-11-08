@@ -189,6 +189,34 @@ class OrganizationTest extends TestCase
         $this->assertSame(0, OrganizationTermOverride::query()->count());
     }
 
+    public function test_meine_darstellung_als_darstellung_der_organisation_uebernehmen(): void
+    {
+        $term = $this->term();
+        [$organization, $admin] = $this->organisation();
+        $member = $this->member($organization, 'm@schule.ch');
+        $this->organizations->setDisplay($admin, $organization, $term, ['name_override' => 'Alt']);
+        $this->actingAs($admin)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'Neu SL', 'aliases_override' => 'NSL'])->assertRedirect();
+
+        // Mitglieder dürfen nicht übernehmen
+        $this->actingAs($member)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'X'])->assertRedirect();
+        $this->actingAs($member)->post("/begriffe/{$term->slug}/organisation-darstellung/aus-meiner")->assertSessionHasErrors('organisation');
+
+        // Vorgabe: danach löschen; ersetzt die bisherige Darstellung der Organisation
+        $this->actingAs($admin)->post("/begriffe/{$term->slug}/organisation-darstellung/aus-meiner")->assertSessionHasNoErrors();
+        $override = OrganizationTermOverride::query()->where('organization_id', $organization->id)->firstOrFail();
+        $this->assertSame('Neu SL', $override->name_override);
+        $this->assertSame(['NSL'], $override->aliases_override);
+        $this->assertFalse(TermUserOverride::query()->where('user_id', $admin->id)->exists());
+        $this->actingAs($admin)->get("/begriffe/{$term->slug}")->assertInertia(fn (Assert $p) => $p
+            ->where('begriff.bezeichnung', 'Neu SL')->where('begriff.organisation.gesetzt', true)->where('begriff.persoenlich', false));
+
+        // behalten
+        $this->actingAs($admin)->put("/begriffe/{$term->slug}/meine-darstellung", ['name_override' => 'Zweite'])->assertRedirect();
+        $this->actingAs($admin)->post("/begriffe/{$term->slug}/organisation-darstellung/aus-meiner", ['loeschen' => false])->assertSessionHasNoErrors();
+        $this->assertTrue(TermUserOverride::query()->where('user_id', $admin->id)->exists());
+        $this->assertSame('Zweite', $override->fresh()?->name_override);
+    }
+
     public function test_verwaltung_nur_mit_zweitem_faktor(): void
     {
         $term = $this->term();
