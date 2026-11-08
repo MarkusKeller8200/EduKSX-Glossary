@@ -20,6 +20,8 @@ export type SharedData = {
         /** Rechte des Kontos (#36); nur für die Anzeige */
         can: Record<string, true>;
         roles: string[];
+        /** einmal nach der Anmeldung nach News fragen (#169) */
+        newsFrage: boolean;
     };
     appVersion: AppVersion;
     links: { githubRepo: string | null; pages: string | null };

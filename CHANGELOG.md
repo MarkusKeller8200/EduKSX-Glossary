@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Datenmodell (#170):** «Für Entwickler» zeigt alle Tabellen mit Spalten, Schlüsseln und Verweisen, ein
+  ER-Diagramm (Mermaid, nachgeladen) und ein SQL-Script der Struktur zum Herunterladen (ohne Daten).
+- **News-Einwilligung (#169):** freiwillig, keine Werbung: Kästchen bei der Registrierung (nicht vorausgewählt),
+  einmalige Frage nach der Anmeldung, änderbar unter «Mein Konto»; Datenschutzerklärung ergänzt.
 - **Übernehmen in die Organisation (#165, DEC-025):** Organisations-Admins übertragen «Meine Darstellung» eines
   Begriffs mit «Übernehmen» in die Darstellung der Organisation (mit Warnung; «Meine Darstellung danach löschen»
   standardmässig an). Hinweis: persönliche Texte sind für die Organisation nicht sichtbar.
@@ -31,6 +35,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Anmeldeseite (#168):** Funktionen mit Konto, Hinweis zum zweiten Faktor ab Organisations-Admin und «Noch kein
+  Konto? Hier ein Konto erstellen».
 - **Detailseite eines Begriffs (#163):** optimale Breite; alle öffentlichen Felder einzeln (offizielle Aliase,
   alternative Schreibweisen, Suchbegriffe, Status, Gültig ab/bis, Revision, Permalink, Code), Herkunft, Kategorien
   und Status als farbige Labels.

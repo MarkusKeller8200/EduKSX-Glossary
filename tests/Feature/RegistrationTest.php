@@ -153,4 +153,26 @@ class RegistrationTest extends TestCase
         $this->assertNull(User::query()->find($alt->id));
         $this->assertNotNull(User::query()->find($neu->id));
     }
+
+    /** News-Einwilligung (#169): freiwillig, Vorgabe nein, Antwort mit Zeitpunkt. */
+    public function test_news_bei_registrierung_und_nach_der_anmeldung(): void
+    {
+        $this->mailOn();
+        $this->post('/registrieren', self::FORM + ['news' => true])->assertRedirect('/anmelden');
+        $anna = User::query()->where('email', 'anna@example.org')->firstOrFail();
+        $this->assertTrue($anna->news_opt_in);
+        $this->assertNotNull($anna->news_answered_at);
+
+        // bestehendes Konto ohne Antwort: einmal fragen
+        $alt = $this->userWithRoles([Role::USER], 'alt@example.org', false);
+        $this->actingAs($alt)->get('/konto')->assertInertia(fn (Assert $p) => $p->where('auth.newsFrage', true)->where('konto.news', false));
+        $this->actingAs($alt)->post('/konto/news', ['news' => false])->assertRedirect()->assertSessionHas('status');
+        $alt->refresh();
+        $this->assertFalse($alt->news_opt_in);
+        $this->assertNotNull($alt->news_answered_at);
+        $this->actingAs($alt)->get('/konto')->assertInertia(fn (Assert $p) => $p->where('auth.newsFrage', false));
+
+        $this->actingAs($alt)->post('/konto/news', ['news' => true]);
+        $this->assertTrue($alt->fresh()?->news_opt_in);
+    }
 }

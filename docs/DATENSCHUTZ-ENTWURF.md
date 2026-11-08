@@ -26,7 +26,9 @@ Bei Zugriffen können IP-Adresse, Zeitpunkt, angefragte URL, Browser-/Client-Ken
 - Externe Anmeldedienste: Anbieter, Ausstellerkennung und stabile pseudonyme beziehungsweise technische Benutzerkennung; weitere Attribute nur soweit erforderlich.
 - Dokumentation der **Kenntnisnahme** dieser Erklärung: Version und Zeitpunkt. Zweckgebundene **Einwilligungen** werden gesondert protokolliert, wenn sie erforderlich sind.
 
-- Persönliche Darstellung von Begriffen («Meine Darstellung», freiwillig): eigene Abkürzung, Bezeichnung, Beschreibungen und Schreibweisen. Nur für die Person selbst sichtbar, wenn sie angemeldet ist; nie veröffentlicht, nicht über die API oder Exporte weitergegeben, mit dem Konto gelöscht.
+- Persönliche Darstellung von Begriffen («Meine Darstellung», freiwillig, als Mitglied einer Organisation): eigene Abkürzung, Bezeichnung, Beschreibungen und Schreibweisen. Nur für die Person selbst sichtbar, wenn sie angemeldet ist; Organisations-Admins sehen die Werte zur Freigabe. Nie veröffentlicht, nicht über die API oder Exporte weitergegeben, mit dem Konto gelöscht.
+- Organisation (freiwillig): Mitgliedschaft, Rolle in der Organisation, Status, Einladungen (E-Mail, eingeladen von, Ablauf nach 14 Tagen). Organisations-Admins sehen Name und E-Mail der Mitglieder ihrer Organisation.
+- News (freiwillig, keine Werbung): Einwilligung ja/nein mit Zeitpunkt der Antwort; jederzeit unter «Mein Konto» widerrufbar, mit dem Konto gelöscht.
 - Änderungen an Begriffen: Zeitpunkt, Art der Änderung, alte und neue Werte, Rolle sowie Community-Name (sonst Name) als Text zum Zeitpunkt der Änderung; nur für Redaktion und Administration. Bei Kontolöschung wird der Name durch «Gelöschtes Konto» ersetzt und der Bezug zum Konto entfernt; die fachliche Änderung bleibt nachvollziehbar.
 
 Der Community-Name kann bei öffentlich zugeschriebenen Beiträgen sichtbar sein. Vorname, Nachname, E-Mail, Funktion und Einrichtung sind nicht Teil öffentlicher API- oder Glossary-Ausgaben. Zugriff auf interne Kontodaten erhalten nur hierfür berechtigte Personen.

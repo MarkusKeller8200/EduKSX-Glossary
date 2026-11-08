@@ -29,6 +29,7 @@ export default function Register({
         password: '',
         password_confirmation: '',
         datenschutz: false,
+        news: false,
         'cf-turnstile-response': '',
     });
     const errors = form.errors as Record<string, string | undefined>;
@@ -182,6 +183,22 @@ export default function Register({
                         </Label>
                     </div>
                     <InputError message={errors.datenschutz} />
+                    {/* freiwillig, nicht vorausgewählt (#169) */}
+                    <div className="flex items-start gap-2">
+                        <Checkbox
+                            id="news"
+                            className="mt-0.5"
+                            checked={form.data.news}
+                            onCheckedChange={(v) =>
+                                form.setData('news', v === true)
+                            }
+                        />
+                        <Label htmlFor="news" className="leading-snug">
+                            Gelegentlich News zum Glossary per E-Mail erhalten
+                            (keine Werbung, jederzeit abbestellbar) –
+                            freiwillig.
+                        </Label>
+                    </div>
                     {turnstile ? (
                         <div
                             className="cf-turnstile"

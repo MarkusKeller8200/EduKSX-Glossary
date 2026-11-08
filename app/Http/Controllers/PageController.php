@@ -9,6 +9,7 @@ use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
 use App\Support\AppVersion;
+use App\Support\DataModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -71,7 +72,7 @@ class PageController extends Controller
     }
 
     /** Für Entwickler (#155): Einbindung per Script oder <glossary-term>, Daten per API. */
-    public function developers(): Response
+    public function developers(DataModel $model): Response
     {
         $manifest = json_decode((string) @file_get_contents(public_path('embed/manifest.json')), true);
 
@@ -83,6 +84,19 @@ class PageController extends Controller
                 'neueste' => (string) ($manifest['latest'] ?? ''),
                 'integrity' => (string) ($manifest['integrity'] ?? ''),
             ] : null,
+            // Datenmodell (#170): Tabellen, ER-Diagramm, SQL-Script zum Herunterladen
+            'datenmodell' => $model->tables(),
+            'diagramm' => $model->mermaid(),
+        ]);
+    }
+
+    /** Datenmodell als SQL-Script (#170), nur Struktur. */
+    public function schemaSql(DataModel $model): SymfonyResponse
+    {
+        return response($model->sql(), 200, [
+            'Content-Type' => 'application/sql; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="eduksx-glossary-datenmodell.sql"',
+            'Cache-Control' => 'public, max-age=3600',
         ]);
     }
 

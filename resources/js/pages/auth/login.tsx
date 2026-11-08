@@ -31,9 +31,8 @@ export default function Login({
                     Anmelden
                 </h1>
                 <p className="mt-1 text-sm text-muted-foreground">
-                    {registrierung
-                        ? 'Mit Konto Vorschläge einreichen und – mit Rechten – das Glossary pflegen.'
-                        : 'Für Administration und Redaktion.'}
+                    Lesen geht ohne Konto. Für weitere Funktionen melden Sie
+                    sich an.
                 </p>
                 {flash.status ? (
                     <Alert className="mt-4" role="status">
@@ -105,21 +104,60 @@ export default function Login({
                     </div>
                 ) : null}
                 {registrierung ? (
-                    <p className="mt-6 flex flex-wrap justify-between gap-2 text-sm">
+                    <>
+                        <p className="mt-6 text-sm">
+                            <Link
+                                href="/passwort-vergessen"
+                                className="text-link underline-offset-4 hover:underline"
+                            >
+                                Passwort vergessen?
+                            </Link>
+                        </p>
+                        <p className="mt-4 rounded-lg border border-border p-3 text-sm">
+                            Noch kein Konto?{' '}
+                            <Link
+                                href="/registrieren"
+                                className="font-medium text-link underline underline-offset-4"
+                            >
+                                Hier ein Konto erstellen
+                            </Link>
+                        </p>
+                    </>
+                ) : null}
+
+                {/* Was man angemeldet tun kann (#168) */}
+                <section className="mt-8 border-t border-border pt-6 text-sm">
+                    <h2 className="font-semibold">
+                        Mit einem Konto (Benutzer)
+                    </h2>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-muted-foreground">
+                        <li>
+                            Begriffe und Korrekturen vorschlagen, Stand
+                            verfolgen
+                        </li>
+                        <li>Exportieren: Excel, CSV, PDF und Markdown</li>
+                        <li>
+                            Organisation gründen oder beitreten und die
+                            Darstellung der Organisation sehen
+                        </li>
+                        <li>
+                            Eigene Texte zu Begriffen («Meine Darstellung») als
+                            Mitglied einer Organisation
+                        </li>
+                        <li>Freiwillig: News zum Glossary (keine Werbung)</li>
+                    </ul>
+                    <p className="mt-3 text-muted-foreground">
+                        Für Organisations-Admins, Moderatoren, Admins und
+                        Entwickler ist der zweite Faktor (App mit Einmal-Codes)
+                        Pflicht; für Benutzer freiwillig.{' '}
                         <Link
-                            href="/passwort-vergessen"
+                            href="/hilfe"
                             className="text-link underline-offset-4 hover:underline"
                         >
-                            Passwort vergessen?
-                        </Link>
-                        <Link
-                            href="/registrieren"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Konto anlegen
+                            Hilfe
                         </Link>
                     </p>
-                ) : null}
+                </section>
             </div>
         </>
     );

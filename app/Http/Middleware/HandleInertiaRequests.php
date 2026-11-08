@@ -34,6 +34,8 @@ class HandleInertiaRequests extends Middleware
                 // Rechte für die Anzeige (Knöpfe, Navigation); geprüft wird immer serverseitig (#36)
                 'can' => $user !== null ? array_fill_keys($user->permissions(), true) : (object) [],
                 'roles' => $user?->roleKeys() ?? [],
+                // einmal nach der Anmeldung fragen, ob News erwünscht sind (#169)
+                'newsFrage' => $user !== null && $user->isActive() && $user->news_answered_at === null,
             ],
             'appVersion' => AppVersion::info(),
             'links' => [

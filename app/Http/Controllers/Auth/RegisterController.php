@@ -51,6 +51,7 @@ class RegisterController extends Controller
             'email' => ['required', 'email', 'max:190'],
             'password' => ['required', 'confirmed', Password::defaults()],
             'datenschutz' => ['accepted'],
+            'news' => ['boolean'],
             'cf-turnstile-response' => ['nullable', 'string', 'max:4000'],
         ], [
             'datenschutz.accepted' => 'Bitte die Kenntnisnahme der Datenschutzerklärung bestätigen.',
@@ -70,6 +71,9 @@ class RegisterController extends Controller
                 'status' => 'pending',
                 'privacy_notice_version' => (string) config('glossary.privacy_version'),
                 'privacy_notice_acknowledged_at' => now(),
+                // News (#169): freiwillig, Vorgabe nein; Antwort mit Zeitpunkt
+                'news_opt_in' => (bool) ($data['news'] ?? false),
+                'news_answered_at' => now(),
             ])->save();
             Audit::log($user, $user, 'account.registered');
             $this->roles->assignDefault($user, 'Registrierung');

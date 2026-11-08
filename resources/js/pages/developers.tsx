@@ -1,7 +1,26 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
+
+// Mermaid ist gross: Diagramm erst auf dieser Seite nachladen (#170)
+const ErDiagram = lazy(() => import('@/components/er-diagram'));
+
+type Spalte = {
+    name: string;
+    typ: string;
+    pflicht: boolean;
+    vorgabe: string | null;
+    schluessel: string | null;
+    verweis: string | null;
+};
+
+type Tabelle = {
+    name: string;
+    beschreibung: string | null;
+    framework: boolean;
+    spalten: Spalte[];
+};
 
 type Einbindung = {
     version: string;
@@ -32,9 +51,13 @@ const OPTIONEN: [string, string][] = [
 export default function Developers({
     origin,
     einbindung,
+    datenmodell,
+    diagramm,
 }: {
     origin: string;
     einbindung: Einbindung | null;
+    datenmodell: Tabelle[];
+    diagramm: string;
 }) {
     const fest = einbindung
         ? `<script src="${origin}${einbindung.datei}"
@@ -178,6 +201,33 @@ export default function Developers({
                 </ul>
             </Abschnitt>
 
+            <Abschnitt titel="Datenmodell">
+                <p className="text-sm text-muted-foreground">
+                    Struktur der Datenbank (SQLite) – ohne Daten. Öffentlich
+                    sind nur veröffentlichte Revisionen über Website und API;
+                    die übrigen Tabellen sind intern.{' '}
+                    <a
+                        href="/entwickler/datenmodell.sql"
+                        className="text-link underline underline-offset-4"
+                        download
+                    >
+                        Als SQL-Script herunterladen
+                    </a>
+                </p>
+                <h3 className="mt-4 font-semibold">Diagramm</h3>
+                <Suspense fallback={null}>
+                    <ErDiagram code={diagramm} />
+                </Suspense>
+                <h3 className="mt-6 font-semibold">
+                    Tabellen ({datenmodell.length})
+                </h3>
+                <div className="mt-2 grid gap-2">
+                    {datenmodell.map((t) => (
+                        <TabelleKarte key={t.name} t={t} />
+                    ))}
+                </div>
+            </Abschnitt>
+
             <Abschnitt titel="Lizenz">
                 <p className="text-sm text-muted-foreground">
                     Script unter MIT-Lizenz, Daten unter CC BY 4.0 – die
@@ -208,6 +258,65 @@ function Abschnitt({
             <h2 className="text-xl font-semibold">{titel}</h2>
             <div className="mt-3">{children}</div>
         </section>
+    );
+}
+
+function TabelleKarte({ t }: { t: Tabelle }) {
+    return (
+        <details className="rounded-lg border border-border">
+            <summary className="cursor-pointer px-3 py-2 text-sm">
+                <code className="font-semibold">{t.name}</code>
+                {t.beschreibung ? (
+                    <span className="text-muted-foreground">
+                        {' '}
+                        – {t.beschreibung}
+                    </span>
+                ) : null}
+                {t.framework ? (
+                    <span className="text-muted-foreground"> (Framework)</span>
+                ) : null}
+            </summary>
+            <div className="overflow-x-auto border-t border-border">
+                <table className="w-full text-xs">
+                    <thead className="bg-muted text-left">
+                        <tr>
+                            <th className="px-3 py-1.5 font-medium">Spalte</th>
+                            <th className="px-3 py-1.5 font-medium">Typ</th>
+                            <th className="px-3 py-1.5 font-medium">Pflicht</th>
+                            <th className="px-3 py-1.5 font-medium">
+                                Schlüssel
+                            </th>
+                            <th className="px-3 py-1.5 font-medium">Verweis</th>
+                            <th className="px-3 py-1.5 font-medium">Vorgabe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {t.spalten.map((c) => (
+                            <tr key={c.name} className="border-t border-border">
+                                <td className="px-3 py-1.5 font-mono">
+                                    {c.name}
+                                </td>
+                                <td className="px-3 py-1.5 font-mono">
+                                    {c.typ}
+                                </td>
+                                <td className="px-3 py-1.5">
+                                    {c.pflicht ? 'ja' : 'nein'}
+                                </td>
+                                <td className="px-3 py-1.5">
+                                    {c.schluessel ?? ''}
+                                </td>
+                                <td className="px-3 py-1.5 font-mono">
+                                    {c.verweis ?? ''}
+                                </td>
+                                <td className="px-3 py-1.5 font-mono">
+                                    {c.vorgabe ?? ''}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </details>
     );
 }
 

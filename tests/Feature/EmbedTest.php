@@ -29,4 +29,17 @@ class EmbedTest extends TestCase
         $this->assertStringContainsString('Access-Control-Allow-Origin "*"', (string) file_get_contents(public_path('embed/v1/.htaccess')));
         $this->assertFileExists(public_path('embed/demo.html'));
     }
+
+    /** Datenmodell (#170): Tabellen, ER-Diagramm, SQL-Script ohne Daten. */
+    public function test_datenmodell(): void
+    {
+        $this->get('/entwickler')->assertInertia(fn (Assert $p) => $p
+            ->where('datenmodell', fn ($tables): bool => collect($tables)->contains('name', 'terms') && collect($tables)->contains('name', 'organizations'))
+            ->where('diagramm', fn (string $code): bool => str_starts_with($code, 'erDiagram') && str_contains($code, 'terms ||--o{ term_revisions')));
+
+        $sql = (string) $this->get('/entwickler/datenmodell.sql')->assertOk()
+            ->assertHeader('Content-Disposition', 'attachment; filename="eduksx-glossary-datenmodell.sql"')->getContent();
+        $this->assertStringContainsString('CREATE TABLE "terms"', $sql);
+        $this->assertStringNotContainsStringIgnoringCase('insert into', $sql);
+    }
 }
