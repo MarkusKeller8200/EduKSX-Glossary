@@ -181,3 +181,11 @@ ohne v2 und ohne Übergangsfrist; der CHANGELOG nennt die Änderung.
   `key`, `label`, `name`, `url` auch `abbreviation`, `description` und `color` (Name aus der Palette wie im
   Intranet); die redaktionelle Notiz bleibt intern.
 - **`updated_at` (#62):** Zeitpunkt der veröffentlichten Revision, wie im Synchronisationsvertrag verlangt.
+
+## Organisations-API (DEC-025, #148, Entwurf)
+
+`GET /api/v1/org/terms[?customized=1]` und `GET /api/v1/org/terms/{idOrSlug}` nur mit Token eines Servicekontos
+einer Organisation (Scope `read-org`). Je Begriff `term` (gemeinsame Werte wie `/terms`) und `organization_display`
+(Anpassungen der Organisation oder `null`). Keine Pagination, kein ETag, `Cache-Control: private, no-store`. Die
+öffentlichen Endpunkte enthalten nie Anpassungen einer Organisation. Details:
+[KONZEPT-ORGANISATION.md](KONZEPT-ORGANISATION.md).

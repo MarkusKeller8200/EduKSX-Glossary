@@ -45,6 +45,16 @@ type Begriff = {
         beschreibung: string | null;
     };
     meine?: Meine;
+    // #148: Meine Darstellung wartet auf Freigabe oder ist ohne Organisation nicht möglich
+    meine_status?: 'freigegeben' | 'wartet' | null;
+    meine_moeglich?: boolean;
+    // nur für aktive Mitglieder einer Organisation (#148)
+    organisation?: {
+        name: string;
+        gesetzt: boolean;
+        bearbeiten: boolean;
+        werte: Meine | null;
+    };
 };
 
 /** Detailseite eines veröffentlichten Begriffs (#24, PUB-03/04/05/07). */
@@ -85,9 +95,17 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     ) : null}
                 </div>
 
-                {b.persoenlich && b.gemeinsam ? (
+                <Meldung />
+
+                {(b.persoenlich || b.organisation?.gesetzt) && b.gemeinsam ? (
                     <p className="mt-3 text-sm text-muted-foreground">
-                        <Badge variant="secondary">Meine Darstellung</Badge>{' '}
+                        {b.persoenlich ? (
+                            <Badge variant="secondary">Meine Darstellung</Badge>
+                        ) : (
+                            <Badge variant="secondary">
+                                Darstellung «{b.organisation?.name}»
+                            </Badge>
+                        )}{' '}
                         Gemeinsame Form:{' '}
                         <span translate="no">
                             {[b.gemeinsam.abkuerzung, b.gemeinsam.bezeichnung]
@@ -212,12 +230,33 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     </section>
                 ) : null}
 
+                {b.organisation ? (
+                    <OrganisationDarstellung
+                        slug={b.slug}
+                        organisation={b.organisation}
+                    />
+                ) : null}
+
                 {b.meine ? (
                     <MeineDarstellung
                         slug={b.slug}
                         werte={b.meine}
-                        gesetzt={b.persoenlich === true}
+                        gesetzt={b.meine_status != null}
+                        wartet={b.meine_status === 'wartet'}
+                        admin={b.organisation?.bearbeiten === true}
                     />
+                ) : b.meine_moeglich === false ? (
+                    <p className="mt-10 text-sm text-muted-foreground">
+                        «Meine Darstellung» (eigene Texte zu einem Begriff) ist
+                        als Mitglied einer Organisation möglich –{' '}
+                        <Link
+                            href="/organisation"
+                            className="text-link underline underline-offset-4"
+                        >
+                            Meine Organisation
+                        </Link>
+                        .
+                    </p>
                 ) : null}
 
                 <p className="mt-10 text-sm">
@@ -238,23 +277,104 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
     );
 }
 
+/** Meldung nach dem Speichern einer Darstellung (Seite «term» zeigt Meldungen selbst). */
+function Meldung() {
+    const { flash, errors } = usePage().props as {
+        flash: { status?: string | null };
+        errors?: Record<string, string>;
+    };
+
+    return (
+        <>
+            {flash.status ? (
+                <p className="mt-3 text-sm font-medium" role="status">
+                    {flash.status}
+                </p>
+            ) : null}
+            <InputError className="mt-3" message={errors?.organisation} />
+        </>
+    );
+}
+
 /** «Meine Darstellung» (DEC-020): nur für das eigene Konto sichtbar, keine Moderation, nie öffentlich. */
 function MeineDarstellung({
     slug,
     werte,
     gesetzt,
+    wartet,
+    admin,
 }: {
     slug: string;
     werte: Meine;
     gesetzt: boolean;
+    wartet: boolean;
+    admin: boolean;
+}) {
+    const freigabe = admin
+        ? 'Als Organisations-Admin gelten deine Texte sofort.'
+        : 'Gilt erst, wenn ein Organisations-Admin sie freigibt; jede Änderung braucht eine neue Freigabe.';
+
+    return (
+        <Darstellung
+            titel={
+                wartet
+                    ? 'Meine Darstellung (wartet auf Freigabe)'
+                    : 'Meine Darstellung'
+            }
+            pfad={`/begriffe/${slug}/meine-darstellung`}
+            werte={werte}
+            gesetzt={gesetzt}
+            hinweis={`Nur für dich sichtbar, wenn du angemeldet bist. ${freigabe} Leere Felder zeigen die Form deiner Organisation bzw. die gemeinsame. Wird nicht veröffentlicht und nicht über die API weitergegeben; mit deinem Konto gelöscht.`}
+        />
+    );
+}
+
+/** Darstellung der Organisation (#148): sichtbar für alle Mitglieder, bearbeiten nur Organisations-Admins. */
+function OrganisationDarstellung({
+    slug,
+    organisation,
+}: {
+    slug: string;
+    organisation: NonNullable<Begriff['organisation']>;
+}) {
+    if (!organisation.bearbeiten || organisation.werte === null) {
+        return organisation.gesetzt ? (
+            <p className="mt-10 text-sm text-muted-foreground">
+                Angezeigt in der Darstellung der Organisation «
+                {organisation.name}». Anpassen können die Organisations-Admins.
+            </p>
+        ) : null;
+    }
+
+    return (
+        <Darstellung
+            titel={`Darstellung der Organisation «${organisation.name}»`}
+            pfad={`/begriffe/${slug}/organisation-darstellung`}
+            werte={organisation.werte}
+            gesetzt={organisation.gesetzt}
+            hinweis="Sichtbar für alle aktiven Mitglieder der Organisation; die persönliche Darstellung geht vor. Leere Felder zeigen die gemeinsame Form. Nicht öffentlich; über die API nur mit einem Token der Organisation (Scope «read-org»)."
+        />
+    );
+}
+
+/** Formular einer angepassten Darstellung (persönlich oder Organisation). */
+function Darstellung({
+    titel,
+    pfad,
+    werte,
+    gesetzt,
+    hinweis,
+}: {
+    titel: string;
+    pfad: string;
+    werte: Meine;
+    gesetzt: boolean;
+    hinweis: string;
 }) {
     const form = useForm<Meine>(werte);
-    const { flash } = usePage().props;
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        form.put(`/begriffe/${slug}/meine-darstellung`, {
-            preserveScroll: true,
-        });
+        form.put(pfad, { preserveScroll: true });
     };
     const feld = (
         key: keyof Meine,
@@ -263,17 +383,17 @@ function MeineDarstellung({
         lang = false,
     ) => (
         <div className="grid gap-1.5">
-            <Label htmlFor={key}>{label}</Label>
+            <Label htmlFor={`${pfad}-${key}`}>{label}</Label>
             {lang ? (
                 <Textarea
-                    id={key}
+                    id={`${pfad}-${key}`}
                     rows={4}
                     value={form.data[key]}
                     onChange={(e) => form.setData(key, e.target.value)}
                 />
             ) : (
                 <Input
-                    id={key}
+                    id={`${pfad}-${key}`}
                     value={form.data[key]}
                     onChange={(e) => form.setData(key, e.target.value)}
                 />
@@ -290,19 +410,8 @@ function MeineDarstellung({
             className="mt-10 rounded-lg border border-border p-4"
             open={gesetzt}
         >
-            <summary className="cursor-pointer font-semibold">
-                Meine Darstellung
-            </summary>
-            {flash.status ? (
-                <p className="mt-2 text-sm font-medium" role="status">
-                    {flash.status}
-                </p>
-            ) : null}
-            <p className="mt-2 text-sm text-muted-foreground">
-                Nur für dich sichtbar, wenn du angemeldet bist. Leere Felder
-                zeigen die gemeinsame Form. Wird nicht veröffentlicht und nicht
-                über die API weitergegeben; mit deinem Konto gelöscht.
-            </p>
+            <summary className="cursor-pointer font-semibold">{titel}</summary>
+            <p className="mt-2 text-sm text-muted-foreground">{hinweis}</p>
             <form onSubmit={submit} className="mt-4 grid gap-4 sm:grid-cols-2">
                 {feld('abbreviation_override', 'Abkürzung')}
                 {feld('name_override', 'Bezeichnung')}
@@ -338,10 +447,7 @@ function MeineDarstellung({
                             variant="outline"
                             disabled={form.processing}
                             onClick={() =>
-                                router.delete(
-                                    `/begriffe/${slug}/meine-darstellung`,
-                                    { preserveScroll: true },
-                                )
+                                router.delete(pfad, { preserveScroll: true })
                             }
                         >
                             Entfernen

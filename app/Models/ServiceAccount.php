@@ -17,10 +17,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $purpose
  * @property string|null $responsible_user_id
+ * @property string|null $organization_id Servicekonto einer Organisation (#148)
  * @property string $status
  * @property list<string> $scopes
  * @property CarbonImmutable|null $created_at
  * @property-read User|null $responsible
+ * @property-read Organization|null $organization
  * @property-read Collection<int, ServiceAccountToken> $tokens
  */
 class ServiceAccount extends Model
@@ -28,7 +30,7 @@ class ServiceAccount extends Model
     use HasUuids;
 
     /** @var list<string> */
-    protected $fillable = ['name', 'purpose', 'responsible_user_id', 'status', 'scopes'];
+    protected $fillable = ['name', 'purpose', 'responsible_user_id', 'status', 'scopes', 'organization_id'];
 
     /**
      * @return array<string, string>
@@ -42,6 +44,12 @@ class ServiceAccount extends Model
     public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_user_id');
+    }
+
+    /** @return BelongsTo<Organization, $this> */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     /** @return HasMany<ServiceAccountToken, $this> */

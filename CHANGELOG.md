@@ -8,6 +8,17 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Organisation (#148, DEC-025):** Benutzer gründen unter «Meine Organisation» eine Organisation und werden
+  Organisations-Admin (globale Rolle, zweiter Faktor). Einladen per E-Mail (mehrere, mit `;` oder `,` getrennt, 14 Tage
+  gültig); die eingeladene Person nimmt die Einladung unter «Meine Organisation» an. Vorschläge von Mitgliedern
+  bestätigt zuerst ein Organisations-Admin, dann prüft die Redaktion. Organisations-Admins legen die
+  Darstellung eines Begriffs für alle Mitglieder fest (persönlich vor Organisation vor gemeinsam), sperren oder
+  entfernen Mitglieder und ernennen weitere Admins; es bleibt immer mindestens einer. Servicekonto mit Scope
+  `read-org` liefert die Begriffe in der Darstellung der Organisation (`/api/v1/org/terms`). Neues Grundrecht
+  «Organisation gründen».
+- **Meine Darstellung nur mit Organisation (#148, DEC-025):** persönliche Alternativtexte nur noch für Mitglieder einer
+  Organisation und erst nach Freigabe durch einen Organisations-Admin (eigene Texte der Organisations-Admins sofort).
+  Bisherige Anpassungen bleiben gespeichert und gelten nach Freigabe.
 - **Passwort-Link (#147):** In der Benutzerverwaltung kann ein Admin einer Person einen Link zum Zurücksetzen des
   Passworts senden (ohne das Passwort zu sehen, protokolliert); auch für Konten, die sich bisher nur mit Microsoft
   anmelden.

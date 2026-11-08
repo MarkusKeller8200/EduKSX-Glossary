@@ -55,6 +55,7 @@ export function widthClass(view: ViewWidth, narrow: string): string {
 const OPTIMIZED = [
     'term',
     'account/',
+    'organization/',
     'auth/',
     'proposals/create',
     'proposals/show',

@@ -25,8 +25,9 @@ class ProposalController extends Controller
     public function index(Request $request): Response
     {
         $filter = $request->query('status') === 'alle' ? 'alle' : 'offen';
-        $list = Proposal::query()->with('term')
-            ->when($filter === 'offen', fn ($q) => $q->whereIn('status', Proposal::OPEN))
+        // Vorschläge in der Prüfung durch eine Organisation (#148) erscheinen erst nach deren Bestätigung
+        $list = Proposal::query()->with('term')->where('status', '!=', Proposal::ORG_REVIEW)
+            ->when($filter === 'offen', fn ($q) => $q->whereIn('status', Proposal::MODERATION))
             ->orderByRaw("case when status = 'eingereicht' then 0 when status = 'rueckfrage' then 1 else 2 end")
             ->latest('id')->limit(500)->get()
             ->map(fn (Proposal $p): array => [
@@ -47,6 +48,7 @@ class ProposalController extends Controller
 
     public function show(Proposal $proposal): Response
     {
+        abort_if($proposal->status === Proposal::ORG_REVIEW, 404);
         $categories = Category::query()->get()->mapWithKeys(fn (Category $c): array => [$c->key => $c->displayLabel()])->all();
 
         return Inertia::render('admin/proposal-show', [
@@ -60,7 +62,7 @@ class ProposalController extends Controller
                 'begruendung' => $proposal->reason,
                 'status' => $proposal->status,
                 'status_label' => Proposal::STATUS[$proposal->status] ?? $proposal->status,
-                'offen' => $proposal->isOpen(),
+                'offen' => $proposal->inModeration(),
                 'ergebnis' => $proposal->result_revision,
                 'eingereicht' => $proposal->created_at?->toIso8601String(),
             ],

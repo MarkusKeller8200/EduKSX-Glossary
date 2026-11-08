@@ -372,6 +372,10 @@ final class GlossaryService
                     $conflict = true;
                 }
             }
+            // ergänzte Werte ohne gleiche Freigabe brauchen eine neue Freigabe (#148)
+            if ($existing->isDirty(TermUserOverride::FIELDS) && $existing->approved_organization_id !== $override->approved_organization_id) {
+                $existing->forceFill(['approved_organization_id' => null, 'approved_by' => null, 'approved_at' => null]);
+            }
             $existing->save();
             if ($conflict) {
                 $conflicts++;

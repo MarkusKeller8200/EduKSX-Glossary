@@ -26,7 +26,7 @@ class AccessTest extends TestCase
 
     public function test_voreingestellte_rollen_und_rechte(): void
     {
-        $this->assertEqualsCanonicalizing(['propose', 'export', 'personal-display', 'moderate', 'edit-terms'], Role::byKey(Role::MODERATOR)->permissionKeys());
+        $this->assertEqualsCanonicalizing(['propose', 'export', 'personal-display', 'create-organization', 'moderate', 'edit-terms'], Role::byKey(Role::MODERATOR)->permissionKeys());
         $this->assertContains('service-tokens', Role::byKey(Role::ADMIN)->permissionKeys());
         $this->assertNotContains('system', Role::byKey(Role::ADMIN)->permissionKeys());
         $this->assertSame(Permission::keys(), Role::byKey(Role::DEVELOPER)->permissionKeys());

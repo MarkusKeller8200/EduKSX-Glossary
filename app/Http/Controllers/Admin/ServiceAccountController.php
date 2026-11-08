@@ -31,13 +31,13 @@ class ServiceAccountController extends Controller
 
     public function index(Request $request): Response
     {
-        $accounts = $this->manager->visibleFor($this->currentUser($request))->with('responsible')->withCount([
+        $accounts = $this->manager->visibleFor($this->currentUser($request))->with(['responsible', 'organization'])->withCount([
             'tokens as aktive_token' => fn ($q) => $q->whereNull('revoked_at')->where('expires_at', '>', now()),
         ])->orderBy('name')->get()->map(fn (ServiceAccount $a): array => [
             'id' => $a->id,
             'name' => $a->name,
             'zweck' => $a->purpose,
-            'verantwortlich' => $a->responsible?->name,
+            'verantwortlich' => self::responsible($a),
             'status' => $a->status,
             'scopes' => $a->scopes,
             'aktive_token' => (int) $a->getAttribute('aktive_token'),
@@ -76,7 +76,7 @@ class ServiceAccountController extends Controller
                 'id' => $account->id,
                 'name' => $account->name,
                 'zweck' => $account->purpose,
-                'verantwortlich' => $account->responsible?->name,
+                'verantwortlich' => self::responsible($account),
                 'status' => $account->status,
                 'scopes' => $account->scopes,
                 'angelegt' => $account->created_at?->toDateString(),
@@ -142,5 +142,16 @@ class ServiceAccountController extends Controller
         }
 
         return back()->with('status', $active ? 'Servicekonto entsperrt.' : 'Servicekonto gesperrt – Token gelten nicht mehr.');
+    }
+
+    /** Verantwortliche Person, bei Servicekonten einer Organisation mit deren Namen (#148). */
+    private static function responsible(ServiceAccount $account): ?string
+    {
+        $organization = $account->organization?->name;
+        if ($organization === null) {
+            return $account->responsible?->name;
+        }
+
+        return trim(($account->responsible->name ?? '').' (Organisation «'.$organization.'»)');
     }
 }

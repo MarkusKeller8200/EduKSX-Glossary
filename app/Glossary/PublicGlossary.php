@@ -3,11 +3,14 @@
 namespace App\Glossary;
 
 use App\Models\Category;
+use App\Models\Organization;
+use App\Models\OrganizationTermOverride;
 use App\Models\Source;
 use App\Models\Term;
 use App\Models\TermRevision;
 use App\Models\TermUserOverride;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,6 +21,10 @@ use Illuminate\Support\Facades\Gate;
  * Persönliche Darstellung (DEC-020): Nur wenn ein Konto übergeben wird (angemeldet), gelten dessen Anpassungen
  * (TermUserOverride) für Liste und Detail. Solche Antworten dürfen nicht zwischengespeichert werden
  * (PageController setzt «Cache-Control: private, no-store»).
+ *
+ * Darstellung der Organisation (#148, DEC-025): Aktive Mitglieder sehen die Anpassungen ihrer Organisation.
+ * Reihenfolge: persönlich vor Organisation vor gemeinsam; Schreibweisen werden ergänzt. Die persönliche Darstellung
+ * gilt nur für aktive Mitglieder und nur, wenn ein Organisations-Admin sie für diese Organisation freigegeben hat.
  */
 final class PublicGlossary
 {
@@ -29,32 +36,35 @@ final class PublicGlossary
     ];
 
     /** Zusätzliche Felder nur für das angemeldete Konto selbst (nie öffentlich). */
-    public const PERSONAL_FIELDS = ['persoenlich', 'gemeinsam', 'meine'];
+    public const PERSONAL_FIELDS = ['persoenlich', 'gemeinsam', 'meine', 'meine_status', 'meine_moeglich', 'organisation'];
 
     /**
      * Kurzform für Liste und Suche.
      *
-     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, suche: string, persoenlich?: bool}>
+     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, suche: string, persoenlich?: bool, organisation?: bool}>
      */
     public function list(?User $user = null): array
     {
-        $user = $this->personalFor($user);
+        $organization = app(OrganizationService::class)->activeOrganizationOf($user);
+        $user = $this->personalFor($user, $organization);
         $categories = $this->labels(Category::class);
         $sources = $this->labels(Source::class);
-        $overrides = $this->overrides($user);
+        $overrides = array_filter($this->overrides($user), fn (TermUserOverride $o): bool => $o->isApprovedFor($organization?->id));
+        $orgOverrides = $this->organizationOverrides($organization);
 
         $list = $this->published()
-            ->map(function (array $s) use ($categories, $sources, $overrides): array {
+            ->map(function (array $s) use ($categories, $sources, $overrides, $orgOverrides): array {
                 $abk = (string) ($s['official_abbreviation'] ?? '');
                 $name = (string) ($s['official_name'] ?? '');
                 $kurz = (string) ($s['short_description'] ?? '');
                 $o = $overrides[(string) $s['id']] ?? null;
+                $g = $orgOverrides[(string) $s['id']] ?? null;
 
                 $item = [
                     'slug' => (string) $s['slug'],
-                    'abkuerzung' => $o->abbreviation_override ?? $abk,
-                    'bezeichnung' => $o->name_override ?? $name,
-                    'kurz' => $o->short_description_override ?? $kurz,
+                    'abkuerzung' => $o->abbreviation_override ?? $g->abbreviation_override ?? $abk,
+                    'bezeichnung' => $o->name_override ?? $g->name_override ?? $name,
+                    'kurz' => $o->short_description_override ?? $g->short_description_override ?? $kurz,
                     'kategorien' => $this->mapLabels($categories, $s['categories']),
                     // Filter nach Herkunft auf der Startseite (#145)
                     'herkunft' => $this->mapLabels($sources, $s['sources'] ?? []),
@@ -64,10 +74,15 @@ final class PublicGlossary
                         implode(' ', (array) ($s['alternative_aliases'] ?? [])), $s['search_terms'] ?? null,
                         $o?->abbreviation_override, $o?->name_override, $o?->short_description_override,
                         implode(' ', $o->aliases_override ?? []),
+                        $g?->abbreviation_override, $g?->name_override, $g?->short_description_override,
+                        implode(' ', $g->aliases_override ?? []),
                     ]))),
                 ];
                 if ($o !== null) {
                     $item['persoenlich'] = true;
+                }
+                if ($g !== null) {
+                    $item['organisation'] = true;
                 }
 
                 return $item;
@@ -87,7 +102,12 @@ final class PublicGlossary
      */
     public function find(string $slug, ?User $user = null): ?array
     {
-        $user = $this->personalFor($user);
+        $organizations = app(OrganizationService::class);
+        $organization = $organizations->activeOrganizationOf($user);
+        $orgAdmin = $user !== null && $organization !== null && $organizations->isAdmin($user, $organization);
+        // Recht vorhanden, aber ohne Organisation: Hinweis statt Formular
+        $personalPossible = $user !== null && Gate::forUser($user)->allows('personal-display');
+        $user = $this->personalFor($user, $organization);
         $term = Term::query()->published()->where('slug', $slug)->with('publishedRevision')->first();
         $revision = $term?->publishedRevision;
         if ($term === null || $revision === null || ($revision->snapshot['is_active'] ?? true) !== true) {
@@ -136,39 +156,103 @@ final class PublicGlossary
         ];
         $detail = array_intersect_key($detail, array_flip(self::PUBLIC_DETAIL_FIELDS));
 
-        if ($user === null) {
+        if ($user === null && $organization === null) {
+            if ($personalPossible) {
+                $detail['meine_moeglich'] = false;
+            }
+
             return $detail;
         }
 
-        // Persönliche Darstellung: nur für dieses Konto, gemeinsame Werte bleiben sichtbar
-        $o = $this->overrides($user, (string) $s['id'])[(string) $s['id']] ?? null;
         $detail['gemeinsam'] = ['abkuerzung' => $detail['abkuerzung'], 'bezeichnung' => $detail['bezeichnung'], 'kurz' => $detail['kurz'], 'beschreibung' => $detail['beschreibung']];
-        $detail['persoenlich'] = $o !== null;
-        $detail['meine'] = [
-            'abbreviation_override' => (string) $o?->abbreviation_override,
-            'name_override' => (string) $o?->name_override,
-            'short_description_override' => (string) $o?->short_description_override,
-            'description_override' => (string) $o?->description_override,
-            'aliases_override' => implode('; ', $o->aliases_override ?? []),
-        ];
-        if ($o !== null) {
-            $detail['abkuerzung'] = $o->abbreviation_override ?? $detail['abkuerzung'];
-            $detail['bezeichnung'] = $o->name_override ?? $detail['bezeichnung'];
-            $detail['kurz'] = $o->short_description_override ?? $detail['kurz'];
-            $detail['beschreibung'] = $o->description_override ?? $detail['beschreibung'];
-            $detail['aliase'] = array_values(array_unique([...$detail['aliase'], ...($o->aliases_override ?? [])]));
+
+        // Darstellung der Organisation (#148): für alle aktiven Mitglieder, bearbeiten nur Organisations-Admins
+        if ($organization !== null) {
+            $g = $this->organizationOverrides($organization, (string) $s['id'])[(string) $s['id']] ?? null;
+            $detail['organisation'] = [
+                'name' => $organization->name,
+                'gesetzt' => $g !== null,
+                'bearbeiten' => $orgAdmin,
+                'werte' => $orgAdmin ? self::formValues($g) : null,
+            ];
+            $detail = self::apply($detail, $g);
+        }
+
+        // Persönliche Darstellung: nur für dieses Konto und erst nach Freigabe; gemeinsame Werte bleiben sichtbar
+        if ($user !== null) {
+            $o = $this->overrides($user, (string) $s['id'])[(string) $s['id']] ?? null;
+            $approved = $o !== null && $o->isApprovedFor($organization?->id);
+            $detail['persoenlich'] = $approved;
+            $detail['meine'] = self::formValues($o);
+            $detail['meine_status'] = $o === null ? null : ($approved ? 'freigegeben' : 'wartet');
+            $detail['meine_moeglich'] = true;
+            $detail = self::apply($detail, $approved ? $o : null);
         }
 
         return $detail;
     }
 
     /**
-     * Konto, dessen persönliche Darstellung gilt: nur mit Recht «personal-display» (#114). Ohne Recht (z. B. Gast)
-     * die gemeinsame Sicht; gespeicherte Anpassungen bleiben erhalten.
+     * Anpassungen über die Detailwerte legen (leere Felder behalten den bisherigen Wert).
+     *
+     * @param  array<string, mixed>  $detail
+     * @return array<string, mixed>
      */
-    private function personalFor(?User $user): ?User
+    private static function apply(array $detail, TermUserOverride|OrganizationTermOverride|null $o): array
     {
-        return $user !== null && Gate::forUser($user)->allows('personal-display') ? $user : null;
+        if ($o === null) {
+            return $detail;
+        }
+        $detail['abkuerzung'] = $o->abbreviation_override ?? $detail['abkuerzung'];
+        $detail['bezeichnung'] = $o->name_override ?? $detail['bezeichnung'];
+        $detail['kurz'] = $o->short_description_override ?? $detail['kurz'];
+        $detail['beschreibung'] = $o->description_override ?? $detail['beschreibung'];
+        $detail['aliase'] = array_values(array_unique([...(array) $detail['aliase'], ...($o->aliases_override ?? [])]));
+
+        return $detail;
+    }
+
+    /**
+     * Werte für das Formular (leere Zeichenketten statt NULL, Schreibweisen mit «;»).
+     *
+     * @return array<string, string>
+     */
+    public static function formValues(TermUserOverride|OrganizationTermOverride|null $o): array
+    {
+        return [
+            'abbreviation_override' => (string) $o?->abbreviation_override,
+            'name_override' => (string) $o?->name_override,
+            'short_description_override' => (string) $o?->short_description_override,
+            'description_override' => (string) $o?->description_override,
+            'aliases_override' => implode('; ', $o->aliases_override ?? []),
+        ];
+    }
+
+    /**
+     * Darstellungen einer Organisation, je Begriff-ID.
+     *
+     * @return array<string, OrganizationTermOverride>
+     */
+    public function organizationOverrides(?Organization $organization, ?string $termId = null): array
+    {
+        if ($organization === null) {
+            return [];
+        }
+        $query = OrganizationTermOverride::query()->where('organization_id', $organization->id);
+        if ($termId !== null) {
+            $query->where('term_id', $termId);
+        }
+
+        return $query->get()->keyBy('term_id')->all();
+    }
+
+    /**
+     * Konto, dessen persönliche Darstellung gilt: nur mit Recht «personal-display» (#114) und als aktives Mitglied
+     * einer Organisation (#148). Sonst die gemeinsame Sicht; gespeicherte Anpassungen bleiben erhalten.
+     */
+    private function personalFor(?User $user, ?Organization $organization): ?User
+    {
+        return $user !== null && $organization !== null && Gate::forUser($user)->allows('personal-display') ? $user : null;
     }
 
     /**

@@ -7,6 +7,7 @@ use App\Models\ServiceAccount;
 use App\Models\ServiceAccountAudit;
 use App\Models\ServiceAccountToken;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
@@ -16,6 +17,8 @@ use Illuminate\Support\Str;
  * - Anlegen ab Recht «service-tokens» (Organisations-Admin, Admin); verantwortlich ist die anlegende Person.
  * - Verwalten: die verantwortliche Person, mit «manage-users» alle Servicekonten.
  * - Scopes nur innerhalb der eigenen Rechte (z. B. «propose» nur, wer selbst Vorschläge einreichen darf).
+ * - Scope «read-org» (#148): nur Organisations-Admins; das Servicekonto gehört dann der Organisation und liest die
+ *   Begriffe in deren Darstellung. Alle Organisations-Admins dieser Organisation verwalten es.
  * - Token: 40 zufällige Zeichen mit Präfix «gls_», nur einmal angezeigt, gespeichert als SHA-256-Hash, höchstens
  *   ein Jahr gültig, einzeln widerrufbar. Kein Login, keine Sitzung.
  *
@@ -26,9 +29,15 @@ final class ServiceAccountManager
     /** Scopes → Bezeichnung. Schreibende Endpunkte prüfen den Scope zusätzlich zur Geschäftslogik. */
     public const SCOPES = [
         'propose' => 'Vorschläge einreichen (landen in der Moderation, nie direkt öffentlich)',
+        'read-org' => 'Begriffe in der Darstellung der eigenen Organisation lesen (nur Organisations-Admins)',
     ];
 
+    /** Scope der Organisations-API (#148). */
+    public const ORG_SCOPE = 'read-org';
+
     public const PREFIX = 'gls_';
+
+    public function __construct(private readonly OrganizationService $organizations) {}
 
     public const MAX_DAYS = 365;
 
@@ -39,14 +48,29 @@ final class ServiceAccountManager
      */
     public function visibleFor(User $user): Builder
     {
-        return ServiceAccount::query()
-            ->when(! $user->hasPermission('manage-users'), fn ($q) => $q->where('responsible_user_id', $user->id));
+        $organization = $this->adminOrganization($user);
+
+        return ServiceAccount::query()->when(! $user->hasPermission('manage-users'), fn ($q) => $q->where(function ($q) use ($user, $organization): void {
+            $q->where('responsible_user_id', $user->id);
+            if ($organization !== null) {
+                $q->orWhere('organization_id', $organization);
+            }
+        }));
     }
 
     public function canManage(User $user, ServiceAccount $account): bool
     {
         return $user->hasPermission('service-tokens')
-            && ($user->hasPermission('manage-users') || $account->responsible_user_id === $user->id);
+            && ($user->hasPermission('manage-users') || $account->responsible_user_id === $user->id
+                || ($account->organization_id !== null && $account->organization_id === $this->adminOrganization($user)));
+    }
+
+    /** ID der Organisation, die $user als aktiver Organisations-Admin verwaltet. */
+    private function adminOrganization(User $user): ?string
+    {
+        $member = $this->organizations->membershipOf($user);
+
+        return $member !== null && $member->isAdmin() && $member->isActive() ? $member->organization_id : null;
     }
 
     /** @param  list<string>  $scopes */
@@ -54,11 +78,16 @@ final class ServiceAccountManager
     {
         $scopes = array_values(array_unique($scopes));
         $details = ['name' => $name, 'scopes' => $scopes];
+        $organization = null;
         try {
             if (! $actor->hasPermission('service-tokens')) {
                 throw new AccessDenied('Dafür fehlt das Recht «Servicekonten und Token verwalten».');
             }
             $this->requireScopes($actor, $scopes);
+            $organization = in_array(self::ORG_SCOPE, $scopes, true) ? $this->adminOrganization($actor) : null;
+            if (in_array(self::ORG_SCOPE, $scopes, true) && $organization === null) {
+                throw new AccessDenied('Scope «read-org» nur für Organisations-Admins einer Organisation.');
+            }
         } catch (AccessDenied $e) {
             $this->log($actor, null, null, 'service.created', ['reason' => $e->getMessage()] + $details, 'denied');
 
@@ -67,7 +96,7 @@ final class ServiceAccountManager
 
         $account = ServiceAccount::query()->create([
             'name' => $name, 'purpose' => $purpose, 'responsible_user_id' => $actor->id,
-            'status' => 'active', 'scopes' => $scopes,
+            'status' => 'active', 'scopes' => $scopes, 'organization_id' => $organization,
         ]);
         $this->log($actor, $account, null, 'service.created', $details);
 
@@ -164,7 +193,7 @@ final class ServiceAccountManager
             if (! isset(self::SCOPES[$scope])) {
                 throw new AccessDenied("Unbekannter Scope «{$scope}».");
             }
-            if (! $actor->hasPermission($scope)) {
+            if ($scope !== self::ORG_SCOPE && ! $actor->hasPermission($scope)) {
                 throw new AccessDenied("Scope «{$scope}» geht über die eigenen Rechte hinaus.");
             }
         }

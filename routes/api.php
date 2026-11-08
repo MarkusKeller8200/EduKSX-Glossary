@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\GlossaryApiController;
 use App\Http\Controllers\Api\OpenApiController;
+use App\Http\Controllers\Api\OrganizationApiController;
 use App\Http\Controllers\Api\ProposalApiController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StatusController;
@@ -22,6 +23,9 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
     // Servicekonten (#47): Token prüfen; Vorschläge mit Scope «propose» (#113), landen in der Moderation
     Route::get('service/whoami', [ServiceController::class, 'whoami'])->middleware('service.token')->name('api.v1.service.whoami');
     Route::post('proposals', [ProposalApiController::class, 'store'])->middleware(['service.token:propose', 'throttle:30,1'])->name('api.v1.proposals.store');
+    // Organisation (#148): Begriffe in deren Darstellung, Token mit Scope «read-org»
+    Route::get('org/terms', [OrganizationApiController::class, 'terms'])->middleware('service.token:read-org')->name('api.v1.org.terms');
+    Route::get('org/terms/{idOrSlug}', [OrganizationApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->middleware('service.token:read-org')->name('api.v1.org.term');
     Route::get('proposals/{id}', [ProposalApiController::class, 'show'])->whereNumber('id')->middleware('service.token:propose')->name('api.v1.proposals.show');
 });
 
