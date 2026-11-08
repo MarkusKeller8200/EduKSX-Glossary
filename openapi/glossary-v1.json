@@ -327,7 +327,7 @@
         ],
         "summary": "Kompakter Index für Renderer und Browser-Erweiterung",
         "operationId": "getIndex",
-        "description": "Alle veröffentlichten Begriffe mit den Angaben zum Erkennen und für die Erklärbox (DEC-026). Mit ETag; Abnehmer laden ihn höchstens einmal täglich bzw. nach neuem Datenstand (Kopfzeile X-Glossary-Release).",
+        "description": "Alle veröffentlichten Begriffe mit den Angaben zum Erkennen und für die Erklärbox. Mit ETag; Abnehmer laden ihn höchstens einmal täglich bzw. nach neuem Datenstand (Kopfzeile X-Glossary-Release).",
         "parameters": [
           {
             "name": "If-None-Match",

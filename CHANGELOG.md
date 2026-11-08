@@ -12,20 +12,20 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   ER-Diagramm (Mermaid, nachgeladen) und ein SQL-Script der Struktur zum Herunterladen (ohne Daten).
 - **News-Einwilligung (#169):** freiwillig, keine Werbung: Kästchen bei der Registrierung (nicht vorausgewählt),
   einmalige Frage nach der Anmeldung, änderbar unter «Mein Konto»; Datenschutzerklärung ergänzt.
-- **Übernehmen in die Organisation (#165, DEC-025):** Organisations-Admins übertragen «Meine Darstellung» eines
+- **Übernehmen in die Organisation (#165):** Organisations-Admins übertragen «Meine Darstellung» eines
   Begriffs mit «Übernehmen» in die Darstellung der Organisation (mit Warnung; «Meine Darstellung danach löschen»
   standardmässig an). Hinweis: persönliche Texte sind für die Organisation nicht sichtbar.
-- **Permalink (#154, DEC-026):** Jeder Begriff hat eine kurze, unveränderliche Adresse `/g/{Code}` («g» für
+- **Permalink (#154):** Jeder Begriff hat eine kurze, unveränderliche Adresse `/g/{Code}` («g» für
   Glossary), z. B. `/g/7KQ2MX`; leitet auch nach dem Zusammenführen weiter. Auf der Seite des Begriffs mit «Link
   kopieren».
 - **API (#159):** Felder `code` und `permalink`, Abruf über den Code, kompakter Index `/api/v1/index` mit ETag für
   Renderer und Browser-Erweiterung; CORS erlaubt `Authorization`.
-- **Einbindung für Entwickler (#155, DEC-026):** Eine Script-Zeile (`/embed/v1/glossary.js`, versioniert mit
+- **Einbindung für Entwickler (#155):** Eine Script-Zeile (`/embed/v1/glossary.js`, versioniert mit
   SRI-Prüfsumme) markiert Abkürzungen und Begriffe auf der eigenen Webseite fein und erklärt sie per Maus und
   Tastatur; `<glossary-term code="…">` für ausdrücklich markierte Begriffe. Suche nur im Browser, keine Cookies.
   Anleitung unter «Für Entwickler» (`/entwickler`), Testseite `/embed/demo.html`. Gemeinsamer Kern
   `packages/highlighter` mit Tests.
-- **Browser-Erweiterung (#153, DEC-026):** Manifest V3 für Chrome, Edge und Firefox: auf der aktuellen Seite
+- **Browser-Erweiterung (#153):** Manifest V3 für Chrome, Edge und Firefox: auf der aktuellen Seite
   hervorheben (nur `activeTab`) oder für eine Website immer; Einstellungen für Bezeichnungen und erste Fundstelle.
   Kein Seiteninhalt verlässt den Browser. Bauen mit `node scripts/build-extension.mjs`, Anleitung in
   `extension/README.md`; Veröffentlichung in den Stores folgt.
@@ -35,6 +35,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Anzeigetexte (#172):** ohne interne Entscheidnummern in Hilfe, Einstellungen, Versionsverlauf und API-Beschreibung.
 - **Anmeldeseite (#168):** Funktionen mit Konto, Hinweis zum zweiten Faktor ab Organisations-Admin und «Noch kein
   Konto? Hier ein Konto erstellen».
 - **Detailseite eines Begriffs (#163):** optimale Breite; alle öffentlichen Felder einzeln (offizielle Aliase,
@@ -50,7 +51,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
-- **Organisation (#148, DEC-025):** Benutzer gründen unter «Meine Organisation» eine Organisation und werden
+- **Organisation (#148):** Benutzer gründen unter «Meine Organisation» eine Organisation und werden
   Organisations-Admin (globale Rolle, zweiter Faktor). Einladen per E-Mail (mehrere, mit `;` oder `,` getrennt, 14 Tage
   gültig); die eingeladene Person nimmt die Einladung unter «Meine Organisation» an. Vorschläge von Mitgliedern
   bestätigt zuerst ein Organisations-Admin, dann prüft die Redaktion. Organisations-Admins legen die
@@ -58,7 +59,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   entfernen Mitglieder und ernennen weitere Admins; es bleibt immer mindestens einer. Servicekonto mit Scope
   `read-org` liefert die Begriffe in der Darstellung der Organisation (`/api/v1/org/terms`). Neues Grundrecht
   «Organisation gründen».
-- **Meine Darstellung nur mit Organisation (#148, DEC-025):** persönliche Alternativtexte nur noch für Mitglieder einer
+- **Meine Darstellung nur mit Organisation (#148):** persönliche Alternativtexte nur noch für Mitglieder einer
   Organisation und erst nach Freigabe durch einen Organisations-Admin (eigene Texte der Organisations-Admins sofort).
   Bisherige Anpassungen bleiben gespeichert und gelten nach Freigabe.
 - **Passwort-Link (#147):** In der Benutzerverwaltung kann ein Admin einer Person einen Link zum Zurücksetzen des
@@ -103,14 +104,14 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   geändert, Fehler; nie löschen). Spalten wie das Formular, Format wie der Listen-Export des Intranets
   (sek-intranet#157); Zuordnung über Schlüssel, sonst Kürzel oder Label.
 - **Allgemeine Einstellungen (#106):** neue Seite für Löschfristen, Wiedervorlage der Quellenprüfung,
-  Vier-Augen-Prinzip bei der Freigabe (DEC-022, Vorgabe aus) sowie Hinweise und Links; neues Recht «Allgemeine
+  Vier-Augen-Prinzip bei der Freigabe (Vorgabe aus) sowie Hinweise und Links; neues Recht «Allgemeine
   Einstellungen» (systemkritisch), jede Änderung im Protokoll.
-- **Vorschläge und Moderation (#113, DEC-024):** Ab Benutzer neuen Begriff oder Korrektur einreichen («Begriff
+- **Vorschläge und Moderation (#113):** Ab Benutzer neuen Begriff oder Korrektur einreichen («Begriff
   vorschlagen», «Korrektur vorschlagen»); Stand, Rückfragen und Zurückziehen unter «Meine Vorschläge». Die Moderation
   vergleicht feldweise Basis, Arbeitsstand und Vorschlag (Konflikte markiert), nimmt gewählte Felder als Entwurf an,
   lehnt mit Begründung ab oder fragt nach. Servicekonten reichen per `POST /api/v1/proposals` ein. Nie öffentlich;
   Personenbezug 24 Monate nach Abschluss bzw. bei Kontolöschung entfernt. GitHub nur noch für Software-Meldungen.
-- **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
+- **Revisionen wiederherstellen (#95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
   wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
   veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.
 - **Rollen Gast, Benutzer, Organisations-Admin (#110):** neue Rechte «Exportieren», «Persönliche Darstellung» und
@@ -133,7 +134,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
-- **Seitenbreite (#99, DEC-023, #127):** Website und Administration einheitlich 1152 px, lange Texte auf Lesebreite;
+- **Seitenbreite (#99, #127):** Website und Administration einheitlich 1152 px, lange Texte auf Lesebreite;
   Versionen, Datenschutz und Rechtliches wie die übrigen Seiten.
 - **Tabellen (#104, #128):** Spaltenbreiten nach Inhalt, neu berechnet nach Grössenänderungen und bei geändertem
   Inhalt (Suche, Filter, Gruppen); Doppelklick auf den Splitter (oder Enter) passt eine von Hand gezogene Spalte wieder
@@ -145,7 +146,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Behoben
 
-- **Korrektur vorschlagen (#133):** Die Seite bricht bei älteren Begriffen (Abbild vor DEC-020) nicht mehr ab.
+- **Korrektur vorschlagen (#133):** Die Seite bricht bei älteren Begriffen nicht mehr ab.
 - **Tabellenbreite (#123):** Tabellen der Administration füllen bei «Ganze Breite» den ganzen Platz; die breiteste
   Textspalte nimmt den freien Platz auf.
 - **Auswahllisten im Dunkelmodus (#107):** Einträge sind lesbar (heller Text auf dunklem Grund).
@@ -159,7 +160,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Quellenprüfung (#69):** Prüfdatum und Belegstatus je Herkunft; Seite «Prüfung» mit jährlicher Wiedervorlage.
 - **Import-Protokoll (#64):** Jeder übernommene Import mit Datei, Person, Zeitpunkt und Ergebnis.
 
-- **Softwarelizenz (#65, DEC-021):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf
+- **Softwarelizenz (#65):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf
   `/legals`).
 
 - **Farbige Labels (#77, #91, #92):** Kategorien und Herkunft in der Farbe, die unter «Listen» gewählt wird (Palette
@@ -192,7 +193,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
-- **Gemeinsame und persönliche Daten (DEC-020, #80–#83):** Begriffe enthalten nur noch gemeinsame Fachdaten.
+- **Gemeinsame und persönliche Daten (#80–#83):** Begriffe enthalten nur noch gemeinsame Fachdaten.
   «Abkürzung eigene», «Bezeichnung eigene», «Alias eigene» und «Intern genutzt in» entfallen; vorhandene Werte
   werden bei der Migration vollständig als **Altwerte** gesichert und auf der neuen Seite «Altwerte» von der
   Redaktion zugeordnet (offiziell, alternative Schreibweise, Suchbegriff) oder verworfen – nichts geschieht
@@ -279,7 +280,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
-- **Nutzung und Stabilität der API (#30, DEC-016):** Die API ist bis zum öffentlichen Betrieb eine Vorschau
+- **Nutzung und Stabilität der API (#30):** Die API ist bis zum öffentlichen Betrieb eine Vorschau
   (`stability: preview` auf `/api/v1`, Hinweis auf `/api/docs`). Danach bleibt v1 rückwärtskompatibel. Die Daten
   stehen vorerst unter CC BY 4.0 (Feld `license` in `/api/v1` und im Vollstand, Hinweis im Fuss der Website und der
   Lesefassung).
