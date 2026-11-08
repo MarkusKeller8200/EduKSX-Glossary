@@ -42,9 +42,6 @@ final class ApiPresenter
     /** @var array<string, ListItem>|null */
     private ?array $sources = null;
 
-    /** @var array<string, string>|null */
-    private ?array $codes = null;
-
     /**
      * Alle öffentlich sichtbaren Begriffe (veröffentlicht, im Abbild aktiv), sortiert nach Abkürzung/Bezeichnung.
      *
@@ -222,14 +219,18 @@ final class ApiPresenter
      */
     private function codes(): array
     {
-        if ($this->codes === null) {
-            $this->codes = [];
+        // je Datenstand zwischengespeichert: neue Begriffe erscheinen erst mit einem neuen Datenstand
+        /** @var array<string, string> $codes */
+        $codes = app(PublicCache::class)->remember('codes', function (): array {
+            $codes = [];
             foreach (Term::query()->whereNotNull('code')->pluck('code', 'id') as $id => $code) {
-                $this->codes[(string) $id] = (string) $code;
+                $codes[(string) $id] = (string) $code;
             }
-        }
 
-        return $this->codes;
+            return $codes;
+        });
+
+        return $codes;
     }
 
     /**
