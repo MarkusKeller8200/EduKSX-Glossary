@@ -35,7 +35,7 @@ class ProposalController extends Controller
                 'titel' => $p->kind === 'new'
                     ? trim(implode(' – ', array_filter([(string) ($p->changes['official_abbreviation'] ?? ''), (string) ($p->changes['official_name'] ?? '')])))
                     : ($p->term?->title() ?? '(Begriff gelöscht)'),
-                'felder' => array_values(array_map(fn (string $f): string => ProposalService::FIELDS[$f] ?? $f, array_keys($p->changes))),
+                'felder' => array_map(fn (string $f): string => ProposalService::FIELDS[$f] ?? $f, array_keys($p->changes)),
                 'von' => $p->author_label,
                 'status' => $p->status,
                 'status_label' => Proposal::STATUS[$p->status] ?? $p->status,

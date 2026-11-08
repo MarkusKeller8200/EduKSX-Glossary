@@ -178,7 +178,7 @@ final class ProposalService
             ])->save();
             $skipped = array_values(array_diff(array_keys($proposal->changes), $fields));
             $this->event($proposal, 'angenommen', $moderator, false, $note, [
-                'revision' => $result->revision, 'fields' => array_values(array_keys($data)), 'skipped' => $skipped,
+                'revision' => $result->revision, 'fields' => array_keys($data), 'skipped' => $skipped,
             ]);
 
             return $result;
@@ -224,7 +224,7 @@ final class ProposalService
     {
         $ids = Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', $before)
             ->where(fn ($q) => $q->whereNotNull('user_id')->orWhere('author_label', '!=', Proposal::ANONYMOUS))
-            ->whereNull('service_account_id')->pluck('id')->all();
+            ->whereNull('service_account_id')->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
         $this->anonymize($ids);
 
         return count($ids);
@@ -233,14 +233,14 @@ final class ProposalService
     /** Kontolöschung: Vorschläge der Person ohne Personenbezug (Journal::forget). */
     public static function forget(User $user): void
     {
-        $ids = Proposal::query()->where('user_id', $user->id)->pluck('id')->all();
+        $ids = Proposal::query()->where('user_id', $user->id)->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
         (new self(app(GlossaryService::class)))->anonymize($ids);
         ProposalEvent::query()->where('actor_id', $user->id)->toBase()->update(['actor_id' => null]);
     }
 
     // ---------- intern ----------
 
-    /** @param  list<int|string>  $ids */
+    /** @param  list<int>  $ids */
     private function anonymize(array $ids): void
     {
         if ($ids === []) {
