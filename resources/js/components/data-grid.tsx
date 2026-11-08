@@ -18,8 +18,9 @@ import { cn } from '@/lib/utils';
  * `aria-sort`), Spaltenbreite mit dem Splitter am rechten Rand des Kopfs (Maus oder Pfeiltasten), Breiten und
  * Sortierung im Browser gemerkt (je Tabelle `id`). Beim horizontalen Scrollen bleiben die Schlüsselspalte links
  * (`sticky: 'left'`) und die Aktionsspalte rechts (`sticky: 'right'`) sichtbar. Optional mit Gruppen (Zwischenzeilen).
- * Breiten nach Inhalt (#128): Spalten ohne gespeicherte Breite misst der Baustein beim ersten Anzeigen im
- * Browser-Layout; Doppelklick auf den Splitter passt eine Spalte wieder an den Inhalt an.
+ * Breiten nach Inhalt (#128): Spalten ohne von Hand gezogene Breite misst der Baustein im Browser-Layout – beim
+ * ersten Anzeigen, nach Grössenänderungen der Tabelle und wenn sich der Inhalt ändert (Suche, Filter, Gruppen).
+ * Doppelklick auf den Splitter passt eine von Hand gezogene Spalte wieder an den Inhalt an.
  */
 export type GridColumn<T> = {
     id: string;
@@ -187,6 +188,55 @@ export default function DataGrid<T>({
     }, [groups, rows, sorter]);
     const count = sections.reduce((n, g) => n + g.rows.length, 0);
 
+    // Inhalt geändert (#128): neu messen. Signatur aus Gruppen und Zeilen-IDs statt Referenz, damit neu berechnete,
+    // aber gleiche Listen keine Schleife auslösen.
+    const dataKey = useMemo(
+        () =>
+            sections
+                .map(
+                    (g) =>
+                        `${g.key}:${g.rows.length}:${g.rows
+                            .slice(0, 200)
+                            .map(getRowId)
+                            .join(',')}`,
+                )
+                .join('|'),
+        [sections, getRowId],
+    );
+    const lastData = useRef(dataKey);
+    useEffect(() => {
+        if (lastData.current !== dataKey) {
+            lastData.current = dataKey;
+            setMeasured({});
+        }
+    }, [dataKey]);
+
+    // Grösse der Tabelle geändert (Fenster, Ansicht): neu messen, kurz verzögert
+    const wrapper = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        const el = wrapper.current;
+        if (!el || typeof ResizeObserver === 'undefined') {
+            return;
+        }
+        let last = el.clientWidth;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const observer = new ResizeObserver(() => {
+            const now = el.clientWidth;
+            if (Math.abs(now - last) < 2) {
+                return;
+            }
+            last = now;
+            clearTimeout(timer);
+            timer = setTimeout(() => setMeasured({}), 150);
+        });
+        observer.observe(el);
+
+        return () => {
+            clearTimeout(timer);
+            observer.disconnect();
+        };
+    }, []);
+
     const toggle = (c: GridColumn<T>) => {
         if (!c.sortValue) {
             return;
@@ -238,7 +288,10 @@ export default function DataGrid<T>({
             : '';
 
     return (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div
+            ref={wrapper}
+            className="overflow-x-auto rounded-lg border border-border"
+        >
             <table
                 className="text-sm"
                 // mindestens so breit wie der Platz (#123); die Spalte growId nimmt den Rest auf
