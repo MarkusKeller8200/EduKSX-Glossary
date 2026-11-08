@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Übernehmen in die Organisation (#165, DEC-025):** Organisations-Admins übertragen «Meine Darstellung» eines
+  Begriffs mit «Übernehmen» in die Darstellung der Organisation (mit Warnung; «Meine Darstellung danach löschen»
+  standardmässig an). Hinweis: persönliche Texte sind für die Organisation nicht sichtbar.
 - **Permalink (#154, DEC-026):** Jeder Begriff hat eine kurze, unveränderliche Adresse `/g/{Code}` («g» für
   Glossary), z. B. `/g/7KQ2MX`; leitet auch nach dem Zusammenführen weiter. Auf der Seite des Begriffs mit «Link
   kopieren».
@@ -25,6 +28,16 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Swagger-Seite (#157):** `/api/swagger` mit «Try it out» und «Authorize» für Token, selbst ausgeliefert.
 - **Postman-Sammlung (#158):** `/api/postman.json` zum Import mit Variablen `baseUrl` und `token`; aus der
   OpenAPI-Beschreibung erzeugt (`scripts/postman.py`), die CI prüft den Stand.
+
+### Geändert
+
+- **Detailseite eines Begriffs (#163):** optimale Breite; alle öffentlichen Felder einzeln (offizielle Aliase,
+  alternative Schreibweisen, Suchbegriffe, Status, Gültig ab/bis, Revision, Permalink, Code), Herkunft, Kategorien
+  und Status als farbige Labels.
+- **Herkunft vor Kategorie (#162):** auf der Startseite (Filter und Liste), in der Begriffstabelle (neue Spalte
+  Herkunft) und auf der Detailseite.
+- **Hilfe (#164):** Gültig ab/bis, Revision, Veröffentlicht und Stand je eine Zeile; neue Gruppen «Meine
+  Darstellung» und «Organisation».
 
 ## [0.8.0] – 2026-11-08
 

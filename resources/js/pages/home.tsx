@@ -140,18 +140,18 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
 
             <div className="mt-3 grid gap-2">
                 <LabelFilter
-                    list="kategorien"
-                    title="Kategorie"
-                    labels={kategorien}
-                    selected={gewaehlt}
-                    onChange={setGewaehlt}
-                />
-                <LabelFilter
                     list="herkunft"
                     title="Herkunft"
                     labels={herkuenfte}
                     selected={herkunft}
                     onChange={setHerkunft}
+                />
+                <LabelFilter
+                    list="kategorien"
+                    title="Kategorie"
+                    labels={kategorien}
+                    selected={gewaehlt}
+                    onChange={setGewaehlt}
                 />
             </div>
 
@@ -182,6 +182,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                     </span>
                                 ) : null}
                                 <span translate="no">{b.bezeichnung}</span>
+                                <ListBadges
+                                    list="herkunft"
+                                    labels={b.herkunft}
+                                />
                                 <ListBadges
                                     list="kategorien"
                                     labels={b.kategorien}

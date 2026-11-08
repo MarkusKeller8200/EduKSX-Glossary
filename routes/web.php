@@ -87,6 +87,7 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
 });
 Route::middleware(['auth', 'throttle:30,1'])->group(function () {
     Route::put('begriffe/{slug}/organisation-darstellung', [OrganizationDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.organization');
+    Route::post('begriffe/{slug}/organisation-darstellung/aus-meiner', [OrganizationDisplayController::class, 'fromPersonal'])->where('slug', '[a-z0-9-]+')->name('term.organization.from-personal');
     Route::delete('begriffe/{slug}/organisation-darstellung', [OrganizationDisplayController::class, 'destroy'])->where('slug', '[a-z0-9-]+')->name('term.organization.destroy');
 });
 

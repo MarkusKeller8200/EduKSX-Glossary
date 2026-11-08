@@ -30,7 +30,8 @@ final class PublicGlossary
 {
     /** Positivliste der Felder auf der Detailseite (#43, DEC-018); ohne Notiz, «Intern genutzt in», Verlauf. */
     public const PUBLIC_DETAIL_FIELDS = [
-        'slug', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase', 'kurz',
+        'slug', 'code', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase',
+        'aliase_offiziell', 'alternative', 'suchbegriffe', 'kurz',
         'beschreibung', 'url', 'kategorien', 'herkunft', 'status', 'gueltig_ab', 'gueltig_bis', 'revision',
         'veroeffentlicht', 'andere', 'mehrdeutig', 'permalink', 'verlauf',
     ];
@@ -126,6 +127,7 @@ final class PublicGlossary
 
         $detail = [
             'slug' => $s['slug'],
+            'code' => $term->code,
             'abkuerzung' => $abk,
             'bezeichnung' => (string) ($s['official_name'] ?? ''),
             'abkuerzung_offiziell' => $s['official_abbreviation'] ?? null,
@@ -133,6 +135,10 @@ final class PublicGlossary
             'aliase' => array_values(array_unique(array_filter([
                 ...(array) ($s['official_aliases'] ?? []), ...(array) ($s['alternative_aliases'] ?? []),
             ]))),
+            // alle öffentlichen Felder einzeln (#163)
+            'aliase_offiziell' => array_values(array_map('strval', array_filter((array) ($s['official_aliases'] ?? [])))),
+            'alternative' => array_values(array_map('strval', array_filter((array) ($s['alternative_aliases'] ?? [])))),
+            'suchbegriffe' => array_values(array_map('strval', array_filter((array) ($s['search_aliases'] ?? [])))),
             'kurz' => $s['short_description'],
             'beschreibung' => $s['description'],
             'url' => $s['url'],

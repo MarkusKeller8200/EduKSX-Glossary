@@ -66,7 +66,7 @@ export default function Help({
                 {gruppen.map((g) => (
                     <a
                         key={g}
-                        href={`#${g.toLowerCase()}`}
+                        href={`#${anker(g)}`}
                         className="text-link underline underline-offset-4"
                     >
                         {g}
@@ -81,7 +81,7 @@ export default function Help({
             </nav>
 
             {gruppen.map((g) => (
-                <section key={g} id={g.toLowerCase()} className="mt-8">
+                <section key={g} id={anker(g)} className="mt-8">
                     <h2 className="text-xl font-semibold">{g}</h2>
                     <div className="mt-3 overflow-x-auto rounded-lg border border-border">
                         <table className="w-full text-sm">
@@ -208,4 +208,9 @@ export default function Help({
             </section>
         </>
     );
+}
+
+/** Anker einer Gruppe (Leerzeichen → Bindestrich). */
+function anker(gruppe: string): string {
+    return gruppe.toLowerCase().replace(/\s+/g, '-');
 }

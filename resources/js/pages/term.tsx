@@ -1,13 +1,14 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, ReactNode } from 'react';
+import { confirmAction } from '@/components/confirm-dialog';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ListBadges, StatusBadge } from '@/components/tags';
+import { ListBadge, ListBadges, StatusBadge } from '@/components/tags';
 
 type Meine = {
     abbreviation_override: string;
@@ -19,11 +20,15 @@ type Meine = {
 
 type Begriff = {
     slug: string;
+    code: string;
     abkuerzung: string;
     bezeichnung: string;
     abkuerzung_offiziell: string | null;
     bezeichnung_offiziell: string | null;
     aliase: string[];
+    aliase_offiziell: string[];
+    alternative: string[];
+    suchbegriffe: string[];
     kurz: string | null;
     beschreibung: string | null;
     url: string | null;
@@ -62,10 +67,11 @@ type Begriff = {
 /** Detailseite eines veröffentlichten Begriffs (#24, PUB-03/04/05/07). */
 export default function Term({ begriff: b }: { begriff: Begriff }) {
     const titel = [b.abkuerzung, b.bezeichnung].filter(Boolean).join(' – ');
-    const offiziell = [b.abkuerzung_offiziell, b.bezeichnung_offiziell];
-    const offiziellAnders =
-        (b.abkuerzung_offiziell && b.abkuerzung_offiziell !== b.abkuerzung) ||
-        (b.bezeichnung_offiziell && b.bezeichnung_offiziell !== b.bezeichnung);
+    const herkunftLabels = b.herkunft.map((h) => h.label);
+    // Schreibweisen aus Meiner Darstellung bzw. der Organisation
+    const eigene = b.aliase.filter(
+        (a) => !b.aliase_offiziell.includes(a) && !b.alternative.includes(a),
+    );
 
     return (
         <>
@@ -79,7 +85,7 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                 </Link>
             </p>
 
-            <article className="mt-4 max-w-prose">
+            <article className="mt-4">
                 <h1 className="text-3xl font-semibold tracking-tight">
                     {b.abkuerzung ? (
                         <span translate="no">{b.abkuerzung}</span>
@@ -90,10 +96,12 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     <span translate="no">{b.bezeichnung}</span>
                 </h1>
 
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap items-start gap-2">
+                    <ListBadges list="herkunft" labels={herkunftLabels} />
                     <ListBadges list="kategorien" labels={b.kategorien} />
-                    {b.status !== 'aktuell' ? (
-                        <StatusBadge status={b.status} />
+                    <StatusBadge status={b.status} />
+                    {b.mehrdeutig ? (
+                        <Badge variant="outline">mehrdeutig</Badge>
                     ) : null}
                 </div>
 
@@ -117,37 +125,56 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     </p>
                 ) : null}
 
-                {b.kurz ? <p className="mt-6 text-lg">{b.kurz}</p> : null}
+                {b.kurz ? (
+                    <p className="mt-6 max-w-prose text-lg">{b.kurz}</p>
+                ) : null}
                 {b.beschreibung ? (
-                    <p className="mt-4 whitespace-pre-line">{b.beschreibung}</p>
+                    <p className="mt-4 max-w-prose whitespace-pre-line">
+                        {b.beschreibung}
+                    </p>
                 ) : null}
 
-                <dl className="mt-8 grid gap-x-6 gap-y-3 text-sm sm:grid-cols-[12rem_1fr]">
-                    {offiziellAnders ? (
-                        <>
-                            <dt className="text-muted-foreground">
-                                Offizielle Form
-                            </dt>
-                            <dd translate="no">
-                                {offiziell.filter(Boolean).join(' – ')}
-                            </dd>
-                        </>
+                {/* alle öffentlichen Felder (#163); leere als «–» */}
+                <dl className="mt-8 grid gap-x-6 gap-y-3 border-t border-border pt-6 text-sm sm:grid-cols-[14rem_1fr]">
+                    <Feld titel="Abkürzung (offiziell)">
+                        {b.abkuerzung_offiziell ? (
+                            <span translate="no">{b.abkuerzung_offiziell}</span>
+                        ) : null}
+                    </Feld>
+                    <Feld titel="Bezeichnung (offiziell)">
+                        {b.bezeichnung_offiziell ? (
+                            <span translate="no">
+                                {b.bezeichnung_offiziell}
+                            </span>
+                        ) : null}
+                    </Feld>
+                    <Feld titel="Aliase (offiziell)">
+                        <Liste werte={b.aliase_offiziell} />
+                    </Feld>
+                    <Feld titel="Alternative Schreibweisen">
+                        <Liste werte={b.alternative} />
+                    </Feld>
+                    {eigene.length > 0 ? (
+                        <Feld titel="Eigene Schreibweisen">
+                            <Liste werte={eigene} />
+                        </Feld>
                     ) : null}
-                    {b.aliase.length > 0 ? (
-                        <>
-                            <dt className="text-muted-foreground">
-                                Andere Schreibweisen
-                            </dt>
-                            <dd translate="no">{b.aliase.join(', ')}</dd>
-                        </>
-                    ) : null}
-                    {b.herkunft.length > 0 ? (
-                        <>
-                            <dt className="text-muted-foreground">Herkunft</dt>
-                            <dd>
-                                {b.herkunft.map((h, i) => (
-                                    <span key={h.label}>
-                                        {i > 0 ? ', ' : ''}
+                    <Feld titel="Suchbegriffe">
+                        <Liste werte={b.suchbegriffe} />
+                    </Feld>
+                    <Feld titel="Kurzbeschreibung">{b.kurz}</Feld>
+                    <Feld titel="Herkunft">
+                        {b.herkunft.length > 0 ? (
+                            <span className="flex flex-col items-start gap-1">
+                                {b.herkunft.map((h) => (
+                                    <span
+                                        key={h.label}
+                                        className="flex flex-wrap items-center gap-2"
+                                    >
+                                        <ListBadge
+                                            list="herkunft"
+                                            label={h.label}
+                                        />
                                         {h.url ? (
                                             <a
                                                 href={h.url}
@@ -161,64 +188,60 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                                         )}
                                     </span>
                                 ))}
-                            </dd>
-                        </>
-                    ) : null}
-                    {b.url ? (
-                        <>
-                            <dt className="text-muted-foreground">Quelle</dt>
-                            <dd className="break-all">
-                                <a
-                                    href={b.url}
-                                    className="text-link underline underline-offset-4"
-                                    rel="noopener noreferrer"
-                                >
-                                    {b.url}
-                                </a>
-                            </dd>
-                        </>
-                    ) : null}
-                    {b.gueltig_ab || b.gueltig_bis ? (
-                        <>
-                            <dt className="text-muted-foreground">Gültig</dt>
-                            <dd>
-                                {b.gueltig_ab ? `ab ${b.gueltig_ab}` : ''}
-                                {b.gueltig_ab && b.gueltig_bis ? ' ' : ''}
-                                {b.gueltig_bis ? `bis ${b.gueltig_bis}` : ''}
-                            </dd>
-                        </>
-                    ) : null}
-                    <dt className="text-muted-foreground">Permalink</dt>
-                    <dd className="flex flex-wrap items-center gap-2">
-                        <a
-                            href={b.permalink}
-                            className="text-link underline underline-offset-4"
-                        >
-                            {b.permalink.replace(/^https?:\/\//, '')}
-                        </a>
-                        <KopierenKnopf text={b.permalink} />
-                    </dd>
-                    <dt className="text-muted-foreground">Stand</dt>
-                    <dd>
-                        V{b.revision}
-                        {b.veroeffentlicht
-                            ? `, veröffentlicht am ${b.veroeffentlicht}`
-                            : ''}
-                    </dd>
+                            </span>
+                        ) : null}
+                    </Feld>
+                    <Feld titel="Kategorien">
+                        {b.kategorien.length > 0 ? (
+                            <ListBadges
+                                list="kategorien"
+                                labels={b.kategorien}
+                            />
+                        ) : null}
+                    </Feld>
+                    <Feld titel="Status">
+                        <StatusBadge status={b.status} />
+                    </Feld>
+                    <Feld titel="URL">
+                        {b.url ? (
+                            <a
+                                href={b.url}
+                                className="break-all text-link underline underline-offset-4"
+                                rel="noopener noreferrer"
+                            >
+                                {b.url}
+                            </a>
+                        ) : null}
+                    </Feld>
+                    <Feld titel="Gültig ab">{b.gueltig_ab}</Feld>
+                    <Feld titel="Gültig bis">{b.gueltig_bis}</Feld>
+                    <Feld titel="Revision">V{b.revision}</Feld>
+                    <Feld titel="Veröffentlicht">{b.veroeffentlicht}</Feld>
+                    <Feld titel="Permalink">
+                        <span className="flex flex-wrap items-center gap-2">
+                            <a
+                                href={b.permalink}
+                                className="text-link underline underline-offset-4"
+                            >
+                                {b.permalink.replace(/^https?:\/\//, '')}
+                            </a>
+                            <KopierenKnopf text={b.permalink} />
+                        </span>
+                    </Feld>
+                    <Feld titel="Code">
+                        <code>{b.code}</code>
+                    </Feld>
                     {b.verlauf.length > 1 ? (
-                        <>
-                            <dt className="text-muted-foreground">Verlauf</dt>
-                            <dd>
-                                <ol className="flex flex-wrap gap-x-3 gap-y-1">
-                                    {b.verlauf.map((v) => (
-                                        <li key={v.revision}>
-                                            V{v.revision}
-                                            {v.am ? ` (${v.am})` : ''}
-                                        </li>
-                                    ))}
-                                </ol>
-                            </dd>
-                        </>
+                        <Feld titel="Verlauf">
+                            <ol className="flex flex-wrap gap-x-3 gap-y-1">
+                                {b.verlauf.map((v) => (
+                                    <li key={v.revision}>
+                                        V{v.revision}
+                                        {v.am ? ` (${v.am})` : ''}
+                                    </li>
+                                ))}
+                            </ol>
+                        </Feld>
                     ) : null}
                 </dl>
 
@@ -289,6 +312,36 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
     );
 }
 
+/** Zeile der Feldliste; ohne Wert «–». */
+function Feld({ titel, children }: { titel: string; children: ReactNode }) {
+    const leer =
+        children === null ||
+        children === undefined ||
+        children === '' ||
+        children === false;
+
+    return (
+        <>
+            <dt className="text-muted-foreground">{titel}</dt>
+            <dd>
+                {leer ? (
+                    <span className="text-muted-foreground">–</span>
+                ) : (
+                    children
+                )}
+            </dd>
+        </>
+    );
+}
+
+function Liste({ werte }: { werte: string[] }) {
+    return werte.length > 0 ? (
+        <span translate="no">{werte.join('; ')}</span>
+    ) : (
+        <span className="text-muted-foreground">–</span>
+    );
+}
+
 /** Permalink kopieren (#154); ohne Zwischenablage (z. B. http) bleibt der Link zum Markieren. */
 function KopierenKnopf({ text }: { text: string }) {
     const [kopiert, setKopiert] = useState(false);
@@ -349,6 +402,21 @@ function MeineDarstellung({
     const freigabe = admin
         ? 'Als Organisations-Admin gelten deine Texte sofort.'
         : 'Gilt erst, wenn ein Organisations-Admin sie freigibt; jede Änderung braucht eine neue Freigabe.';
+    const [loeschen, setLoeschen] = useState(true);
+    const uebernehmen = async () => {
+        const ok = await confirmAction(
+            'Meine Darstellung als Darstellung der Organisation übernehmen? Sie ersetzt die bisherige Darstellung der Organisation für diesen Begriff und ist danach für alle Mitglieder sichtbar.' +
+                (loeschen ? ' Meine Darstellung wird danach gelöscht.' : ''),
+            { confirmLabel: 'Übernehmen', destructive: true },
+        );
+        if (ok) {
+            router.post(
+                `/begriffe/${slug}/organisation-darstellung/aus-meiner`,
+                { loeschen },
+                { preserveScroll: true },
+            );
+        }
+    };
 
     return (
         <Darstellung
@@ -360,8 +428,38 @@ function MeineDarstellung({
             pfad={`/begriffe/${slug}/meine-darstellung`}
             werte={werte}
             gesetzt={gesetzt}
-            hinweis={`Nur für dich sichtbar, wenn du angemeldet bist. ${freigabe} Leere Felder zeigen die Form deiner Organisation bzw. die gemeinsame. Wird nicht veröffentlicht und nicht über die API weitergegeben; mit deinem Konto gelöscht.`}
-        />
+            hinweis={`Nur für dich sichtbar, wenn du angemeldet bist – auch deine Organisation sieht sie nicht. ${freigabe} Leere Felder zeigen die Form deiner Organisation bzw. die gemeinsame. Wird nicht veröffentlicht und nicht über die API weitergegeben; mit deinem Konto gelöscht.`}
+        >
+            {admin && gesetzt ? (
+                <div className="mt-4 rounded-md border border-border bg-muted/40 p-3 text-sm">
+                    <p className="font-medium">
+                        Als Darstellung der Organisation übernehmen
+                    </p>
+                    <p className="mt-1 text-muted-foreground">
+                        Überträgt deine gespeicherten Werte in die Darstellung
+                        der Organisation (ersetzt die bisherige, sichtbar für
+                        alle Mitglieder).
+                    </p>
+                    <label className="mt-2 flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={loeschen}
+                            onChange={(e) => setLoeschen(e.target.checked)}
+                        />
+                        Meine Darstellung danach löschen
+                    </label>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={uebernehmen}
+                    >
+                        Übernehmen
+                    </Button>
+                </div>
+            ) : null}
+        </Darstellung>
     );
 }
 
@@ -400,12 +498,14 @@ function Darstellung({
     werte,
     gesetzt,
     hinweis,
+    children,
 }: {
     titel: string;
     pfad: string;
     werte: Meine;
     gesetzt: boolean;
     hinweis: string;
+    children?: ReactNode;
 }) {
     const form = useForm<Meine>(werte);
     const submit = (e: FormEvent) => {
@@ -491,6 +591,7 @@ function Darstellung({
                     ) : null}
                 </div>
             </form>
+            {children}
         </details>
     );
 }
