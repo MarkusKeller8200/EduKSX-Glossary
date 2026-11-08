@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import DataGrid from '@/components/data-grid';
 
 type Zeile = {
     zeile: number;
@@ -111,62 +112,66 @@ export default function ImportPreview({
                 </Alert>
             ) : null}
 
-            <div className="mt-6 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                    <thead className="bg-muted text-left">
-                        <tr>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Zeile
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Art
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Eintrag
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Änderungen bzw. Fehler
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {plan.map((p) => (
-                            <tr
-                                key={p.zeile}
-                                className="border-t border-border align-top"
-                            >
-                                <td className="px-3 py-2 tabular-nums">
-                                    {p.zeile}
-                                </td>
-                                <td className="px-3 py-2">
-                                    <Badge
-                                        variant={
-                                            p.art === 'fehler'
-                                                ? 'destructive'
-                                                : p.art === 'neu'
-                                                  ? 'default'
-                                                  : 'secondary'
-                                        }
-                                    >
-                                        {ART[p.art]}
-                                    </Badge>
-                                </td>
-                                <td className="px-3 py-2" translate="no">
-                                    {p.titel}
-                                </td>
-                                <td className="px-3 py-2">
-                                    {p.art === 'fehler' ? (
-                                        <ul className="list-disc pl-4 text-destructive-foreground">
-                                            {p.meldungen.map((m) => (
-                                                <li key={m}>{m}</li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <>
-                                            <dl className="grid gap-0.5 text-xs">
-                                                {Object.entries(
-                                                    p.aenderungen,
-                                                ).map(([f, v]) => (
+            <div className="mt-6">
+                <DataGrid
+                    id="admin.import-preview"
+                    caption="Vorschau des Imports"
+                    rows={plan}
+                    getRowId={(p: Zeile) => String(p.zeile)}
+                    empty="Keine Änderungen – alles ist schon auf diesem Stand."
+                    columns={[
+                        {
+                            id: 'zeile',
+                            header: 'Zeile',
+                            width: 80,
+                            sticky: 'left',
+                            className: 'tabular-nums',
+                            sortValue: (p) => p.zeile,
+                            cell: (p) => p.zeile,
+                        },
+                        {
+                            id: 'art',
+                            header: 'Art',
+                            width: 110,
+                            sortValue: (p) => p.art,
+                            cell: (p) => (
+                                <Badge
+                                    variant={
+                                        p.art === 'fehler'
+                                            ? 'destructive'
+                                            : p.art === 'neu'
+                                              ? 'default'
+                                              : 'secondary'
+                                    }
+                                >
+                                    {ART[p.art]}
+                                </Badge>
+                            ),
+                        },
+                        {
+                            id: 'eintrag',
+                            header: 'Eintrag',
+                            width: 240,
+                            noTranslate: true,
+                            sortValue: (p) => p.titel,
+                            cell: (p) => p.titel,
+                        },
+                        {
+                            id: 'aenderungen',
+                            header: 'Änderungen bzw. Fehler',
+                            width: 480,
+                            cell: (p) =>
+                                p.art === 'fehler' ? (
+                                    <ul className="list-disc pl-4 text-destructive-foreground">
+                                        {p.meldungen.map((m) => (
+                                            <li key={m}>{m}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <>
+                                        <dl className="grid gap-0.5 text-xs">
+                                            {Object.entries(p.aenderungen).map(
+                                                ([f, v]) => (
                                                     <div
                                                         key={f}
                                                         className="flex gap-2"
@@ -178,33 +183,21 @@ export default function ImportPreview({
                                                             {v}
                                                         </dd>
                                                     </div>
+                                                ),
+                                            )}
+                                        </dl>
+                                        {p.meldungen.length > 0 ? (
+                                            <ul className="mt-1 list-disc pl-4 text-xs text-muted-foreground">
+                                                {p.meldungen.map((m) => (
+                                                    <li key={m}>{m}</li>
                                                 ))}
-                                            </dl>
-                                            {p.meldungen.length > 0 ? (
-                                                <ul className="mt-1 list-disc pl-4 text-xs text-muted-foreground">
-                                                    {p.meldungen.map((m) => (
-                                                        <li key={m}>{m}</li>
-                                                    ))}
-                                                </ul>
-                                            ) : null}
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                        {plan.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={4}
-                                    className="px-3 py-6 text-center text-muted-foreground"
-                                >
-                                    Keine Änderungen – alles ist schon auf
-                                    diesem Stand.
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
+                                            </ul>
+                                        ) : null}
+                                    </>
+                                ),
+                        },
+                    ]}
+                />
             </div>
         </>
     );

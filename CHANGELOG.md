@@ -8,6 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Tabellen (#103, #108):** Alle Listen der Administration (Begriffe, Benutzer, Listen, Prüfung, Altwerte,
+  Import-Vorschau, Vorschläge, Servicekonten) mit verstellbaren Spaltenbreiten (Splitter, auch mit Pfeiltasten) und
+  Sortierung per Klick auf den Spaltenkopf; Breiten und Sortierung bleiben im Browser. Beim horizontalen Scrollen
+  bleiben Schlüsselspalte links und Aktionen rechts sichtbar; Aktionen als Symbole mit Tooltip.
+
 - **Listen per Excel (#101):** Kategorien und Herkunft je Liste exportieren und mit Vorschau importieren (neu,
   geändert, Fehler; nie löschen). Spalten wie das Formular, Format wie der Listen-Export des Intranets
   (sek-intranet#157); Zuordnung über Schlüssel, sonst Kürzel oder Label.

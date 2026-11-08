@@ -1,4 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Pencil } from 'lucide-react';
 import { useMemo, useState, type KeyboardEvent } from 'react';
 import {
     ListBadges,
@@ -6,7 +7,9 @@ import {
     StateBadge,
     StatusBadge,
 } from '@/components/tags';
+import DataGrid from '@/components/data-grid';
 import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
+import IconAction from '@/components/icon-action';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -252,11 +255,26 @@ export default function Terms({
                 ) : null}
             </div>
 
-            <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-sm">
-                    <thead className="bg-muted text-left">
-                        <tr>
-                            <th scope="col" className="w-10 px-3 py-2">
+            <div className="mt-4">
+                <DataGrid
+                    id="admin.terms"
+                    caption="Begriffe"
+                    getRowId={(b: Begriff) => b.id}
+                    groups={gruppen.map((g) => ({
+                        key: g.titel,
+                        title: g.titel,
+                        rows: g.begriffe,
+                    }))}
+                    empty={
+                        begriffe.length === 0
+                            ? 'Noch keine Begriffe – mit dem Excel-Import übernehmen.'
+                            : 'Keine Treffer.'
+                    }
+                    columns={[
+                        {
+                            id: 'auswahl',
+                            label: 'Auswahl',
+                            header: (
                                 <Checkbox
                                     aria-label="Alle gefilterten auswählen"
                                     checked={alleGewaehlt}
@@ -264,140 +282,149 @@ export default function Terms({
                                         alleUmschalten(v === true)
                                     }
                                 />
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Abkürzung
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Bezeichnung
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Kurzbeschreibung
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Kategorien
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Status
-                            </th>
-                            <th scope="col" className="px-3 py-2 font-medium">
-                                Veröffentlicht
-                            </th>
-                        </tr>
-                    </thead>
-                    {gruppen.map((g) => (
-                        <tbody key={g.titel || 'alle'}>
-                            {g.titel ? (
-                                <tr className="border-t border-border bg-muted/50">
-                                    <th
-                                        scope="colgroup"
-                                        colSpan={7}
-                                        className="px-3 py-2 text-left font-semibold"
-                                    >
-                                        {g.titel}{' '}
-                                        <span className="font-normal text-muted-foreground">
-                                            ({g.begriffe.length})
+                            ),
+                            width: 44,
+                            fixed: true,
+                            sticky: 'left',
+                            cell: (b) => (
+                                <Checkbox
+                                    aria-label={`${b.abkuerzung || b.bezeichnung} auswählen`}
+                                    checked={auswahl.has(b.id)}
+                                    onCheckedChange={(v) =>
+                                        umschalten(b.id, v === true)
+                                    }
+                                />
+                            ),
+                        },
+                        {
+                            id: 'abkuerzung',
+                            header: 'Abkürzung',
+                            width: 140,
+                            sticky: 'left',
+                            noTranslate: true,
+                            className: 'font-medium',
+                            sortValue: (b) => b.abkuerzung || b.bezeichnung,
+                            cell: (b) => (
+                                <Zelle
+                                    begriff={b}
+                                    feld="official_abbreviation"
+                                    wert={b.abkuerzung}
+                                    gesperrt={
+                                        !offiziellErlaubt && b.abkuerzung !== ''
+                                    }
+                                />
+                            ),
+                        },
+                        {
+                            id: 'bezeichnung',
+                            header: 'Bezeichnung',
+                            width: 240,
+                            noTranslate: true,
+                            sortValue: (b) => b.bezeichnung,
+                            cell: (b) => (
+                                <>
+                                    <Zelle
+                                        begriff={b}
+                                        feld="official_name"
+                                        wert={b.bezeichnung}
+                                        gesperrt={
+                                            !offiziellErlaubt &&
+                                            b.bezeichnung !== ''
+                                        }
+                                    />
+                                    {!b.aktiv ? (
+                                        <span className="mt-1 block">
+                                            <StateBadge state="inactive">
+                                                inaktiv
+                                            </StateBadge>
                                         </span>
-                                    </th>
-                                </tr>
-                            ) : null}
-                            {g.begriffe.map((b) => (
-                                <tr
-                                    key={`${g.titel}-${b.id}`}
-                                    className="border-t border-border align-top"
-                                >
-                                    <td className="px-3 py-2">
-                                        <Checkbox
-                                            aria-label={`${b.abkuerzung || b.bezeichnung} auswählen`}
-                                            checked={auswahl.has(b.id)}
-                                            onCheckedChange={(v) =>
-                                                umschalten(b.id, v === true)
-                                            }
-                                        />
-                                    </td>
-                                    <td
-                                        className="px-3 py-2 font-medium"
-                                        translate="no"
-                                    >
-                                        <Zelle
-                                            begriff={b}
-                                            feld="official_abbreviation"
-                                            wert={b.abkuerzung}
-                                            gesperrt={
-                                                !offiziellErlaubt &&
-                                                b.abkuerzung !== ''
-                                            }
-                                        />
-                                        <Link
-                                            href={`/admin/begriffe/${b.id}`}
-                                            className="mt-1 block text-xs text-link underline-offset-4 hover:underline"
-                                        >
-                                            Details
-                                        </Link>
-                                    </td>
-                                    <td className="px-3 py-2" translate="no">
-                                        <Zelle
-                                            begriff={b}
-                                            feld="official_name"
-                                            wert={b.bezeichnung}
-                                            gesperrt={
-                                                !offiziellErlaubt &&
-                                                b.bezeichnung !== ''
-                                            }
-                                        />
-                                        {!b.aktiv ? (
-                                            <span className="mt-1 block">
-                                                <StateBadge state="inactive">
-                                                    inaktiv
-                                                </StateBadge>
-                                            </span>
-                                        ) : null}
-                                    </td>
-                                    <td className="min-w-64 px-3 py-2">
-                                        <Zelle
-                                            begriff={b}
-                                            feld="short_description"
-                                            wert={b.kurz}
-                                            max={160}
-                                        />
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        <div className="flex flex-wrap gap-1">
-                                            <ListBadges
-                                                list="kategorien"
-                                                labels={b.kategorien}
-                                            />
-                                        </div>
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        <StatusBadge status={b.status} />
-                                    </td>
-                                    <td className="px-3 py-2">
-                                        <RevisionBadges
-                                            published={b.veroeffentlicht}
-                                            revision={b.revision}
-                                            draft={b.entwurf}
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    ))}
-                    {liste.length === 0 ? (
-                        <tbody>
-                            <tr>
-                                <td
-                                    colSpan={7}
-                                    className="px-3 py-6 text-center text-muted-foreground"
-                                >
-                                    {begriffe.length === 0
-                                        ? 'Noch keine Begriffe – mit dem Excel-Import übernehmen.'
-                                        : 'Keine Treffer.'}
-                                </td>
-                            </tr>
-                        </tbody>
-                    ) : null}
-                </table>
+                                    ) : null}
+                                </>
+                            ),
+                        },
+                        {
+                            id: 'kurz',
+                            header: 'Kurzbeschreibung',
+                            width: 320,
+                            sortValue: (b) => b.kurz,
+                            cell: (b) => (
+                                <Zelle
+                                    begriff={b}
+                                    feld="short_description"
+                                    wert={b.kurz}
+                                    max={160}
+                                />
+                            ),
+                        },
+                        {
+                            id: 'kategorien',
+                            header: 'Kategorien',
+                            width: 180,
+                            sortValue: (b) => b.kategorien.join(', '),
+                            cell: (b) => (
+                                <div className="flex flex-wrap gap-1">
+                                    <ListBadges
+                                        list="kategorien"
+                                        labels={b.kategorien}
+                                    />
+                                </div>
+                            ),
+                        },
+                        {
+                            id: 'status',
+                            header: 'Status',
+                            width: 110,
+                            sortValue: (b) => b.status,
+                            cell: (b) => <StatusBadge status={b.status} />,
+                        },
+                        {
+                            id: 'veroeffentlicht',
+                            header: 'Veröffentlicht',
+                            width: 150,
+                            sortValue: (b) =>
+                                b.veroeffentlicht === null
+                                    ? -1
+                                    : b.entwurf
+                                      ? b.veroeffentlicht + 0.5
+                                      : b.veroeffentlicht,
+                            cell: (b) => (
+                                <RevisionBadges
+                                    published={b.veroeffentlicht}
+                                    revision={b.revision}
+                                    draft={b.entwurf}
+                                />
+                            ),
+                        },
+                        {
+                            id: 'geaendert',
+                            header: 'Geändert',
+                            width: 120,
+                            sortValue: (b) => b.geaendert ?? '',
+                            cell: (b) =>
+                                b.geaendert
+                                    ? new Date(b.geaendert).toLocaleDateString(
+                                          'de-CH',
+                                      )
+                                    : '–',
+                        },
+                        {
+                            id: 'aktionen',
+                            label: 'Aktionen',
+                            header: <span className="sr-only">Aktionen</span>,
+                            width: 56,
+                            fixed: true,
+                            sticky: 'right',
+                            className: 'py-1',
+                            cell: (b) => (
+                                <IconAction
+                                    icon={Pencil}
+                                    label={`${b.abkuerzung || b.bezeichnung}: Details und Bearbeiten`}
+                                    href={`/admin/begriffe/${b.id}`}
+                                />
+                            ),
+                        },
+                    ]}
+                />
             </div>
         </>
     );
