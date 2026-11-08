@@ -31,10 +31,8 @@ class ListTransferTest extends TestCase
     public function test_export_mit_allen_spalten(): void
     {
         $csv = (string) $this->get('/admin/listen/kategorien/export?format=csv')->assertOk()->getContent();
-        foreach (ListTransfer::header() as $column) {
-            $this->assertStringContainsString('"'.$column.'"', $csv);
-        }
-        $this->assertStringContainsString('"per";"PER";"Personal";"Personal";"sky"', $csv);
+        $this->assertStringContainsString(implode(';', ListTransfer::header()), $csv);
+        $this->assertStringContainsString('per;PER;Personal;Personal;sky;;;;1', $csv);
         $this->get('/admin/listen/herkunft/export')->assertOk()
             ->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
