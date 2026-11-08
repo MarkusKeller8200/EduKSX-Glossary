@@ -49,10 +49,25 @@ class AccountController extends Controller
                     'zuletzt' => $i->last_used_at?->toDateString(),
                 ])->all(),
                 'rollen' => $user->roleKeys(),
+                'news' => $user->news_opt_in,
+                'news_seit' => $user->news_answered_at?->toDateString(),
             ],
             'einrichtungen' => User::INSTITUTION_TYPES,
             'microsoft' => $microsoft->enabled(),
         ]);
+    }
+
+    /** News-Einwilligung (#169): Antwort auf die Frage nach der Anmeldung bzw. Einstellung unter «Mein Konto». */
+    public function news(Request $request): RedirectResponse
+    {
+        $user = $this->currentUser($request);
+        $optIn = (bool) $request->validate(['news' => ['required', 'boolean']])['news'];
+        $user->answerNews($optIn);
+        Audit::log($user, $user, 'news.answered', ['news' => $optIn]);
+
+        return back()->with('status', $optIn
+            ? 'Danke – Sie erhalten News zum Glossary (keine Werbung). Abmelden jederzeit unter «Mein Konto».'
+            : 'Sie erhalten keine News. Ändern jederzeit unter «Mein Konto».');
     }
 
     public function update(Request $request): RedirectResponse

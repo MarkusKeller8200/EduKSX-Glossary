@@ -31,6 +31,8 @@ use Illuminate\Support\Facades\DB;
  * @property CarbonImmutable|null $last_login_on
  * @property CarbonImmutable|null $email_verified_at
  * @property string|null $privacy_notice_version
+ * @property bool $news_opt_in Einwilligung in News, keine Werbung (#169)
+ * @property CarbonImmutable|null $news_answered_at NULL = noch nie gefragt
  * @property CarbonImmutable|null $privacy_notice_acknowledged_at
  * @property CarbonImmutable|null $inactivity_notice_sent_at
  * @property bool $password_set false = nur über Anmeldedienst (#45)
@@ -61,7 +63,7 @@ class User extends Authenticatable
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['status' => 'active', 'password_set' => true];
+    protected $attributes = ['status' => 'active', 'password_set' => true, 'news_opt_in' => false];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
@@ -79,6 +81,8 @@ class User extends Authenticatable
             'privacy_notice_acknowledged_at' => 'immutable_datetime',
             'inactivity_notice_sent_at' => 'immutable_datetime',
             'password_set' => 'boolean',
+            'news_opt_in' => 'boolean',
+            'news_answered_at' => 'immutable_datetime',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
@@ -107,6 +111,12 @@ class User extends Authenticatable
             ProposalService::forget($user);
             OrganizationService::forget($user);
         });
+    }
+
+    /** News-Einwilligung setzen (#169), mit Zeitpunkt der Antwort. */
+    public function answerNews(bool $optIn): void
+    {
+        $this->forceFill(['news_opt_in' => $optIn, 'news_answered_at' => now()])->save();
     }
 
     /** Zweiter Faktor eingerichtet und bestätigt (#11). */

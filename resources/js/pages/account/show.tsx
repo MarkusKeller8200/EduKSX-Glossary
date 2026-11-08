@@ -21,6 +21,8 @@ type Konto = {
     passwort_gesetzt: boolean;
     identitaeten: Identitaet[];
     rollen: string[];
+    news: boolean;
+    news_seit: string | null;
 };
 
 type Identitaet = {
@@ -86,6 +88,7 @@ export default function AccountShow({
             <Export />
             <MeineVorschlaege />
             <MeineOrganisation />
+            <News aktiv={konto.news} seit={konto.news_seit} />
 
             <Abschnitt titel="Zweiter Faktor">
                 <p className="text-sm text-muted-foreground">
@@ -128,6 +131,35 @@ function MeineVorschlaege() {
                 </Button>
                 <Button asChild variant="outline">
                     <Link href="/vorschlaege/neu">Begriff vorschlagen</Link>
+                </Button>
+            </div>
+        </Abschnitt>
+    );
+}
+
+/** News zum Glossary (#169): freiwillig, keine Werbung. */
+function News({ aktiv, seit }: { aktiv: boolean; seit: string | null }) {
+    return (
+        <Abschnitt titel="News">
+            <p className="text-sm text-muted-foreground">
+                Gelegentlich News zum Glossary per E-Mail (neue Funktionen,
+                wichtige Änderungen) – keine Werbung.{' '}
+                {aktiv
+                    ? `Sie erhalten News${seit ? ` (seit ${seit})` : ''}.`
+                    : 'Sie erhalten keine News.'}
+            </p>
+            <div className="mt-3">
+                <Button
+                    variant="outline"
+                    onClick={() =>
+                        router.post(
+                            '/konto/news',
+                            { news: !aktiv },
+                            { preserveScroll: true },
+                        )
+                    }
+                >
+                    {aktiv ? 'News abbestellen' : 'News erhalten'}
                 </Button>
             </div>
         </Abschnitt>
