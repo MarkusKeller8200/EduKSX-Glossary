@@ -49,6 +49,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Seitenbreite (#127):** Versionen, Datenschutz und Rechtliches nutzen die ganze Seitenbreite wie die übrigen Seiten.
+- **Tabellen (#128):** Spaltenbreiten richten sich nach dem Inhalt; Doppelklick auf den Splitter (oder Enter) passt
+  eine Spalte wieder an.
+
 - **Fusszeile (#125):** kürzere Links «Fehler melden» und «GitHub Pages».
 
 - **Farbwahl (#107):** Farben in «Listen» als farbige Labels wählbar, neu mit den CI-Farben Violett, Orange und Blau.

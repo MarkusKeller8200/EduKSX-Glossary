@@ -96,8 +96,9 @@ Angelehnt an die Container-Breiten von Bootstrap 5 (lg 960 px, xl 1140 px, xxl 1
 | Desktop schmal (Standard) | 1152 px (`max-w-6xl`) | Website und Administration einheitlich (≈ xl) |
 | Ganze Breite              | volle Fensterbreite   | grosse Tabellen                               |
 
-- **Fliesstext** (Beschreibung auf der Detailseite, Datenschutzerklärung, Rechtliches, Versionen) auf Lesebreite
-  begrenzen: `max-w-prose`, etwa 65 Zeichen pro Zeile (Richtwert 60–75).
+- **Fliesstext** (Beschreibung auf der Detailseite) auf Lesebreite
+  begrenzen: `max-w-prose`, etwa 65 Zeichen pro Zeile (Richtwert 60–75). Versionen, Datenschutz und Rechtliches
+  nutzen die ganze Seitenbreite wie die übrigen Seiten (Wunsch 08.11.2026, #127).
 - **Listen, Tabellen und kurze Hinweise** unter Seitentiteln nutzen die volle Seitenbreite (#89).
 - Vorher hatte die Website 1024 px und die Administration 1152 px, ohne festgehaltenen Grund. Umsetzung: #99.
 
