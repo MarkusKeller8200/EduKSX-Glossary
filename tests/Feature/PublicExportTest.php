@@ -106,7 +106,7 @@ class PublicExportTest extends TestCase
         $csv = (string) $this->postJson('/export', ['format' => 'csv', 'umfang' => 'sichtbar', 'keys' => [$term->slug, $second->slug]])
             ->assertOk()->getContent();
         $lines = array_values(array_filter(explode("\n", trim($csv))));
-        $this->assertStringContainsString('Abkürzung offiziell;Bezeichnung offiziell;Kurzbeschreibung;Kategorien;Status', $lines[0]);
+        $this->assertStringContainsString('"Abkürzung offiziell";"Bezeichnung offiziell";Kurzbeschreibung;Kategorien;Status', $lines[0]);
         $this->assertStringStartsWith('SL;', $lines[1]);
         $this->assertStringStartsWith('AA;', $lines[2]);
         $this->assertStringNotContainsString('Geheime Notiz', $csv);
