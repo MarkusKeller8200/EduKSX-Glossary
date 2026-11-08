@@ -102,7 +102,8 @@ class PageController extends Controller
 
         return Inertia::render('help', [
             'reiter' => array_map(fn (string $key, string $label): array => ['key' => $key, 'label' => $label], array_keys($tabs), array_values($tabs)),
-            'felder' => array_values(array_filter($fields, fn (array $f): bool => isset($tabs[$f['tab']]))),
+            // Felder gehören zu den Reitern Gast/Benutzer, Organisations-Admin und Moderator (immer sichtbar)
+            'felder' => array_values($fields),
             'weiteres' => array_values(array_filter(FieldGuide::EXTRAS, fn (array $e): bool => isset($tabs[$e['tab']]))),
         ]);
     }
