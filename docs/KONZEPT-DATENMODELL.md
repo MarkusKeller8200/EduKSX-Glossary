@@ -106,6 +106,10 @@ Unveröffentlichte Entwürfe und Vorschläge sind über Website und API nicht ab
   Text, Ergebnis-Revision; Ereignisse mit Kennzeichen «von der einreichenden Person» für die Löschfrist. Noch nicht
   umgesetzt: `term_relations` (später). Die Import-Vorschau liegt befristet im Zwischenspeicher;
   übernommene Importe protokolliert `import_batches` (#64).
+- `service_accounts`, `service_account_tokens`, `service_account_audit` umgesetzt mit 0.7.0 (#47): Scopes als JSON,
+  Token nur als SHA-256-Hash mit Präfix, Ablauf, Widerruf; Protokoll ohne Fremdschlüssel (bleibt nach dem Löschen).
+- `settings` umgesetzt mit 0.7.0 (#106): Schlüssel/Wert (JSON) mit Positivliste `App\Support\Settings::DEFINITIONS`,
+  Vorgaben im Code, Änderungen im Audit-Protokoll; gelesen je Anfrage einmal.
 
 ## Identitätsmodell, Datenschutz und Veröffentlichungsgrenze (DEC-017 bis DEC-019)
 
