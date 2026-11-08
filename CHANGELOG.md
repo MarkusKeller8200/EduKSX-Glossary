@@ -27,6 +27,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Abfragen bei Einstellungen und im Protokoll der Servicekonten.
 - **Aufgeräumt (#138):** Konto der Anfrage im Basis-Controller statt 13 Kopien, ein Baustein für Datei-Downloads,
   gemeinsamer Titel aus Abbildern; «Mein Konto» nutzt das Export-Menü.
+- **Dokumentation (#141):** Changelog je Thema zusammengefasst (Regel in AGENTS.md), README mit Funktionsübersicht,
+  Datenmodell um Servicekonten und Einstellungen ergänzt, Hilfe mit Rollen und Rechten, Export, zweitem Faktor und API.
 - **Begriffstabelle (#143):** Darstellung (Tabelle/Kacheln), Gruppierung und Sortierung in einem Menü «Ansicht» mit
   «Ansicht zurücksetzen».
 
@@ -36,30 +38,25 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 - **Hilfe (#135):** Seite «Hilfe» mit allen Feldern eines Begriffs – Bedeutung, Format und Beispiel, Pflicht,
   Sichtbarkeit (öffentlich, Suche, intern), Excel-Spalte und API-Name; Link in der Fusszeile.
-
 - **Export-Menü (#131):** Auf der Startseite und bei den Begriffen der Administration ein Knopf «Export» wie im
   Intranet: Excel und CSV (sichtbare Spalten), Excel vollständig, PDF und Markdown – jeweils für die sichtbaren
   Zeilen in angezeigter Reihenfolge. Website: veröffentlichte Daten ab Rolle Benutzer; ohne Recht ist der Knopf
   ausgegraut mit Hinweis zur Anmeldung. Administration: Arbeitsstand.
-
 - **Tabellen (#103, #108):** Alle Listen der Administration (Begriffe, Benutzer, Listen, Prüfung, Altwerte,
   Import-Vorschau, Vorschläge, Servicekonten) mit verstellbaren Spaltenbreiten (Splitter, auch mit Pfeiltasten) und
   Sortierung per Klick auf den Spaltenkopf; Breiten und Sortierung bleiben im Browser. Beim horizontalen Scrollen
   bleiben Schlüsselspalte links und Aktionen rechts sichtbar; Aktionen als Symbole mit Tooltip.
-
 - **Listen per Excel (#101):** Kategorien und Herkunft je Liste exportieren und mit Vorschau importieren (neu,
   geändert, Fehler; nie löschen). Spalten wie das Formular, Format wie der Listen-Export des Intranets
   (sek-intranet#157); Zuordnung über Schlüssel, sonst Kürzel oder Label.
 - **Allgemeine Einstellungen (#106):** neue Seite für Löschfristen, Wiedervorlage der Quellenprüfung,
   Vier-Augen-Prinzip bei der Freigabe (DEC-022, Vorgabe aus) sowie Hinweise und Links; neues Recht «Allgemeine
   Einstellungen» (systemkritisch), jede Änderung im Protokoll.
-
 - **Vorschläge und Moderation (#113, DEC-024):** Ab Benutzer neuen Begriff oder Korrektur einreichen («Begriff
   vorschlagen», «Korrektur vorschlagen»); Stand, Rückfragen und Zurückziehen unter «Meine Vorschläge». Die Moderation
   vergleicht feldweise Basis, Arbeitsstand und Vorschlag (Konflikte markiert), nimmt gewählte Felder als Entwurf an,
   lehnt mit Begründung ab oder fragt nach. Servicekonten reichen per `POST /api/v1/proposals` ein. Nie öffentlich;
   Personenbezug 24 Monate nach Abschluss bzw. bei Kontolöschung entfernt. GitHub nur noch für Software-Meldungen.
-
 - **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
   wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
   veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.
@@ -77,32 +74,27 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **QR-Code für den zweiten Faktor (#70):** beim Einrichten scannen statt den Schlüssel abtippen (Paket `qrcode`, MIT).
 - **Servicekonten mit Token (#47):** ab Organisations-Admin unter «Servicekonten»: Name, Zweck, verantwortliche Person,
   Scopes; Token einmal angezeigt, nur als Hash gespeichert, höchstens ein Jahr gültig, widerrufbar, Konto sperrbar;
-  eigenes Protokoll. Kein Login. Prüfung über `GET /api/v1/service/whoami`; Vorschläge per Token folgen mit #113.
+  eigenes Protokoll. Kein Login. Prüfung über `GET /api/v1/service/whoami`; Vorschläge per Token siehe #113.
 - **Hierarchie der Rollen (#115):** «Rollen und Rechte» zeigt die Stufen Gast bis Developer mit den Rechten, die jede
   Stufe dazubekommt, farbig nach Schutzklasse.
 
 ### Geändert
 
-- **Seitenbreite (#127):** Versionen, Datenschutz und Rechtliches nutzen die ganze Seitenbreite wie die übrigen Seiten.
-- **Tabellen (#128):** Spaltenbreiten richten sich nach dem Inhalt und werden nach Grössenänderungen sowie bei
-  geändertem Inhalt (Suche, Filter, Gruppen) neu berechnet; Doppelklick auf den Splitter (oder Enter) passt eine von
-  Hand gezogene Spalte wieder an.
-
-- **Fusszeile (#125):** kürzere Links «Fehler melden» und «GitHub Pages».
-
+- **Seitenbreite (#99, DEC-023, #127):** Website und Administration einheitlich 1152 px, lange Texte auf Lesebreite;
+  Versionen, Datenschutz und Rechtliches wie die übrigen Seiten.
+- **Tabellen (#104, #128):** Spaltenbreiten nach Inhalt, neu berechnet nach Grössenänderungen und bei geändertem
+  Inhalt (Suche, Filter, Gruppen); Doppelklick auf den Splitter (oder Enter) passt eine von Hand gezogene Spalte wieder
+  an. Begriffstabelle gruppiert zusätzlich nach Erstelldatum und letzter Änderung.
+- **Fusszeile (#102, #125):** auch in der Administration immer sichtbar, kürzere Links «Fehler melden» und «GitHub
+  Pages».
 - **Farbwahl (#107):** Farben in «Listen» als farbige Labels wählbar, neu mit den CI-Farben Violett, Orange und Blau.
-- **Fusszeile (#102):** auch in der Administration immer sichtbar.
 - **Kategorien (#105):** werden überall untereinander angezeigt.
-- **Begriffstabelle (#104):** gruppieren zusätzlich nach Erstelldatum und letzter Änderung.
-- **Seitenbreite (#99, DEC-023):** Website und Administration einheitlich 1152 px; lange Texte auf Lesebreite.
 
 ### Behoben
 
 - **Korrektur vorschlagen (#133):** Die Seite bricht bei älteren Begriffen (Abbild vor DEC-020) nicht mehr ab.
-
 - **Tabellenbreite (#123):** Tabellen der Administration füllen bei «Ganze Breite» den ganzen Platz; die breiteste
   Textspalte nimmt den freien Platz auf.
-
 - **Auswahllisten im Dunkelmodus (#107):** Einträge sind lesbar (heller Text auf dunklem Grund).
 
 ## [0.6.0] – 2026-11-07

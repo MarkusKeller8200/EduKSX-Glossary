@@ -39,6 +39,10 @@ final class FieldGuide
     public const EXTRAS = [
         ['feld' => 'Persönliche Darstellung', 'beschreibung' => 'Angemeldete Konten ab Rolle Benutzer können Abkürzung, Bezeichnung, Kurzbeschreibung, Beschreibung und Aliase nur für sich anders anzeigen («Meine Darstellung», DEC-020). Nie öffentlich, keine Revision.'],
         ['feld' => 'Vorschläge', 'beschreibung' => 'Korrekturen und neue Begriffe reicht man ab Rolle Benutzer ein («Korrektur vorschlagen»); die Redaktion prüft und übernimmt sie als Entwurf (DEC-024).'],
+        ['feld' => 'Rollen und Rechte', 'beschreibung' => 'Ohne Anmeldung und als Gast: lesen. Benutzer (Vorgabe für neue Konten): exportieren, Vorschläge einreichen, persönliche Darstellung. Organisations-Admin: dazu Servicekonten mit Token. Moderator: Vorschläge prüfen und Begriffe bearbeiten. Admin: veröffentlichen, offizielle Felder, Benutzer, Listen, Import. Developer: System und Sicherheit.'],
+        ['feld' => 'Export', 'beschreibung' => 'Ab Rolle Benutzer über den Knopf «Export» auf der Startseite oder unter «Mein Konto»: Excel und CSV (sichtbare Spalten oder vollständig), PDF über die Druckansicht und Markdown – immer der veröffentlichte Stand der angezeigten Zeilen. Ohne Anmeldung ist der Knopf ausgegraut.'],
+        ['feld' => 'Zweiter Faktor', 'beschreibung' => 'Pflicht ab Organisations-Admin und für die Administration (App mit Einmal-Codes, QR-Code beim Einrichten, Wiederherstellungscodes). Gäste und Benutzer können ihn freiwillig unter «Mein Konto» einrichten.'],
+        ['feld' => 'API und Servicekonten', 'beschreibung' => 'Die Lese-API unter /api/v1 liefert ohne Anmeldung den veröffentlichten Stand (Dokumentation unter /api/docs). Integrationen, die Vorschläge einreichen, nutzen ein Servicekonto mit Token (Scope «propose»).'],
         ['feld' => 'Lizenz', 'beschreibung' => 'Die Daten stehen unter CC BY 4.0: Nutzung frei mit Quellenangabe «EduKSX-Glossary (glossary.eduksx.ch)».'],
     ];
 }

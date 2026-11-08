@@ -10,6 +10,8 @@ Projekt: EduKSX-Glossary.
 - **Konzepte zuerst vorlegen:** Entscheide werden als Entwurf (Pull Request) vorgelegt und erst nach Abnahme gemergt
   (`docs/KONZEPT*.md`, Register `docs/ENTSCHEIDE.md`).
 - **Dateien nur nach Rückfrage löschen.**
+- **CHANGELOG je Thema ein Eintrag:** Folge-Issues im selben Release ergänzen den bestehenden Eintrag (Nummern
+  zusammen, z. B. «Fusszeile (#102, #125)») statt einen zweiten anzulegen; keine Leerzeilen zwischen Einträgen.
 
 <!-- blueprint:github-ablauf -->
 
