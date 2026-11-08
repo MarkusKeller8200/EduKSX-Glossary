@@ -137,7 +137,6 @@ class ProposalController extends Controller
         ];
     }
 
-
     private function published(mixed $slug): ?Term
     {
         if (! is_string($slug) || $slug === '') {

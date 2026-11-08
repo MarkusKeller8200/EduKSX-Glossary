@@ -36,6 +36,7 @@ class ListController extends Controller
     {
         $this->model($list);
         $name = 'glossary-'.$list.'-'.date('Y-m-d');
+
         return Download::table($request->query('format') === 'csv' ? 'csv' : 'xlsx', ListTransfer::header(), $this->transfer->rows($list), $name, ucfirst($list));
     }
 
