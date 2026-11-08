@@ -85,6 +85,7 @@ export default function AccountShow({
             <Anmeldedienste konto={konto} microsoft={microsoft} />
             <Export />
             <MeineVorschlaege />
+            <MeineOrganisation />
 
             <Abschnitt titel="Zweiter Faktor">
                 <p className="text-sm text-muted-foreground">
@@ -127,6 +128,24 @@ function MeineVorschlaege() {
                 </Button>
                 <Button asChild variant="outline">
                     <Link href="/vorschlaege/neu">Begriff vorschlagen</Link>
+                </Button>
+            </div>
+        </Abschnitt>
+    );
+}
+
+/** Organisation (#148): gründen, Mitglieder, Einladungen – für alle angemeldeten Konten. */
+function MeineOrganisation() {
+    return (
+        <Abschnitt titel="Organisation">
+            <p className="text-sm text-muted-foreground">
+                Gemeinsame Darstellung der Begriffe für eine Schule, Gemeinde
+                oder ein Team: gründen, Mitglieder einladen, Einladungen
+                annehmen.
+            </p>
+            <div className="mt-3">
+                <Button asChild variant="outline">
+                    <Link href="/organisation">Meine Organisation</Link>
                 </Button>
             </div>
         </Abschnitt>

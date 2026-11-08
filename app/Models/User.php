@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Access\Permission;
 use App\Glossary\Journal;
 use App\Notifications\ResetPasswordNotification;
+use App\Organizations\OrganizationService;
 use App\Proposals\ProposalService;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -100,10 +101,11 @@ class User extends Authenticatable
             $user->name = trim($user->first_name.' '.$user->last_name);
         });
         // Kontolöschung (jeder Weg): persönliche Darstellungen weg, Journal und Vorschläge ohne Personenbezug
-        // (DEC-020, #113)
+        // (DEC-020, #113); Organisation mit Nachfolge im Admin (#148)
         static::deleting(function (User $user): void {
             Journal::forget($user);
             ProposalService::forget($user);
+            OrganizationService::forget($user);
         });
     }
 

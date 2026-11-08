@@ -67,7 +67,7 @@ class UserAdminTest extends TestCase
     {
         $this->actingAs($this->admin());
 
-        $this->get('/admin/rollen')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/roles')->has('rollen', 6)->has('rechte', 13));
+        $this->get('/admin/rollen')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/roles')->has('rollen', 6)->has('rechte', 14));
 
         $this->post('/admin/rollen', ['name' => 'Redaktion Schule'])->assertRedirect();
         $role = Role::byKey('redaktion-schule');

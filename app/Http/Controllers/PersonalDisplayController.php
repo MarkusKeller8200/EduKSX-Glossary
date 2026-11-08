@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Glossary\DisplayInput;
 use App\Glossary\PublicGlossary;
 use App\Models\Term;
 use App\Models\TermUserOverride;
@@ -18,24 +19,7 @@ class PersonalDisplayController extends Controller
     {
         $user = $this->currentUser($request);
         $term = $this->term($slug, $glossary);
-        $data = $request->validate([
-            'abbreviation_override' => ['nullable', 'string', 'max:60'],
-            'name_override' => ['nullable', 'string', 'max:255'],
-            'short_description_override' => ['nullable', 'string', 'max:160'],
-            'description_override' => ['nullable', 'string', 'max:20000'],
-            'aliases_override' => ['nullable', 'string', 'max:1000'],
-        ]);
-
-        $values = [];
-        foreach (['abbreviation_override', 'name_override', 'short_description_override', 'description_override'] as $field) {
-            $value = trim((string) ($data[$field] ?? ''));
-            $values[$field] = $value === '' ? null : $value;
-        }
-        $aliases = array_values(array_unique(array_filter(
-            array_map(fn (string $a): string => mb_substr(trim($a), 0, 120), explode(';', (string) ($data['aliases_override'] ?? ''))),
-            fn (string $a): bool => $a !== '',
-        )));
-        $values['aliases_override'] = $aliases === [] ? null : $aliases;
+        $values = DisplayInput::from($request);
 
         $override = TermUserOverride::query()->where('term_id', $term->id)->where('user_id', $user->id)->first()
             ?? new TermUserOverride;

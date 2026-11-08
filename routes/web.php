@@ -20,6 +20,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\OrganizationDisplayController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
@@ -57,6 +59,27 @@ Route::post('export', [ExportController::class, 'selection'])->middleware(['auth
 Route::middleware(['auth', 'can:personal-display', 'throttle:30,1'])->group(function () {
     Route::put('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.personal');
     Route::delete('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'destroy'])->where('slug', '[a-z0-9-]+')->name('term.personal.destroy');
+});
+
+// Organisation (#148, DEC-025): für angemeldete Konten; Regeln im OrganizationService
+Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(function () {
+    Route::get('/', [OrganizationController::class, 'show'])->withoutMiddleware('throttle:30,1')->name('organization');
+    Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
+    Route::put('/', [OrganizationController::class, 'update'])->name('organization.update');
+    Route::post('loeschen', [OrganizationController::class, 'destroy'])->name('organization.destroy');
+    Route::post('austreten', [OrganizationController::class, 'leave'])->name('organization.leave');
+    Route::post('einladungen', [OrganizationController::class, 'invite'])->middleware('throttle:10,1')->name('organization.invite');
+    Route::delete('einladungen/{invitation}', [OrganizationController::class, 'revokeInvitation'])->whereNumber('invitation')->name('organization.invitation.destroy');
+    Route::post('einladungen/{invitation}/annehmen', [OrganizationController::class, 'accept'])->whereNumber('invitation')->name('organization.invitation.accept');
+    Route::post('einladungen/{invitation}/ablehnen', [OrganizationController::class, 'decline'])->whereNumber('invitation')->name('organization.invitation.decline');
+    Route::post('mitglieder/{member}/sperren', [OrganizationController::class, 'block'])->whereNumber('member')->name('organization.member.block');
+    Route::post('mitglieder/{member}/entsperren', [OrganizationController::class, 'unblock'])->whereNumber('member')->name('organization.member.unblock');
+    Route::put('mitglieder/{member}/rolle', [OrganizationController::class, 'role'])->whereNumber('member')->name('organization.member.role');
+    Route::delete('mitglieder/{member}', [OrganizationController::class, 'remove'])->whereNumber('member')->name('organization.member.destroy');
+});
+Route::middleware(['auth', 'throttle:30,1'])->group(function () {
+    Route::put('begriffe/{slug}/organisation-darstellung', [OrganizationDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.organization');
+    Route::delete('begriffe/{slug}/organisation-darstellung', [OrganizationDisplayController::class, 'destroy'])->where('slug', '[a-z0-9-]+')->name('term.organization.destroy');
 });
 
 // Interaktive Doku der öffentlichen API (OpenAPI 3.1, #26)

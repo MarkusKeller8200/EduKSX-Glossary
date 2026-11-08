@@ -40,6 +40,10 @@
     {
       "name": "Servicekonten",
       "description": "Für Integrationen mit Token eines Servicekontos (#47). Lesen braucht kein Token."
+    },
+    {
+      "name": "Organisation",
+      "description": "Begriffe in der Darstellung einer Organisation (#148). Nur mit Token eines Servicekontos der Organisation (Scope «read-org»); nie zwischengespeichert."
     }
   ],
   "paths": {
@@ -803,6 +807,151 @@
           }
         }
       }
+    },
+    "/v1/org/terms": {
+      "get": {
+        "tags": [
+          "Organisation"
+        ],
+        "summary": "Begriffe in der Darstellung der Organisation",
+        "operationId": "listOrganizationTerms",
+        "description": "Alle veröffentlichten Begriffe mit den gemeinsamen Werten («term») und den Anpassungen der Organisation des Servicekontos («organization_display»).",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "customized",
+            "in": "query",
+            "description": "1 = nur Begriffe mit Anpassung der Organisation",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Begriffe der Organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OrganizationTerm"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "customized": {
+                          "type": "integer"
+                        },
+                        "release": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token oder Scope «read-org» fehlt"
+          },
+          "403": {
+            "description": "Servicekonto gehört zu keiner Organisation"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/org/terms/{idOrSlug}": {
+      "get": {
+        "tags": [
+          "Organisation"
+        ],
+        "summary": "Ein Begriff in der Darstellung der Organisation",
+        "operationId": "getOrganizationTerm",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "required": true,
+            "description": "UUID oder Slug",
+            "schema": {
+              "type": "string"
+            },
+            "example": "klassenlehrperson"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Begriff der Organisation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "organization": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/OrganizationTerm"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token oder Scope «read-org» fehlt"
+          },
+          "403": {
+            "description": "Servicekonto gehört zu keiner Organisation"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1511,6 +1660,64 @@
               "null"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "OrganizationDisplay": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "description": "Anpassungen der Organisation; null = es gilt die gemeinsame Darstellung. Leere Felder (null) übernehmen den gemeinsamen Wert.",
+        "properties": {
+          "abbreviation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "short_description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "zusätzliche Schreibweisen der Organisation"
+          },
+          "updated_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "OrganizationTerm": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "$ref": "#/components/schemas/Term"
+          },
+          "organization_display": {
+            "$ref": "#/components/schemas/OrganizationDisplay"
           }
         }
       }

@@ -31,7 +31,7 @@ class Role extends Model
 
     public const MODERATOR = 'moderator';
 
-    /** Organisations-Admin (#110): wie Benutzer, dazu Servicekonten; Mandanten und Mitglieder folgen später. */
+    /** Organisations-Admin (#110, #148): wie Benutzer, dazu Servicekonten; wird durch die Organisation vergeben (DEC-025). */
     public const ORG_ADMIN = 'org-admin';
 
     /** Benutzer (#110): exportieren, Vorschläge einreichen, persönliche Darstellung. */

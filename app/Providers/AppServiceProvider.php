@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Access\Permission;
 use App\Glossary\PublicCache;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
@@ -44,6 +46,13 @@ class AppServiceProvider extends ServiceProvider
         // Anmeldung mit Microsoft (#45): Provider von SocialiteProviders bei Socialite anmelden
         Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
+        });
+
+        // Einladungen in eine Organisation bei jeder Anmeldung annehmen (#148): Passwort, zweiter Faktor, Microsoft
+        Event::listen(function (Login $event): void {
+            if ($event->user instanceof User) {
+                app(OrganizationService::class)->acceptPending($event->user);
+            }
         });
 
         // Öffentliche Lese-API: 120 Abrufe pro Minute und Adresse

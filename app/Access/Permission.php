@@ -23,6 +23,7 @@ final class Permission
         'propose' => ['label' => 'Vorschläge einreichen', 'class' => self::NORMAL],
         'export' => ['label' => 'Exportieren (Excel, CSV, PDF)', 'class' => self::NORMAL],
         'personal-display' => ['label' => 'Persönliche Darstellung', 'class' => self::NORMAL],
+        'create-organization' => ['label' => 'Organisation gründen', 'class' => self::NORMAL],
         'moderate' => ['label' => 'Vorschläge prüfen', 'class' => self::NORMAL],
         'edit-terms' => ['label' => 'Begriffe bearbeiten (Entwurf)', 'class' => self::NORMAL],
         'publish' => ['label' => 'Veröffentlichen und zurückziehen', 'class' => self::PRIVILEGED],
@@ -35,14 +36,13 @@ final class Permission
         'system' => ['label' => 'System und Sicherheit', 'class' => self::SYSTEM],
     ];
 
-    /** @return list<string> */
     /**
      * Grundrechte der Rollen Benutzer und Organisations-Admin (#110): ohne Zugang zur Administration und ohne
-     * zweiten Faktor. Alle anderen Rechte öffnen /admin und verlangen den zweiten Faktor.
+     * zweiten Faktor; «create-organization» seit #148. Alle anderen Rechte öffnen /admin und verlangen den zweiten Faktor.
      *
      * @var list<string>
      */
-    public const BASIC = ['propose', 'export', 'personal-display'];
+    public const BASIC = ['propose', 'export', 'personal-display', 'create-organization'];
 
     public static function isBasic(string $permission): bool
     {
