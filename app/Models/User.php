@@ -153,7 +153,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Effektive Rechte aus allen Rollen. Ein Konto ohne Rolle (Community) darf Vorschläge einreichen.
+     * Effektive Rechte aus allen Rollen. Ein Konto ohne Rolle hat keine Rechte (wie Gast, #110).
      *
      * @return list<string>
      */
@@ -169,7 +169,7 @@ class User extends Authenticatable
             ->join('user_roles', 'user_roles.role_id', '=', 'role_permissions.role_id')
             ->where('user_roles.user_id', $this->id)
             ->pluck('role_permissions.permission')->all();
-        $granted = array_unique(['propose', ...array_map('strval', $granted)]);
+        $granted = array_map('strval', $granted);
 
         return $this->permissionCache = array_values(array_filter(Permission::keys(), fn (string $p): bool => in_array($p, $granted, true)));
     }
@@ -179,7 +179,7 @@ class User extends Authenticatable
         return in_array($permission, $this->permissions(), true);
     }
 
-    /** Hat mindestens ein Recht, das den zweiten Faktor verlangt (alles ausser Vorschläge einreichen). */
+    /** Hat mindestens ein Recht, das den zweiten Faktor verlangt (alles ausser den Grundrechten, Permission::BASIC). */
     public function needsTwoFactor(): bool
     {
         return array_intersect($this->permissions(), Permission::privilegedArea()) !== [];

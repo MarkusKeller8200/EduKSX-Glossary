@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\ConfirmRegistration;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
 use App\Notifications\ResetPasswordNotification;
@@ -45,7 +46,7 @@ class RegistrationTest extends TestCase
         $this->post('/registrieren', self::FORM)->assertRedirect('/anmelden')->assertSessionHas('status');
         $user = User::query()->where('email', 'anna@example.org')->firstOrFail();
         $this->assertTrue($user->isPending());
-        $this->assertSame([], $user->roleKeys());
+        $this->assertSame([Role::USER], $user->roleKeys());   // Rolle neuer Registrierungen (#110)
         $this->assertSame(config('glossary.privacy_version'), $user->privacy_notice_version);
         $this->assertNotNull($user->privacy_notice_acknowledged_at);
 

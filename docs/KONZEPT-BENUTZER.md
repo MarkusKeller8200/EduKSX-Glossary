@@ -16,14 +16,16 @@ EduKSX-Glossary ist öffentlich lesbar. Persönliche Konten dienen der Einreichu
 
 ### 2.1 Persönliche Benutzerkonten
 
-| Rolle                               | Aufgaben                                                                                            | MFA           | Anmeldung                                   |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------- |
-| Community (keine zusätzliche Rolle) | Vorschläge einreichen; eigene Vorschläge und Status einsehen                                        | freiwillig    | lokal oder unterstützter Identitätsanbieter |
-| Moderator                           | Vorschläge prüfen; Rückfragen; Entwürfe bearbeiten                                                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
-| Admin                               | Veröffentlichen; Benutzer- und Rollenverwaltung innerhalb der Sicherheitsgrenzen; Import und Listen | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
-| Developer                           | sämtliche Anwendungsrechte sowie System- und Sicherheitsverwaltung                                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
+| Rolle                         | Aufgaben                                                                                            | MFA           | Anmeldung                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- | ------------- | ------------------------------------------- |
+| Gast                          | angemeldet, nur lesen (auch Konto ohne Rolle)                                                       | freiwillig    | lokal oder unterstützter Identitätsanbieter |
+| Benutzer (Rolle neuer Konten) | exportieren; Vorschläge einreichen, eigene Vorschläge und Status einsehen; persönliche Darstellung  | freiwillig    | lokal oder unterstützter Identitätsanbieter |
+| Organisations-Admin           | wie Benutzer, dazu Servicekonten mit Token; Mandanten und Mitglieder folgen später                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
+| Moderator                     | Vorschläge prüfen; Rückfragen; Entwürfe bearbeiten                                                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
+| Admin                         | Veröffentlichen; Benutzer- und Rollenverwaltung innerhalb der Sicherheitsgrenzen; Import und Listen | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
+| Developer                     | sämtliche Anwendungsrechte sowie System- und Sicherheitsverwaltung                                  | verpflichtend | persönliche Anmeldung mit wirksamer MFA     |
 
-Rollen sind kombinierbar. Die Anwendung berechnet die effektiven Rechte aus allen zugewiesenen Rollen und prüft sie **serverseitig für jede geschützte Aktion**. Eine Rolle ist keine direkte Autorisierung; massgebend ist das angeforderte Recht. Die Developer-Rolle ist eine unveränderbare, geschützte Systemrolle.
+Gast und Benutzer bilden die **Community** (keine Rolle mit Recht der Administration oder privilegiertem Recht; massgebend z. B. für die Löschfrist inaktiver Konten). Bis 0.6.0 hatte jedes Konto ohne Rolle fest das Recht `propose`; seit 0.7.0 (#110) kommt es aus der Rolle, bestehende Konten ohne Rolle wurden Benutzer. Rollen sind kombinierbar. Die Anwendung berechnet die effektiven Rechte aus allen zugewiesenen Rollen und prüft sie **serverseitig für jede geschützte Aktion**. Eine Rolle ist keine direkte Autorisierung; massgebend ist das angeforderte Recht. Die Developer-Rolle ist eine unveränderbare, geschützte Systemrolle.
 
 ### 2.2 Servicekonten
 
@@ -31,24 +33,29 @@ Servicekonten sind **keine Benutzerrolle** und werden getrennt von Personenkonte
 
 Jedes Servicekonto erhält einen Namen, Zweck, verantwortliche natürliche Person, Status und eng begrenzte Scopes. Token werden kryptografisch zufällig erzeugt, nur einmal angezeigt, ausschliesslich als sichere Hashwerte abgelegt, befristet, einzeln widerrufbar und nach Möglichkeit regelmässig rotiert. Token und Identitäten werden von anderen Rollen unabhängig geprüft. Schreibende Servicezugriffe verwenden dieselbe Geschäftslogik, Validierung, Auditierung und Moderationskette wie schreibende Personenzugriffe. Ein Servicekonto darf nicht unmittelbar veröffentlichen, solange dafür kein gesonderter Entscheid getroffen wurde.
 
+Umsetzung (0.7.0, #47): Anlegen ab Recht `service-tokens` (Organisations-Admin, Admin), verantwortlich ist die anlegende Person; verwalten kann sie selbst, mit `manage-users` alle. Scopes nur im Rahmen der eigenen Rechte (vorerst `propose`). Token «gls_» + 40 Zeichen, SHA-256-Hash, 1–365 Tage, einzeln widerrufbar; Sperren des Kontos macht alle Token ungültig. Protokoll `service_account_audit` mit Änderungen und abgewiesenen Zugriffen bekannter Token. Selbstauskunft `GET /api/v1/service/whoami`.
+
 ## 3. Berechtigungsmodell
 
-| Gate / Recht                       | Community | Moderator | Admin         | Developer | Servicekonto (Default) |
-| ---------------------------------- | --------- | --------- | ------------- | --------- | ---------------------- |
-| `propose`                          | ja        | ja        | ja            | ja        | nur mit Scope          |
-| `moderate`                         | nein      | ja        | ja            | ja        | nein                   |
-| `edit-terms`                       | nein      | ja        | ja            | ja        | nein                   |
-| `publish`                          | nein      | nein      | ja            | ja        | nein                   |
-| `edit-official`                    | nein      | nein      | ja            | ja        | nein                   |
-| `manage-users`                     | nein      | nein      | ja (begrenzt) | ja        | nein                   |
-| `import`, `lists`                  | nein      | nein      | ja            | ja        | nein                   |
-| `system`                           | nein      | nein      | nein          | ja        | nein                   |
-| Developer-Rolle vergeben/entziehen | nein      | nein      | nein          | ja        | nein                   |
+| Gate / Recht                       | Gast | Benutzer | Org.-Admin | Moderator | Admin         | Developer | Servicekonto (Default) |
+| ---------------------------------- | ---- | -------- | ---------- | --------- | ------------- | --------- | ---------------------- |
+| `propose`                          | nein | ja       | ja         | ja        | ja            | ja        | nur mit Scope          |
+| `export`                           | nein | ja       | ja         | ja        | ja            | ja        | nein                   |
+| `personal-display`                 | nein | ja       | ja         | ja        | ja            | ja        | nein                   |
+| `moderate`                         | nein | nein     | nein       | ja        | ja            | ja        | nein                   |
+| `edit-terms`                       | nein | nein     | nein       | ja        | ja            | ja        | nein                   |
+| `publish`                          | nein | nein     | nein       | nein      | ja            | ja        | nein                   |
+| `edit-official`                    | nein | nein     | nein       | nein      | ja            | ja        | nein                   |
+| `manage-users`                     | nein | nein     | nein       | nein      | ja (begrenzt) | ja        | nein                   |
+| `import`, `lists`                  | nein | nein     | nein       | nein      | ja            | ja        | nein                   |
+| `service-tokens`                   | nein | nein     | ja         | nein      | ja            | ja        | nein                   |
+| `system`                           | nein | nein     | nein       | nein      | nein          | ja        | nein                   |
+| Developer-Rolle vergeben/entziehen | nein | nein     | nein       | nein      | nein          | ja        | nein                   |
 
 Dies sind **Voreinstellungen**, nicht zwingend jede denkbare zukünftige Rolle. Zusätzliche Rollen (z. B. «Redaktion Schule») sind möglich. Für die Konfiguration gelten drei Klassen:
 
-1. **Normale Rechte** (`propose`, `moderate`, `edit-terms`): durch autorisierte Rollenverwaltung anpassbar.
-2. **Privilegierte Rechte** (`publish`, `edit-official`, `manage-users`, `import`, `lists`): nur mit ausdrücklich zugestandener Verwaltungsbefugnis veränderbar; eine Person darf eigene Berechtigungen weder direkt noch indirekt erhöhen. Die Vergabe eines Rechts darf niemals über die eigene Verwaltungsgrenze hinausgehen.
+1. **Normale Rechte** (`propose`, `export`, `personal-display`, `moderate`, `edit-terms`): durch autorisierte Rollenverwaltung anpassbar. Die Grundrechte `propose`, `export` und `personal-display` öffnen die Administration nicht und verlangen keinen zweiten Faktor.
+2. **Privilegierte Rechte** (`publish`, `edit-official`, `manage-users`, `import`, `lists`, `service-tokens`): nur mit ausdrücklich zugestandener Verwaltungsbefugnis veränderbar; eine Person darf eigene Berechtigungen weder direkt noch indirekt erhöhen. Die Vergabe eines Rechts darf niemals über die eigene Verwaltungsgrenze hinausgehen.
 3. **Systemkritische Rechte** (`system`, Developer-Vergabe, Sicherheitskonfiguration): ausschliesslich Developer, nicht über die Rollenmatrix umkonfigurierbar.
 
 Die Developer-Rolle wird nur durch einen bereits berechtigten Developer oder über einen **gesicherten administrativen Serverprozess** zugewiesen beziehungsweise entzogen. Ein Admin kann weder sich selbst noch anderen Developer-Rechte geben. Bei der Migration erhalten vorhandene Admin-Konten zunächst **nur Admin**, niemals automatisch Developer. Die anfängliche Developer-Zuweisung ist explizit vorzunehmen und zu protokollieren. Schutz gegen Aussperren: Das letzte funktionsfähige Developer-Konto darf nicht über die GUI gesperrt, gelöscht oder seiner Rolle beraubt werden; ein kontrollierter, protokollierter Notfallzugang bleibt möglich. Das gilt auch für die letzte nutzbare Verwaltungsberechtigung.
@@ -76,7 +83,7 @@ Keine routinemässige Speicherung von Telefonnummer, Adresse, Geburtsdatum, Foto
 
 ### 5.1 Community
 
-Öffentliches Lesen inklusive der GET-API benötigt kein Konto. Für Vorschläge **innerhalb der Anwendung** wird ein persönliches Konto mit verifiziertem Zugang benötigt. Lokale Selbstregistrierung: Spam-Schutz (z. B. Cloudflare Turnstile), Information über die Datenschutzerklärung mit protokollierter Kenntnisnahme, Bestätigungslink per E-Mail (60 Minuten gültig), Freischaltung erst nach Bestätigung. Unbestätigte Registrierungen werden nach sieben Tagen gelöscht. Die Rolle ist zunächst ausschliesslich Community; weitere Rechte weist eine autorisierte Stelle zu. Bei fehlender Versandkonfiguration ist Selbstregistrierung deaktiviert; autorisierte Personen können Konten administrativ anlegen.
+Öffentliches Lesen inklusive der GET-API benötigt kein Konto. Für Vorschläge **innerhalb der Anwendung** wird ein persönliches Konto mit verifiziertem Zugang benötigt. Lokale Selbstregistrierung: Spam-Schutz (z. B. Cloudflare Turnstile), Information über die Datenschutzerklärung mit protokollierter Kenntnisnahme, Bestätigungslink per E-Mail (60 Minuten gültig), Freischaltung erst nach Bestätigung. Unbestätigte Registrierungen werden nach sieben Tagen gelöscht. Neue Konten (Registrierung, Microsoft-Anmeldung, administrative Anlage) erhalten die Rolle **Benutzer** (bestätigt 08.11.2026, #110); weitere Rechte weist eine autorisierte Stelle zu. Bei fehlender Versandkonfiguration ist Selbstregistrierung deaktiviert; autorisierte Personen können Konten administrativ anlegen.
 
 Die GitHub-Issue-Formulare können bis zur integrierten Community-Funktion als Übergangskanal bestehen bleiben. Sie sind kein anonymer Zugang zu internen Vorschlägen und unterliegen den separaten GitHub-Datenschutzbedingungen. Kein Vorschlag wird ohne redaktionelle Freigabe veröffentlicht.
 

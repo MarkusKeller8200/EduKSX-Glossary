@@ -36,6 +36,10 @@
     },
     {
       "name": "Allgemein"
+    },
+    {
+      "name": "Servicekonten",
+      "description": "Für Integrationen mit Token eines Servicekontos (#47). Lesen braucht kein Token."
     }
   ],
   "paths": {
@@ -623,6 +627,68 @@
           },
           "400": {
             "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/v1/service/whoami": {
+      "get": {
+        "tags": [
+          "Servicekonten"
+        ],
+        "summary": "Token prüfen",
+        "operationId": "getServiceWhoami",
+        "description": "Gibt Servicekonto, Scopes und Ablauf des Tokens zurück. Zum Prüfen bei der Einrichtung einer Integration.",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Servicekonto des Tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "service_account": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "scopes": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "token": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "expires_at": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token"
           }
         }
       }
@@ -1329,6 +1395,13 @@
             }
           }
         }
+      }
+    },
+    "securitySchemes": {
+      "serviceToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Token eines Servicekontos («gls_…»), in der Administration unter «Servicekonten» erstellt; befristet, widerrufbar."
       }
     }
   }

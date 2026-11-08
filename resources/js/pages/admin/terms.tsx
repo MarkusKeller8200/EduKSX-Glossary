@@ -6,6 +6,7 @@ import {
     StateBadge,
     StatusBadge,
 } from '@/components/tags';
+import GlossaryPdfDialog from '@/components/glossary-pdf-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -95,7 +96,9 @@ export default function Terms({
 }) {
     const { auth } = usePage().props;
     const darfVeroeffentlichen = can(auth, 'publish');
-    const darfExcel = can(auth, 'import');
+    const darfImport = can(auth, 'import');
+    const darfExport = can(auth, 'export');
+    const [pdf, setPdf] = useState(false);
     const [suche, setSuche] = useState('');
     const [gruppierung, setGruppierung] = useState<Gruppierung>('');
     const q = suche.trim().toLowerCase();
@@ -156,7 +159,7 @@ export default function Terms({
                     <Button asChild variant="outline">
                         <Link href="/admin/doppelte">Doppelte prüfen</Link>
                     </Button>
-                    {darfExcel ? (
+                    {darfExport ? (
                         <>
                             <Button asChild variant="outline">
                                 <a href="/admin/export">Excel-Export</a>
@@ -166,10 +169,28 @@ export default function Terms({
                                     CSV-Export
                                 </a>
                             </Button>
-                            <Button asChild variant="outline">
-                                <Link href="/admin/import">Excel-Import</Link>
+                            <Button
+                                variant="outline"
+                                onClick={() => setPdf(true)}
+                            >
+                                PDF
                             </Button>
+                            {pdf ? (
+                                <GlossaryPdfDialog
+                                    open={pdf}
+                                    onOpenChange={setPdf}
+                                    quelle="/admin/export?format=json"
+                                    titel="Glossary – Arbeitsstand"
+                                    gefiltert={liste.map((b) => b.id)}
+                                    ausgewaehlt={[...auswahl]}
+                                />
+                            ) : null}
                         </>
+                    ) : null}
+                    {darfImport ? (
+                        <Button asChild variant="outline">
+                            <Link href="/admin/import">Excel-Import</Link>
+                        </Button>
                     ) : null}
                     <Button asChild>
                         <Link href="/admin/begriffe/neu">Neuer Begriff</Link>

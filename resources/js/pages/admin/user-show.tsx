@@ -191,7 +191,7 @@ export default function UserShow({
 
             <h2 className="mt-8 text-lg font-semibold">Rollen</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-                Ohne Rolle ist das Konto ein Community-Konto. Grau: ausserhalb
+                Ohne Rolle kann das Konto nur lesen (wie Gast). Grau: ausserhalb
                 der eigenen Befugnis (Developer nur durch Developer oder den
                 Serverbefehl).
             </p>

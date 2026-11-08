@@ -29,13 +29,13 @@ class AppServiceProvider extends ServiceProvider
         $this->configureDefaults();
 
         // Rechte aus Rollen (#36, DEC-017): je Recht ein Gate; Prüfung immer serverseitig. Privilegierte Rechte nur
-        // mit bestätigtem zweitem Faktor und aktivem Konto (#37, KONZEPT-BENUTZER 5.3)
+        // mit bestätigtem zweitem Faktor und aktivem Konto (#37, KONZEPT-BENUTZER 5.3); Grundrechte ohne (#110)
         foreach (Permission::keys() as $permission) {
             Gate::define($permission, fn (User $user): bool => $user->isActive()
                 && $user->hasPermission($permission)
-                && ($permission === 'propose' || $user->hasTwoFactor()));
+                && (Permission::isBasic($permission) || $user->hasTwoFactor()));
         }
-        // Zugang zur Administration: irgendein Recht ausser «Vorschläge einreichen» (Einrichtung des zweiten Faktors
+        // Zugang zur Administration: irgendein Recht ausser den Grundrechten (Einrichtung des zweiten Faktors
         // ist dort möglich; die einzelnen Aktionen verlangen ihn)
         Gate::define('administer', fn (User $user): bool => $user->isActive() && $user->needsTwoFactor());
 

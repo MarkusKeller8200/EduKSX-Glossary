@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SourceCheckController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
@@ -33,8 +35,11 @@ Route::middleware('auth')->group(function () {
     Route::post('datenschutz/kenntnisnahme', [PrivacyController::class, 'store'])->name('privacy.store');
 });
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
-// Meine Darstellung (DEC-020): persönliche Anpassung eines Begriffs, nur für das eigene Konto
-Route::middleware(['auth', 'throttle:30,1'])->group(function () {
+// Export veröffentlichter Daten (#111): ab Benutzer, ausserhalb der Administration
+Route::get('export', ExportController::class)->middleware(['auth', 'can:export', 'throttle:20,1'])->name('export');
+
+// Meine Darstellung (DEC-020): persönliche Anpassung eines Begriffs, nur für das eigene Konto, ab Benutzer (#114)
+Route::middleware(['auth', 'can:personal-display', 'throttle:30,1'])->group(function () {
     Route::put('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.personal');
     Route::delete('begriffe/{slug}/meine-darstellung', [PersonalDisplayController::class, 'destroy'])->where('slug', '[a-z0-9-]+')->name('term.personal.destroy');
 });
@@ -139,15 +144,25 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');
     });
 
+    // Servicekonten mit Token (#47): ab Organisations-Admin
+    Route::middleware('can:service-tokens')->group(function () {
+        Route::get('servicekonten', [ServiceAccountController::class, 'index'])->name('admin.service');
+        Route::post('servicekonten', [ServiceAccountController::class, 'store'])->name('admin.service.store');
+        Route::get('servicekonten/{account}', [ServiceAccountController::class, 'show'])->whereUuid('account')->name('admin.service.show');
+        Route::post('servicekonten/{account}/token', [ServiceAccountController::class, 'createToken'])->whereUuid('account')->middleware('throttle:10,1')->name('admin.service.token');
+        Route::post('servicekonten/{account}/status', [ServiceAccountController::class, 'status'])->whereUuid('account')->name('admin.service.status');
+        Route::delete('servicekonten/token/{token}', [ServiceAccountController::class, 'revokeToken'])->whereUuid('token')->name('admin.service.revoke');
+    });
+
     // System (#40): nur Developer (Recht «system»)
     Route::middleware('can:system')->group(function () {
         Route::get('system', [SystemController::class, 'index'])->name('admin.system');
         Route::post('system/testmail', [SystemController::class, 'testMail'])->middleware('throttle:5,1')->name('admin.system.testmail');
     });
 
-    // Excel (#13, #15): Export, Vorlage, Import mit Vorschau
+    // Excel (#13, #15, #111): Export des Arbeitsstands (Redaktion) getrennt vom Import mit Vorschau
+    Route::get('export', [ExcelController::class, 'export'])->middleware(['can:edit-terms', 'can:export'])->name('admin.export');
     Route::middleware('can:import')->group(function () {
-        Route::get('export', [ExcelController::class, 'export'])->name('admin.export');
         Route::get('import', [ExcelController::class, 'create'])->name('admin.import');
         Route::post('import', [ExcelController::class, 'preview'])->middleware('throttle:20,1')->name('admin.import.preview');
         Route::post('import/{token}', [ExcelController::class, 'apply'])->whereUuid('token')->name('admin.import.apply');

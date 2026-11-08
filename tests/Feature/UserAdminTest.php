@@ -27,17 +27,17 @@ class UserAdminTest extends TestCase
         $this->post('/admin/benutzer', ['first_name' => 'Neu', 'last_name' => 'Konto', 'email' => 'Neu@Example.org', 'password' => 'ein-langes-Test-Passwort-9'])
             ->assertRedirect();
         $user = User::query()->where('email', 'neu@example.org')->firstOrFail();
-        $this->assertSame([], $user->roleKeys());
+        $this->assertSame([Role::USER], $user->roleKeys());   // Rolle neuer Konten (#110)
 
-        $this->put("/admin/benutzer/{$user->id}/rollen", ['rollen' => [Role::MODERATOR]])->assertRedirect();
-        $this->assertSame([Role::MODERATOR], $user->roleKeys());
+        $this->put("/admin/benutzer/{$user->id}/rollen", ['rollen' => [Role::USER, Role::MODERATOR]])->assertRedirect();
+        $this->assertSame([Role::USER, Role::MODERATOR], $user->roleKeys());
 
         $this->get("/admin/benutzer/{$user->id}")->assertOk()->assertInertia(fn (Assert $p) => $p
             ->component('admin/user-show')
             ->where('benutzer.email', 'neu@example.org')
             ->where('protokoll.0.aktion', 'Rolle vergeben')
-            ->where('rollen.2.key', Role::DEVELOPER)
-            ->where('rollen.2.aenderbar', false));
+            ->where('rollen.5.key', Role::DEVELOPER)
+            ->where('rollen.5.aenderbar', false));
     }
 
     public function test_developer_vergabe_ueber_oberflaeche_abgewiesen_und_protokolliert(): void
@@ -67,7 +67,7 @@ class UserAdminTest extends TestCase
     {
         $this->actingAs($this->admin());
 
-        $this->get('/admin/rollen')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/roles')->has('rollen', 3)->has('rechte', 9));
+        $this->get('/admin/rollen')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/roles')->has('rollen', 6)->has('rechte', 12));
 
         $this->post('/admin/rollen', ['name' => 'Redaktion Schule'])->assertRedirect();
         $role = Role::byKey('redaktion-schule');

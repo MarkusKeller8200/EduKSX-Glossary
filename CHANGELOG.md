@@ -11,6 +11,23 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Revisionen wiederherstellen (DEC-022, #95):** Im Verlauf eine frühere Revision als neue Revision wiederherstellen,
   wahlweise gleich veröffentlichen (fehlerhafte Freigabe rückgängig machen); «Entwurf verwerfen» stellt den
   veröffentlichten Stand wieder her. Als Entwurf gilt nur noch eine inhaltliche Abweichung vom öffentlichen Stand.
+- **Rollen Gast, Benutzer, Organisations-Admin (#110):** neue Rechte «Exportieren», «Persönliche Darstellung» und
+  «Servicekonten und Token». Vorschläge einreichen kommt aus der Rolle statt fest für jedes Konto; neue Konten und
+  bisherige Konten ohne Rolle sind Benutzer.
+- **Persönliche Darstellung (#114):** nur noch mit dem Recht «Persönliche Darstellung» (ab Benutzer); Gäste sehen die
+  gemeinsame Form, gespeicherte Anpassungen bleiben erhalten.
+- **Export für Benutzer (#111):** Excel und CSV der veröffentlichten Begriffe unter «Mein Konto» und auf der
+  Startseite (Recht «Exportieren», ohne Entwürfe und Notizen). Die Redaktion exportiert den Arbeitsstand weiterhin in
+  der Administration; der Import ist ein eigenes Recht.
+- **PDF-Export (#112):** wie im Intranet über die Druckansicht des Browsers – A4 hoch/quer, Umfang kompakt bis
+  vollständig, gruppiert, farbige Labels, Link-Spalte, Auswahl alle/gefiltert/ausgewählt, mit Lizenzhinweis
+  CC BY 4.0. Auf der Website (veröffentlicht, ab Benutzer) und in der Redaktion (Arbeitsstand mit Notiz).
+- **QR-Code für den zweiten Faktor (#70):** beim Einrichten scannen statt den Schlüssel abtippen (Paket `qrcode`, MIT).
+- **Servicekonten mit Token (#47):** ab Organisations-Admin unter «Servicekonten»: Name, Zweck, verantwortliche Person,
+  Scopes; Token einmal angezeigt, nur als Hash gespeichert, höchstens ein Jahr gültig, widerrufbar, Konto sperrbar;
+  eigenes Protokoll. Kein Login. Prüfung über `GET /api/v1/service/whoami`; Vorschläge per Token folgen mit #113.
+- **Hierarchie der Rollen (#115):** «Rollen und Rechte» zeigt die Stufen Gast bis Developer mit den Rechten, die jede
+  Stufe dazubekommt, farbig nach Schutzklasse.
 
 ### Geändert
 

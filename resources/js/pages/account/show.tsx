@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ export default function AccountShow({
                     <p className="mt-1 text-sm text-muted-foreground">
                         {konto.email} ·{' '}
                         {konto.rollen.length === 0
-                            ? 'Community'
+                            ? 'ohne Rolle'
                             : konto.rollen.join(', ')}
                     </p>
                 </div>
@@ -81,6 +81,7 @@ export default function AccountShow({
                 </Abschnitt>
             )}
             <Anmeldedienste konto={konto} microsoft={microsoft} />
+            <Export />
 
             <Abschnitt titel="Zweiter Faktor">
                 <p className="text-sm text-muted-foreground">
@@ -101,6 +102,32 @@ export default function AccountShow({
 
             <Loeschen passwortGesetzt={konto.passwort_gesetzt} />
         </>
+    );
+}
+
+/** Export veröffentlichter Begriffe (#111), nur mit Recht «export». */
+function Export() {
+    const { auth } = usePage().props;
+    if (!auth.can.export) {
+        return null;
+    }
+
+    return (
+        <Abschnitt titel="Export">
+            <p className="text-sm text-muted-foreground">
+                Alle veröffentlichten Begriffe mit den öffentlichen Feldern –
+                ohne Entwürfe und redaktionelle Notizen. Die Daten stehen unter
+                CC BY 4.0 (Quelle «EduKSX-Glossary» angeben).
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+                <Button asChild variant="outline">
+                    <a href="/export">Excel herunterladen</a>
+                </Button>
+                <Button asChild variant="outline">
+                    <a href="/export?format=csv">CSV herunterladen</a>
+                </Button>
+            </div>
+        </Abschnitt>
     );
 }
 

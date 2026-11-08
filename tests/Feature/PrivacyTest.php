@@ -48,6 +48,7 @@ class PrivacyTest extends TestCase
         Mail::fake();
         $inaktiv = User::query()->create(['first_name' => 'I', 'last_name' => 'Inaktiv', 'email' => 'i@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
         $inaktiv->forceFill(['last_login_on' => now()->subMonths(24)->toDateString()])->save();
+        $inaktiv->roles()->attach(Role::byKey(Role::USER)->id);   // Benutzer zählt als Community (#110)
         $aktiv = User::query()->create(['first_name' => 'A', 'last_name' => 'Aktiv', 'email' => 'a@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
         $aktiv->forceFill(['last_login_on' => now()->subMonths(6)->toDateString()])->save();
         $moderator = $this->userWithRoles([Role::MODERATOR], 'mod@example.org');
