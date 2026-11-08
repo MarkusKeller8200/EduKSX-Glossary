@@ -240,7 +240,7 @@ final class ProposalService
 
     // ---------- intern ----------
 
-    /** @param  list<int>  $ids */
+    /** @param  array<int, int>  $ids */
     private function anonymize(array $ids): void
     {
         if ($ids === []) {
