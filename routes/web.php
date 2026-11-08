@@ -34,6 +34,8 @@ Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');
 Route::get('hilfe', [PageController::class, 'help'])->name('help');
+// Einbindung für Entwickler (#155, DEC-026)
+Route::get('entwickler', [PageController::class, 'developers'])->name('developers');
 // Datenschutzerklärung (#42); Kenntnisnahme für angemeldete Konten
 Route::get('datenschutz', [PrivacyController::class, 'show'])->name('privacy');
 Route::middleware('auth')->group(function () {

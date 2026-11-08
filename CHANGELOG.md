@@ -13,6 +13,15 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   kopieren».
 - **API (#159):** Felder `code` und `permalink`, Abruf über den Code, kompakter Index `/api/v1/index` mit ETag für
   Renderer und Browser-Erweiterung; CORS erlaubt `Authorization`.
+- **Einbindung für Entwickler (#155, DEC-026):** Eine Script-Zeile (`/embed/v1/glossary.js`, versioniert mit
+  SRI-Prüfsumme) markiert Abkürzungen und Begriffe auf der eigenen Webseite fein und erklärt sie per Maus und
+  Tastatur; `<glossary-term code="…">` für ausdrücklich markierte Begriffe. Suche nur im Browser, keine Cookies.
+  Anleitung unter «Für Entwickler» (`/entwickler`), Testseite `/embed/demo.html`. Gemeinsamer Kern
+  `packages/highlighter` mit Tests.
+- **Browser-Erweiterung (#153, DEC-026):** Manifest V3 für Chrome, Edge und Firefox: auf der aktuellen Seite
+  hervorheben (nur `activeTab`) oder für eine Website immer; Einstellungen für Bezeichnungen und erste Fundstelle.
+  Kein Seiteninhalt verlässt den Browser. Bauen mit `node scripts/build-extension.mjs`, Anleitung in
+  `extension/README.md`; Veröffentlichung in den Stores folgt.
 - **Swagger-Seite (#157):** `/api/swagger` mit «Try it out» und «Authorize» für Token, selbst ausgeliefert.
 - **Postman-Sammlung (#158):** `/api/postman.json` zum Import mit Variablen `baseUrl` und `token`; aus der
   OpenAPI-Beschreibung erzeugt (`scripts/postman.py`), die CI prüft den Stand.

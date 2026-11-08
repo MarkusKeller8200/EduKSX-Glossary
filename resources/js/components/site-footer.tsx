@@ -39,6 +39,13 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     </a>
                     {' · '}
                     <Link
+                        href="/entwickler"
+                        className="text-link underline-offset-4 hover:underline"
+                    >
+                        Entwickler
+                    </Link>
+                    {' · '}
+                    <Link
                         href={admin ? '/admin' : '/anmelden'}
                         className="text-link underline-offset-4 hover:underline"
                     >

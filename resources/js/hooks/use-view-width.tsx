@@ -56,6 +56,7 @@ const OPTIMIZED = [
     'term',
     'account/',
     'organization/',
+    'developers',
     'auth/',
     'proposals/create',
     'proposals/show',

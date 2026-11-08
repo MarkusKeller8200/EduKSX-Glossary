@@ -1,0 +1,77 @@
+body {
+    width: 18rem;
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    font:
+        14px/1.4 Inter,
+        system-ui,
+        sans-serif;
+    color: #222;
+}
+h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1rem;
+}
+.v {
+    color: #7952b3;
+}
+.o {
+    color: #ff8a00;
+}
+.b {
+    color: #007ebb;
+}
+.site {
+    margin: 0 0 0.6rem;
+    color: #5f6b7a;
+    font-size: 12px;
+    word-break: break-all;
+}
+button {
+    width: 100%;
+    padding: 0.45rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: #0272ad;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+button:disabled {
+    background: #9aa4af;
+    cursor: default;
+}
+label {
+    display: block;
+    margin: 0.45rem 0;
+}
+fieldset {
+    margin: 0.6rem 0;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.4rem;
+}
+legend {
+    font-size: 12px;
+    color: #5f6b7a;
+}
+.note {
+    margin: 0.4rem 0 0;
+    font-size: 12px;
+    color: #5f6b7a;
+}
+a {
+    color: #0272ad;
+}
+@media (prefers-color-scheme: dark) {
+    body {
+        background: #1c2128;
+        color: #e6edf3;
+    }
+    fieldset {
+        border-color: #30363d;
+    }
+    a {
+        color: #58a6ff;
+    }
+}
