@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import {
     useCallback,
     useEffect,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -17,6 +18,8 @@ import { cn } from '@/lib/utils';
  * `aria-sort`), Spaltenbreite mit dem Splitter am rechten Rand des Kopfs (Maus oder Pfeiltasten), Breiten und
  * Sortierung im Browser gemerkt (je Tabelle `id`). Beim horizontalen Scrollen bleiben die Schlüsselspalte links
  * (`sticky: 'left'`) und die Aktionsspalte rechts (`sticky: 'right'`) sichtbar. Optional mit Gruppen (Zwischenzeilen).
+ * Breiten nach Inhalt (#128): Spalten ohne gespeicherte Breite misst der Baustein beim ersten Anzeigen im
+ * Browser-Layout; Doppelklick auf den Splitter passt eine Spalte wieder an den Inhalt an.
  */
 export type GridColumn<T> = {
     id: string;
@@ -26,7 +29,7 @@ export type GridColumn<T> = {
     cell: (row: T) => ReactNode;
     /** Wert zum Sortieren; ohne Angabe ist die Spalte nicht sortierbar */
     sortValue?: (row: T) => string | number | null | undefined;
-    /** Startbreite in px */
+    /** Breite in px, falls nicht nach Inhalt gemessen werden kann */
     width?: number;
     minWidth?: number;
     /** Breite fest (z. B. Auswahl), kein Splitter */
@@ -124,10 +127,44 @@ export default function DataGrid<T>({
         save(id, { widths, sort });
     }, [id, widths, sort]);
 
-    const width = useCallback(
-        (c: GridColumn<T>) => widths[c.id] ?? c.width ?? 160,
-        [widths],
+    // nach Inhalt gemessene Breiten (#128), nicht gespeichert
+    const [measured, setMeasured] = useState<Record<string, number>>({});
+    const headRefs = useRef<Record<string, HTMLTableCellElement | null>>({});
+    const measuring = columns.some(
+        (c) =>
+            !c.fixed &&
+            widths[c.id] === undefined &&
+            measured[c.id] === undefined,
     );
+    const columnKey = columns.map((c) => c.id).join('|');
+
+    useLayoutEffect(() => {
+        if (!measuring) {
+            return;
+        }
+        const next: Record<string, number> = {};
+        for (const c of columns) {
+            const el = headRefs.current[c.id];
+            if (!c.fixed && widths[c.id] === undefined && el) {
+                next[c.id] = Math.max(
+                    c.minWidth ?? 60,
+                    Math.min(640, Math.ceil(el.getBoundingClientRect().width)),
+                );
+            }
+        }
+        setMeasured((old) => ({ ...old, ...next }));
+        // nur beim ersten Anzeigen bzw. wenn Spalten wechseln oder eine Breite zurückgesetzt wird
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [measuring, columnKey]);
+
+    const width = useCallback(
+        (c: GridColumn<T>) => widths[c.id] ?? measured[c.id] ?? c.width ?? 160,
+        [widths, measured],
+    );
+    const fit = (id: string) => {
+        setWidths(({ [id]: _drop, ...rest }) => rest);
+        setMeasured(({ [id]: _drop, ...rest }) => rest);
+    };
     const sorter = useMemo(() => {
         const col = columns.find((c) => c.id === sort?.id);
         if (!sort || !col?.sortValue) {
@@ -205,7 +242,14 @@ export default function DataGrid<T>({
             <table
                 className="text-sm"
                 // mindestens so breit wie der Platz (#123); die Spalte growId nimmt den Rest auf
-                style={{ tableLayout: 'fixed', width: `max(${total}px, 100%)` }}
+                style={
+                    measuring
+                        ? { tableLayout: 'auto', width: '100%' }
+                        : {
+                              tableLayout: 'fixed',
+                              width: `max(${total}px, 100%)`,
+                          }
+                }
             >
                 {caption ? (
                     <caption className="sr-only">{caption}</caption>
@@ -214,10 +258,19 @@ export default function DataGrid<T>({
                     {columns.map((c) => (
                         <col
                             key={c.id}
-                            style={{
-                                width: c.id === growId ? undefined : width(c),
-                                minWidth: width(c),
-                            }}
+                            style={
+                                measuring
+                                    ? c.fixed || widths[c.id] !== undefined
+                                        ? { width: width(c) }
+                                        : {}
+                                    : {
+                                          width:
+                                              c.id === growId
+                                                  ? undefined
+                                                  : width(c),
+                                          minWidth: width(c),
+                                      }
+                            }
                         />
                     ))}
                 </colgroup>
@@ -236,6 +289,9 @@ export default function DataGrid<T>({
                             return (
                                 <th
                                     key={c.id}
+                                    ref={(el) => {
+                                        headRefs.current[c.id] = el;
+                                    }}
                                     scope="col"
                                     aria-sort={ariaSort}
                                     style={stickyStyle(c, i)}
@@ -292,6 +348,7 @@ export default function DataGrid<T>({
                                                     [c.id]: w,
                                                 }))
                                             }
+                                            onFit={() => fit(c.id)}
                                         />
                                     )}
                                 </th>
@@ -362,17 +419,22 @@ export default function DataGrid<T>({
     );
 }
 
-/** Splitter am rechten Rand des Spaltenkopfs: ziehen mit der Maus, Pfeiltasten ±16 px. */
+/**
+ * Splitter am rechten Rand des Spaltenkopfs: ziehen mit der Maus, Pfeiltasten ±16 px; Doppelklick bzw. Enter passt
+ * die Breite an den Inhalt an (#128).
+ */
 function Splitter({
     label,
     width,
     min,
     onChange,
+    onFit,
 }: {
     label: string;
     width: number;
     min: number;
     onChange: (width: number) => void;
+    onFit: () => void;
 }) {
     const start = useRef<{ x: number; w: number } | null>(null);
     const clamp = (w: number) => Math.max(min, Math.min(1200, Math.round(w)));
@@ -394,6 +456,9 @@ function Splitter({
         if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
             e.preventDefault();
             onChange(clamp(width + (e.key === 'ArrowRight' ? 16 : -16)));
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            onFit();
         }
     };
 
@@ -411,6 +476,8 @@ function Splitter({
             onPointerUp={up}
             onPointerCancel={up}
             onKeyDown={key}
+            onDoubleClick={onFit}
+            title="Ziehen: Breite ändern · Doppelklick: an Inhalt anpassen"
             className="absolute top-0 right-0 h-full w-2 cursor-col-resize touch-none border-r-2 border-transparent hover:border-border focus-visible:border-ring focus-visible:outline-none"
         />
     );
