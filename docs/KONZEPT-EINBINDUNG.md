@@ -10,7 +10,7 @@ verlinken über einen kurzen, unveränderlichen Permalink.
 
 ```text
             ┌──────────────────────────────┐
-            │ Glossary: Permalink /b/{code}│
+            │ Glossary: Permalink /g/{code}│
             │ API /api/v1/index (kompakt)  │
             └──────────────┬───────────────┘
                            │ öffentliche Daten (CC BY 4.0), ETag
@@ -29,7 +29,7 @@ wenn die Bezeichnung korrigiert wird (dann passt er nicht mehr). Er ist oft lang
 (`/begriffe/zwei-faktor-authentifizierung`); die UUID ist noch länger.
 
 **Vorschlag:** Jeder Begriff erhält einen **Code mit 6 Zeichen** (Crockford-Base32 ohne verwechselbare Zeichen,
-zufällig, eindeutig, nie wiederverwendet), z. B. `https://glossary.eduksx.ch/b/7KQ2MX`.
+zufällig, eindeutig, nie wiederverwendet), z. B. `https://glossary.eduksx.ch/g/7KQ2MX` («g» für Glossary, festgelegt 08.11.2026).
 
 - Unveränderlich, unabhängig von Bezeichnung und Slug; die Slug-Adresse bleibt als lesbare Adresse erhalten.
 - Zusammengeführte Begriffe: Code leitet (301) auf den verbleibenden Begriff; zurückgezogene: 404 wie heute.
@@ -42,12 +42,12 @@ zufällig, eindeutig, nie wiederverwendet), z. B. `https://glossary.eduksx.ch/b/
 | Wirkung                       | Bewertung                                                                                                  |
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Links bleiben gültig          | ja: Umbenennen, Korrektur der Bezeichnung oder Zusammenführen brechen keine Links                          |
-| Keine Benutzereingabe im Pfad | ja: Erweiterung und Renderer bauen Links nur aus `https://glossary.eduksx.ch/b/` + Code nach festem Muster |
+| Keine Benutzereingabe im Pfad | ja: Erweiterung und Renderer bauen Links nur aus `https://glossary.eduksx.ch/g/` + Code nach festem Muster |
 | Prüfbarkeit                   | ja: `^[0-9A-HJKMNP-TV-Z]{6}$` – alles andere wird verworfen (kein offener Redirect, keine Injektion)       |
 | Erraten/Aufzählen             | ohne Bedeutung: nur veröffentlichte Begriffe sind erreichbar                                               |
 | Kürzer                        | ja: 33 statt oft 50–70 Zeichen; gut für QR-Codes, Druck und die Erklärbox                                  |
 
-Alternative: fortlaufende Nummer (`/b/123`) – noch kürzer, aber verrät die Reihenfolge und Anzahl; nicht empfohlen.
+Alternative: fortlaufende Nummer (`/g/123`) – noch kürzer, aber verrät die Reihenfolge und Anzahl; nicht empfohlen.
 
 ## 2. Kern «glossary-highlighter»
 
@@ -131,7 +131,7 @@ Drei Wege, von einfach bis kontrolliert:
 
 | Nr. | Vorschlag                                                                                            |
 | --- | ---------------------------------------------------------------------------------------------------- |
-| E1  | Permalink `/b/{code}`: 6 Zeichen Crockford-Base32, zufällig, unveränderlich; Slug-Adresse bleibt     |
+| E1  | Permalink `/g/{code}`: 6 Zeichen Crockford-Base32, zufällig, unveränderlich; Slug-Adresse bleibt     |
 | E2  | Neuer kompakter Index `GET /api/v1/index` mit ETag für Erweiterung und Renderer                      |
 | E3  | Gemeinsamer Kern in TypeScript (`packages/highlighter/`), MIT-Lizenz                                 |
 | E4  | Suche nur lokal im Browser; kein Seiteninhalt an das Glossary                                        |
