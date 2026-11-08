@@ -152,6 +152,6 @@ class ServiceAccountController extends Controller
             return $account->responsible?->name;
         }
 
-        return trim(($account->responsible?->name ?? '').' (Organisation «'.$organization.'»)');
+        return trim(($account->responsible->name ?? '').' (Organisation «'.$organization.'»)');
     }
 }

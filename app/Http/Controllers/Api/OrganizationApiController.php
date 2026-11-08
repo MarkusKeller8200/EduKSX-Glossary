@@ -67,7 +67,7 @@ class OrganizationApiController extends Controller
             'name' => $o->name_override,
             'short_description' => $o->short_description_override,
             'description' => $o->description_override,
-            'aliases' => array_values($o->aliases_override ?? []),
+            'aliases' => $o->aliases_override ?? [],
             'updated_at' => $o->updated_at?->toIso8601ZuluString(),
         ];
     }
