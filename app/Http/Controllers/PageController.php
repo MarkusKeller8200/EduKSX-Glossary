@@ -69,6 +69,22 @@ class PageController extends Controller
         return $response;
     }
 
+    /** Für Entwickler (#155): Einbindung per Script oder <glossary-term>, Daten per API. */
+    public function developers(): Response
+    {
+        $manifest = json_decode((string) @file_get_contents(public_path('embed/manifest.json')), true);
+
+        return Inertia::render('developers', [
+            'origin' => rtrim(url('/'), '/'),
+            'einbindung' => is_array($manifest) ? [
+                'version' => (string) ($manifest['version'] ?? ''),
+                'datei' => (string) ($manifest['file'] ?? ''),
+                'neueste' => (string) ($manifest['latest'] ?? ''),
+                'integrity' => (string) ($manifest['integrity'] ?? ''),
+            ] : null,
+        ]);
+    }
+
     /** Hilfe: Felder eines Begriffs (#135). */
     public function help(): Response
     {

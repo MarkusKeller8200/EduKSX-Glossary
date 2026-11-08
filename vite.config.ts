@@ -86,6 +86,8 @@ export default defineConfig({
             'docs/UNTERSTUETZEN.md',
             // Reduzierte Lesefassung für GitHub Pages (Daten werden exportiert)
             'site/**',
+            // gebautes Script zur Einbindung (#155), Hash für SRI muss gleich bleiben
+            'public/embed/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

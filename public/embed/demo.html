@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Testseite Einbindung – EduKSX-Glossary</title>
+        <style>
+            body { max-width: 46rem; margin: 2rem auto; padding: 0 1rem; font: 16px/1.6 Inter, system-ui, sans-serif; color: #222; }
+            code { background: #f1f5f9; padding: .1rem .3rem; border-radius: .25rem; }
+            .hinweis { color: #5f6b7a; font-size: .9rem; }
+        </style>
+    </head>
+    <body>
+        <h1>Testseite: Einbindung des Glossary</h1>
+        <p class="hinweis">
+            Diese Seite lädt <code>/embed/v1/glossary.js</code> und erklärt Begriffe im Bereich «Beispieltext». Fahren Sie
+            mit der Maus über einen gepunkteten Begriff oder springen Sie mit der Tabulatortaste dorthin.
+            Anleitung: <a href="/entwickler">Für Entwickler</a>.
+        </p>
+
+        <main id="inhalt">
+            <h2>Beispieltext</h2>
+            <p>
+                Die SL informiert die Lehrpersonen über den neuen Lehrplan. Die SHP unterstützt Kinder mit besonderem
+                Bildungsbedarf, die DaZ-Lehrperson Kinder mit Deutsch als Zweitsprache. Fragen beantwortet das VSA.
+            </p>
+            <p>Code wird nicht markiert: <code>SL</code>.</p>
+            <p>Ausdrücklich markiert: <glossary-term code="AAAAAA">Begriff mit Code</glossary-term> (Code durch einen echten ersetzen).</p>
+        </main>
+
+        <script src="/embed/v1/glossary.js" defer data-scope="#inhalt" data-names="true"></script>
+    </body>
+</html>
