@@ -189,3 +189,13 @@ einer Organisation (Scope `read-org`). Je Begriff `term` (gemeinsame Werte wie `
 (Anpassungen der Organisation oder `null`). Keine Pagination, kein ETag, `Cache-Control: private, no-store`. Die
 öffentlichen Endpunkte enthalten nie Anpassungen einer Organisation. Details:
 [KONZEPT-ORGANISATION.md](KONZEPT-ORGANISATION.md).
+
+## Permalink, Index, Swagger und Postman (DEC-026, #154, #157, #158, #159)
+
+- Je Begriff `code` (6 Zeichen, unveränderlich) und `permalink` (`/g/{code}`); `/terms/{idOrSlug}` akzeptiert auch
+  den Code.
+- `GET /api/v1/index`: kompakter Index (Code, Abkürzung, Bezeichnung, Schreibweisen, Kurztext, mehrdeutig,
+  Kategorien, Permalink) mit ETag für Renderer und Browser-Erweiterung.
+- `/api/swagger`: Swagger UI mit «Try it out»; `/api/postman.json`: Postman-Sammlung (v2.1) aus der
+  OpenAPI-Beschreibung (`scripts/postman.py`, Prüfung in der CI). Nach jeder Änderung an `openapi/glossary-v1.json`:
+  `python3 scripts/postman.py`.

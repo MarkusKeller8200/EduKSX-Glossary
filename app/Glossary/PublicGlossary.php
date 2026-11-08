@@ -32,7 +32,7 @@ final class PublicGlossary
     public const PUBLIC_DETAIL_FIELDS = [
         'slug', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase', 'kurz',
         'beschreibung', 'url', 'kategorien', 'herkunft', 'status', 'gueltig_ab', 'gueltig_bis', 'revision',
-        'veroeffentlicht', 'andere', 'mehrdeutig', 'verlauf',
+        'veroeffentlicht', 'andere', 'mehrdeutig', 'permalink', 'verlauf',
     ];
 
     /** Zusätzliche Felder nur für das angemeldete Konto selbst (nie öffentlich). */
@@ -149,6 +149,8 @@ final class PublicGlossary
             'veroeffentlicht' => $revision->published_at?->toDateString(),
             'andere' => array_map(fn (array $t): array => ['slug' => $t['slug'], 'bezeichnung' => $t['bezeichnung']], $others),
             'mehrdeutig' => (new GlossaryDisplay($this->published()))->isAmbiguous($s),
+            // kurze, unveränderliche Adresse (#154)
+            'permalink' => Permalink::url($term->code),
             // Verlauf (#68): nur veröffentlichte Revisionen mit Datum – ohne Personen, Entwürfe oder Inhalte
             'verlauf' => $term->revisions()->whereNotNull('published_at')->reorder('revision', 'desc')->get(['revision', 'published_at'])
                 ->map(fn (TermRevision $r): array => ['revision' => $r->revision, 'am' => $r->published_at?->toDateString()])

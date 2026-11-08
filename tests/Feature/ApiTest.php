@@ -43,6 +43,33 @@ class ApiTest extends TestCase
         }
     }
 
+    /** Postman-Sammlung (#158): jeder Endpunkt der OpenAPI-Beschreibung ist enthalten und herunterladbar. */
+    public function test_postman_sammlung_deckt_alle_endpunkte_ab(): void
+    {
+        $spec = json_decode((string) file_get_contents(base_path('openapi/glossary-v1.json')), true);
+        $collection = $this->get('/api/postman.json')->assertOk()
+            ->assertHeader('Content-Disposition', 'attachment; filename="eduksx-glossary.postman_collection.json"')->json();
+        $this->assertSame('https://schema.getpostman.com/json/collection/v2.1.0/collection.json', $collection['info']['schema']);
+
+        $requests = [];
+        foreach ($collection['item'] as $folder) {
+            foreach ($folder['item'] as $item) {
+                $path = '/'.implode('/', array_map(fn (string $s): string => str_starts_with($s, ':') ? '{'.substr($s, 1).'}' : $s, $item['request']['url']['path']));
+                $requests[] = strtolower($item['request']['method']).' '.$path;
+            }
+        }
+        foreach ($spec['paths'] as $path => $operations) {
+            foreach (array_keys($operations) as $method) {
+                $this->assertContains("{$method} {$path}", $requests, "{$method} {$path} fehlt in der Postman-Sammlung");
+            }
+        }
+    }
+
+    public function test_swagger_seite(): void
+    {
+        $this->get('/api/swagger')->assertOk()->assertSee('swagger-ui', false)->assertSee('/api/postman.json', false);
+    }
+
     /** Beschreibung und Positivliste passen zusammen, auch in den Beispielen (DEC-020: keine own_*). */
     public function test_term_schema_entspricht_der_positivliste(): void
     {

@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.tsx',
                 'resources/js/api-docs.ts',
+                'resources/js/swagger.ts',
             ],
             refresh: true,
             // Schrift nach CI MarKusSXCH: Inter, eingebunden wie im Intranet (Bunny Fonts); Selbst-Hosting prüfen (KONZEPT-DESIGN)

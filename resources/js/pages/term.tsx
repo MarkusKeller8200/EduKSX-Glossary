@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +37,7 @@ type Begriff = {
     andere: { slug: string; bezeichnung: string }[];
     mehrdeutig: boolean;
     verlauf: { revision: number; am: string | null }[];
+    permalink: string;
     // nur angemeldet (DEC-020): persönliche Darstellung des eigenen Kontos
     persoenlich?: boolean;
     gemeinsam?: {
@@ -186,6 +188,16 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                             </dd>
                         </>
                     ) : null}
+                    <dt className="text-muted-foreground">Permalink</dt>
+                    <dd className="flex flex-wrap items-center gap-2">
+                        <a
+                            href={b.permalink}
+                            className="text-link underline underline-offset-4"
+                        >
+                            {b.permalink.replace(/^https?:\/\//, '')}
+                        </a>
+                        <KopierenKnopf text={b.permalink} />
+                    </dd>
                     <dt className="text-muted-foreground">Stand</dt>
                     <dd>
                         V{b.revision}
@@ -274,6 +286,30 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                 </p>
             </article>
         </>
+    );
+}
+
+/** Permalink kopieren (#154); ohne Zwischenablage (z. B. http) bleibt der Link zum Markieren. */
+function KopierenKnopf({ text }: { text: string }) {
+    const [kopiert, setKopiert] = useState(false);
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        return null;
+    }
+
+    return (
+        <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() =>
+                navigator.clipboard.writeText(text).then(() => {
+                    setKopiert(true);
+                    window.setTimeout(() => setKopiert(false), 2000);
+                })
+            }
+        >
+            {kopiert ? 'Kopiert' : 'Link kopieren'}
+        </Button>
     );
 }
 

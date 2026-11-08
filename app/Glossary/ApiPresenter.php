@@ -24,10 +24,10 @@ final class ApiPresenter
      * Veröffentlichungsgrenze – API, Vollstand, Change-Feed und GitHub Pages. Neue Felder bewusst hier ergänzen.
      */
     public const PUBLIC_TERM_FIELDS = [
-        'id', 'slug', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
+        'id', 'slug', 'code', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
         'alternative_aliases', 'aliases', 'search_terms', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
         'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
-        'valid_until', 'revision', 'published_at', 'updated_at', 'web_url',
+        'valid_until', 'revision', 'published_at', 'updated_at', 'web_url', 'permalink',
     ];
 
     /**
@@ -41,6 +41,9 @@ final class ApiPresenter
 
     /** @var array<string, ListItem>|null */
     private ?array $sources = null;
+
+    /** @var array<string, string>|null */
+    private ?array $codes = null;
 
     /**
      * Alle öffentlich sichtbaren Begriffe (veröffentlicht, im Abbild aktiv), sortiert nach Abkürzung/Bezeichnung.
@@ -77,7 +80,10 @@ final class ApiPresenter
      */
     public function find(string $idOrSlug): ?array
     {
-        $term = Term::query()->published()->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))
+        // UUID, Slug oder Code des Permalinks (#159)
+        $code = Permalink::normalize($idOrSlug);
+        $term = Term::query()->published()->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug)
+            ->when($code !== null, fn ($q) => $q->orWhere('code', $code)))
             ->with('publishedRevision')->first();
         $revision = $term?->publishedRevision;
         if ($revision === null || ($revision->snapshot['is_active'] ?? true) !== true) {
@@ -144,9 +150,13 @@ final class ApiPresenter
         $official = array_values(array_map('strval', array_filter((array) ($s['official_aliases'] ?? []))));
         $alternative = array_values(array_map('strval', array_filter((array) ($s['alternative_aliases'] ?? []))));
 
+        // Permalink (#154): Code steht am Begriff, nicht im Abbild
+        $code = $this->codes()[(string) $s['id']] ?? null;
+
         $term = [
             'id' => (string) $s['id'],
             'slug' => (string) $s['slug'],
+            'code' => $code,
             'abbreviation' => $str('official_abbreviation'),
             'name' => $str('official_name'),
             'official_abbreviation' => $str('official_abbreviation'),
@@ -172,9 +182,54 @@ final class ApiPresenter
             // Sync-Vertrag (#62): Zeitpunkt der veröffentlichten Revision (Stand der Inhalte)
             'updated_at' => $revision->created_at->toIso8601ZuluString(),
             'web_url' => url('/begriffe/'.$s['slug']),
+            'permalink' => $code !== null ? Permalink::url($code) : null,
         ];
 
         return array_intersect_key($term, array_flip(array_diff(self::PUBLIC_TERM_FIELDS, self::CONTEXT_FIELDS)));
+    }
+
+    /**
+     * Kompakter Index für Renderer und Browser-Erweiterung (#159, DEC-026): nur, was zum Erkennen und für die
+     * Erklärbox nötig ist.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function index(): array
+    {
+        return app(PublicCache::class)->remember('api.index', function (): array {
+            $index = [];
+            foreach ($this->terms() as $t) {
+                $index[] = [
+                    'code' => $t['code'],
+                    'abbreviation' => $t['abbreviation'],
+                    'name' => $t['name'],
+                    'aliases' => $t['aliases'],
+                    'short_description' => $t['short_description'],
+                    'is_ambiguous' => (bool) $t['is_ambiguous'],
+                    'categories' => array_values(array_map(fn (mixed $c): string => is_array($c) ? (string) ($c['label'] ?? '') : '', (array) $t['categories'])),
+                    'permalink' => $t['permalink'],
+                ];
+            }
+
+            return $index;
+        });
+    }
+
+    /**
+     * Codes der Permalinks je Begriff-ID (#154).
+     *
+     * @return array<string, string>
+     */
+    private function codes(): array
+    {
+        if ($this->codes === null) {
+            $this->codes = [];
+            foreach (Term::query()->whereNotNull('code')->pluck('code', 'id') as $id => $code) {
+                $this->codes[(string) $id] = (string) $code;
+            }
+        }
+
+        return $this->codes;
     }
 
     /**

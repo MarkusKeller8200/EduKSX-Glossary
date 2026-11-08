@@ -1,0 +1,573 @@
+{
+  "info": {
+    "name": "EduKSX-Glossary API",
+    "description": "Aus openapi/glossary-v1.json erzeugt (scripts/postman.py). Variablen: baseUrl, token (Servicekonto, nur für geschützte Endpunkte). Doku: /api/docs, ausprobieren: /api/swagger.",
+    "version": "0.4.0-preview",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://glossary.eduksx.ch/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Begriffe",
+      "description": "",
+      "item": [
+        {
+          "name": "Veröffentlichte Begriffe suchen und blättern",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/terms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "terms"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "SHP",
+                  "description": "Suchtext in Abkürzung, Bezeichnung, Aliasen und Kurzbeschreibung (ohne Gross-/Kleinschreibung)",
+                  "disabled": true
+                },
+                {
+                  "key": "category",
+                  "value": "per",
+                  "description": "Kategorie (Schlüssel oder Label)",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "aktuell",
+                  "description": "Status des Begriffs",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "per_page",
+                  "value": "50",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Veröffentlichte Begriffe suchen und blättern",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ein veröffentlichter Begriff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/terms/:idOrSlug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "terms",
+                ":idOrSlug"
+              ],
+              "variable": [
+                {
+                  "key": "idOrSlug",
+                  "value": "klassenlehrperson",
+                  "description": "UUID, Slug oder Code des Permalinks"
+                }
+              ]
+            },
+            "description": "Ein veröffentlichter Begriff",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Kompakter Index für Renderer und Browser-Erweiterung",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/index",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "index"
+              ]
+            },
+            "description": "Alle veröffentlichten Begriffe mit den Angaben zum Erkennen und für die Erklärbox (DEC-026). Mit ETag; Abnehmer laden ihn höchstens einmal täglich bzw. nach neuem Datenstand (Kopfzeile X-Glossary-Release).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Listen",
+      "description": "",
+      "item": [
+        {
+          "name": "Kategorien",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "categories"
+              ]
+            },
+            "description": "Kategorien",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Herkunft (Quelleninstitutionen)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/sources",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "sources"
+              ]
+            },
+            "description": "Herkunft (Quelleninstitutionen)",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sync",
+      "description": "",
+      "item": [
+        {
+          "name": "Aktueller Datenstand",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/releases/latest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "releases",
+                "latest"
+              ]
+            },
+            "description": "Jede Veröffentlichung und jeder Rückzug erzeugt einen neuen Datenstand. Günstig für die periodische Prüfung, ob ein Sync nötig ist.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Änderungen seit einem Cursor (Change-Feed)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/changes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "changes"
+              ],
+              "query": [
+                {
+                  "key": "since",
+                  "value": "0",
+                  "description": "Letzter verarbeiteter Cursor (0 = von Anfang an)",
+                  "disabled": true
+                },
+                {
+                  "key": "limit",
+                  "value": "500",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Veröffentlichungen und Rückzüge in fester Reihenfolge. Mit `meta.next_cursor` weiterfragen, solange `meta.has_more` wahr ist. Wiederholte Abrufe liefern dasselbe (idempotent). Bei `published` enthält `term` den Begriff in genau dieser Revision; `unpublished` heisst: nicht mehr öffentlich (lokal entfernen oder ausblenden). `merged` heisst: mit dem Begriff `merged_into` zusammengeführt (lokal entfernen, Verweise umleiten); der verbleibende Begriff folgt als `published`. Ist `term.is_active` falsch, ausblenden.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vollstand aller öffentlichen Begriffe",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/exports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "exports"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "json",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Vollstand aller öffentlichen Begriffe",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Allgemein",
+      "description": "",
+      "item": [
+        {
+          "name": "Einstieg: Version, Datenstand, Endpunkte",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1"
+              ]
+            },
+            "description": "Einstieg: Version, Datenstand, Endpunkte",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Servicekonten",
+      "description": "Für Integrationen mit Token eines Servicekontos (#47). Lesen braucht kein Token.",
+      "item": [
+        {
+          "name": "Token prüfen",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/service/whoami",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "service",
+                "whoami"
+              ]
+            },
+            "description": "Gibt Servicekonto, Scopes und Ablauf des Tokens zurück. Zum Prüfen bei der Einrichtung einer Integration.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vorschlag einreichen",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/proposals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "proposals"
+              ]
+            },
+            "description": "Neuer Begriff (ohne `term`) oder Korrektur zu einem veröffentlichten Begriff (`term` = UUID oder Slug). Felder in `changes`: official_abbreviation, official_name, short_description, description, url, alternative_aliases (Liste), categories (Liste von Schlüsseln). Landet in der Moderation, nie direkt öffentlich (#113). Scope `propose`.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"term\": \"sl-schulleitung\",\n  \"changes\": {\n    \"short_description\": \"Führt die Schule pädagogisch und organisatorisch\"\n  },\n  \"reason\": \"Rückmeldung aus dem Intranet\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Stand eines eigenen Vorschlags",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/proposals/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "proposals",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "1",
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Stand eines eigenen Vorschlags",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Organisation",
+      "description": "Begriffe in der Darstellung einer Organisation (#148). Nur mit Token eines Servicekontos der Organisation (Scope «read-org»); nie zwischengespeichert.",
+      "item": [
+        {
+          "name": "Begriffe in der Darstellung der Organisation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/terms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "org",
+                "terms"
+              ],
+              "query": [
+                {
+                  "key": "customized",
+                  "value": "false",
+                  "description": "1 = nur Begriffe mit Anpassung der Organisation",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Alle veröffentlichten Begriffe mit den gemeinsamen Werten («term») und den Anpassungen der Organisation des Servicekontos («organization_display»).",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Ein Begriff in der Darstellung der Organisation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/org/terms/:idOrSlug",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "org",
+                "terms",
+                ":idOrSlug"
+              ],
+              "variable": [
+                {
+                  "key": "idOrSlug",
+                  "value": "klassenlehrperson",
+                  "description": "UUID oder Slug"
+                }
+              ]
+            },
+            "description": "Ein Begriff in der Darstellung der Organisation",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

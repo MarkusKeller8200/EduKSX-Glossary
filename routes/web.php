@@ -40,6 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::get('datenschutz/kenntnisnahme', [PrivacyController::class, 'acknowledge'])->name('privacy.acknowledge');
     Route::post('datenschutz/kenntnisnahme', [PrivacyController::class, 'store'])->name('privacy.store');
 });
+// Permalink je Begriff (#154, DEC-026): «g» für Glossary
+Route::get('g/{code}', [PageController::class, 'permalink'])->where('code', '[0-9A-Za-z]{6}')->name('permalink');
 Route::get('begriffe/{slug}', [PageController::class, 'term'])->where('slug', '[a-z0-9-]+')->name('term');
 // Vorschläge (#113, DEC-024): ab Benutzer (Recht «propose»), nur eigene Vorschläge sichtbar
 Route::middleware(['auth', 'can:propose'])->prefix('vorschlaege')->group(function () {
@@ -88,6 +90,8 @@ Route::middleware(['auth', 'throttle:30,1'])->group(function () {
 
 // Interaktive Doku der öffentlichen API (OpenAPI 3.1, #26)
 Route::view('api/docs', 'api-docs')->name('api.docs');
+// Swagger-Seite mit «Try it out» (#157)
+Route::view('api/swagger', 'api-swagger')->name('api.swagger');
 
 // Anmeldung lokaler Konten (DEC-014); keine Registrierung
 Route::middleware('guest')->group(function () {

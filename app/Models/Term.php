@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Glossary\Permalink;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  *
  * @property string $id
  * @property string $slug
+ * @property string $code Permalink /g/{code} (DEC-026), beim Anlegen vergeben, unveränderlich
  * @property string|null $official_abbreviation
  * @property string|null $official_name
  * @property string|null $short_description
@@ -61,6 +63,21 @@ class Term extends Model
 
     /** @var array<string, mixed> */
     protected $attributes = ['lifecycle_status' => 'aktuell', 'is_active' => true, 'revision' => 0];
+
+    protected static function booted(): void
+    {
+        // Permalink (#154): jeder Begriff erhält beim Anlegen einen Code, der sich nie mehr ändert
+        static::creating(function (Term $term): void {
+            if (($term->code ?? '') === '') {
+                $term->code = Permalink::generate();
+            }
+        });
+        static::updating(function (Term $term): void {
+            if ($term->isDirty('code') && $term->getOriginal('code') !== null) {
+                $term->code = (string) $term->getOriginal('code');
+            }
+        });
+    }
 
     /**
      * @return array<string, string>

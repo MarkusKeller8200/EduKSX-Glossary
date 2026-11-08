@@ -22,6 +22,18 @@ class GlossaryApiController extends Controller
 
     public function __construct(private readonly ApiPresenter $presenter) {}
 
+    /** GET /api/v1/index – kompakter Index für Renderer und Browser-Erweiterung (#159, DEC-026). */
+    public function index(Request $request): Response
+    {
+        $release = $this->presenter->release();
+
+        return $this->cached($request, [
+            'release' => $release['release'],
+            'license' => $this->presenter->license(),
+            'terms' => $this->presenter->index(),
+        ], $release['release']);
+    }
+
     /** GET /api/v1/terms – Suche, Filter, Pagination. */
     public function terms(Request $request): Response
     {

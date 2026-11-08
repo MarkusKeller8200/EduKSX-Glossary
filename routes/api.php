@@ -14,6 +14,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
     Route::get('/', StatusController::class)->name('api.v1');
     Route::get('terms', [GlossaryApiController::class, 'terms'])->name('api.v1.terms');
     Route::get('terms/{idOrSlug}', [GlossaryApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->name('api.v1.term');
+    Route::get('index', [GlossaryApiController::class, 'index'])->name('api.v1.index');
     Route::get('categories', [GlossaryApiController::class, 'categories'])->name('api.v1.categories');
     Route::get('sources', [GlossaryApiController::class, 'sources'])->name('api.v1.sources');
     Route::get('releases/latest', [GlossaryApiController::class, 'latestRelease'])->name('api.v1.releases.latest');
@@ -32,3 +33,5 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
 // Maschinenlesbare Beschreibung (OpenAPI 3.1) als YAML und JSON
 Route::get('openapi.yaml', [OpenApiController::class, 'yaml'])->name('api.openapi');
 Route::get('openapi.json', [OpenApiController::class, 'json'])->name('api.openapi.json');
+// Postman-Sammlung zum Import (#158)
+Route::get('postman.json', [OpenApiController::class, 'postman'])->name('api.postman');
