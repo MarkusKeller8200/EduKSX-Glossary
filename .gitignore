@@ -52,3 +52,5 @@ yarn-error.log
 /composer-licenses.json
 /npm-tree.json
 /license-report.md
+/extension/dist
+/extension/*.zip

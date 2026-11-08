@@ -1,0 +1,38 @@
+{
+    "manifest_version": 3,
+    "name": "EduKSX-Glossary",
+    "short_name": "Glossary",
+    "version": "1.0.0",
+    "description": "Erklärt Abkürzungen und Begriffe aus Schule und Verwaltung direkt auf Webseiten. Die Suche läuft nur im Browser.",
+    "homepage_url": "https://glossary.eduksx.ch/entwickler",
+    "icons": {
+        "16": "icons/icon-16.png",
+        "32": "icons/icon-32.png",
+        "48": "icons/icon-48.png",
+        "128": "icons/icon-128.png"
+    },
+    "action": {
+        "default_title": "EduKSX-Glossary",
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/icon-16.png",
+            "32": "icons/icon-32.png"
+        }
+    },
+    "permissions": ["storage", "activeTab", "scripting"],
+    "host_permissions": ["https://glossary.eduksx.ch/*"],
+    "optional_host_permissions": ["https://*/*", "http://*/*"],
+    "background": {
+        "service_worker": "background.js",
+        "scripts": ["background.js"]
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "glossary@eduksx.ch",
+            "strict_min_version": "121.0"
+        }
+    }
+}

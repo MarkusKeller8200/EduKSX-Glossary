@@ -63,6 +63,9 @@ jobs:
       - name: Script zur Einbindung aktuell (#155)
         run: node scripts/build-embed.mjs --check
 
+      - name: Browser-Erweiterung bauen (#153)
+        run: node scripts/build-extension.mjs
+
       - name: Run CI Checks
         run: |
           set -o pipefail

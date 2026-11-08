@@ -18,6 +18,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Tastatur; `<glossary-term code="…">` für ausdrücklich markierte Begriffe. Suche nur im Browser, keine Cookies.
   Anleitung unter «Für Entwickler» (`/entwickler`), Testseite `/embed/demo.html`. Gemeinsamer Kern
   `packages/highlighter` mit Tests.
+- **Browser-Erweiterung (#153, DEC-026):** Manifest V3 für Chrome, Edge und Firefox: auf der aktuellen Seite
+  hervorheben (nur `activeTab`) oder für eine Website immer; Einstellungen für Bezeichnungen und erste Fundstelle.
+  Kein Seiteninhalt verlässt den Browser. Bauen mit `node scripts/build-extension.mjs`, Anleitung in
+  `extension/README.md`; Veröffentlichung in den Stores folgt.
 - **Swagger-Seite (#157):** `/api/swagger` mit «Try it out» und «Authorize» für Token, selbst ausgeliefert.
 - **Postman-Sammlung (#158):** `/api/postman.json` zum Import mit Variablen `baseUrl` und `token`; aus der
   OpenAPI-Beschreibung erzeugt (`scripts/postman.py`), die CI prüft den Stand.
