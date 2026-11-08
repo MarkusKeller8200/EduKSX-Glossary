@@ -8,9 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
-- **Organisation (#148, DEC-025, Entwurf):** Benutzer gründen unter «Meine Organisation» eine Organisation und werden
+- **Organisation (#148, DEC-025):** Benutzer gründen unter «Meine Organisation» eine Organisation und werden
   Organisations-Admin (globale Rolle, zweiter Faktor). Einladen per E-Mail (mehrere, mit `;` oder `,` getrennt, 14 Tage
-  gültig); wer mit der Adresse ein Konto anlegt oder sich anmeldet, wird Mitglied. Organisations-Admins legen die
+  gültig); die eingeladene Person nimmt die Einladung unter «Meine Organisation» an. Vorschläge von Mitgliedern
+  bestätigt zuerst ein Organisations-Admin, dann prüft die Redaktion. Organisations-Admins legen die
   Darstellung eines Begriffs für alle Mitglieder fest (persönlich vor Organisation vor gemeinsam), sperren oder
   entfernen Mitglieder und ernennen weitere Admins; es bleibt immer mindestens einer. Servicekonto mit Scope
   `read-org` liefert die Begriffe in der Darstellung der Organisation (`/api/v1/org/terms`). Neues Grundrecht

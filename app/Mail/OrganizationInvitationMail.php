@@ -8,7 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 
-/** Einladung in eine Organisation (#148): Konto anlegen oder anmelden, die Zuordnung folgt automatisch. */
+/** Einladung in eine Organisation (#148): Konto anlegen oder anmelden, dann unter «Meine Organisation» annehmen. */
 class OrganizationInvitationMail extends Mailable implements ShouldQueue
 {
     use Queueable;

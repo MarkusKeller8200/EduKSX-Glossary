@@ -12,6 +12,7 @@ use App\Models\ServiceAccount;
 use App\Models\Term;
 use App\Models\TermRevision;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -83,15 +84,21 @@ final class ProposalService
             throw new InvalidArgumentException('Begründung höchstens 2000 Zeichen.');
         }
         $label = $service !== null ? 'Servicekonto «'.$service->name.'»' : (string) Journal::actorLabel($user);
+        // Mitglieder einer Organisation: zuerst Bestätigung durch einen Organisations-Admin (#148); Vorschläge von
+        // Organisations-Admins und Servicekonten gehen direkt in die Moderation
+        $member = $service === null && $user !== null ? app(OrganizationService::class)->membershipOf($user) : null;
+        $member = $member !== null && $member->isActive() ? $member : null;
+        $status = $member !== null && ! $member->isAdmin() ? Proposal::ORG_REVIEW : 'eingereicht';
 
-        return DB::transaction(function () use ($term, $values, $reason, $user, $service, $base, $label): Proposal {
+        return DB::transaction(function () use ($term, $values, $reason, $user, $service, $base, $label, $member, $status): Proposal {
             $proposal = Proposal::query()->create([
                 'kind' => $term === null ? 'new' : 'change',
                 'term_id' => $term?->id,
                 'base_revision' => $base?->revision,
                 'changes' => $values,
                 'reason' => $reason === '' ? null : $reason,
-                'status' => 'eingereicht',
+                'status' => $status,
+                'organization_id' => $member?->organization_id,
                 'user_id' => $user?->id,
                 'service_account_id' => $service?->id,
                 'author_label' => $label,
@@ -105,7 +112,7 @@ final class ProposalService
     /** Rückfrage der Moderation an die einreichende Person. */
     public function ask(Proposal $proposal, User $moderator, string $message): void
     {
-        $this->requireOpen($proposal);
+        $this->requireModeration($proposal);
         $this->requireText($message, 'Bitte die Rückfrage formulieren.');
         DB::transaction(function () use ($proposal, $moderator, $message): void {
             $proposal->forceFill(['status' => 'rueckfrage'])->save();
@@ -139,7 +146,7 @@ final class ProposalService
 
     public function reject(Proposal $proposal, User $moderator, string $reason): void
     {
-        $this->requireOpen($proposal);
+        $this->requireModeration($proposal);
         $this->requireText($reason, 'Bitte eine Begründung für die Ablehnung angeben.');
         DB::transaction(function () use ($proposal, $moderator, $reason): void {
             $proposal->forceFill(['status' => 'abgelehnt', 'resolved_at' => now()])->save();
@@ -156,7 +163,7 @@ final class ProposalService
      */
     public function accept(Proposal $proposal, User $moderator, array $fields, bool $canEditOfficial, ?string $note = null): Term
     {
-        $this->requireOpen($proposal);
+        $this->requireModeration($proposal);
         $data = array_intersect_key($proposal->changes, array_flip($fields));
         if ($data === []) {
             throw new InvalidArgumentException('Mindestens ein Feld übernehmen – oder den Vorschlag ablehnen.');
@@ -305,6 +312,48 @@ final class ProposalService
         }
 
         return trim((string) $value);
+    }
+
+    /**
+     * Entscheid der Organisation (#148): bestätigen → Moderation, ablehnen → abgeschlossen. Die Rechte prüft der
+     * OrganizationService.
+     */
+    public function decideForOrganization(Proposal $proposal, User $orgAdmin, bool $confirm, ?string $reason = null): void
+    {
+        if ($proposal->status !== Proposal::ORG_REVIEW) {
+            throw new InvalidArgumentException('Dieser Vorschlag wartet nicht auf die Organisation.');
+        }
+        if (! $confirm) {
+            $this->requireText((string) $reason, 'Bitte eine Begründung für die Ablehnung angeben.');
+        }
+        DB::transaction(function () use ($proposal, $orgAdmin, $confirm, $reason): void {
+            $proposal->forceFill($confirm ? ['status' => 'eingereicht'] : ['status' => 'abgelehnt', 'resolved_at' => now()])->save();
+            $this->event($proposal, $confirm ? 'org_bestaetigt' : 'org_abgelehnt', $orgAdmin, false, $reason);
+        });
+    }
+
+    /**
+     * Vorschläge, die auf die Organisation warten, direkt in die Moderation geben (Austritt, Entfernen, Organisation
+     * gelöscht).
+     *
+     * @param  list<int>  $ids
+     */
+    public static function forwardFromOrganization(array $ids, string $reason): void
+    {
+        $service = app(self::class);
+        foreach (Proposal::query()->whereIn('id', $ids)->where('status', Proposal::ORG_REVIEW)->get() as $proposal) {
+            $proposal->forceFill(['status' => 'eingereicht'])->save();
+            $service->event($proposal, 'org_weitergeleitet', null, false, $reason, null, OrganizationService::LABEL);
+        }
+    }
+
+    private function requireModeration(Proposal $proposal): void
+    {
+        if (! $proposal->inModeration()) {
+            throw new InvalidArgumentException($proposal->status === Proposal::ORG_REVIEW
+                ? 'Dieser Vorschlag wartet noch auf die Bestätigung der Organisation.'
+                : 'Dieser Vorschlag ist abgeschlossen.');
+        }
     }
 
     private function requireOpen(Proposal $proposal): void

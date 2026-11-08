@@ -10,9 +10,11 @@ use App\Models\Organization;
 use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
 use App\Models\OrganizationTermOverride;
+use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
+use App\Proposals\ProposalService;
 use App\Support\MailSetup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -25,6 +27,9 @@ use Illuminate\Support\Facades\Mail;
  * - Verwalten (Name, Einladungen, Mitglieder, Darstellung) nur aktive Organisations-Admins dieser Organisation mit
  *   bestätigtem zweitem Faktor.
  * - Es bleibt immer mindestens ein Organisations-Admin, solange die Organisation Mitglieder hat.
+ * - Einladungen nimmt die eingeladene Person aktiv an (bestätigt 08.11.2026); nach dem Entfernen ist eine neue
+ *   Einladung möglich.
+ * - Vorschläge von Mitgliedern bestätigt ein Organisations-Admin, bevor sie in die Moderation gehen.
  * - Wer Organisations-Admin wird, erhält die globale Rolle «Organisations-Admin» (Servicekonten, zweiter Faktor);
  *   beim Entzug wird sie nur entfernt, wenn die Organisation sie vergeben hat.
  *
@@ -153,22 +158,19 @@ final class OrganizationService
     }
 
     /**
-     * Bei der Anmeldung: abgelaufene Einladungen löschen und – wenn das Konto noch keiner Organisation angehört – die
-     * älteste gültige Einladung annehmen.
+     * Bei der Anmeldung: abgelaufene Einladungen löschen; gibt die Namen der Organisationen zurück, deren Einladung
+     * das Konto annehmen kann (nur ohne Mitgliedschaft). Beitreten erst nach Bestätigung unter «Meine Organisation».
+     *
+     * @return list<string>
      */
-    public function acceptPending(User $user): ?Organization
+    public function pendingInvitationNames(User $user): array
     {
         OrganizationInvitation::query()->where('expires_at', '<=', now())->delete();
         if (! $user->isActive() || $this->membershipOf($user) !== null) {
-            return null;
+            return [];
         }
-        $invitation = $this->invitationsFor($user)[0] ?? null;
-        if ($invitation === null) {
-            return null;
-        }
-        $this->join($user, $invitation, 'Einladung bei der Anmeldung');
 
-        return $invitation->organization;
+        return array_values(array_map(fn (OrganizationInvitation $i): string => $i->organization->name, $this->invitationsFor($user)));
     }
 
     /**
@@ -191,7 +193,13 @@ final class OrganizationService
                 throw new AccessDenied('Zuerst die bisherige Organisation verlassen.');
             }
         }, ['organization' => $invitation->organization->name]);
-        $this->join($user, $invitation, null);
+        DB::transaction(function () use ($user, $invitation): void {
+            OrganizationMember::query()->create([
+                'organization_id' => $invitation->organization_id, 'user_id' => $user->id,
+                'role' => OrganizationMember::MEMBER, 'status' => 'active',
+            ]);
+            $invitation->delete();
+        });
     }
 
     public function decline(User $user, OrganizationInvitation $invitation): void
@@ -321,28 +329,38 @@ final class OrganizationService
         $member->delete();
     }
 
-    // ---------- intern ----------
-
-    private function join(User $user, OrganizationInvitation $invitation, ?string $label): void
+    /**
+     * Vorschlag eines Mitglieds bestätigen (→ Moderation) oder mit Begründung ablehnen.
+     */
+    public function decideProposal(User $actor, Proposal $proposal, bool $confirm, ?string $reason = null): void
     {
-        DB::transaction(function () use ($user, $invitation): void {
-            OrganizationMember::query()->create([
-                'organization_id' => $invitation->organization_id, 'user_id' => $user->id,
-                'role' => OrganizationMember::MEMBER, 'status' => 'active',
-            ]);
-            $invitation->delete();
-        });
-        if ($label !== null) {
-            Audit::log(null, $user, 'organization.joined', ['organization' => $invitation->organization->name], 'ok', $label);
-        }
+        $organization = $proposal->organization;
+        $this->guard($actor, null, $confirm ? 'organization.proposal_confirmed' : 'organization.proposal_rejected', function () use ($actor, $organization): void {
+            if ($organization === null) {
+                throw new AccessDenied('Dieser Vorschlag gehört zu keiner Organisation.');
+            }
+            $this->requireAdmin($actor, $organization);
+        }, ['organization' => $organization?->name, 'proposal' => $proposal->id]);
+        app(ProposalService::class)->decideForOrganization($proposal, $actor, $confirm, $reason);
     }
+
+    // ---------- intern ----------
 
     private function drop(OrganizationMember $member): void
     {
         if ($member->isAdmin()) {
             $this->revokeRole($member);
         }
+        // ohne Organisation gilt der normale Weg: offene Vorschläge direkt in die Moderation
+        $this->forwardProposals($member->organization_id, $member->user_id, 'Nicht mehr Mitglied der Organisation');
         $member->delete();
+    }
+
+    private function forwardProposals(string $organizationId, ?string $userId, string $reason): void
+    {
+        $ids = Proposal::query()->where('organization_id', $organizationId)->where('status', Proposal::ORG_REVIEW)
+            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
+        ProposalService::forwardFromOrganization($ids, $reason);
     }
 
     private function dissolve(Organization $organization): void
@@ -353,6 +371,7 @@ final class OrganizationService
                     $this->revokeRole($member);
                 }
             }
+            $this->forwardProposals($organization->id, null, 'Organisation gelöscht');
             $organization->delete();
         });
     }

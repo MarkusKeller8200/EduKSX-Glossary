@@ -10,10 +10,12 @@ use App\Models\Organization;
 use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
 use App\Models\OrganizationTermOverride;
+use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
 use App\Organizations\OrganizationService;
+use App\Proposals\ProposalService;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -78,7 +80,7 @@ class OrganizationTest extends TestCase
         $this->assertSame(0, Organization::query()->count());
     }
 
-    public function test_einladen_mehrere_adressen_und_beitritt_bei_der_anmeldung(): void
+    public function test_einladen_mehrere_adressen_und_beitritt_nur_nach_bestaetigung(): void
     {
         [$organization, $admin] = $this->organisation();
 
@@ -86,12 +88,23 @@ class OrganizationTest extends TestCase
             ->assertRedirect()->assertSessionHas('status');
         $this->assertEqualsCanonicalizing(['neu@schule.ch', 'zwei@schule.ch'], OrganizationInvitation::query()->pluck('email')->all());
 
-        // Konto mit eingeladener Adresse meldet sich an → Mitglied
+        // Anmeldung: Hinweis, aber kein automatischer Beitritt
         $this->app['auth']->forgetGuards();
         $neu = $this->userWithRoles([Role::USER], 'neu@schule.ch', false);
-        $this->post('/anmelden', ['email' => 'neu@schule.ch', 'password' => 'ein-langes-Test-Passwort-1'])->assertRedirect();
+        $this->post('/anmelden', ['email' => 'neu@schule.ch', 'password' => 'ein-langes-Test-Passwort-1'])
+            ->assertRedirect()->assertSessionHas('status', fn (string $m): bool => str_contains($m, 'Schule Muster'));
+        $this->assertFalse(OrganizationMember::query()->where('user_id', $neu->id)->exists());
+
+        // aktiv annehmen
+        $invitation = OrganizationInvitation::query()->where('email', 'neu@schule.ch')->firstOrFail();
+        $this->actingAs($neu)->get('/organisation')->assertInertia(fn (Assert $p) => $p->has('meine_einladungen', 1));
+        $this->actingAs($neu)->post("/organisation/einladungen/{$invitation->id}/annehmen")->assertSessionHasNoErrors();
         $this->assertSame($organization->id, OrganizationMember::query()->where('user_id', $neu->id)->value('organization_id'));
         $this->assertFalse(OrganizationInvitation::query()->where('email', 'neu@schule.ch')->exists());
+
+        // fremde Einladung nicht annehmbar
+        $zwei = OrganizationInvitation::query()->where('email', 'zwei@schule.ch')->firstOrFail();
+        $this->actingAs($neu)->post("/organisation/einladungen/{$zwei->id}/ablehnen")->assertSessionHasErrors('organisation');
     }
 
     public function test_einladung_per_mail_nur_mit_mailversand(): void
@@ -116,7 +129,7 @@ class OrganizationTest extends TestCase
         $otherOrg = $this->organizations->create($other, 'Andere');
         $this->organizations->invite($admin, $organization, 'x@andere.ch');
 
-        $this->assertNull($this->organizations->acceptPending($other));
+        $this->assertSame([], $this->organizations->pendingInvitationNames($other));
         $this->assertSame($otherOrg->id, OrganizationMember::query()->where('user_id', $other->id)->value('organization_id'));
         $this->actingAs($other)->get('/organisation')->assertInertia(fn (Assert $p) => $p->has('meine_einladungen', 1));
     }
@@ -194,11 +207,13 @@ class OrganizationTest extends TestCase
         $this->actingAs($admin)->post('/organisation/austreten')->assertSessionHasNoErrors();
         $this->assertFalse(OrganizationMember::query()->where('user_id', $admin->id)->exists());
 
-        // Mitglied entfernen: Konto bleibt
+        // Mitglied entfernen: Konto bleibt, neue Einladung möglich
         $third = $this->member($organization, 'd@schule.ch');
         $thirdMembership = OrganizationMember::query()->where('user_id', $third->id)->firstOrFail();
         $this->actingAs($member)->delete("/organisation/mitglieder/{$thirdMembership->id}")->assertSessionHasNoErrors();
         $this->assertNotNull(User::query()->find($third->id));
+        $result = $this->organizations->invite($member->fresh() ?? $member, $organization, 'd@schule.ch');
+        $this->assertSame(['d@schule.ch'], $result['eingeladen']);
     }
 
     public function test_fremde_organisation_nicht_verwaltbar(): void
@@ -253,6 +268,56 @@ class OrganizationTest extends TestCase
         $second = $second->fresh() ?? $second;
         $this->assertTrue($manager->canManage($second, $account));
         $this->assertSame(1, $manager->visibleFor($second)->count());
+    }
+
+    public function test_vorschlaege_der_mitglieder_bestaetigt_ein_organisations_admin(): void
+    {
+        [$organization, $admin] = $this->organisation();
+        $member = $this->member($organization, 'm@schule.ch');
+        $proposals = app(ProposalService::class);
+
+        $proposal = $proposals->submit(null, ['official_abbreviation' => 'LP', 'official_name' => 'Lehrperson'], 'fehlt', $member);
+        $this->assertSame(Proposal::ORG_REVIEW, $proposal->status);
+        $this->assertSame($organization->id, $proposal->organization_id);
+
+        // Redaktion sieht ihn noch nicht und kann nicht entscheiden
+        $moderator = $this->userWithRoles([Role::MODERATOR], 'mod@example.org');
+        $this->actingAs($moderator)->get('/admin/vorschlaege?status=alle')->assertInertia(fn (Assert $p) => $p->has('vorschlaege', 0));
+        $this->actingAs($moderator)->get("/admin/vorschlaege/{$proposal->id}")->assertNotFound();
+
+        // Mitglieder entscheiden nicht; Organisations-Admin sieht und bestätigt
+        $this->actingAs($member)->post("/organisation/vorschlaege/{$proposal->id}/bestaetigen")->assertSessionHasErrors('organisation');
+        $this->actingAs($admin)->get('/organisation')->assertInertia(fn (Assert $p) => $p->has('vorschlaege', 1));
+        $this->actingAs($admin)->post("/organisation/vorschlaege/{$proposal->id}/bestaetigen")->assertSessionHasNoErrors();
+        $this->assertSame('eingereicht', $proposal->fresh()?->status);
+        $this->actingAs($moderator)->get('/admin/vorschlaege')->assertInertia(fn (Assert $p) => $p->has('vorschlaege', 1));
+
+        // ablehnen mit Begründung
+        $second = $proposals->submit(null, ['official_name' => 'Hauswart'], null, $member);
+        $this->actingAs($admin)->post("/organisation/vorschlaege/{$second->id}/ablehnen", ['grund' => ''])->assertSessionHasErrors('grund');
+        $this->actingAs($admin)->post("/organisation/vorschlaege/{$second->id}/ablehnen", ['grund' => 'gibt es schon'])->assertSessionHasNoErrors();
+        $this->assertSame('abgelehnt', $second->fresh()?->status);
+
+        // eigene Vorschläge des Organisations-Admins direkt in die Moderation
+        $this->assertSame('eingereicht', $proposals->submit(null, ['official_name' => 'Schulsozialarbeit'], null, $admin)->status);
+
+        // beim Austritt weitergeleitet
+        $third = $proposals->submit(null, ['official_name' => 'Tagesstruktur'], null, $member);
+        $this->actingAs($member)->post('/organisation/austreten')->assertSessionHasNoErrors();
+        $this->assertSame('eingereicht', $third->fresh()?->status);
+    }
+
+    public function test_anderer_organisations_admin_widerruft_token(): void
+    {
+        [$organization, $admin] = $this->organisation();
+        $manager = app(ServiceAccountManager::class);
+        $account = $manager->create($admin, 'Intranet', 'Begriffe', ['read-org']);
+        ['plain' => $plain, 'token' => $token] = $manager->createToken($admin, $account, 'Produktion', 30);
+        $second = $this->member($organization, 'zwei@schule.ch', true);
+        $this->organizations->setAdmin($admin, OrganizationMember::query()->where('user_id', $second->id)->firstOrFail(), true);
+
+        $this->actingAs($second->fresh() ?? $second)->delete("/admin/servicekonten/token/{$token->id}")->assertRedirect();
+        $this->getJson('/api/v1/org/terms', ['Authorization' => "Bearer {$plain}"])->assertUnauthorized();
     }
 
     public function test_kontoloeschung_mit_nachfolge_und_aufloesung(): void

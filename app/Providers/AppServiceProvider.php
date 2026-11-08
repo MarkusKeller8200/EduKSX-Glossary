@@ -48,10 +48,14 @@ class AppServiceProvider extends ServiceProvider
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
 
-        // Einladungen in eine Organisation bei jeder Anmeldung annehmen (#148): Passwort, zweiter Faktor, Microsoft
+        // Offene Einladungen in eine Organisation bei der Anmeldung melden (#148); annehmen nur aktiv
         Event::listen(function (Login $event): void {
-            if ($event->user instanceof User) {
-                app(OrganizationService::class)->acceptPending($event->user);
+            if (! $event->user instanceof User || ! app()->bound('session')) {
+                return;
+            }
+            $names = app(OrganizationService::class)->pendingInvitationNames($event->user);
+            if ($names !== []) {
+                session()->flash('status', 'Einladung in die Organisation «'.implode('», «', $names).'» – unter «Mein Konto → Meine Organisation» annehmen oder ablehnen.');
             }
         });
 

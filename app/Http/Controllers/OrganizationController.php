@@ -7,15 +7,19 @@ use App\Models\Organization;
 use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
 use App\Models\OrganizationTermOverride;
+use App\Models\Proposal;
 use App\Models\ServiceAccount;
+use App\Models\Term;
 use App\Models\User;
 use App\Organizations\OrganizationService;
+use App\Proposals\ProposalService;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
 
 /**
  * Meine Organisation (#148, DEC-025): gründen, einladen, Mitglieder verwalten, austreten. Regeln und Protokoll im
@@ -40,6 +44,7 @@ class OrganizationController extends Controller
             'einladungen' => [],
             'anpassungen' => [],
             'servicekonten' => 0,
+            'vorschlaege' => [],
             'meine_einladungen' => array_map(fn (OrganizationInvitation $i): array => [
                 'id' => $i->id,
                 'organisation' => $i->organization->name,
@@ -92,6 +97,21 @@ class OrganizationController extends Controller
                     'von' => $i->invited_by !== null ? ($names[$i->invited_by] ?? null) : null,
                 ])->all();
             $props['servicekonten'] = ServiceAccount::query()->where('organization_id', $organization->id)->count();
+            // Vorschläge der Mitglieder, die auf die Bestätigung warten (#148)
+            $props['vorschlaege'] = Proposal::query()->where('organization_id', $organization->id)->where('status', Proposal::ORG_REVIEW)
+                ->with('term')->orderBy('id')->get()->map(fn (Proposal $p): array => [
+                    'id' => $p->id,
+                    'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
+                    'titel' => $p->kind === 'new' ? Term::titleFrom($p->changes) : ($p->term?->title() ?? '(Begriff gelöscht)'),
+                    'slug' => $p->term?->slug,
+                    'von' => $p->author_label,
+                    'begruendung' => $p->reason,
+                    'aenderungen' => array_map(fn (string $f, mixed $v): array => [
+                        'feld' => ProposalService::FIELDS[$f] ?? $f,
+                        'wert' => is_array($v) ? implode('; ', array_map('strval', $v)) : (string) $v,
+                    ], array_keys($p->changes), array_values($p->changes)),
+                    'eingereicht' => $p->created_at?->toDateString(),
+                ])->all();
         }
 
         return Inertia::render('organization/show', $props);
@@ -180,6 +200,20 @@ class OrganizationController extends Controller
         return $this->run(fn () => $this->organizations->remove($this->currentUser($request), $member), 'Mitglied aus der Organisation entfernt.');
     }
 
+    public function confirmProposal(Request $request, Proposal $proposal): RedirectResponse
+    {
+        return $this->run(fn () => $this->organizations->decideProposal($this->currentUser($request), $proposal, true),
+            "Vorschlag Nr. {$proposal->id} bestätigt – er geht jetzt in die Moderation.");
+    }
+
+    public function rejectProposal(Request $request, Proposal $proposal): RedirectResponse
+    {
+        $data = $request->validate(['grund' => ['required', 'string', 'max:2000']]);
+
+        return $this->run(fn () => $this->organizations->decideProposal($this->currentUser($request), $proposal, false, (string) $data['grund']),
+            "Vorschlag Nr. {$proposal->id} abgelehnt.");
+    }
+
     public function leave(Request $request): RedirectResponse
     {
         return $this->run(fn () => $this->organizations->leave($this->currentUser($request)), 'Sie haben die Organisation verlassen.');
@@ -200,7 +234,7 @@ class OrganizationController extends Controller
     {
         try {
             $action();
-        } catch (AccessDenied $e) {
+        } catch (AccessDenied|InvalidArgumentException $e) {
             throw ValidationException::withMessages([$field => $e->getMessage()]);
         }
 

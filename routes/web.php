@@ -76,6 +76,8 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
     Route::post('mitglieder/{member}/entsperren', [OrganizationController::class, 'unblock'])->whereNumber('member')->name('organization.member.unblock');
     Route::put('mitglieder/{member}/rolle', [OrganizationController::class, 'role'])->whereNumber('member')->name('organization.member.role');
     Route::delete('mitglieder/{member}', [OrganizationController::class, 'remove'])->whereNumber('member')->name('organization.member.destroy');
+    Route::post('vorschlaege/{proposal}/bestaetigen', [OrganizationController::class, 'confirmProposal'])->whereNumber('proposal')->name('organization.proposal.confirm');
+    Route::post('vorschlaege/{proposal}/ablehnen', [OrganizationController::class, 'rejectProposal'])->whereNumber('proposal')->name('organization.proposal.reject');
 });
 Route::middleware(['auth', 'throttle:30,1'])->group(function () {
     Route::put('begriffe/{slug}/organisation-darstellung', [OrganizationDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.organization');

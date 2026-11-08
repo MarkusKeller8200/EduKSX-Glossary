@@ -66,7 +66,12 @@ class ProposalController extends Controller
             throw ValidationException::withMessages(['werte' => $e->getMessage()]);
         }
 
-        return redirect("/vorschlaege/{$proposal->id}")->with('status', "Danke! Vorschlag Nr. {$proposal->id} ist eingereicht; die Redaktion prüft ihn.");
+        // Mitglieder einer Organisation: zuerst Bestätigung durch einen Organisations-Admin (#148)
+        $next = $proposal->status === Proposal::ORG_REVIEW
+            ? 'ein Organisations-Admin Ihrer Organisation bestätigt ihn, danach prüft ihn die Redaktion.'
+            : 'die Redaktion prüft ihn.';
+
+        return redirect("/vorschlaege/{$proposal->id}")->with('status', "Danke! Vorschlag Nr. {$proposal->id} ist eingereicht; {$next}");
     }
 
     public function index(Request $request): Response

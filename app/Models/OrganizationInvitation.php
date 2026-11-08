@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Einladung in eine Organisation (#148): je E-Mail-Adresse, 14 Tage gültig. Wird bei der nächsten Anmeldung eines
- * Kontos mit dieser Adresse angenommen (sofern das Konto noch keiner Organisation angehört).
+ * Einladung in eine Organisation (#148): je E-Mail-Adresse, 14 Tage gültig. Das Konto mit dieser Adresse nimmt sie
+ * unter «Meine Organisation» aktiv an (nur ohne andere Mitgliedschaft) oder lehnt sie ab.
  *
  * @property int $id
  * @property string $organization_id

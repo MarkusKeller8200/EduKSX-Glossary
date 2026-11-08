@@ -3,6 +3,8 @@ import { palette } from '@/lib/colors';
 /** Farbe des Vorschlagsstatus (#113): offen blau, Rückfrage orange, angenommen grün, sonst grau bzw. rot. */
 export function proposalStatusClass(status: string): string {
     switch (status) {
+        case 'org_pruefung':
+            return palette.violet.badge;
         case 'eingereicht':
             return palette.sky.badge;
         case 'rueckfrage':
@@ -24,6 +26,9 @@ export const EREIGNIS: Record<string, string> = {
     angenommen: 'Angenommen',
     abgelehnt: 'Abgelehnt',
     zurueckgezogen: 'Zurückgezogen',
+    org_bestaetigt: 'Von der Organisation bestätigt',
+    org_abgelehnt: 'Von der Organisation abgelehnt',
+    org_weitergeleitet: 'An die Redaktion weitergeleitet',
 };
 
 /** Wert eines Feldes zur Anzeige (Listen mit Strichpunkt, leer als «–»). */

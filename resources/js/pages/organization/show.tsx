@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Fragment, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { confirmAction } from '@/components/confirm-dialog';
 import InputError from '@/components/input-error';
@@ -39,12 +40,24 @@ type MeineEinladung = { id: number; organisation: string; gueltig_bis: string };
 
 type Anpassung = { slug: string; titel: string; geaendert: string | null };
 
+type Vorschlag = {
+    id: number;
+    art: string;
+    titel: string;
+    slug: string | null;
+    von: string;
+    begruendung: string | null;
+    aenderungen: { feld: string; wert: string }[];
+    eingereicht: string | null;
+};
+
 type Props = {
     organisation: Organisation | null;
     mitglieder: Mitglied[];
     einladungen: Einladung[];
     anpassungen: Anpassung[];
     servicekonten: number;
+    vorschlaege: Vorschlag[];
     meine_einladungen: MeineEinladung[];
     darf_gruenden: boolean;
 };
@@ -118,6 +131,9 @@ export default function OrganizationShow(props: Props) {
                         mitglieder={props.mitglieder}
                         admin={org.admin}
                     />
+                    {org.admin ? (
+                        <Vorschlaege vorschlaege={props.vorschlaege} />
+                    ) : null}
                     {org.admin ? (
                         <Einladungen einladungen={props.einladungen} />
                     ) : null}
@@ -402,6 +418,127 @@ function Mitglieder({
     );
 }
 
+/** Vorschläge der Mitglieder (#148): erst nach Bestätigung durch einen Organisations-Admin in die Moderation. */
+function Vorschlaege({ vorschlaege }: { vorschlaege: Vorschlag[] }) {
+    return (
+        <Abschnitt titel={`Vorschläge zur Bestätigung (${vorschlaege.length})`}>
+            <p className="text-sm text-muted-foreground">
+                Vorschläge von Mitgliedern gehen erst nach Ihrer Bestätigung an
+                die Redaktion. Ihre eigenen Vorschläge gehen direkt dorthin.
+            </p>
+            {vorschlaege.length === 0 ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Keine offenen Vorschläge.
+                </p>
+            ) : (
+                <ul className="mt-3 grid gap-3">
+                    {vorschlaege.map((v) => (
+                        <VorschlagKarte key={v.id} v={v} />
+                    ))}
+                </ul>
+            )}
+        </Abschnitt>
+    );
+}
+
+function VorschlagKarte({ v }: { v: Vorschlag }) {
+    const form = useForm({ grund: '' });
+    const [ablehnen, setAblehnen] = useState(false);
+
+    return (
+        <li className="rounded-lg border border-border p-3 text-sm">
+            <p>
+                <span className="text-muted-foreground">
+                    Nr. {v.id} · {v.art}:
+                </span>{' '}
+                {v.slug ? (
+                    <Link
+                        href={`/begriffe/${v.slug}`}
+                        className="font-medium text-link underline underline-offset-4"
+                    >
+                        {v.titel}
+                    </Link>
+                ) : (
+                    <span className="font-medium">{v.titel}</span>
+                )}{' '}
+                <span className="text-muted-foreground">
+                    – von {v.von}
+                    {v.eingereicht ? `, ${v.eingereicht}` : ''}
+                </span>
+            </p>
+            <dl className="mt-2 grid gap-x-4 gap-y-1 sm:grid-cols-[12rem_1fr]">
+                {v.aenderungen.map((a) => (
+                    <Fragment key={a.feld}>
+                        <dt className="text-muted-foreground">{a.feld}</dt>
+                        <dd className="whitespace-pre-line">{a.wert || '–'}</dd>
+                    </Fragment>
+                ))}
+                {v.begruendung ? (
+                    <>
+                        <dt className="text-muted-foreground">Begründung</dt>
+                        <dd className="whitespace-pre-line">{v.begruendung}</dd>
+                    </>
+                ) : null}
+            </dl>
+            <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                    size="sm"
+                    onClick={() =>
+                        router.post(
+                            `/organisation/vorschlaege/${v.id}/bestaetigen`,
+                            {},
+                            opts,
+                        )
+                    }
+                >
+                    Bestätigen
+                </Button>
+                <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setAblehnen(!ablehnen)}
+                >
+                    Ablehnen …
+                </Button>
+            </div>
+            {ablehnen ? (
+                <form
+                    className="mt-3 grid gap-2"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        form.post(
+                            `/organisation/vorschlaege/${v.id}/ablehnen`,
+                            opts,
+                        );
+                    }}
+                >
+                    <Label htmlFor={`grund-${v.id}`}>
+                        Begründung (sieht die einreichende Person)
+                    </Label>
+                    <Textarea
+                        id={`grund-${v.id}`}
+                        rows={2}
+                        value={form.data.grund}
+                        onChange={(e) => form.setData('grund', e.target.value)}
+                        required
+                    />
+                    <InputError message={form.errors.grund} />
+                    <div>
+                        <Button
+                            type="submit"
+                            size="sm"
+                            variant="destructive"
+                            disabled={form.processing}
+                        >
+                            Ablehnen
+                        </Button>
+                    </div>
+                </form>
+            ) : null}
+        </li>
+    );
+}
+
 function Einladungen({ einladungen }: { einladungen: Einladung[] }) {
     const form = useForm({ adressen: '' });
     const submit = (e: FormEvent) => {
@@ -426,8 +563,8 @@ function Einladungen({ einladungen }: { einladungen: Einladung[] }) {
                 />
                 <p className="text-xs text-muted-foreground">
                     Mehrere mit «;» oder «,» trennen. Die Einladung gilt 14
-                    Tage; wer mit der Adresse ein Konto anlegt oder sich
-                    anmeldet, wird automatisch Mitglied.
+                    Tage; die eingeladene Person legt mit der Adresse ein Konto
+                    an oder meldet sich an und nimmt die Einladung hier an.
                 </p>
                 <InputError message={form.errors.adressen} />
                 <div>

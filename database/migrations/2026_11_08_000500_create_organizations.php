@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Schema;
  * - `organization_invitations`: Einladung je E-Mail-Adresse, 14 Tage gültig, danach gelöscht.
  * - `organization_term_overrides`: Darstellung eines Begriffs für alle Mitglieder (wie die persönliche Darstellung).
  * - `service_accounts.organization_id`: Servicekonten einer Organisation (Scope «read-org»).
+ * - `proposals.organization_id`: Vorschläge von Mitgliedern; Status «org_pruefung», bis ein Organisations-Admin
+ *   bestätigt (dann Moderation) oder ablehnt.
+ * - Einladungen werden nicht automatisch angenommen: die eingeladene Person bestätigt aktiv.
  * - Recht «create-organization» (Grundrecht) für Benutzer, Organisations-Admin, Moderator und Admin.
  */
 return new class extends Migration
@@ -70,6 +73,10 @@ return new class extends Migration
             $table->foreignUuid('organization_id')->nullable()->constrained()->cascadeOnDelete();
         });
 
+        Schema::table('proposals', function (Blueprint $table) {
+            $table->foreignUuid('organization_id')->nullable()->constrained()->nullOnDelete();
+        });
+
         foreach (self::ROLES_WITH_CREATE as $key) {
             $roleId = DB::table('roles')->where('key', $key)->value('id');
             if ($roleId !== null) {
@@ -84,6 +91,9 @@ return new class extends Migration
     public function down(): void
     {
         DB::table('role_permissions')->where('permission', 'create-organization')->delete();
+        Schema::table('proposals', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('organization_id');
+        });
         Schema::table('service_accounts', function (Blueprint $table) {
             $table->dropConstrainedForeignId('organization_id');
         });
