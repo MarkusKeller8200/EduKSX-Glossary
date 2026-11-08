@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Passwort-Link (#147):** In der Benutzerverwaltung kann ein Admin einer Person einen Link zum Zurücksetzen des
+  Passworts senden (ohne das Passwort zu sehen, protokolliert); auch für Konten, die sich bisher nur mit Microsoft
+  anmelden.
+
 ### Geändert
 
 - **Kopfzeile (#146):** auf Website und Administration gleich – Titel, Ansicht, Farbschema, angemeldete Person mit

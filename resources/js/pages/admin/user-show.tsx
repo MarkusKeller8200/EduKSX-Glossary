@@ -165,6 +165,20 @@ export default function UserShow({
                                 Sperren
                             </Button>
                         )}
+                        {b.status !== 'blocked' ? (
+                            <Button
+                                variant="outline"
+                                disabled={sending}
+                                onClick={() =>
+                                    aktion(
+                                        'passwort-link',
+                                        'Link zum Zurücksetzen des Passworts an die E-Mail-Adresse des Kontos senden? Das bisherige Passwort bleibt gültig, bis ein neues gesetzt ist.',
+                                    )
+                                }
+                            >
+                                Passwort-Link senden
+                            </Button>
+                        ) : null}
                         {b.zweiter_faktor ? (
                             <Button
                                 variant="outline"

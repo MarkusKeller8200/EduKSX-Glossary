@@ -35,6 +35,7 @@ class UserController extends Controller
         'account.unblocked' => 'Konto entsperrt',
         'mfa.enabled' => 'Zweiter Faktor eingerichtet',
         'mfa.reset' => 'Zweiter Faktor zurückgesetzt',
+        'password.reset_sent' => 'Link zum Zurücksetzen des Passworts gesendet',
         'mfa.recovery_codes' => 'Neue Wiederherstellungscodes',
         'mfa.recovery_used' => 'Wiederherstellungscode verwendet',
         'account.password' => 'Passwort geändert',
@@ -172,6 +173,11 @@ class UserController extends Controller
     public function unblock(Request $request, User $user): RedirectResponse
     {
         return $this->account(fn () => $this->accounts->unblock($this->actor($request), $user), 'Konto entsperrt.');
+    }
+
+    public function sendPasswordReset(Request $request, User $user): RedirectResponse
+    {
+        return $this->account(fn () => $this->accounts->sendPasswordReset($this->actor($request), $user), 'Link zum Zurücksetzen des Passworts gesendet (60 Minuten gültig).');
     }
 
     public function resetTwoFactor(Request $request, User $user): RedirectResponse
