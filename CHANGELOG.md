@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.9.0] – 2026-11-09
+
 ### Neu
 
 - **Datenmodell (#170):** «Für Entwickler» zeigt alle Tabellen mit Spalten, Schlüsseln und Verweisen, ein
