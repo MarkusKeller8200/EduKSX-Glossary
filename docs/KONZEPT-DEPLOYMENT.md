@@ -1,6 +1,6 @@
 # Konzept: Deployment und Installationsarten (DEC-028, Entwurf)
 
-Stand: Entwurf 08.11.2026 zur Abnahme. Baut auf [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md) (DEC-027) und
+Stand: Entwurf 08.11.2026, ergänzt 11.11.2026 (Umgebungen, Operation, Datenschutz) zur Abnahme. Baut auf [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md) (DEC-027) und
 [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (DEC-013) auf; die Plattform-Schnittstellen stehen im Konzept
 EduKSX-Plattform (Repo EduKSX-Architektur). Umsetzung erst nach Freigabe.
 
@@ -21,25 +21,25 @@ eduksx/core ist eine Einstellung, keine Voraussetzung.
 
 ## Grundsätze
 
-| Nr. | Vorschlag                                                                                                                                                                                                                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| D1  | **Einmal bauen, überall gleich ausrollen.** Die CI baut das Image (amd64 und arm64), prüft es (Tests, Schwachstellen-Scan, Stückliste SBOM) und legt es mit festem Digest in die Registry. Vorschau und Produktion erhalten **dasselbe** Image; ausgerollt wird nur noch ein Digest, nie Quellcode.                      |
-| D2  | **Zwei Kanäle.** Jeder Merge auf `main` → Image `main-<sha>` → Vorschau (`vorschau.glossary.eduksx.ch`). Ein Release → Tags `0.10.0`, `0.10`, `latest` (DEC-027 U1) → Produktion und selbst gehostete Instanzen. Produktion übernimmt den Digest, der in der Vorschau geprüft wurde.                                     |
-| D3  | **Konfiguration nur über die Umgebung.** Alles, was sich je Installation unterscheidet, steht in `.env` bzw. Umgebungsvariablen, dokumentiert in `.env.example`. Geheimnisse auch als Datei (`*_FILE`, für Docker/Kubernetes Secrets). Ein Befehl `glossary:pruefen` zeigt fehlende oder widersprüchliche Einstellungen. |
-| D4  | **Bausteine statt Varianten.** Eine Basis-compose-Datei plus Zusätze: eigener Proxy mit Zertifikat, vorhandener Proxy, Update-Dienst, Vorschau. Kein Code je Kunde (DEC-027 U13).                                                                                                                                        |
-| D5  | **Prüfen und zurück.** Nach jedem Ausrollen Prüfung `/up` (läuft) und `/health` (Datenbank, Warteschlange, Speicher, Version stimmt). Schlägt sie fehl, startet das vorherige Image wieder; die Sicherung von unmittelbar davor steht bereit (DEC-027 U6, U7).                                                           |
-| D6  | **Sicherung ausser Haus.** Täglich und vor jedem Update eine verschlüsselte Sicherung (Datenbank und Schlüssel) in einen S3-kompatiblen Speicher (Infomaniak Object Storage, Schul-NAS, MinIO) oder einen lokalen Pfad; Aufbewahrung nach Löschkonzept; Wiederherstellungstest monatlich automatisch.                    |
-| D7  | **Nur ausgehend.** Keine Installation braucht offene Ports ausser HTTPS für die Benutzer. Abgleich, Update-Hinweis, Heartbeat und Anbindung an Ident laufen ausgehend und sind einzeln abschaltbar.                                                                                                                      |
-| D8  | **Gleicher Weg für uns und für Schulen.** Unsere Instanzen nutzen dieselben Bausteine und denselben Update-Dienst wie selbst gehostete. Was bei uns nicht läuft, wird nicht verteilt (DEC-027 U10).                                                                                                                      |
+| Nr. | Vorschlag                                                                                                                                                                                                                                                                                                                                                                                                   |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | **Einmal bauen, überall gleich ausrollen.** Die CI baut das Image (amd64 und arm64), prüft es (Tests, Schwachstellen-Scan, Stückliste SBOM) und legt es mit festem Digest in die Registry. dev, test und prod erhalten **dasselbe** Image; ausgerollt wird nur noch ein Digest, nie Quellcode.                                                                                                              |
+| D2  | **Drei Umgebungen (Entscheid 11.11.2026).** Jeder Merge auf `main` → Image `main-<sha>` → **dev** auf Hostinger (`glossary.markussx.ch`) zum Beta-Test. Ein Release → Tags `0.10.0`, `0.10`, `latest` (DEC-027 U1) → **test** und **prod** auf `prod-01` (Infomaniak) über Komodo im Wartungsfenster, sowie selbst gehostete Instanzen. Alle drei laufen mit demselben Image.                               |
+| D3  | **Konfiguration nur über die Umgebung.** Alles, was sich je Installation unterscheidet, steht in `.env` bzw. Umgebungsvariablen, dokumentiert in `.env.example`. Geheimnisse auch als Datei (`*_FILE`, für Docker/Kubernetes Secrets). Ein Befehl `glossary:pruefen` zeigt fehlende oder widersprüchliche Einstellungen.                                                                                    |
+| D4  | **Bausteine statt Varianten.** Eine Basis-compose-Datei plus Zusätze: eigener Proxy mit Zertifikat, vorhandener Proxy, Update-Dienst, Traefik (dev) bzw. Caddy (test, prod). Kein Code je Kunde (DEC-027 U13).                                                                                                                                                                                              |
+| D5  | **Prüfen und zurück.** Nach jedem Ausrollen Prüfung `/up` (läuft) und `/health` (Datenbank, Warteschlange, Speicher, Version stimmt). Schlägt sie fehl, startet das vorherige Image wieder; die Sicherung von unmittelbar davor steht bereit (DEC-027 U6, U7).                                                                                                                                              |
+| D6  | **Sicherung ausser Haus (Entscheid 11.11.2026).** Täglich und vor jedem Update verschlüsselt (restic bzw. Backrest, Schlüssel nur in 1Password); Ziel **Infomaniak Swiss Backup** (Vorgabe in MarKusSX-Operation) oder ein **S3-kompatibler Speicher** (z. B. Infomaniak Object Storage, Schul-NAS). Nur Ziele in der Schweiz bzw. mit Vertrag zur Auftragsbearbeitung; Wiederherstellungstest automatisch. |
+| D7  | **Nur ausgehend.** Keine Installation braucht offene Ports ausser HTTPS für die Benutzer. Abgleich, Update-Hinweis, Heartbeat und Anbindung an Ident laufen ausgehend und sind einzeln abschaltbar.                                                                                                                                                                                                         |
+| D8  | **Gleicher Weg für uns und für Schulen.** Unsere Instanzen nutzen dieselben Bausteine und denselben Update-Dienst wie selbst gehostete. Was bei uns nicht läuft, wird nicht verteilt (DEC-027 U10).                                                                                                                                                                                                         |
 
 ## Optimierter Ablauf
 
 ```text
 PR ──► ci (Prüfungen) ──► Merge main ──► Image bauen + Scan + SBOM + Signatur ──► ghcr.io/…:main-<sha>
                                                                                    │
-                                     Vorschau: pull Digest ─► Sicherung ─► Start ─► /health ─► ok / zurück
+                                     dev (Hostinger): pull Digest ─► Sicherung ─► Start ─► /health ─► ok / zurück
                                                                                    │
-Release (Tag v0.10.0) ──► gleichen Digest als 0.10.0 / latest markieren ──► Produktion: pull ─► … ─► ok / zurück
+Release (Tag v0.10.0) ──► gleichen Digest als 0.10.0 / latest markieren ──► Komodo: test (Sa) ─► prod (So, nur wenn test grün)
                                                                          └► selbst gehostete Instanzen (Update-Dienst,
                                                                             Ringe und Wartungsfenster nach DEC-027)
 ```
@@ -50,8 +50,37 @@ Release (Tag v0.10.0) ──► gleichen Digest als 0.10.0 / latest markieren �
   Blau/grün (DEC-027 U17) reduziert den Unterbruch weiter.
 - **Nachvollziehbar:** Die Seite «Versionen» und `/health` zeigen Version, Commit und Digest; jedes Ausrollen steht
   im Protokoll (DEC-027 U9).
-- **Sicherer:** Der Deploy-Schlüssel darf nur noch `pull` und Neustart für das Projekt `glossary` ausführen (erzwungener
-  Befehl in `authorized_keys`) statt voller Root-Zugang; später übernimmt der Update-Dienst auch unser Ausrollen.
+- **Sicherer:** Auf `prod-01` gibt es kein Ausrollen aus GitHub per SSH (MarKusSX-Operation E29, SSH nur über VPN);
+  Komodo holt das Image. Nur der Entwicklungsserver auf Hostinger wird weiter aus GitHub per SSH beliefert (unten).
+
+## Umgebungen und Betrieb mit MarKusSX-Operation (Entscheid 11.11.2026)
+
+Unser Betrieb folgt dem Plattform-Konzept im Repo MarKusSX-Operation (Komodo, Caddy, Wartungsfenster, Backrest).
+Das Glossary liefert dafür ein fertiges Image und eine compose-Datei je Proxy.
+
+| Umgebung | Server                                                                | Adresse                   | Ausrollen                                                                                                                                   | Proxy                    | Datenbank                         | Daten                            |
+| -------- | --------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | --------------------------------- | -------------------------------- |
+| **dev**  | Hostinger-VPS (privater Entwicklungsserver, nicht Teil von Operation) | `glossary.markussx.ch`    | jeder Merge: GitHub Actions per SSH, `docker compose pull` und Start (kein Bauen mehr auf dem Server; Bauen aus dem Code bleibt als Ausweg) | Traefik                  | SQLite                            | nur Testdaten, Registrierung aus |
+| **test** | `prod-01` (Infomaniak), eigenes Compose-Projekt                       | `glossary-test.eduksx.ch` | Komodo, Samstag 03:00 (Wartungsfenster)                                                                                                     | Caddy (Netzwerk `proxy`) | wie prod                          | erfundene Daten (Operation E18)  |
+| **prod** | `prod-01` (Infomaniak)                                                | `glossary.eduksx.ch`      | Komodo, Sonntag 03:05, nur wenn test grün                                                                                                   | Caddy                    | SQLite zu Beginn, bald PostgreSQL | echte Daten                      |
+
+- **Infomaniak-Produkt:** VPS Lite und VPS Cloud sind beide zulässig (Rechenzentrum Schweiz). VPS Lite genügt bei
+  wenigen Benutzern (Operation E35); Wechsel auf VPS Cloud oder Public Cloud, wenn Benutzerzahl oder Last steigen.
+  Ob VPS Lite Snapshots bietet (Backup-Tabelle in Operation: wöchentlicher Hoster-Snapshot): ZU PRÜFEN.
+- **Datenbank:** SQLite ist für dev und für den Start von prod zulässig (wenige Benutzer). Die Umstellung auf
+  PostgreSQL (Operation: beschlossen, eigener Stack, später verwaltete Datenbank) folgt bald (#191); bis dahin bleibt
+  die Anwendung mit beiden Datenbanken lauffähig, die CI prüft beide.
+- **Adressen:** `glossary.eduksx.ch` und `glossary-test.eduksx.ch` zeigen auf `prod-01`, `glossary.markussx.ch` auf
+  Hostinger. Damit ändern sich DEC-013 (Hostinger, `glossary.eduksx.ch`) und Operation-Issue #17
+  (`glossary.markussx.ch` auf `prod-01`); beide werden nachgeführt.
+- **Deploy-Schlüssel auf dev – Nachteile:** Wer das Secret in GitHub oder einen Workflow übernimmt, kann auf dem
+  Hostinger-Server Befehle ausführen; heute als `root`, also auch für das Intranet daneben. GitHub (USA) hält damit
+  einen Schlüssel zu einem Server. Gegenmassnahmen: eigener Benutzer `deploy` ohne Passwort und ohne sudo, erzwungener
+  Befehl in `authorized_keys` (nur `pull`/Start für `glossary`), eigener Schlüssel je App, Environment mit Freigabe,
+  keine Geheimnisse von test/prod auf dev. Mitglied der Gruppe `docker` bleibt faktisch Root – darum bleibt dev
+  strikt ohne echte Daten.
+- **Sicherung:** test und prod sichert Backrest von Operation (Volumen, Datenbank-Dump vor dem Backup); die Sicherung
+  vor jedem Update im Container bleibt. Selbst gehostete Instanzen nutzen D6.
 
 ## Betriebsarten
 
@@ -101,13 +130,13 @@ Release (Tag v0.10.0) ──► gleichen Digest als 0.10.0 / latest markieren �
 
 Löst den offenen Punkt «Kriterien und Zeitpunkt für die Prüfung von Infomaniak» in [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md).
 
-| Stufe | Angebot (Infomaniak)                                      | Einsatz                                                                                     |
-| ----- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 1     | **VPS Cloud** (z. B. 2 vCPU, 4 GB), Rechenzentrum Schweiz | Betriebsart A wie heute auf Hostinger: Docker Compose, eigener Proxy, Snapshots des Servers |
-| 1     | **Object Storage** (S3-kompatibel, mit Object Lock)       | Sicherungen ausser Haus (D6), unveränderbar für die Aufbewahrungsfrist                      |
-| 1     | **Mail** (SMTP, `mail.infomaniak.com`)                    | Versand wie in `DEPLOY.md` beschrieben                                                      |
-| 2     | **Public Cloud** mit **Kubernetes-Dienst**, Load Balancer | Betriebsart D und gemeinsamer Betrieb der Plattform (Ident, weitere Module)                 |
-| 2     | **Database Service** (verwaltete Datenbank)               | Datenbankserver für D, sofern der Datenbank-Entscheid passt                                 |
+| Stufe | Angebot (Infomaniak)                                      | Einsatz                                                                                                     |
+| ----- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| 1     | **VPS Lite** oder **VPS Cloud**, Rechenzentrum Schweiz    | `prod-01` mit test und prod (Operation E35, E36); VPS Lite zu Beginn, VPS Cloud bei steigender Benutzerzahl |
+| 1     | **Swiss Backup** oder **Object Storage** (S3-kompatibel)  | Sicherungen ausser Haus (D6), verschlüsselt mit restic                                                      |
+| 1     | **Mail** (SMTP, `mail.infomaniak.com`)                    | Versand wie in `DEPLOY.md` beschrieben                                                                      |
+| 2     | **Public Cloud** mit **Kubernetes-Dienst**, Load Balancer | Betriebsart D und gemeinsamer Betrieb der Plattform (Ident, weitere Module)                                 |
+| 2     | **Database Service** (verwaltete Datenbank)               | Datenbankserver für D, sofern der Datenbank-Entscheid passt                                                 |
 
 - **Umzug** (Stufe 1): neue Instanz aus demselben Image aufsetzen, letzte Sicherung einspielen, Prüfung, DNS in
   Cloudflare umstellen (kurze TTL vorher), alte Instanz eine Woche lesend behalten. Das Intranet bleibt unberührt.
@@ -134,15 +163,36 @@ vorbereitenden Arbeiten stehen in #185–#193.
 - **Reihenfolge beim Ausrollen** mit Plattform: zuerst Ident, dann die Module; Module verkraften eine kurze
   Nichterreichbarkeit von Ident (laufende Sitzungen bleiben gültig, neue Anmeldungen warten mit Hinweis).
 
+## Datenschutz-Prüfung (11.11.2026)
+
+Geprüft gegen [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md), [LOESCHKONZEPT.md](LOESCHKONZEPT.md),
+[KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (DEC-019) und das Compliance-Konzept von MarKusSX-Operation.
+
+| Nr. | Punkt                                            | Bewertung                                                                                                                                 | Massnahme                                                                                                                                                                              |
+| --- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | Echte Daten nur in der Schweiz                   | erfüllt für prod und Backups (Infomaniak, Swiss Backup)                                                                                   | dev auf Hostinger nur mit Testdaten: Registrierung aus (`MAIL_MAILER=log`), keine Kopie aus prod, Zugang zur Seite für Fremde sperren oder `noindex`                                   |
+| P2  | Serverlogs höchstens 14 Tage (Löschkonzept)      | **Konflikt:** Vector schickt alle Container-Ausgaben an VictoriaLogs, Aufbewahrung dort 90 Tage; Zugriffsprotokolle enthalten IP-Adressen | Frist für das Glossary in Operation auf 14 Tage setzen oder IP-Adressen vor dem Versand kürzen (Vector) – Entscheid nötig                                                              |
+| P3  | Sicherungen ausser Haus [30 Tage] (Löschkonzept) | **Konflikt:** Operation bewahrt 7 täglich, 4 wöchentlich, 6 monatlich auf; gelöschte Konten bleiben bis 6 Monate in Sicherungen           | Frist im Löschkonzept und in der Datenschutzerklärung auf 6 Monate anpassen (mit Regel «nach Wiederherstellung Löschfristen anwenden») oder für das Glossary kürzer – Entscheid nötig  |
+| P4  | Auftragsbearbeiter dokumentiert                  | Datenschutzerklärung nennt Hostinger als Hosting von Konten und Datenbank                                                                 | auf Infomaniak (Server, Swiss Backup, Mail) ändern; Hostinger nur noch dev ohne Personendaten; Vertrag mit Infomaniak ist in Operation noch OFFEN – vor der Registrierung abschliessen |
+| P5  | Cloudflare                                       | Operation E31: Apps mit Personendaten nur DNS (graue Wolke)                                                                               | keine Cloudflare-Cookies und kein Turnstile auf prod, solange nicht geklärt; Cookie-Tabelle anpassen                                                                                   |
+| P6  | Zugangsdaten bei GitHub                          | nur dev-Schlüssel, keine Zugangsdaten zu prod (Operation E29)                                                                             | Gegenmassnahmen beim Deploy-Schlüssel (oben)                                                                                                                                           |
+| P7  | S3-Ziele                                         | zulässig mit Verschlüsselung beim Absender und Vertrag                                                                                    | nur Anbieter in der Schweiz oder mit gleichwertigem Schutz und AVV; Schlüssel nur in 1Password                                                                                         |
+| P8  | SQLite im Betrieb                                | unkritisch (Datei im Volumen, nur der App-Container hat Zugriff, in der Sicherung enthalten)                                              | beim Wechsel zu PostgreSQL: Verbindung nur im internen Netz, eigener Benutzer je App                                                                                                   |
+
+Ergebnis: Die Entscheide verletzen keine Datenschutzziele, wenn P1 (dev ohne echte Daten) eingehalten wird. P2 und
+P3 sind Widersprüche zwischen Löschkonzept und Operation und müssen vor dem Betrieb mit echten Konten entschieden
+werden; P4 und P5 sind Nachführungen der Datenschutzerklärung.
+
 ## Offene Fragen (Entscheid durch die Projektverantwortliche Person)
 
-1. Vorschau-Instanz aus `main` einführen und Produktion nur noch aus Releases (deckt sich mit DEC-027, Frage 3)?
-2. Zeitpunkt für Infomaniak Stufe 1: jetzt als Testinstanz, oder erst vor der Freischaltung der Community-Konten?
-3. Datenbank für «verteilt»: MySQL/MariaDB (passt zum Angebot von Infomaniak) oder PostgreSQL (#191) – oder
-   verteilt vorerst gar nicht anbieten und SQLite beibehalten?
+1. ~~Vorschau aus `main`~~ – entschieden 11.11.2026: dev auf Hostinger aus jedem Merge, test/prod nur aus Releases.
+2. ~~Zeitpunkt Infomaniak~~ – entschieden 11.11.2026: `prod-01` nach MarKusSX-Operation, VPS Lite oder VPS Cloud.
+3. ~~Datenbank~~ – entschieden 11.11.2026: SQLite für dev und zu Beginn in prod, bald PostgreSQL (#191).
 4. Proxy für Einzelinstallationen (B, C): Caddy als einfacher Standard, Traefik nur für vorhandene Installationen?
 5. Offline-Paket (C ohne Internet) von Beginn an oder erst auf Nachfrage einer Schule?
 6. Welche Betriebssysteme sichern wir für die Selbstinstallation zu?
+7. Logfrist für das Glossary in VictoriaLogs (P2): 14 Tage oder IP-Adressen kürzen?
+8. Frist der Sicherungen (P3): 6 Monate wie Operation übernehmen oder kürzer für das Glossary?
 
 ## Issues (Meilenstein «0.10.0 – Selbst hosten und Updates»)
 
