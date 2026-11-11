@@ -199,12 +199,13 @@ gewollt, Traefik verteilt nach Namen.
 
 ### 6. GitHub
 
-| Repo            | Wo                                          | Eintrag                                                                                                                            |
-| --------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| EduKSX-Glossary | Settings → Environments → **dev** → Secrets | Secret `VPS_SSH_KEY` = Inhalt von `/root/glossary-deploy-neu` (`cat …`)                                                            |
-| EduKSX-Glossary | Environment **dev** → Variables             | `VPS_HOST=76.13.156.138`, `VPS_USER=deploy`, `GLOSSARY_HOST=glossary.markussx.ch`, `DEPLOY_ENABLED=true`; Secret `VPS_KNOWN_HOSTS` |
-| sek-intranet    | Settings → Environments → **production**    | Secret `VPS_SSH_KEY` = Inhalt von `/root/intranet-deploy-neu`                                                                      |
-| sek-intranet    | Environment **production** → Variables      | `VPS_USER=deploy`                                                                                                                  |
+| Repo            | Wo                                                                      | Eintrag                                                                                                     |
+| --------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| EduKSX-Glossary | Settings → Environments → **dev** → Secrets                             | Secret `VPS_SSH_KEY` = Inhalt von `/root/glossary-deploy-neu` (`cat …`)                                     |
+| EduKSX-Glossary | Environment **dev** → Variables                                         | `VPS_HOST=76.13.156.138`, `VPS_USER=deploy`, `GLOSSARY_HOST=glossary.markussx.ch`; Secret `VPS_KNOWN_HOSTS` |
+| EduKSX-Glossary | Settings → Secrets and variables → Actions → **Variables** (Repository) | `DEPLOY_ENABLED=true` – muss auf Ebene Repository stehen, weil der Workflow sie vor dem Environment prüft   |
+| sek-intranet    | Settings → Environments → **production**                                | Secret `VPS_SSH_KEY` = Inhalt von `/root/intranet-deploy-neu`                                               |
+| sek-intranet    | Environment **production** → Variables                                  | `VPS_USER=deploy`                                                                                           |
 
 `VPS_KNOWN_HOSTS` und `VPS_HOST` bleiben unverändert.
 
