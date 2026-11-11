@@ -53,6 +53,8 @@ Wir verwenden nur technisch notwendige Cookies und speichern vom Besucher selbst
 | `appearance`              | Cookie und Browser     | Einstellung hell/dunkel/System                                                                            | 1 Jahr                                            | Glossary   |
 | `view-width`              | Browser (localStorage) | Ansicht Mobil/Desktop schmal/ganze Breite (#76)                                                           | bis zum Löschen im Browser                        | Glossary   |
 | `cookie-notice`           | Browser (localStorage) | Hinweis zu Cookies gelesen (mit Fassung)                                                                  | bis zum Löschen im Browser                        | Glossary   |
+| `glossary.ansicht`        | Browser (localStorage) | gewählte Ansicht der Begriffe (Balken, Tabelle, Kacheln)                                                  | bis zum Löschen im Browser                        | Glossary   |
+| `glossary.grid.…`         | Browser (localStorage) | Spaltenbreiten und Sortierung von Tabellen                                                                | bis zum Löschen im Browser                        | Glossary   |
 | Turnstile                 | Cookie/Speicher        | Schutz der Registrierung, nur auf `/registrieren`, **nur falls eingeschaltet** (derzeit nicht vorgesehen) | [prüfen]                                          | Cloudflare |
 
 Die Lesefassung auf GitHub Pages setzt selbst keine Cookies.

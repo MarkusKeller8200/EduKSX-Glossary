@@ -1,8 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
+import { LayoutGrid, List, Table2 } from 'lucide-react';
 import { useMemo, useState, lazy, Suspense } from 'react';
+import DataGrid from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
 import LabelFilter from '@/components/label-filter';
+import TermCard from '@/components/term-card';
 import { Input } from '@/components/ui/input';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
 
@@ -19,8 +23,30 @@ type Begriff = {
     kategorien: string[];
     herkunft: string[];
     status: string;
+    code: string;
+    beschreibung: string;
+    url: string;
+    aliase: string[];
+    schreibweisen: string[];
+    gueltigAb: string | null;
+    gueltigBis: string | null;
+    suchbegriffe: string;
     suche: string;
 };
+
+/** Ansicht der Liste (#213): Balken (Vorgabe), Tabelle oder Kacheln; im Browser gemerkt */
+type Ansicht = 'balken' | 'tabelle' | 'kacheln';
+const ANSICHT_KEY = 'glossary.ansicht';
+
+function gespeicherteAnsicht(): Ansicht {
+    try {
+        const v = window.localStorage.getItem(ANSICHT_KEY);
+
+        return v === 'tabelle' || v === 'kacheln' ? v : 'balken';
+    } catch {
+        return 'balken';
+    }
+}
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -44,6 +70,15 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     // Filter Kategorie und Herkunft, Mehrfachauswahl (#145)
     const [gewaehlt, setGewaehlt] = useState<string[]>([]);
     const [herkunft, setHerkunft] = useState<string[]>([]);
+    const [ansicht, setAnsichtState] = useState<Ansicht>(gespeicherteAnsicht);
+    const setAnsicht = (v: Ansicht) => {
+        setAnsichtState(v);
+        try {
+            window.localStorage.setItem(ANSICHT_KEY, v);
+        } catch {
+            // ohne Speicher: gilt bis zum Neuladen
+        }
+    };
 
     const kategorien = useMemo(
         () =>
@@ -155,54 +190,177 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 />
             </div>
 
-            <p
-                className="mt-6 text-sm text-muted-foreground"
-                aria-live="polite"
-            >
-                {liste.length === 1 ? '1 Begriff' : `${liste.length} Begriffe`}
-                {liste.length !== begriffe.length
-                    ? ` von ${begriffe.length}`
-                    : ''}
-            </p>
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground" aria-live="polite">
+                    {liste.length === 1
+                        ? '1 Begriff'
+                        : `${liste.length} Begriffe`}
+                    {liste.length !== begriffe.length
+                        ? ` von ${begriffe.length}`
+                        : ''}
+                </p>
+                <ToggleGroup
+                    type="single"
+                    variant="outline"
+                    size="sm"
+                    value={ansicht}
+                    onValueChange={(v) => v && setAnsicht(v as Ansicht)}
+                    aria-label="Ansicht"
+                >
+                    <ToggleGroupItem
+                        value="balken"
+                        aria-label="Balken"
+                        title="Balken"
+                    >
+                        <List aria-hidden />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                        value="tabelle"
+                        aria-label="Tabelle"
+                        title="Tabelle"
+                    >
+                        <Table2 aria-hidden />
+                    </ToggleGroupItem>
+                    <ToggleGroupItem
+                        value="kacheln"
+                        aria-label="Kacheln"
+                        title="Kacheln"
+                    >
+                        <LayoutGrid aria-hidden />
+                    </ToggleGroupItem>
+                </ToggleGroup>
+            </div>
 
-            <ul className="mt-2 divide-y divide-border border-y border-border">
-                {liste.map((b) => (
-                    <li key={b.slug}>
-                        <Link
-                            href={`/begriffe/${b.slug}`}
-                            className="block px-1 py-3 hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                        >
-                            <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                {b.abkuerzung ? (
-                                    <span
-                                        className="font-semibold"
-                                        translate="no"
-                                    >
-                                        {b.abkuerzung}
+            {ansicht === 'balken' ? (
+                <ul className="mt-2 divide-y divide-border border-y border-border">
+                    {liste.map((b) => (
+                        <li key={b.slug}>
+                            <Link
+                                href={`/begriffe/${b.slug}`}
+                                className="block px-1 py-3 hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                            >
+                                <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                                    {b.abkuerzung ? (
+                                        <span
+                                            className="font-semibold"
+                                            translate="no"
+                                        >
+                                            {b.abkuerzung}
+                                        </span>
+                                    ) : null}
+                                    <span translate="no">{b.bezeichnung}</span>
+                                    <ListBadges
+                                        list="herkunft"
+                                        labels={b.herkunft}
+                                    />
+                                    <ListBadges
+                                        list="kategorien"
+                                        labels={b.kategorien}
+                                    />
+                                    {b.status !== 'aktuell' ? (
+                                        <StatusBadge status={b.status} />
+                                    ) : null}
+                                </span>
+                                {b.kurz ? (
+                                    <span className="mt-1 block text-sm text-muted-foreground">
+                                        {b.kurz}
                                     </span>
                                 ) : null}
-                                <span translate="no">{b.bezeichnung}</span>
-                                <ListBadges
-                                    list="herkunft"
-                                    labels={b.herkunft}
-                                />
-                                <ListBadges
-                                    list="kategorien"
-                                    labels={b.kategorien}
-                                />
-                                {b.status !== 'aktuell' ? (
-                                    <StatusBadge status={b.status} />
-                                ) : null}
-                            </span>
-                            {b.kurz ? (
-                                <span className="mt-1 block text-sm text-muted-foreground">
-                                    {b.kurz}
-                                </span>
-                            ) : null}
-                        </Link>
-                    </li>
-                ))}
-            </ul>
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            ) : ansicht === 'kacheln' ? (
+                <ul className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {liste.map((b) => (
+                        <li
+                            key={b.slug}
+                            className="rounded-lg border border-border bg-card p-3"
+                        >
+                            <TermCard
+                                begriff={b}
+                                href={`/begriffe/${b.slug}`}
+                                oeffentlich
+                            />
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <div className="mt-2">
+                    {/* Tabelle ohne Funktionen (#213): keine Auswahl, keine Aktionen, nur Sortieren */}
+                    <DataGrid
+                        id="public.begriffe"
+                        caption="Begriffe"
+                        rows={liste}
+                        getRowId={(b: Begriff) => b.slug}
+                        columns={[
+                            {
+                                id: 'abkuerzung',
+                                header: 'Abkürzung',
+                                width: 130,
+                                sticky: 'left',
+                                noTranslate: true,
+                                sortValue: (b) => b.abkuerzung,
+                                cell: (b) => (
+                                    <Link
+                                        href={`/begriffe/${b.slug}`}
+                                        className="font-semibold text-link underline-offset-4 hover:underline"
+                                    >
+                                        {b.abkuerzung || '–'}
+                                    </Link>
+                                ),
+                            },
+                            {
+                                id: 'bezeichnung',
+                                header: 'Bezeichnung',
+                                width: 240,
+                                noTranslate: true,
+                                sortValue: (b) => b.bezeichnung,
+                                cell: (b) => b.bezeichnung,
+                            },
+                            {
+                                id: 'kurz',
+                                header: 'Kurzbeschreibung',
+                                width: 360,
+                                noTranslate: true,
+                                sortValue: (b) => b.kurz,
+                                cell: (b) => b.kurz,
+                            },
+                            {
+                                id: 'herkunft',
+                                header: 'Herkunft',
+                                width: 150,
+                                sortValue: (b) => b.herkunft.join(', '),
+                                cell: (b) => (
+                                    <ListBadges
+                                        list="herkunft"
+                                        labels={b.herkunft}
+                                    />
+                                ),
+                            },
+                            {
+                                id: 'kategorien',
+                                header: 'Kategorien',
+                                width: 150,
+                                sortValue: (b) => b.kategorien.join(', '),
+                                cell: (b) => (
+                                    <ListBadges
+                                        list="kategorien"
+                                        labels={b.kategorien}
+                                    />
+                                ),
+                            },
+                            {
+                                id: 'status',
+                                header: 'Status',
+                                width: 110,
+                                sortValue: (b) => b.status,
+                                cell: (b) => <StatusBadge status={b.status} />,
+                            },
+                        ]}
+                    />
+                </div>
+            )}
 
             {begriffe.length === 0 ? (
                 <p className="mt-6 text-muted-foreground">
