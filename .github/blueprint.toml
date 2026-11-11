@@ -4,13 +4,13 @@
 
 [projekt]
 name = "EduKSX-Glossary"                       # voller Name, z. B. «SekBülach Intranet»
-kurz = "Glossar"                            # kurzer Name für Release-Titel («Projekt 0.2.0»)
+kurz = "Glossary"                           # kurzer Name für Release-Titel («Projekt 0.2.0»)
 verantwortlich = "Projektverantwortliche:r"  # wer freigibt (Rolle, kein Name nötig)
 sicherheit_kontakt = "direkt an den Eigentümer dieses Repositorys (E-Mail oder Teams)"
 # Datenschutz-Hinweis in allen Issue-Vorlagen; leer = kein Hinweis
 datenschutz = "Keine echten Personendaten, Zugangsdaten oder Bildschirmfotos mit Personendaten anhängen."
 # Wo sieht man die Version? (für «Fehler melden»)
-version_ort = "im Fuss der Glossar-Website"
+version_ort = "im Fuss der Glossary-Website"
 # Befehl, der vor jedem Commit alle Prüfungen ausführt (für PR-Vorlage und CONTRIBUTING)
 pruefbefehl = "composer ci:check"
 # Zusätzliche Punkte für die Checkliste der PR-Vorlage, z. B. ["Nur erfundene Testdaten"]
