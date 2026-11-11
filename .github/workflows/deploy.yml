@@ -30,7 +30,7 @@ jobs:
       group: deploy-glossary
       cancel-in-progress: false
     environment:
-      name: produktion
+      name: dev   # Hostinger-Entwicklungsserver (#209); test/prod laufen über MarKusSX-Operation
       url: https://${{ vars.GLOSSARY_HOST || 'glossary.eduksx.ch' }}
     env:
       HOST: ${{ vars.VPS_HOST }}
