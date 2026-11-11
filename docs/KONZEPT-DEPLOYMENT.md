@@ -180,8 +180,8 @@ Geprüft gegen [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md), [LOESCHKONZEPT.
 | P8  | SQLite im Betrieb                                | unkritisch (Datei im Volumen, nur der App-Container hat Zugriff, in der Sicherung enthalten)                                              | beim Wechsel zu PostgreSQL: Verbindung nur im internen Netz, eigener Benutzer je App                                                                                                   |
 
 Ergebnis: Die Entscheide verletzen keine Datenschutzziele, wenn P1 (dev ohne echte Daten) eingehalten wird. P2 und
-P3 sind Widersprüche zwischen Löschkonzept und Operation und müssen vor dem Betrieb mit echten Konten entschieden
-werden; P4 und P5 sind Nachführungen der Datenschutzerklärung.
+P3 entschieden am 11.11.2026 nach Löschkonzept (Logs 14 Tage, Sicherungen 30 Tage); die Umsetzung liegt in
+MarKusSX-Operation. P4 und P5 sind in der Datenschutzerklärung nachgeführt (#207, PR #208).
 
 ## Offene Fragen (Entscheid durch die Projektverantwortliche Person)
 
@@ -191,8 +191,8 @@ werden; P4 und P5 sind Nachführungen der Datenschutzerklärung.
 4. Proxy für Einzelinstallationen (B, C): Caddy als einfacher Standard, Traefik nur für vorhandene Installationen?
 5. Offline-Paket (C ohne Internet) von Beginn an oder erst auf Nachfrage einer Schule?
 6. Welche Betriebssysteme sichern wir für die Selbstinstallation zu?
-7. Logfrist für das Glossary in VictoriaLogs (P2): 14 Tage oder IP-Adressen kürzen?
-8. Frist der Sicherungen (P3): 6 Monate wie Operation übernehmen oder kürzer für das Glossary?
+7. ~~Logfrist (P2)~~ – entschieden 11.11.2026: wie im Löschkonzept, 14 Tage, auch in der zentralen Protokollierung.
+8. ~~Frist der Sicherungen (P3)~~ – entschieden 11.11.2026: wie im Löschkonzept, 30 Tage (eigener Backrest-Plan).
 
 ## Issues (Meilenstein «0.10.0 – Selbst hosten und Updates»)
 
