@@ -148,3 +148,80 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
 - Vor jedem Start sichert der Container die SQLite-Datei nach `storage/app/backups` (die letzten 10). Eine Sicherung
   ausser Haus folgt (offener Punkt im Hosting-Konzept).
 - Daten liegen im Volumen `glossary_glossary-storage`; es bleibt bei jedem Deployment erhalten.
+
+## dev auf Hostinger mit Benutzer `deploy` (#209)
+
+Hostinger ist der Entwicklungsserver (dev) unter `glossary.markussx.ch`; test und prod laufen später auf `prod-01`
+(docs/KONZEPT-DEPLOYMENT.md). Ausgerollt wird nicht mehr als root, sondern als Benutzer `deploy` mit einem eigenen
+Schlüssel je App. Gilt gleich für das Intranet auf demselben Server. Auf dev liegen **keine echten Konten** (nur Admin,
+Registrierung aus).
+
+### 1. Benutzer `deploy` anlegen (hPanel → VPS → Browser-Terminal, als root)
+
+```bash
+id deploy >/dev/null 2>&1 || useradd --create-home --shell /bin/bash deploy
+passwd -l deploy                                   # kein Passwort, nur Schlüssel
+usermod -aG docker deploy                          # darf Docker bedienen (faktisch Root, darum nur Testdaten)
+install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
+```
+
+### 2. Je App einen Schlüssel erzeugen und für `deploy` eintragen
+
+```bash
+for app in glossary intranet; do
+  ssh-keygen -t ed25519 -N "" -C "github-deploy-$app-deploy" -f "/root/$app-deploy-neu"
+  printf 'no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty %s\n' \
+    "$(cat /root/$app-deploy-neu.pub)" >> /home/deploy/.ssh/authorized_keys
+done
+chown deploy:deploy /home/deploy/.ssh/authorized_keys
+chmod 600 /home/deploy/.ssh/authorized_keys
+```
+
+### 3. Ordner an `deploy` übergeben
+
+```bash
+chown -R deploy:deploy /docker/glossary /docker/intranet
+chmod 600 /docker/glossary/.env /docker/intranet/.env
+su - deploy -c 'docker ps --format "{{.Names}}"'   # muss die Container auflisten
+```
+
+### 4. Adresse und Registrierung im Glossary
+
+```bash
+sed -i 's/^GLOSSARY_HOST=.*/GLOSSARY_HOST=glossary.markussx.ch/' /docker/glossary/.env
+grep '^MAIL_MAILER' /docker/glossary/.env           # leer oder «log» = Registrierung aus
+```
+
+### 5. DNS (Cloudflare bzw. DNS von markussx.ch)
+
+`A glossary → 76.13.156.138`, **nur DNS** (graue Wolke). `intranet.markussx.ch` zeigt auf dieselbe IP – das ist
+gewollt, Traefik verteilt nach Namen.
+
+### 6. GitHub
+
+| Repo            | Wo                                         | Eintrag                                                                 |
+| --------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| EduKSX-Glossary | Settings → Secrets and variables → Actions | Secret `VPS_SSH_KEY` = Inhalt von `/root/glossary-deploy-neu` (`cat …`) |
+| EduKSX-Glossary | Variables                                  | `VPS_USER=deploy`, `GLOSSARY_HOST=glossary.markussx.ch`                 |
+| sek-intranet    | Settings → Environments → **production**   | Secret `VPS_SSH_KEY` = Inhalt von `/root/intranet-deploy-neu`           |
+| sek-intranet    | Environment **production** → Variables     | `VPS_USER=deploy`                                                       |
+
+`VPS_KNOWN_HOSTS` und `VPS_HOST` bleiben unverändert.
+
+### 7. Ausrollen und prüfen
+
+Actions → **deploy** → Run workflow, in beiden Repos. Danach:
+
+- `https://glossary.markussx.ch/up` und `https://intranet.markussx.ch/up` antworten
+- im Protokoll des Workflows steht keine Fehlermeldung zu Rechten (`Permission denied`)
+
+### 8. Aufräumen (erst wenn Schritt 7 in beiden Repos grün ist)
+
+```bash
+shred -u /root/glossary-deploy-neu /root/intranet-deploy-neu        # private Schlüssel nur noch in GitHub
+grep -n 'github-deploy' /root/.ssh/authorized_keys                  # alte root-Schlüssel anzeigen
+sed -i '/github-deploy-glossary$/d;/github-deploy-intranet$/d' /root/.ssh/authorized_keys
+```
+
+Schlägt etwas fehl: Variable `VPS_USER` in GitHub löschen – dann rollt der Workflow wieder als root aus, solange
+die alten Schlüssel noch eingetragen sind (darum Schritt 8 zuletzt).

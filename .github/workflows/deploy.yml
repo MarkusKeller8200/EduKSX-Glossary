@@ -34,6 +34,8 @@ jobs:
       url: https://${{ vars.GLOSSARY_HOST || 'glossary.eduksx.ch' }}
     env:
       HOST: ${{ vars.VPS_HOST }}
+      # Benutzer auf dem Server (#209): «deploy» statt root, Einrichtung in DEPLOY.md
+      VPS_USER: ${{ vars.VPS_USER || 'root' }}
       GLOSSARY_HOST: ${{ vars.GLOSSARY_HOST || 'glossary.eduksx.ch' }}
       TARGET: /docker/glossary
     steps:
@@ -54,7 +56,7 @@ jobs:
           printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          printf 'Host vps\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/id_deploy\n  IdentitiesOnly yes\n' "$HOST" > ~/.ssh/config
+          printf 'Host vps\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/id_deploy\n  IdentitiesOnly yes\n' "$HOST" "$VPS_USER" > ~/.ssh/config
 
       - name: Quellcode übertragen
         run: |
@@ -64,7 +66,8 @@ jobs:
 
       - name: Bauen und starten
         run: |
-          ssh vps "cd $TARGET && touch .env && grep -q '^GLOSSARY_HOST=' .env || echo 'GLOSSARY_HOST=$GLOSSARY_HOST' >> .env"
+          # Adresse bei jedem Deploy aus der Variable GLOSSARY_HOST (#209)
+          ssh vps "cd $TARGET && touch .env && chmod 600 .env && sed -i '/^GLOSSARY_HOST=/d' .env && echo 'GLOSSARY_HOST=$GLOSSARY_HOST' >> .env"
           describe="$(git describe --tags --long --match 'v[0-9]*' 2>/dev/null || true)"
           ssh vps "cd $TARGET && sed -i '/^GLOSSARY_BUILD/d' .env && echo 'GLOSSARY_BUILD=${GITHUB_SHA::7}' >> .env && echo 'GLOSSARY_BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)' >> .env && echo 'GLOSSARY_BUILD_DESCRIBE=$describe' >> .env"
           ssh vps "cd $TARGET && docker compose up -d --build --remove-orphans && docker image prune -f"
