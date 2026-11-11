@@ -11,6 +11,7 @@ import DataGrid, { type GridSort } from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
 import IconAction from '@/components/icon-action';
 import LabelFilter from '@/components/label-filter';
+import TermCard, { type TermCardData } from '@/components/term-card';
 import ViewMenu, { type ViewLayout } from '@/components/view-menu';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,21 +23,7 @@ const GlossaryPdfDialog = lazy(
     () => import('@/components/glossary-pdf-dialog'),
 );
 
-type Begriff = {
-    id: string;
-    abkuerzung: string;
-    bezeichnung: string;
-    kurz: string;
-    kategorien: string[];
-    herkunft: string[];
-    status: string;
-    aktiv: boolean;
-    revision: number;
-    veroeffentlicht: number | null;
-    entwurf: boolean;
-    angelegt: string | null;
-    geaendert: string | null;
-};
+type Begriff = TermCardData;
 
 type Feld = 'official_abbreviation' | 'official_name' | 'short_description';
 type Gruppierung =
@@ -321,7 +308,8 @@ export default function Terms({
                     onSortChange={(sort) => aendern({ sort })}
                     layout={ansicht.layout}
                     resetToken={resetToken}
-                    renderCard={(b) => <Kachel begriff={b} />}
+                    renderCard={(b) => <TermCard begriff={b} />}
+                    renderBar={(b) => <Balken begriff={b} />}
                     onVisibleRows={(rows) =>
                         setSichtbar([...new Set(rows.map((b) => b.id))])
                     }
@@ -537,7 +525,10 @@ function ladeAnsicht(): Ansicht {
         ) as Partial<Ansicht>;
 
         return {
-            layout: saved.layout === 'cards' ? 'cards' : 'table',
+            layout:
+                saved.layout === 'cards' || saved.layout === 'bars'
+                    ? saved.layout
+                    : 'table',
             gruppierung:
                 saved.gruppierung && saved.gruppierung in GRUPPEN
                     ? saved.gruppierung
@@ -566,7 +557,8 @@ function labelsAus(labels: string[]): string[] {
 }
 
 /** Kachel der Begriffstabelle (#143). */
-function Kachel({ begriff: b }: { begriff: Begriff }) {
+/** Balken (#205): kompakt, eine Zeile je Begriff – die frühere Kachel (#143). */
+function Balken({ begriff: b }: { begriff: Begriff }) {
     return (
         <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">

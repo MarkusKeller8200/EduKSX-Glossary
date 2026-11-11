@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Ansichten der Begriffe (#205):** drei Darstellungen in der Administration: Tabelle, Balken (eine Zeile je
+  Begriff) und Kacheln mit allen Werten (Herkunft und Kategorien, Kurzbeschreibung, Beschreibung und Notiz gekürzt,
+  Aliase, Schreibweisen, Suchbegriffe, Gültigkeit, Daten, Permalink und Quelle), bis drei nebeneinander.
 - **Datenschutzerklärung und Löschkonzept (#207):** Betrieb bei Infomaniak in der Schweiz (Server, verschlüsselte
   Sicherungen, Mail-Versand); Cloudflare nur für DNS, ohne Cloudflare-Cookies; Fristen festgelegt: Serverlogs 14 Tage,
   Sicherungen 30 Tage.

@@ -49,7 +49,7 @@ class TermController extends Controller
 
     public function index(): Response
     {
-        $terms = Term::query()->current()->with(['categories', 'sources', 'publishedRevision', 'latestRevision'])->get()
+        $terms = Term::query()->current()->with(['categories', 'sources', 'aliases', 'publishedRevision', 'latestRevision'])->get()
             ->sortBy(fn (Term $t): string => mb_strtolower($t->displayAbbreviation() ?: $t->displayName()))
             ->values()
             ->map(fn (Term $t): array => [
@@ -57,6 +57,16 @@ class TermController extends Controller
                 'abkuerzung' => $t->displayAbbreviation(),
                 'bezeichnung' => $t->displayName(),
                 'kurz' => (string) $t->short_description,
+                // Kachel mit allen Werten (#205)
+                'code' => (string) $t->code,
+                'beschreibung' => (string) $t->description,
+                'notiz' => (string) $t->note,
+                'url' => (string) $t->url,
+                'aliase' => $t->aliases->where('alias_type', 'official')->pluck('alias')->map(fn ($a): string => (string) $a)->values()->all(),
+                'schreibweisen' => $t->aliases->where('alias_type', 'alternative')->pluck('alias')->map(fn ($a): string => (string) $a)->values()->all(),
+                'suchbegriffe' => (string) $t->search_terms,
+                'gueltigAb' => $t->valid_from?->toDateString(),
+                'gueltigBis' => $t->valid_until?->toDateString(),
                 'kategorien' => $t->categories->map(fn (Category $c): string => $c->displayLabel())->all(),
                 'herkunft' => $t->sources->map(fn (Source $c): string => $c->displayLabel())->values()->all(),
                 'status' => Term::STATUS[$t->lifecycle_status] ?? $t->lifecycle_status,
