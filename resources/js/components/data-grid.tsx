@@ -109,6 +109,7 @@ export default function DataGrid<T>({
     onSortChange,
     layout = 'table',
     renderCard,
+    renderBar,
     resetToken = 0,
 }: {
     /** Schlüssel zum Merken von Breiten und Sortierung */
@@ -127,9 +128,10 @@ export default function DataGrid<T>({
     /** Sortierung von aussen (#143), z. B. aus einem Ansichtsmenü; ohne Angabe verwaltet die Tabelle sie selbst */
     sort?: Sort;
     onSortChange?: (sort: Sort) => void;
-    /** «table» (Vorgabe) oder «cards» (Kacheln mit `renderCard`) */
-    layout?: 'table' | 'cards';
+    /** «table» (Vorgabe), «bars» (eine Zeile je Eintrag mit `renderBar`) oder «cards» (Kacheln mit `renderCard`) */
+    layout?: 'table' | 'bars' | 'cards';
     renderCard?: (row: T) => ReactNode;
+    renderBar?: (row: T) => ReactNode;
     /** bei Änderung: gespeicherte Breiten verwerfen und nach Inhalt neu messen («Ansicht zurücksetzen») */
     resetToken?: number;
 }) {
@@ -328,8 +330,14 @@ export default function DataGrid<T>({
               )
             : '';
 
-    // Kachelansicht (#143): gleiche Gruppen, Sortierung und Zeilen wie die Tabelle
-    if (layout === 'cards' && renderCard) {
+    // Balken und Kacheln (#143, #205): gleiche Gruppen, Sortierung und Zeilen wie die Tabelle
+    const renderItem =
+        layout === 'cards'
+            ? renderCard
+            : layout === 'bars'
+              ? renderBar
+              : undefined;
+    if (renderItem) {
         return (
             <div ref={wrapper} className="grid gap-4">
                 {caption ? <h2 className="sr-only">{caption}</h2> : null}
@@ -343,13 +351,20 @@ export default function DataGrid<T>({
                                 </span>
                             </h3>
                         ) : null}
-                        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        <ul
+                            className={cn(
+                                'grid',
+                                layout === 'cards'
+                                    ? 'gap-3 sm:grid-cols-2 xl:grid-cols-3'
+                                    : 'gap-2',
+                            )}
+                        >
                             {g.rows.map((r) => (
                                 <li
                                     key={`${g.key}-${getRowId(r)}`}
                                     className="rounded-lg border border-border bg-card p-3"
                                 >
-                                    {renderCard(r)}
+                                    {renderItem(r)}
                                 </li>
                             ))}
                         </ul>

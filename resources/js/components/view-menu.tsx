@@ -12,10 +12,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export type ViewLayout = 'table' | 'cards';
+export type ViewLayout = 'table' | 'bars' | 'cards';
 
 /**
- * Ein Bedienelement für Darstellung (Tabelle/Kacheln), Gruppierung und Sortierung mit «Ansicht zurücksetzen»
+ * Ein Bedienelement für Darstellung (Tabelle/Balken/Kacheln), Gruppierung und Sortierung mit «Ansicht zurücksetzen»
  * (#143, nach dem Glossar im Intranet, dort als einzelne Menüs). Zeigt im Knopf, was von der Vorgabe abweicht.
  */
 export default function ViewMenu({
@@ -45,7 +45,7 @@ export default function ViewMenu({
     const groupLabel = groups.find((g) => g.value === group)?.label;
     const sortLabel = sorts.find((s) => s.id === sort?.id)?.label;
     const summary = [
-        layout === 'cards' ? 'Kacheln' : null,
+        layout === 'cards' ? 'Kacheln' : layout === 'bars' ? 'Balken' : null,
         group ? `gruppiert: ${groupLabel}` : null,
         sortLabel ? `${sortLabel} ${sort?.desc ? '↓' : '↑'}` : null,
     ]
@@ -80,6 +80,9 @@ export default function ViewMenu({
                 >
                     <DropdownMenuRadioItem value="table">
                         Tabelle
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="bars">
+                        Balken
                     </DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="cards">
                         Kacheln

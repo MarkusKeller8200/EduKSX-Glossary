@@ -309,6 +309,7 @@ export default function Terms({
                     layout={ansicht.layout}
                     resetToken={resetToken}
                     renderCard={(b) => <TermCard begriff={b} />}
+                    renderBar={(b) => <Balken begriff={b} />}
                     onVisibleRows={(rows) =>
                         setSichtbar([...new Set(rows.map((b) => b.id))])
                     }
@@ -524,7 +525,10 @@ function ladeAnsicht(): Ansicht {
         ) as Partial<Ansicht>;
 
         return {
-            layout: saved.layout === 'cards' ? 'cards' : 'table',
+            layout:
+                saved.layout === 'cards' || saved.layout === 'bars'
+                    ? saved.layout
+                    : 'table',
             gruppierung:
                 saved.gruppierung && saved.gruppierung in GRUPPEN
                     ? saved.gruppierung
@@ -553,6 +557,45 @@ function labelsAus(labels: string[]): string[] {
 }
 
 /** Kachel der Begriffstabelle (#143). */
+/** Balken (#205): kompakt, eine Zeile je Begriff – die frühere Kachel (#143). */
+function Balken({ begriff: b }: { begriff: Begriff }) {
+    return (
+        <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+                <Link
+                    href={`/admin/begriffe/${b.id}`}
+                    className="font-semibold text-link underline-offset-4 hover:underline"
+                    translate="no"
+                >
+                    {[b.abkuerzung, b.bezeichnung]
+                        .filter(Boolean)
+                        .join(' – ') || '(ohne Bezeichnung)'}
+                </Link>
+                {b.kurz ? (
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {b.kurz}
+                    </p>
+                ) : null}
+                <div className="mt-2 flex flex-wrap gap-1">
+                    <ListBadges list="herkunft" labels={b.herkunft} />
+                    <ListBadges list="kategorien" labels={b.kategorien} />
+                </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+                <StatusBadge status={b.status} />
+                <RevisionBadges
+                    published={b.veroeffentlicht}
+                    revision={b.revision}
+                    draft={b.entwurf}
+                />
+                {!b.aktiv ? (
+                    <StateBadge state="inactive">inaktiv</StateBadge>
+                ) : null}
+            </div>
+        </div>
+    );
+}
+
 /** Gruppen für die Tabelle; ein Begriff mit mehreren Kategorien erscheint in jeder. */
 function gruppieren(
     liste: Begriff[],

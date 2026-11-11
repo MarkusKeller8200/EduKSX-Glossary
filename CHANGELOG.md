@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Ansichten der Begriffe (#205):** drei Darstellungen in der Administration: Tabelle, Balken (eine Zeile je
+  Begriff) und Kacheln mit allen Werten (Herkunft und Kategorien, Kurzbeschreibung, Beschreibung und Notiz gekürzt,
+  Aliase, Schreibweisen, Suchbegriffe, Gültigkeit, Daten, Permalink und Quelle), bis drei nebeneinander.
+
 ## [0.9.0] – 2026-11-09
 
 ### Neu
