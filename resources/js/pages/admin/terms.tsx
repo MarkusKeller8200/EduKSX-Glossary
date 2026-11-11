@@ -11,6 +11,7 @@ import DataGrid, { type GridSort } from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
 import IconAction from '@/components/icon-action';
 import LabelFilter from '@/components/label-filter';
+import TermCard, { type TermCardData } from '@/components/term-card';
 import ViewMenu, { type ViewLayout } from '@/components/view-menu';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,21 +23,7 @@ const GlossaryPdfDialog = lazy(
     () => import('@/components/glossary-pdf-dialog'),
 );
 
-type Begriff = {
-    id: string;
-    abkuerzung: string;
-    bezeichnung: string;
-    kurz: string;
-    kategorien: string[];
-    herkunft: string[];
-    status: string;
-    aktiv: boolean;
-    revision: number;
-    veroeffentlicht: number | null;
-    entwurf: boolean;
-    angelegt: string | null;
-    geaendert: string | null;
-};
+type Begriff = TermCardData;
 
 type Feld = 'official_abbreviation' | 'official_name' | 'short_description';
 type Gruppierung =
@@ -321,7 +308,7 @@ export default function Terms({
                     onSortChange={(sort) => aendern({ sort })}
                     layout={ansicht.layout}
                     resetToken={resetToken}
-                    renderCard={(b) => <Kachel begriff={b} />}
+                    renderCard={(b) => <TermCard begriff={b} />}
                     onVisibleRows={(rows) =>
                         setSichtbar([...new Set(rows.map((b) => b.id))])
                     }
@@ -566,44 +553,6 @@ function labelsAus(labels: string[]): string[] {
 }
 
 /** Kachel der Begriffstabelle (#143). */
-function Kachel({ begriff: b }: { begriff: Begriff }) {
-    return (
-        <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-                <Link
-                    href={`/admin/begriffe/${b.id}`}
-                    className="font-semibold text-link underline-offset-4 hover:underline"
-                    translate="no"
-                >
-                    {[b.abkuerzung, b.bezeichnung]
-                        .filter(Boolean)
-                        .join(' – ') || '(ohne Bezeichnung)'}
-                </Link>
-                {b.kurz ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        {b.kurz}
-                    </p>
-                ) : null}
-                <div className="mt-2 flex flex-wrap gap-1">
-                    <ListBadges list="herkunft" labels={b.herkunft} />
-                    <ListBadges list="kategorien" labels={b.kategorien} />
-                </div>
-            </div>
-            <div className="flex flex-wrap items-center gap-1">
-                <StatusBadge status={b.status} />
-                <RevisionBadges
-                    published={b.veroeffentlicht}
-                    revision={b.revision}
-                    draft={b.entwurf}
-                />
-                {!b.aktiv ? (
-                    <StateBadge state="inactive">inaktiv</StateBadge>
-                ) : null}
-            </div>
-        </div>
-    );
-}
-
 /** Gruppen für die Tabelle; ein Begriff mit mehreren Kategorien erscheint in jeder. */
 function gruppieren(
     liste: Begriff[],

@@ -232,10 +232,7 @@ export default function DataGrid<T>({
             sections
                 .map(
                     (g) =>
-                        `${g.key}:${g.rows.length}:${g.rows
-                            .slice(0, 200)
-                            .map(getRowId)
-                            .join(',')}`,
+                        `${g.key}:${g.rows.length}:${g.rows.slice(0, 200).map(getRowId).join(',')}`,
                 )
                 .join('|'),
         [sections, getRowId],
@@ -346,11 +343,11 @@ export default function DataGrid<T>({
                                 </span>
                             </h3>
                         ) : null}
-                        <ul className="grid gap-2">
+                        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             {g.rows.map((r) => (
                                 <li
                                     key={`${g.key}-${getRowId(r)}`}
-                                    className="rounded-lg border border-border p-3"
+                                    className="rounded-lg border border-border bg-card p-3"
                                 >
                                     {renderCard(r)}
                                 </li>
