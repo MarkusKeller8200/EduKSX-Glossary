@@ -196,17 +196,18 @@ werden; P4 und P5 sind Nachführungen der Datenschutzerklärung.
 
 ## Issues (Meilenstein «0.10.0 – Selbst hosten und Updates»)
 
-| Issue | Inhalt                                                                 |
-| ----- | ---------------------------------------------------------------------- |
-| #194  | Konzept (dieses Dokument)                                              |
-| #195  | Deployment über fertiges Image statt Bauen auf dem Server (D1, D2, D5) |
-| #196  | Konfiguration vollständig über die Umgebung (D3)                       |
-| #197  | Sicherung ausser Haus mit Wiederherstellungstest (D6)                  |
-| #198  | Selbst installieren auf beliebigem VPS (Betriebsart B)                 |
-| #199  | Installation im Schulnetz (Betriebsart C)                              |
-| #200  | Verteilte Installation (Betriebsart D)                                 |
-| #201  | Infomaniak prüfen und Umzug vorbereiten                                |
-| #202  | Anbindung an EduKSX-Ident und eduksx/core per Einstellung              |
+| Issue | Inhalt                                                                            |
+| ----- | --------------------------------------------------------------------------------- |
+| #194  | Konzept (dieses Dokument)                                                         |
+| #195  | Deployment über fertiges Image statt Bauen auf dem Server (D1, D2, D5)            |
+| #196  | Konfiguration vollständig über die Umgebung (D3)                                  |
+| #197  | Sicherung ausser Haus mit Wiederherstellungstest (D6)                             |
+| #198  | Selbst installieren auf beliebigem VPS (Betriebsart B)                            |
+| #199  | Installation im Schulnetz (Betriebsart C)                                         |
+| #200  | Verteilte Installation (Betriebsart D)                                            |
+| #201  | Infomaniak prüfen und Umzug vorbereiten                                           |
+| #202  | Anbindung an EduKSX-Ident und eduksx/core per Einstellung                         |
+| #207  | Datenschutz: Log- und Sicherungsfristen mit MarKusSX-Operation abgleichen (P2–P5) |
 
 Dazu aus [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md): #175 (Image je Release), #177 (Update-Dienst), #179 (Anleitung
 «Selbst hosten»), #183 (Leitstand), #184 (blau/grün); Vorbereitung Plattform: #185–#193.
