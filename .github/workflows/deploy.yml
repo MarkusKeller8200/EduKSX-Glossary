@@ -53,9 +53,11 @@ jobs:
           test -n "$HOST" || { echo "Variable VPS_HOST fehlt"; exit 1; }
           test -n "$SSH_KEY" || { echo "Secret VPS_SSH_KEY fehlt"; exit 1; }
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_deploy
+          # Zeilenenden von Windows und Leerzeichen am Zeilenende entfernen (Kopieren aus dem Browser-Terminal, #209)
+          printf '%s\n' "$SSH_KEY" | tr -d '\r' | sed 's/[[:space:]]*$//' > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh-keygen -y -f ~/.ssh/id_deploy > /dev/null || { echo "::error title=VPS_SSH_KEY unlesbar::Secret neu kopieren: ganzer Inhalt inkl. BEGIN- und END-Zeile"; exit 1; }
+          printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' | sed '/^[[:space:]]*$/d' > ~/.ssh/known_hosts
           printf 'Host vps\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/id_deploy\n  IdentitiesOnly yes\n' "$HOST" "$VPS_USER" > ~/.ssh/config
 
       - name: Quellcode übertragen
