@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Datenschutzerklärung und Löschkonzept (#207):** Betrieb bei Infomaniak in der Schweiz (Server, verschlüsselte
+  Sicherungen, Mail-Versand); Cloudflare nur für DNS, ohne Cloudflare-Cookies; Fristen festgelegt: Serverlogs 14 Tage,
+  Sicherungen 30 Tage.
+
 ## [0.9.0] – 2026-11-09
 
 ### Neu
