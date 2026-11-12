@@ -1,7 +1,7 @@
 # Konzept: DB-Guideline EduKSX-Glossary (#270, #272)
 
-Stand: 12.11.2026 (Version 1.1) · Verantwortlich: Markus Keller · Status: **Entwurf zur Abnahme** (Version 1.0
-abgenommen am 12.11.2026, DEC-031)
+Stand: 12.11.2026 (Version 1.1) · Verantwortlich: Markus Keller · Status: **abgenommen** am 12.11.2026 (Version 1.0: DEC-031,
+Version 1.1: DEC-032)
 
 Diese Guideline wendet den **DB-Standard der EduKSX-Plattform** (Repo EduKSX-Architektur,
 `docs/KONZEPT-DB-GUIDELINE.md`, nicht öffentlich) auf das Glossary an. Allgemeine Regeln – Namen, Normalisierung,
@@ -106,7 +106,7 @@ entfällt (Quelle ist `terms.url`, K1).
 | Daten | Historie |
 | --- | --- |
 | Begriffe | `term_revisions` (`change_set`) und `term_publication_events` – kein zweites System |
-| Rollen, Rechte, Konten, Servicekonten | `user_audit`, `service_account_audit` (Sicherheitsprotokoll, mit Hash-Verkettung nach A7, EMPFOHLEN) |
+| Rollen, Rechte, Konten, Servicekonten | `user_audit`, `service_account_audit` (Sicherheitsprotokoll, mit Hash-Verkettung nach A7) |
 | alle übrigen änderbaren Tabellen | `data_changes` mit `source` (`web`, `api`, `import`, `mcp`, `job`, `system`, `migration`) |
 
 ## 9. Löschen im Glossary (B3)
@@ -162,5 +162,5 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 ## Verlauf
 
 - 12.11.2026: Version 1.0 abgenommen (DEC-031, #270).
-- 12.11.2026: Version 1.1 – allgemeine Regeln in den Plattform-Standard verschoben, Glossary-Teil mit Geltungsbereichen,
+- 12.11.2026: Version 1.1 abgenommen (DEC-032) – allgemeine Regeln in den Plattform-Standard verschoben, Glossary-Teil mit Geltungsbereichen,
   Datenklassen, Löschregister, zusammengesetztem Fremdschlüssel für `published_revision_id`, Archivfrist (#272).
