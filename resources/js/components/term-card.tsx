@@ -110,18 +110,19 @@ export default function TermCard({
                         ) : null}
                     </div>
                 </div>
+                {/* Zeile 2 bleibt eine Zeile: die Bezeichnung bricht um, die Kategorien bleiben rechts daneben */}
                 {zeigeBezeichnung || b.kategorien.length > 0 ? (
-                    <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                    <div className="flex items-start justify-between gap-2">
                         {zeigeBezeichnung ? (
                             <p
-                                className="min-w-0 text-sm break-words"
+                                className="min-w-0 flex-1 text-sm break-words"
                                 translate="no"
                             >
                                 {b.bezeichnung}
                             </p>
                         ) : null}
                         {b.kategorien.length > 0 ? (
-                            <div className="ml-auto flex flex-wrap justify-end gap-1">
+                            <div className="ml-auto flex max-w-[60%] shrink-0 flex-wrap justify-end gap-1">
                                 {b.kategorien.map((l) => (
                                     <ListBadge
                                         key={`k-${l}`}
