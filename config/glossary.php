@@ -56,4 +56,7 @@ return [
     'update_repo' => env('GLOSSARY_UPDATE_REPO', 'MarkusKeller8200/EduKSX-Glossary'),
     // Zusätzlicher Schlüssel für «Jetzt aktualisieren» (#177); leer = nur Recht «system» mit zweitem Faktor
     'update_key' => env('GLOSSARY_UPDATE_KEY', ''),
+    // Vollständiger Dump (#268): Passwort vorschreiben (Vorgabe aus, später an); Passwort für den Befehl ohne Eingabe
+    'dump_require_password' => (bool) env('GLOSSARY_DUMP_REQUIRE_PASSWORD', false),
+    'dump_password' => env('GLOSSARY_DUMP_PASSWORD', ''),
 ];

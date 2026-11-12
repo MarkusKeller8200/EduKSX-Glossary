@@ -23,6 +23,10 @@ zu prüfen (Freigabecheck in [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) Ab
 | Fehlgeschlagene Mail-Aufträge                 | [30 Tage]                                                                               | `queue:prune-failed` (täglich)                                                                                                                                                                               | –                                                                                  |
 | Sicherungen der Datenbank                     | die letzten 10 vor jedem Update; ausser Haus 30 Tage (Entscheid 11.11.2026)             | `docker/entrypoint.sh`; ausser Haus mit Backrest/restic nach Swiss Backup, eigener Plan mit 30 Tagen für das Glossary (#207)                                                                                 | Wiederherstellung: Löschfristen danach erneut anwenden                             |
 
+**Vollständiger Dump (#268):** Ein heruntergeladener Dump verlässt den Server und damit diese Fristen. Er enthält alle
+Daten einschliesslich Personendaten; wer ihn erstellt (Recht `system`, im Protokoll vermerkt), bewahrt ihn verschlüsselt
+auf und löscht ihn, sobald er nicht mehr gebraucht wird – spätestens nach 30 Tagen wie die Sicherungen.
+
 ## Nach einer Wiederherstellung
 
 Wird eine Sicherung zurückgespielt, sofort `php artisan glossary:loeschfristen` ausführen. Seit der Sicherung
