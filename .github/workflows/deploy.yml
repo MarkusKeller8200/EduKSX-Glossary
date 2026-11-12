@@ -11,6 +11,8 @@ on:
       - '**'
       - '!**/*.md'
       - 'CHANGELOG.md'
+      # Datenschutzerklärung wird auf /datenschutz angezeigt
+      - 'docs/DATENSCHUTZ-ENTWURF.md'
       - '!site/**'
       - '!.github/dependabot.yml'
   workflow_dispatch:

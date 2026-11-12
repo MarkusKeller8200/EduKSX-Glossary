@@ -1,0 +1,69 @@
+# EduKSX-Glossary mit dem fertigen Image aus der Registry (#175, docs/KONZEPT-DEPLOYMENT.md).
+# Für selbst gehostete Instanzen und Betrieb mit Komodo: nichts wird auf dem Server gebaut.
+#
+#   docker compose pull && docker compose up -d
+#
+# Die App lauscht nur auf 127.0.0.1:${GLOSSARY_PORT:-8080}; davor gehört ein Proxy mit HTTPS
+# (Caddy, vorhandener Traefik oder nginx). Einstellungen in ./.env (Vorlage: .env.example).
+# Version wählen mit GLOSSARY_IMAGE, z. B. ghcr.io/markuskeller8200/eduksx-glossary:0.10 (nur Korrekturen) –
+# Vorgabe ist «latest».
+
+name: glossary
+
+x-logging: &logging
+    driver: json-file
+    options:
+        max-size: 10m
+        max-file: '3'
+
+x-app: &app
+    image: ${GLOSSARY_IMAGE:-ghcr.io/markuskeller8200/eduksx-glossary:latest}
+    restart: unless-stopped
+    logging: *logging
+    env_file:
+        - path: ./.env
+          required: false
+    environment:
+        APP_URL: https://${GLOSSARY_HOST:?GLOSSARY_HOST fehlt in .env}
+        APP_NAME: ${APP_NAME:-EduKSX-Glossary}
+        SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+        QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+    volumes:
+        - glossary-storage:/var/www/html/storage
+
+services:
+    app:
+        <<: *app
+        ports:
+            - '127.0.0.1:${GLOSSARY_PORT:-8080}:80'
+
+    worker:
+        <<: *app
+        user: www-data
+        depends_on:
+            - app
+        environment:
+            APP_URL: https://${GLOSSARY_HOST:?GLOSSARY_HOST fehlt in .env}
+            APP_NAME: ${APP_NAME:-EduKSX-Glossary}
+            QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+            GLOSSARY_ROLE: worker
+        command: php artisan queue:work --tries=3 --backoff=60 --max-time=3600
+        healthcheck:
+            disable: true
+
+    scheduler:
+        <<: *app
+        user: www-data
+        depends_on:
+            - app
+        environment:
+            APP_URL: https://${GLOSSARY_HOST:?GLOSSARY_HOST fehlt in .env}
+            APP_NAME: ${APP_NAME:-EduKSX-Glossary}
+            QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+            GLOSSARY_ROLE: scheduler
+        command: php artisan schedule:work
+        healthcheck:
+            disable: true
+
+volumes:
+    glossary-storage:
