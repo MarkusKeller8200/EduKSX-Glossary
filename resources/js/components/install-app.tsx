@@ -2,6 +2,12 @@ import { Download, Share, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { HANDY_QUERY } from '@/hooks/use-handy';
+import {
+    installieren,
+    installiert,
+    ios,
+    useInstallierbar,
+} from '@/lib/install';
 
 /**
  * Hinweis «App installieren» auf dem Handy (#240). Android/Chrome: Installation über das Ereignis
@@ -10,22 +16,9 @@ import { HANDY_QUERY } from '@/hooks/use-handy';
  */
 const KEY = 'glossary.app-hinweis';
 
-type InstallEvent = Event & {
-    prompt: () => Promise<void>;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-};
-
 const handy = (): boolean =>
     window.matchMedia('(pointer: coarse)').matches &&
     window.matchMedia(HANDY_QUERY).matches;
-
-const installiert = (): boolean =>
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true;
-
-const ios = (): boolean =>
-    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 const geschlossen = (): boolean => {
     try {
@@ -36,32 +29,17 @@ const geschlossen = (): boolean => {
 };
 
 export default function InstallApp() {
-    const [ereignis, setEreignis] = useState<InstallEvent | null>(null);
+    const kann = useInstallierbar();
     const [art, setArt] = useState<'android' | 'ios' | null>(null);
 
     useEffect(() => {
         if (!handy() || installiert() || geschlossen()) {
-            return;
-        }
-        if (ios()) {
-            setArt('ios');
+            setArt(null);
 
             return;
         }
-        const merken = (e: Event) => {
-            e.preventDefault();
-            setEreignis(e as InstallEvent);
-            setArt('android');
-        };
-        const fertig = () => setArt(null);
-        window.addEventListener('beforeinstallprompt', merken);
-        window.addEventListener('appinstalled', fertig);
-
-        return () => {
-            window.removeEventListener('beforeinstallprompt', merken);
-            window.removeEventListener('appinstalled', fertig);
-        };
-    }, []);
+        setArt(ios() ? 'ios' : kann ? 'android' : null);
+    }, [kann]);
 
     if (art === null) {
         return null;
@@ -76,14 +54,8 @@ export default function InstallApp() {
         setArt(null);
     };
 
-    const installieren = async () => {
-        if (!ereignis) {
-            return;
-        }
-        await ereignis.prompt();
-        const { outcome } = await ereignis.userChoice;
-        setEreignis(null);
-        if (outcome === 'accepted') {
+    const installierenKlick = async () => {
+        if (await installieren()) {
             setArt(null);
         }
     };
@@ -114,7 +86,7 @@ export default function InstallApp() {
                     )}
                 </p>
                 {art === 'android' ? (
-                    <Button size="sm" onClick={() => void installieren()}>
+                    <Button size="sm" onClick={() => void installierenKlick()}>
                         <Download aria-hidden /> Installieren
                     </Button>
                 ) : null}
