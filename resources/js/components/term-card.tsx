@@ -7,6 +7,7 @@ import {
     StateBadge,
     StatusBadge,
 } from '@/components/tags';
+import { isCurrentStatus } from '@/lib/colors';
 
 export type TermCardData = {
     code: string;
@@ -96,7 +97,7 @@ export default function TermCard({
                                 info
                             />
                         ))}
-                        {!oeffentlich || b.status !== 'aktuell' ? (
+                        {!oeffentlich || !isCurrentStatus(b.status) ? (
                             <StatusBadge status={b.status} />
                         ) : null}
                         {!oeffentlich && b.revision !== undefined ? (

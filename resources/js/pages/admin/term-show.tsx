@@ -21,7 +21,6 @@ type Begriff = Record<string, unknown> & {
     is_active: boolean;
     lifecycle_status: string;
     zusammengefuehrt_in: { id: string; titel: string } | null;
-    altwerte: number;
     herkunft_pruefung: Pruefung[];
 };
 
@@ -29,7 +28,7 @@ type Pruefung = {
     source_id: string;
     label: string;
     name: string;
-    retrieved_at: string;
+    retrieved_on: string;
     evidence: string;
     note: string;
 };
@@ -309,25 +308,6 @@ export default function TermShow({
                 </Alert>
             ) : null}
 
-            {b.altwerte > 0 ? (
-                <Alert className="mt-6" role="note">
-                    <AlertDescription>
-                        {b.altwerte === 1
-                            ? '1 Altwert'
-                            : `${b.altwerte} Altwerte`}{' '}
-                        aus dem Intranet-Format (eigene Form, «Intern genutzt
-                        in») noch nicht zugeordnet –{' '}
-                        <Link
-                            href="/admin/altwerte"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Altwerte
-                        </Link>
-                        .
-                    </AlertDescription>
-                </Alert>
-            ) : null}
-
             <h2 className="mt-8 text-lg font-semibold">
                 Arbeitsstand (Revision {b.revision})
             </h2>
@@ -505,9 +485,9 @@ function HerkunftPruefen({
                         <Input
                             type="date"
                             aria-label={`${z.label}: geprüft am`}
-                            value={z.retrieved_at}
+                            value={z.retrieved_on}
                             onChange={(e) =>
-                                setze(i, 'retrieved_at', e.target.value)
+                                setze(i, 'retrieved_on', e.target.value)
                             }
                         />
                         <NativeSelect

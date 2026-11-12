@@ -4,7 +4,6 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
-use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
@@ -166,11 +165,6 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         // Quellenprüfung (#69)
         Route::get('pruefung', [SourceCheckController::class, 'index'])->name('admin.source-check');
         Route::put('begriffe/{term}/herkunft', [SourceCheckController::class, 'update'])->whereUuid('term')->name('admin.terms.sources');
-
-        // Altwerte aus dem Intranet-Format zuordnen (DEC-020)
-        Route::get('altwerte', [LegacyValueController::class, 'index'])->name('admin.legacy');
-        Route::post('altwerte', [LegacyValueController::class, 'resolve'])->name('admin.legacy.resolve');
-        Route::get('altwerte/intern-genutzt-in.csv', [LegacyValueController::class, 'exportUsedIn'])->name('admin.legacy.used-in');
     });
 
     // Listen: Kategorien und Herkunft

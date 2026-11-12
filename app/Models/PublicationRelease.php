@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $action
  * @property string $checksum
  * @property int $term_count
- * @property string|null $published_by
+ * @property string|null $published_by_id
  * @property CarbonImmutable $created_at
  */
 class PublicationRelease extends Model
@@ -22,7 +22,7 @@ class PublicationRelease extends Model
     public const UPDATED_AT = null;
 
     /** @var list<string> */
-    protected $fillable = ['term_id', 'action', 'checksum', 'term_count', 'published_by'];
+    protected $fillable = ['term_id', 'action', 'checksum', 'term_count', 'published_by_id'];
 
     /**
      * @return array<string, string>

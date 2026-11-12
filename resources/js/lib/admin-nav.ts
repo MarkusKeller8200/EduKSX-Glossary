@@ -4,7 +4,6 @@ import {
     ClipboardCheck,
     Copy,
     FileUp,
-    History,
     KeyRound,
     LayoutDashboard,
     MessageSquarePlus,
@@ -39,12 +38,6 @@ export const ADMIN_NAV: {
         label: 'Doppelte',
         recht: 'edit-terms',
         icon: Copy,
-    },
-    {
-        href: '/admin/altwerte',
-        label: 'Altwerte',
-        recht: 'edit-terms',
-        icon: History,
     },
     {
         href: '/admin/pruefung',

@@ -65,7 +65,7 @@ class OrganizationTest extends TestCase
         $this->post('/organisation', ['name' => 'Schule Muster'])->assertRedirect()->assertSessionHasNoErrors();
         $member = OrganizationMember::query()->where('user_id', $user->id)->firstOrFail();
         $this->assertTrue($member->isAdmin());
-        $this->assertTrue($member->granted_role);
+        $this->assertTrue($member->is_role_granted);
         $this->assertContains(Role::ORG_ADMIN, $user->roleKeys());
 
         // höchstens eine Organisation, eindeutiger Name
@@ -335,22 +335,22 @@ class OrganizationTest extends TestCase
         $this->actingAs($member)->post("/organisation/vorschlaege/{$proposal->id}/bestaetigen")->assertSessionHasErrors('organisation');
         $this->actingAs($admin)->get('/organisation')->assertInertia(fn (Assert $p) => $p->has('vorschlaege', 1));
         $this->actingAs($admin)->post("/organisation/vorschlaege/{$proposal->id}/bestaetigen")->assertSessionHasNoErrors();
-        $this->assertSame('eingereicht', $proposal->fresh()?->status);
+        $this->assertSame('submitted', $proposal->fresh()?->status);
         $this->actingAs($moderator)->get('/admin/vorschlaege')->assertInertia(fn (Assert $p) => $p->has('vorschlaege', 1));
 
         // ablehnen mit Begründung
         $second = $proposals->submit(null, ['official_name' => 'Hauswart'], null, $member);
         $this->actingAs($admin)->post("/organisation/vorschlaege/{$second->id}/ablehnen", ['grund' => ''])->assertSessionHasErrors('grund');
         $this->actingAs($admin)->post("/organisation/vorschlaege/{$second->id}/ablehnen", ['grund' => 'gibt es schon'])->assertSessionHasNoErrors();
-        $this->assertSame('abgelehnt', $second->fresh()?->status);
+        $this->assertSame('rejected', $second->fresh()?->status);
 
         // eigene Vorschläge des Organisations-Admins direkt in die Moderation
-        $this->assertSame('eingereicht', $proposals->submit(null, ['official_name' => 'Schulsozialarbeit'], null, $admin)->status);
+        $this->assertSame('submitted', $proposals->submit(null, ['official_name' => 'Schulsozialarbeit'], null, $admin)->status);
 
         // beim Austritt weitergeleitet
         $third = $proposals->submit(null, ['official_name' => 'Tagesstruktur'], null, $member);
         $this->actingAs($member)->post('/organisation/austreten')->assertSessionHasNoErrors();
-        $this->assertSame('eingereicht', $third->fresh()?->status);
+        $this->assertSame('submitted', $third->fresh()?->status);
     }
 
     public function test_anderer_organisations_admin_widerruft_token(): void

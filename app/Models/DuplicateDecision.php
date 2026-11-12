@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id
  * @property string $signature
- * @property string $kind
+ * @property string $match_type abbreviation | name | both
  * @property string $value
  * @property list<string> $term_ids
- * @property string|null $decided_by
+ * @property string|null $decided_by_id
  * @property CarbonImmutable $created_at
  */
 class DuplicateDecision extends Model
@@ -22,7 +22,7 @@ class DuplicateDecision extends Model
     public const UPDATED_AT = null;
 
     /** @var list<string> */
-    protected $fillable = ['signature', 'kind', 'value', 'term_ids', 'decided_by'];
+    protected $fillable = ['signature', 'match_type', 'value', 'term_ids', 'decided_by_id'];
 
     /**
      * @return array<string, string>

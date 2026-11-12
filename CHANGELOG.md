@@ -13,6 +13,16 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   allen Tabellen als JSON und Manifest; mit Passwort AES-256-verschlüsselt, ohne Passwort nur bis zur Einstellung
   `GLOSSARY_DUMP_REQUIRE_PASSWORD`.
 
+### Geändert
+
+- **Datenbank bereinigt (#266, #275):** Neuer Anfangsstand mit strikten Tabellen, Prüfregeln für alle Status und Arten,
+  Fremdschlüsseln und Indizes; Namen nach dem DB-Standard. Bestehende Daten werden beim Update überführt und gezählt.
+  Suchbegriffe nur noch als Aliase. Altwerte und der Import des alten Excel-Formats des Intranets entfallen; die Werte
+  sind verschlüsselt archiviert.
+- **API: Werte englisch (#266):** Status eines Begriffs `current`, `historical`, `under_review`; Status eines Vorschlags
+  `organization_review`, `submitted`, `query`, `accepted`, `rejected`, `withdrawn`. Feldnamen bleiben; der Filter
+  `status` nimmt auch die bisherigen Werte an.
+
 ## [0.11.0] – 2026-11-12
 
 ### Neu

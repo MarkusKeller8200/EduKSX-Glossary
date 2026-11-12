@@ -82,7 +82,7 @@ final class OrganizationService
         }, ['name' => $name]);
 
         return DB::transaction(function () use ($actor, $name): Organization {
-            $organization = Organization::query()->create(['name' => $name, 'created_by' => $actor->id]);
+            $organization = Organization::query()->create(['name' => $name, 'created_by_id' => $actor->id]);
             $member = $organization->members()->create(['user_id' => $actor->id, 'role' => OrganizationMember::ADMIN, 'status' => 'active']);
             $this->grantRole($member);
 
@@ -140,7 +140,7 @@ final class OrganizationService
             $expires = now()->addDays(OrganizationInvitation::DAYS);
             OrganizationInvitation::query()->updateOrCreate(
                 ['organization_id' => $organization->id, 'email' => $email],
-                ['invited_by' => $actor->id, 'expires_at' => $expires],
+                ['invited_by_id' => $actor->id, 'expires_at' => $expires],
             );
             if (MailSetup::configured()) {
                 Mail::to($email)->send(new OrganizationInvitationMail($organization->name, $actor->name, $expires->format('d.m.Y')));
@@ -291,7 +291,7 @@ final class OrganizationService
             ?? new OrganizationTermOverride;
         $override->organization_id = $organization->id;
         $override->term_id = $term->id;
-        $override->updated_by = $actor->id;
+        $override->updated_by_id = $actor->id;
         $override->fill($values);
         if ($override->isEmpty()) {
             if ($override->exists) {
@@ -377,7 +377,7 @@ final class OrganizationService
 
             return;
         }
-        $override->forceFill(['approved_organization_id' => $organization?->id, 'approved_by' => $actor->id, 'approved_at' => now()])->save();
+        $override->forceFill(['approved_organization_id' => $organization?->id, 'approved_by_id' => $actor->id, 'approved_at' => now()])->save();
     }
 
     // ---------- intern ----------
@@ -420,17 +420,17 @@ final class OrganizationService
             return;
         }
         $this->roles->assign(null, $user, Role::byKey(Role::ORG_ADMIN), self::LABEL);
-        $member->forceFill(['granted_role' => true])->save();
+        $member->forceFill(['is_role_granted' => true])->save();
     }
 
     /** Globale Rolle nur entziehen, wenn die Organisation sie vergeben hat. */
     private function revokeRole(OrganizationMember $member): void
     {
-        if (! $member->granted_role) {
+        if (! $member->is_role_granted) {
             return;
         }
         $this->roles->revoke(null, $member->user, Role::byKey(Role::ORG_ADMIN), self::LABEL);
-        $member->forceFill(['granted_role' => false])->save();
+        $member->forceFill(['is_role_granted' => false])->save();
     }
 
     private function otherAdminRemains(OrganizationMember $member): bool

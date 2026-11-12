@@ -84,7 +84,6 @@ class ExcelController extends Controller
                 'neu' => $b->created_count,
                 'geaendert' => $b->updated_count,
                 'fehler' => $b->error_count,
-                'altwerte' => $b->legacy_count,
                 'meldungen' => $b->errors ?? [],
             ])->all(),
         ]);
@@ -100,12 +99,16 @@ class ExcelController extends Controller
         $file = $request->file('datei');
         abort_if($file === null || is_array($file), 422);
         try {
-            // auch die Spalten des alten Formats lesen: sie werden gemeldet und als Altwerte gesichert (DEC-020)
+            // Spalten des alten Formats mitlesen, um es zu erkennen: es wird nicht mehr unterstützt (DEC-030)
             $table = SpreadsheetReader::read((string) $file->getRealPath(), $file->getClientOriginalName(), [
-                ...ExcelFormat::header(), ...array_keys(ExcelFormat::LEGACY_COLUMNS),
+                ...ExcelFormat::header(), ...ExcelFormat::OLD_COLUMNS,
             ]);
         } catch (RuntimeException $e) {
             throw ValidationException::withMessages(['datei' => $e->getMessage()]);
+        }
+        $old = array_values(array_intersect(ExcelFormat::OLD_COLUMNS, $table['header']));
+        if ($old !== []) {
+            throw ValidationException::withMessages(['datei' => 'Altes Format des Intranets mit den Spalten «'.implode('», «', $old).'» – wird nicht mehr unterstützt. Vorlage herunterladen oder die Spalten entfernen.']);
         }
         $unknown = array_diff(array_keys(ExcelFormat::COLUMNS), $table['header']);
         if (count($unknown) === count(ExcelFormat::COLUMNS)) {
@@ -120,15 +123,13 @@ class ExcelController extends Controller
             'rows' => $table['rows'],
             'listen_anlegen' => $createLists,
             'datei' => mb_substr($file->getClientOriginalName(), 0, 255),
-            'format' => ExcelFormat::versionOf($table['header']),
+            'format' => ExcelFormat::VERSION,
         ], now()->addMinutes(30));
 
         return Inertia::render('admin/import-preview', [
             'token' => $token,
             'datei' => $file->getClientOriginalName(),
             'fehlendeSpalten' => array_values($unknown),
-            'altesFormat' => ExcelFormat::versionOf($table['header']) === 1,
-            'altSpalten' => array_values(array_intersect(array_keys(ExcelFormat::LEGACY_COLUMNS), $table['header'])),
             ...$result,
         ]);
     }
@@ -159,12 +160,10 @@ class ExcelController extends Controller
             'created_count' => $result['neu'],
             'updated_count' => $result['geaendert'],
             'error_count' => $result['fehler'],
-            'legacy_count' => $result['altwerte'],
             'errors' => $errors === [] ? null : $errors,
         ]);
 
-        return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe."
-            .($result['altwerte'] > 0 ? " {$result['altwerte']} Altwerte gesichert (Seite «Altwerte»)." : ''));
+        return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe.");
     }
 
     private function official(): bool

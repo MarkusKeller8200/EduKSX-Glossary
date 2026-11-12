@@ -28,12 +28,12 @@ Plattform-Standard.
 
 ## 2. Geltungsbereiche der Glossary-Tabellen (B1)
 
-| Geltungsbereich | Tabellen |
-| --- | --- |
-| **Global** | `terms`, `term_aliases`, `term_categories`, `term_sources`, `term_translations`, `term_relations`, `categories`, `category_translations`, `sources`, `source_translations`, `term_revisions`, `term_publication_events`, `publication_releases` |
-| **Organisation** | `organizations`, `organization_members`, `organization_invitations`, `organization_term_overrides`, Vorschläge mit `organization_id`, Servicekonten einer Organisation |
-| **Persönlich** | `term_user_overrides` (mit `approved_organization_id` für die Freigabe an eine Organisation, DEC-025), Einstellungen eines Kontos |
-| **Plattform/intern** | `users`, `user_identities`, `roles`, `user_roles`, `user_audit`, `service_accounts`, `service_account_tokens`, `service_account_audit`, `settings`, `import_batches`, `import_rows`, `search_misses`, `data_changes` |
+| Geltungsbereich      | Tabellen                                                                                                                                                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Global**           | `terms`, `term_aliases`, `term_categories`, `term_sources`, `term_translations`, `term_relations`, `categories`, `category_translations`, `sources`, `source_translations`, `term_revisions`, `term_publication_events`, `publication_releases` |
+| **Organisation**     | `organizations`, `organization_members`, `organization_invitations`, `organization_term_overrides`, Vorschläge mit `organization_id`, Servicekonten einer Organisation                                                                          |
+| **Persönlich**       | `term_user_overrides` (mit `approved_organization_id` für die Freigabe an eine Organisation, DEC-025), Einstellungen eines Kontos                                                                                                               |
+| **Plattform/intern** | `users`, `user_identities`, `roles`, `user_roles`, `user_audit`, `service_accounts`, `service_account_tokens`, `service_account_audit`, `settings`, `import_batches`, `import_rows`, `search_misses`, `data_changes`                            |
 
 Persönliche Anpassungen gelten **organisationsübergreifend** für das Konto; die Freigabe an eine Organisation ist ein
 eigener Schritt (DEC-025: persönlich > Organisation > gemeinsam).
@@ -44,15 +44,15 @@ persönlicher Darstellung `Cache-Control: private, no-store`.
 
 ## 3. Datenklassen der wichtigsten Felder (B2)
 
-| Tabelle | öffentlich | intern | personenbezogen | geheim |
-| --- | --- | --- | --- | --- |
-| `terms` und Übersetzungen | Abkürzung, Bezeichnung, Beschreibungen, URL, Status, Gültigkeit | `note`, `is_active` | – | – |
-| `term_revisions` | `snapshot`, `change_set` (nur globale Felder) | Nummer, Art, Zeitpunkte | `author_label`, `author_id`, `approved_by_id` | – |
-| `term_user_overrides` | – | – | alle `*_override` | – |
-| `proposals`, `proposal_events` | – | Status, Änderung | Begründung, Kommentar, Bezug zur Person | – |
-| `users` | – | Status, Rollen | Name, E-Mail, Institution, `last_login_on` | Passwort-Hash, 2FA |
-| `service_account_tokens` | – | Name, Präfix, Ablauf | – | `token_hash` |
-| `search_misses` | – | Suchtext, Anzahl | – (keine Person, keine IP) | – |
+| Tabelle                        | öffentlich                                                      | intern                  | personenbezogen                               | geheim             |
+| ------------------------------ | --------------------------------------------------------------- | ----------------------- | --------------------------------------------- | ------------------ |
+| `terms` und Übersetzungen      | Abkürzung, Bezeichnung, Beschreibungen, URL, Status, Gültigkeit | `note`, `is_active`     | –                                             | –                  |
+| `term_revisions`               | `snapshot`, `change_set` (nur globale Felder)                   | Nummer, Art, Zeitpunkte | `author_label`, `author_id`, `approved_by_id` | –                  |
+| `term_user_overrides`          | –                                                               | –                       | alle `*_override`                             | –                  |
+| `proposals`, `proposal_events` | –                                                               | Status, Änderung        | Begründung, Kommentar, Bezug zur Person       | –                  |
+| `users`                        | –                                                               | Status, Rollen          | Name, E-Mail, Institution, `last_login_on`    | Passwort-Hash, 2FA |
+| `service_account_tokens`       | –                                                               | Name, Präfix, Ablauf    | –                                             | `token_hash`       |
+| `search_misses`                | –                                                               | Suchtext, Anzahl        | – (keine Person, keine IP)                    | –                  |
 
 Vollständig je Spalte im Code mit 0.12.0, mit Test und daraus erzeugter Übersicht (W7, #276).
 
@@ -61,19 +61,22 @@ Vollständig je Spalte im Code mit 0.12.0, mit Test und daraus erzeugter Übersi
 Abweichungen von A1, die mit 0.12.0 umbenannt werden: `…_by` → `…_by_id` (u. a. `term_revisions.approved_by`,
 `settings.updated_by`), `merged_into` → `merged_into_id`, `term_sources.retrieved_at` → `retrieved_on`,
 `users.password_set` → `has_password`, `organization_members.granted_role` → `is_role_granted`,
-`proposal_events.by_author` → `is_by_author`, `users.news_opt_in` → `has_news_opt_in`. Werte von Status und Arten
+`proposal_events.by_author` → `is_by_author`, `users.news_opt_in` → `has_news_opt_in`, `proposals.kind` →
+`proposal_type`, `proposal_events.type` → `event_type`, `duplicate_decisions.kind` → `match_type`. **Umgesetzt** im
+Anfangsstand `database/migrations/2026_11_01_000000_anfangsstand.php` mit Übergang `App\Database\Uebergang012` (#266);
+Helfer für STRICT und CHECK: `App\Database\StrictSchema`; Enums in `app/Enums` (#275). Werte von Status und Arten
 englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `lifecycle_status`: `current`, `historical`,
 `under_review`).
 
 ## 5. Ausnahmen von der Normalisierung (A2)
 
-| Wo | Was ist doppelt | Grund | Wie aktuell gehalten |
-| --- | --- | --- | --- |
-| `term_revisions.snapshot` | Abbild des Begriffs (nur öffentliche/interne Felder) | Revisionen unveränderlich (DEC-022) | bewusst eingefroren |
-| `terms.published_revision_id` | Zeiger auf die veröffentlichte Revision | schneller Zugriff auf den öffentlichen Stand | in derselben Transaktion wie das Veröffentlichen; Zugehörigkeit per zusammengesetztem Fremdschlüssel (Abschnitt 6) |
-| `author_label`, `actor_label` | Name als Text neben der ID | lesbar nach Kontolöschung | ersetzt durch «Gelöschtes Konto» |
-| `term_revisions.change_set`, `data_changes.changes` | alte und neue Werte | Historie | unveränderlich; Personendaten nach B2 nicht enthalten |
-| `publication_releases` | Datenstand mit Prüfsumme | Abgleich der Konsumenten | je Veröffentlichung neu |
+| Wo                                                  | Was ist doppelt                                      | Grund                                        | Wie aktuell gehalten                                                                                               |
+| --------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `term_revisions.snapshot`                           | Abbild des Begriffs (nur öffentliche/interne Felder) | Revisionen unveränderlich (DEC-022)          | bewusst eingefroren                                                                                                |
+| `terms.published_revision_id`                       | Zeiger auf die veröffentlichte Revision              | schneller Zugriff auf den öffentlichen Stand | in derselben Transaktion wie das Veröffentlichen; Zugehörigkeit per zusammengesetztem Fremdschlüssel (Abschnitt 6) |
+| `author_label`, `actor_label`                       | Name als Text neben der ID                           | lesbar nach Kontolöschung                    | ersetzt durch «Gelöschtes Konto»                                                                                   |
+| `term_revisions.change_set`, `data_changes.changes` | alte und neue Werte                                  | Historie                                     | unveränderlich; Personendaten nach B2 nicht enthalten                                                              |
+| `publication_releases`                              | Datenstand mit Prüfsumme                             | Abgleich der Konsumenten                     | je Veröffentlichung neu                                                                                            |
 
 Bereinigt mit 0.12.0: `terms.search_terms` entfällt (nur noch `term_aliases`, Typ `search`, E1); `term_sources.url`
 entfällt (Quelle ist `terms.url`, K1).
@@ -103,11 +106,11 @@ entfällt (Quelle ist `terms.url`, K1).
 
 ## 8. Historie im Glossary (A7)
 
-| Daten | Historie |
-| --- | --- |
-| Begriffe | `term_revisions` (`change_set`) und `term_publication_events` – kein zweites System |
+| Daten                                 | Historie                                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Begriffe                              | `term_revisions` (`change_set`) und `term_publication_events` – kein zweites System       |
 | Rollen, Rechte, Konten, Servicekonten | `user_audit`, `service_account_audit` (Sicherheitsprotokoll, mit Hash-Verkettung nach A7) |
-| alle übrigen änderbaren Tabellen | `data_changes` mit `source` (`web`, `api`, `import`, `mcp`, `job`, `system`, `migration`) |
+| alle übrigen änderbaren Tabellen      | `data_changes` mit `source` (`web`, `api`, `import`, `mcp`, `job`, `system`, `migration`) |
 
 ## 9. Löschen im Glossary (B3)
 
@@ -131,17 +134,17 @@ Begleitdatei (SHA-256, Zeilen je Tabelle). RPO/RTO für zentrale Dienste: 1 Minu
 
 ## 11. Tests im Glossary (C3)
 
-| Test | Prüft |
-| --- | --- |
-| `tests/Unit/MigrationCompatibilityTest.php` | Abwärtskompatibilität der Migrationen |
-| `tests/Feature/DataModelTest.php`, `GlossaryModelTest.php` | Tabellen, Beziehungen, Revisionen |
-| `tests/Feature/PublicBoundaryTest.php` | Veröffentlichungsgrenze |
-| `tests/Feature/PrivacyTest.php`, `AccountTest.php` | Kontolöschung, Pseudonymisierung, Fristen |
-| `tests/Feature/OrganizationTest.php` | Mandantentrennung mit zwei Organisationen (ausbauen nach B1) |
-| `tests/Feature/RestoreTest.php` | Rücknahme von Revisionen |
-| neu: Löschregister | Sicherung zurückspielen, Register anwenden, keine registrierten Personendaten mehr |
-| neu: Papierkorb | vorläufig löschen, wiederherstellen, endgültig löschen |
-| neu: Schemaprüfung | STRICT, CHECK, `integrity_check`, `foreign_key_check`; CI auf SQLite und PostgreSQL |
+| Test                                                       | Prüft                                                                               |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `tests/Unit/MigrationCompatibilityTest.php`                | Abwärtskompatibilität der Migrationen                                               |
+| `tests/Feature/DataModelTest.php`, `GlossaryModelTest.php` | Tabellen, Beziehungen, Revisionen                                                   |
+| `tests/Feature/PublicBoundaryTest.php`                     | Veröffentlichungsgrenze                                                             |
+| `tests/Feature/PrivacyTest.php`, `AccountTest.php`         | Kontolöschung, Pseudonymisierung, Fristen                                           |
+| `tests/Feature/OrganizationTest.php`                       | Mandantentrennung mit zwei Organisationen (ausbauen nach B1)                        |
+| `tests/Feature/RestoreTest.php`                            | Rücknahme von Revisionen                                                            |
+| neu: Löschregister                                         | Sicherung zurückspielen, Register anwenden, keine registrierten Personendaten mehr  |
+| neu: Papierkorb                                            | vorläufig löschen, wiederherstellen, endgültig löschen                              |
+| neu: Schemaprüfung                                         | STRICT, CHECK, `integrity_check`, `foreign_key_check`; CI auf SQLite und PostgreSQL |
 
 Zusätzlich zur PR-Checkliste des Standards: API-Werte unverändert oder Abgleich im Intranet (sek-intranet) informiert;
 CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
@@ -150,18 +153,18 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
 Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über die genannten Issues.
 
-| Nr. | Thema | Entscheid | Umsetzung |
-| --- | --- | --- | --- |
-| W1 | PostgreSQL | DEC-010 abgelöst: SQLite zu Beginn, PostgreSQL für den zentralen Betrieb; CI gegen beide | Konzepte nachgeführt (#274); PostgreSQL #191 |
-| W2 | Umbenennen | neuer Anfangsstand mit Dateien vor dem Stichtag des Kompatibilitätstests; Test bleibt unverändert; Übergangs-Migration für dev | 0.12.0 |
-| W3 | Migrationen zusammenfassen | jetzt (O4); alte Antwort in KONZEPT-DATENBANK als überholt markiert | #274 |
-| W4 | Enums | mit 0.12.0, mit CHECK-Regeln | #275 |
-| W5 | Super-Admin | Plattformrolle aus Ident, bis dahin Developer (DEC-032) | KONZEPT-BENUTZER nachführen |
-| W6 | Kontolöschung | Löschkonzept 1.1 und Datenschutzerklärung nachgeführt; Fristen in Klammern | #274 |
-| W7 | Datenklassen | je Spalte im Code, Test, erzeugte Übersicht | #276 |
-| W8 | Identitäten | `issuer` + `subject` mit 0.12.0 | #277 |
-| – | Löschfristen | rechtlich prüfen vor dem öffentlichen Betrieb | #278 |
-| – | Row-Level Security | Prototyp mit PostgreSQL | EduKSX-Architektur #13 |
+| Nr. | Thema                      | Entscheid                                                                                                                      | Umsetzung                                    |
+| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| W1  | PostgreSQL                 | DEC-010 abgelöst: SQLite zu Beginn, PostgreSQL für den zentralen Betrieb; CI gegen beide                                       | Konzepte nachgeführt (#274); PostgreSQL #191 |
+| W2  | Umbenennen                 | neuer Anfangsstand mit Dateien vor dem Stichtag des Kompatibilitätstests; Test bleibt unverändert; Übergangs-Migration für dev | 0.12.0                                       |
+| W3  | Migrationen zusammenfassen | jetzt (O4); alte Antwort in KONZEPT-DATENBANK als überholt markiert                                                            | #274                                         |
+| W4  | Enums                      | mit 0.12.0, mit CHECK-Regeln                                                                                                   | #275                                         |
+| W5  | Super-Admin                | Plattformrolle aus Ident, bis dahin Developer (DEC-032)                                                                        | KONZEPT-BENUTZER nachführen                  |
+| W6  | Kontolöschung              | Löschkonzept 1.1 und Datenschutzerklärung nachgeführt; Fristen in Klammern                                                     | #274                                         |
+| W7  | Datenklassen               | je Spalte im Code, Test, erzeugte Übersicht                                                                                    | #276                                         |
+| W8  | Identitäten                | `issuer` + `subject` mit 0.12.0                                                                                                | #277                                         |
+| –   | Löschfristen               | rechtlich prüfen vor dem öffentlichen Betrieb                                                                                  | #278                                         |
+| –   | Row-Level Security         | Prototyp mit PostgreSQL                                                                                                        | EduKSX-Architektur #13                       |
 
 ## Verlauf
 

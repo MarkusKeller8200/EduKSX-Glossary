@@ -21,7 +21,7 @@ use LogicException;
  * @property array<string, array{old: mixed, new: mixed}>|null $change_set Feld → alter und neuer Wert
  * @property string|null $actor_type community, moderator, admin, developer, service, system
  * @property array<string, mixed>|null $context z. B. Quelle (Excel) oder Zusammenführung
- * @property string|null $approved_by
+ * @property string|null $approved_by_id
  * @property CarbonImmutable|null $published_at
  * @property CarbonImmutable $created_at
  */
@@ -53,11 +53,11 @@ class TermRevision extends Model
 
     protected static function booted(): void
     {
-        // Inhalt einer Revision ist unveränderlich; nur die Freigabe (published_at, approved_by) wird gesetzt.
+        // Inhalt einer Revision ist unveränderlich; nur die Freigabe (published_at, approved_by_id) wird gesetzt.
         // Einzige Ausnahme: bei der Kontolöschung wird die Bezeichnung ersetzt (PersonalData::forget, DEC-020).
         static::updating(function (TermRevision $revision): void {
             $changed = array_keys($revision->getDirty());
-            if (array_diff($changed, ['published_at', 'approved_by']) !== []) {
+            if (array_diff($changed, ['published_at', 'approved_by_id']) !== []) {
                 throw new LogicException('Revisionen sind unveränderlich.');
             }
         });

@@ -146,16 +146,36 @@ export const statusClasses = {
     info: 'border-info/30 bg-info-soft text-info',
 } as const;
 
-/**
- * Status eines Begriffs (#91): aktuell grün, zu prüfen orange, historisch grau. Akzeptiert Schlüssel
- * (`zu_pruefen`) und Anzeigetext («zu prüfen»).
- */
+/** Status eines Begriffs: Wert (englisch, #266) → Anzeigetext. */
+export const TERM_STATUS: Record<string, string> = {
+    current: 'aktuell',
+    historical: 'historisch',
+    under_review: 'zu prüfen',
+};
+
+/** Status als Wert, auch aus dem Anzeigetext («zu prüfen») oder einem Wert bis 0.11.0 (`zu_pruefen`). */
+export function termStatusValue(status: string): string {
+    const legacy: Record<string, string> = {
+        aktuell: 'current',
+        historisch: 'historical',
+        zu_pruefen: 'under_review',
+        'zu prüfen': 'under_review',
+    };
+
+    return legacy[status] ?? status;
+}
+
+/** Ist der Begriff aktuell (Status wird dann auf der Website nicht angezeigt)? */
+export function isCurrentStatus(status: string): boolean {
+    return termStatusValue(status) === 'current';
+}
+
+/** Status eines Begriffs (#91): aktuell grün, zu prüfen orange, historisch grau. */
 export function termStatusClasses(status: string): string {
-    switch (status) {
-        case 'aktuell':
+    switch (termStatusValue(status)) {
+        case 'current':
             return statusClasses.success;
-        case 'zu_pruefen':
-        case 'zu prüfen':
+        case 'under_review':
             return statusClasses.warning;
         default:
             return palette.slate.badge;

@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $issuer
  * @property string $subject
  * @property string|null $tenant_id
- * @property string|null $object_id
  * @property CarbonImmutable|null $last_used_at
  * @property CarbonImmutable|null $created_at
  * @property-read User $user
@@ -26,7 +25,7 @@ class UserIdentity extends Model
     public const PROVIDERS = ['microsoft' => 'Microsoft', 'edulog' => 'Edulog'];
 
     /** @var list<string> */
-    protected $fillable = ['user_id', 'provider', 'issuer', 'subject', 'tenant_id', 'object_id', 'last_used_at'];
+    protected $fillable = ['user_id', 'provider', 'issuer', 'subject', 'tenant_id', 'last_used_at'];
 
     /**
      * @return array<string, string>

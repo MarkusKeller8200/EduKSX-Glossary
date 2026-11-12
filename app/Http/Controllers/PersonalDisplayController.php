@@ -40,8 +40,8 @@ class PersonalDisplayController extends Controller
         // eigene Texte der Organisations-Admins gelten sofort, sonst nach Freigabe
         $admin = $this->organizations->isAdmin($user, $organization);
         $override->forceFill($admin
-            ? ['approved_organization_id' => $organization->id, 'approved_by' => $user->id, 'approved_at' => now()]
-            : ['approved_organization_id' => null, 'approved_by' => null, 'approved_at' => null]);
+            ? ['approved_organization_id' => $organization->id, 'approved_by_id' => $user->id, 'approved_at' => now()]
+            : ['approved_organization_id' => null, 'approved_by_id' => null, 'approved_at' => null]);
         if ($override->isEmpty()) {
             if ($override->exists) {
                 $override->delete();

@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\AliasType;
+use App\Enums\TermStatus;
 use App\Glossary\Permalink;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -26,7 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $description
  * @property string|null $note
  * @property string|null $url
- * @property string|null $search_terms
+ * @property-read string $search_terms Suchbegriffe als Text «a; b», aus den Aliasen vom Typ search (E1, #266)
  * @property string $lifecycle_status
  * @property bool $is_active
  * @property CarbonImmutable|null $valid_from
@@ -43,14 +46,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Collection<int, TermAlias> $aliases
  * @property-read Collection<int, TermRevision> $revisions
  * @property-read Collection<int, TermUserOverride> $overrides
- * @property-read Collection<int, TermLegacyValue> $legacyValues
  */
 class Term extends Model
 {
     use HasUuids;
 
-    /** Status des Begriffs (nicht die Veröffentlichung). */
-    public const STATUS = ['aktuell' => 'aktuell', 'historisch' => 'historisch', 'zu_pruefen' => 'zu prüfen'];
+    /** Status des Begriffs (nicht die Veröffentlichung): Wert → Label, siehe {@see TermStatus}. */
+    public const STATUS = ['current' => 'aktuell', 'historical' => 'historisch', 'under_review' => 'zu prüfen'];
 
     /** Offizielle Felder: ändern nur mit Recht «edit-official» (leer → Wert setzen ist erlaubt, wie im Intranet). */
     public const OFFICIAL = ['official_abbreviation', 'official_name', 'official_aliases'];
@@ -58,11 +60,11 @@ class Term extends Model
     /** @var list<string> */
     protected $fillable = [
         'slug', 'official_abbreviation', 'official_name', 'short_description', 'description', 'note', 'url',
-        'search_terms', 'lifecycle_status', 'is_active', 'valid_from', 'valid_until',
+        'lifecycle_status', 'is_active', 'valid_from', 'valid_until',
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['lifecycle_status' => 'aktuell', 'is_active' => true, 'revision' => 0];
+    protected $attributes = ['lifecycle_status' => 'current', 'is_active' => true, 'revision' => 0];
 
     protected static function booted(): void
     {
@@ -102,7 +104,18 @@ class Term extends Model
     /** @return BelongsToMany<Source, $this> */
     public function sources(): BelongsToMany
     {
-        return $this->belongsToMany(Source::class, 'term_sources')->withPivot(['url', 'retrieved_at', 'note', 'evidence']);
+        return $this->belongsToMany(Source::class, 'term_sources')->withPivot(['retrieved_on', 'note', 'evidence']);
+    }
+
+    /**
+     * Suchbegriffe als Text (E1, #266): nur gespeichert als Aliase vom Typ search.
+     *
+     * @return Attribute<string, never>
+     */
+    protected function searchTerms(): Attribute
+    {
+        return Attribute::get(fn (): string => implode('; ', $this->aliases
+            ->where('alias_type', AliasType::Search->value)->pluck('alias')->all()));
     }
 
     /** @return HasMany<TermAlias, $this> */
@@ -121,12 +134,6 @@ class Term extends Model
     public function overrides(): HasMany
     {
         return $this->hasMany(TermUserOverride::class);
-    }
-
-    /** @return HasMany<TermLegacyValue, $this> */
-    public function legacyValues(): HasMany
-    {
-        return $this->hasMany(TermLegacyValue::class);
     }
 
     /** @return BelongsTo<TermRevision, $this> */

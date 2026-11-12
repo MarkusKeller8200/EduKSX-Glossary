@@ -44,12 +44,12 @@ class AccountTest extends TestCase
 
         $this->put('/konto', [
             'first_name' => 'Anna', 'last_name' => 'Beispiel', 'community_name' => 'Anna B.', 'function' => 'Schulleitung',
-            'institution_type' => 'schule', 'institution_name' => 'Primarschule Musterdorf',
+            'institution_type' => 'school', 'institution_name' => 'Primarschule Musterdorf',
         ])->assertRedirect();
         $user->refresh();
         $this->assertSame('Anna Beispiel', $user->name);
         $this->assertSame('Anna B.', $user->community_name);
-        $this->assertSame('schule', $user->institution_type);
+        $this->assertSame('school', $user->institution_type);
         $this->assertSame('c@example.org', $user->email);   // E-Mail nur mit Bestätigung (#41)
     }
 

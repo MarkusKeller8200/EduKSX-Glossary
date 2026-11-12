@@ -26,9 +26,6 @@ export default function ImportPreview({
     fehler,
     listen,
     fehlendeSpalten,
-    altwerte,
-    altesFormat,
-    altSpalten,
 }: {
     token: string;
     datei: string;
@@ -38,9 +35,6 @@ export default function ImportPreview({
     fehler: number;
     listen: { Kategorien: string[]; Herkunft: string[] };
     fehlendeSpalten: string[];
-    altwerte: number;
-    altesFormat: boolean;
-    altSpalten: string[];
 }) {
     const [sending, setSending] = useState(false);
     const neueListen = [...listen.Kategorien, ...listen.Herkunft];
@@ -56,7 +50,7 @@ export default function ImportPreview({
                 </div>
                 <div className="flex gap-2">
                     <Button
-                        disabled={neu + geaendert + altwerte === 0 || sending}
+                        disabled={neu + geaendert === 0 || sending}
                         onClick={() => {
                             setSending(true);
                             router.post(
@@ -79,17 +73,6 @@ export default function ImportPreview({
                 gelöscht.
             </p>
 
-            {altesFormat ? (
-                <Alert className="mt-6">
-                    <AlertDescription>
-                        Altes Format (Intranet): {altSpalten.join(', ')} sind
-                        keine gemeinsamen Daten mehr und werden nicht zentral
-                        übernommen. Die Werte werden als Altwerte gesichert (
-                        {altwerte} neu) und können unter «Altwerte» zugeordnet
-                        werden.
-                    </AlertDescription>
-                </Alert>
-            ) : null}
             {fehlendeSpalten.length > 0 ? (
                 <Alert className="mt-6">
                     <AlertDescription>

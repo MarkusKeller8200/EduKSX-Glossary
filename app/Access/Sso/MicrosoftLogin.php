@@ -51,7 +51,7 @@ class MicrosoftLogin
     /**
      * Rückkehr von Microsoft auswerten.
      *
-     * @return array{issuer: string, subject: string, tenant_id: string|null, object_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}
+     * @return array{issuer: string, subject: string, tenant_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}
      *
      * @throws RuntimeException wenn die Anmeldung nicht gültig ist
      */
@@ -72,7 +72,6 @@ class MicrosoftLogin
             'issuer' => (string) $claims->iss,
             'subject' => (string) $claims->sub,
             'tenant_id' => $str('tid'),
-            'object_id' => $str('oid'),
             'email' => $str('email') ?? $str('preferred_username'),
             'given_name' => $str('given_name'),
             'family_name' => $str('family_name'),

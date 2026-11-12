@@ -31,11 +31,11 @@ use Illuminate\Support\Facades\DB;
  * @property CarbonImmutable|null $last_login_on
  * @property CarbonImmutable|null $email_verified_at
  * @property string|null $privacy_notice_version
- * @property bool $news_opt_in Einwilligung in News, keine Werbung (#169)
+ * @property bool $has_news_opt_in Einwilligung in News, keine Werbung (#169)
  * @property CarbonImmutable|null $news_answered_at NULL = noch nie gefragt
  * @property CarbonImmutable|null $privacy_notice_acknowledged_at
  * @property CarbonImmutable|null $inactivity_notice_sent_at
- * @property bool $password_set false = nur über Anmeldedienst (#45)
+ * @property bool $has_password false = nur über Anmeldedienst (#45)
  * @property-read Collection<int, UserIdentity> $identities
  * @property string $email
  * @property string|null $two_factor_secret
@@ -52,8 +52,8 @@ class User extends Authenticatable
 
     /** Arten öffentlicher Einrichtungen (docs/KONZEPT-BENUTZER.md 4). */
     public const INSTITUTION_TYPES = [
-        'schule' => 'Schule', 'schulgemeinde' => 'Schulgemeinde', 'gemeinde' => 'Gemeinde', 'kanton' => 'Kanton',
-        'andere' => 'andere',
+        'school' => 'Schule', 'school_district' => 'Schulgemeinde', 'municipality' => 'Gemeinde', 'canton' => 'Kanton',
+        'other' => 'andere',
     ];
 
     /** @var list<string> */
@@ -63,7 +63,7 @@ class User extends Authenticatable
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['status' => 'active', 'password_set' => true, 'news_opt_in' => false];
+    protected $attributes = ['status' => 'active', 'has_password' => true, 'has_news_opt_in' => false];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
@@ -80,8 +80,8 @@ class User extends Authenticatable
             'email_verified_at' => 'immutable_datetime',
             'privacy_notice_acknowledged_at' => 'immutable_datetime',
             'inactivity_notice_sent_at' => 'immutable_datetime',
-            'password_set' => 'boolean',
-            'news_opt_in' => 'boolean',
+            'has_password' => 'boolean',
+            'has_news_opt_in' => 'boolean',
             'news_answered_at' => 'immutable_datetime',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
@@ -116,7 +116,7 @@ class User extends Authenticatable
     /** News-Einwilligung setzen (#169), mit Zeitpunkt der Antwort. */
     public function answerNews(bool $optIn): void
     {
-        $this->forceFill(['news_opt_in' => $optIn, 'news_answered_at' => now()])->save();
+        $this->forceFill(['has_news_opt_in' => $optIn, 'news_answered_at' => now()])->save();
     }
 
     /** Zweiter Faktor eingerichtet und bestätigt (#11). */
