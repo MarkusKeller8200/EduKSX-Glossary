@@ -8,8 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
-- **WebApp und Icon (#239, #240):** Eigenes Icon (Entwurf) für Browser-Tab und Home-Bildschirm; das Glossar lässt sich
-  als App installieren, auf dem Handy mit Hinweis «App installieren» (iPhone mit Anleitung).
+- **WebApp und Icon (#239, #240, #251):** Glossary-Symbol aus dem CI für Browser-Tab, Home-Bildschirm und vor dem
+  Titel; das Glossar lässt sich als App installieren, auf dem Handy mit Hinweis «App installieren» (iPhone mit
+  Anleitung).
 
 ### Geändert
 
@@ -20,7 +21,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Kacheln (#229):** Kopf zweizeilig – Abkürzung mit Herkunft und Status, Bezeichnung mit Kategorien (auf dem Handy
   untereinander, #232).
 - **Startseite (#238):** Anzahl und Ansicht bleiben beim Scrollen unter der Kopfzeile.
-- **Export (#234):** Icons für die Formate.
+- **Export (#234, #247):** Icons in den Farben der Formate.
+- **Kacheln öffnen die Details (#249, #250):** Symbol unten links und Tippen auf die Kachel; Detailansicht mit
+  «Schliessen».
+- **Handy-Startseite (#244, #245, #246, #248):** Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer Kacheln,
+  Text in Kacheln nicht markierbar.
 
 ## [0.10.0] – 2026-11-12
 

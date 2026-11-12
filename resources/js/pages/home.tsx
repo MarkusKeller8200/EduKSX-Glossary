@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Filter, LayoutGrid, List, Table2 } from 'lucide-react';
 import { useMemo, useState, lazy, Suspense } from 'react';
 import DataGrid from '@/components/data-grid';
@@ -8,6 +8,7 @@ import TermCard from '@/components/term-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useHandy } from '@/hooks/use-handy';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
 
@@ -83,6 +84,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     const [autofokus] = useState(mitAutofokus);
     // Handy (#237): Index A–Z und Filter eingeklappt
     const [filterOffen, setFilterOffen] = useState(false);
+    const handy = useHandy();
     const [pdf, setPdf] = useState(false);
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
     // Filter Kategorie und Herkunft, Mehrfachauswahl (#145)
@@ -114,6 +116,9 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     );
     const vorhanden = useMemo(() => new Set(begriffe.map(initial)), [begriffe]);
 
+    // Handy immer Kacheln (#246); die gewählte Ansicht bleibt für den Desktop gespeichert
+    const sicht: Ansicht = handy ? 'kacheln' : ansicht;
+
     const aktiveFilter =
         (buchstabe === null ? 0 : 1) + gewaehlt.length + herkunft.length;
 
@@ -128,6 +133,29 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 b.herkunft.some((h) => herkunft.includes(h))),
     );
 
+    const anzahl = (
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+            {liste.length === 1 ? '1 Begriff' : `${liste.length} Begriffe`}
+            {liste.length !== begriffe.length ? ` von ${begriffe.length}` : ''}
+        </p>
+    );
+
+    // Export der sichtbaren Begriffe (#131): ab Recht «export», sonst ausgegraut mit Hinweis
+    const export_ = (compact = false) => (
+        <ExportMenu
+            endpoint="/export"
+            keys={liste.map((b) => b.slug)}
+            allowed={auth.can.export === true}
+            hint={
+                auth.user
+                    ? { text: 'Export ab Rolle Benutzer' }
+                    : { text: 'Zum Exportieren anmelden', href: '/anmelden' }
+            }
+            onPdf={() => setPdf(true)}
+            compact={compact}
+        />
+    );
+
     return (
         <>
             <Head title="Begriffe und Abkürzungen" />
@@ -140,143 +168,135 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 Erklärung, Quelle und Gültigkeit.
             </p>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-                <div className="w-full max-w-xl">
-                    <label htmlFor="suche" className="sr-only">
-                        Begriff suchen
-                    </label>
-                    <Input
-                        id="suche"
-                        type="search"
-                        placeholder="Begriff oder Abkürzung suchen …"
-                        value={suche}
-                        onChange={(e) => setSuche(e.target.value)}
-                        autoFocus={autofokus}
-                    />
+            {/* Handy (#244, #245): ab dem Suchfeld fixiert, darunter Filter, Anzahl und Export */}
+            <div className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-6 bg-background px-4 py-2 sm:static sm:mx-0 sm:px-0 sm:py-0">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="w-full max-w-xl">
+                        <label htmlFor="suche" className="sr-only">
+                            Begriff suchen
+                        </label>
+                        <Input
+                            id="suche"
+                            type="search"
+                            placeholder="Begriff oder Abkürzung suchen …"
+                            value={suche}
+                            onChange={(e) => setSuche(e.target.value)}
+                            autoFocus={autofokus}
+                        />
+                    </div>
+                    {handy ? null : export_()}
                 </div>
-                <div className="flex w-full items-start gap-2 sm:w-auto">
-                    {/* Export der sichtbaren Begriffe (#131): ab Recht «export», sonst ausgegraut mit Hinweis */}
-                    <ExportMenu
-                        endpoint="/export"
-                        keys={liste.map((b) => b.slug)}
-                        allowed={auth.can.export === true}
-                        hint={
-                            auth.user
-                                ? { text: 'Export ab Rolle Benutzer' }
-                                : {
-                                      text: 'Zum Exportieren anmelden',
-                                      href: '/anmelden',
-                                  }
-                        }
-                        onPdf={() => setPdf(true)}
-                    />
-                    <Button
-                        variant="outline"
-                        className="ml-auto shrink-0 sm:hidden"
-                        onClick={() => setFilterOffen(!filterOffen)}
-                        aria-expanded={filterOffen}
-                        aria-controls="filter-bereich"
-                    >
-                        <Filter aria-hidden /> Filter
-                        {aktiveFilter > 0 ? (
-                            <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
-                                {aktiveFilter}
-                            </span>
-                        ) : null}
-                    </Button>
-                </div>
-            </div>
 
-            <div
-                id="filter-bereich"
-                className={cn('sm:block', filterOffen ? 'block' : 'hidden')}
-            >
-                <nav
-                    aria-label="Index A–Z"
-                    className="mt-4 flex flex-wrap gap-1 text-sm"
-                >
-                    {[...ALPHABET, '#'].map((l) => (
-                        <button
-                            key={l}
-                            type="button"
-                            disabled={!vorhanden.has(l)}
-                            aria-pressed={buchstabe === l}
-                            onClick={() =>
-                                setBuchstabe(buchstabe === l ? null : l)
-                            }
-                            className={cn(
-                                'min-w-8 rounded-md px-2 py-1 font-medium disabled:text-muted-foreground/50',
-                                buchstabe === l
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'hover:bg-accent hover:text-accent-foreground',
-                            )}
+                {handy ? (
+                    <div className="mt-2 flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            className="shrink-0"
+                            onClick={() => setFilterOffen(!filterOffen)}
+                            aria-expanded={filterOffen}
+                            aria-controls="filter-bereich"
                         >
-                            {l}
-                        </button>
-                    ))}
-                </nav>
+                            <Filter aria-hidden /> Filter
+                            {aktiveFilter > 0 ? (
+                                <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                    {aktiveFilter}
+                                </span>
+                            ) : null}
+                        </Button>
+                        {anzahl}
+                        <div className="ml-auto shrink-0">{export_(true)}</div>
+                    </div>
+                ) : null}
 
-                <div className="mt-3 grid gap-2">
-                    <LabelFilter
-                        list="herkunft"
-                        title="Herkunft"
-                        labels={herkuenfte}
-                        selected={herkunft}
-                        onChange={setHerkunft}
-                    />
-                    <LabelFilter
-                        list="kategorien"
-                        title="Kategorie"
-                        labels={kategorien}
-                        selected={gewaehlt}
-                        onChange={setGewaehlt}
-                    />
+                <div
+                    id="filter-bereich"
+                    className={cn(
+                        handy && 'max-h-[50dvh] overflow-y-auto',
+                        handy && !filterOffen && 'hidden',
+                    )}
+                >
+                    <nav
+                        aria-label="Index A–Z"
+                        className="mt-4 flex flex-wrap gap-1 text-sm"
+                    >
+                        {[...ALPHABET, '#'].map((l) => (
+                            <button
+                                key={l}
+                                type="button"
+                                disabled={!vorhanden.has(l)}
+                                aria-pressed={buchstabe === l}
+                                onClick={() =>
+                                    setBuchstabe(buchstabe === l ? null : l)
+                                }
+                                className={cn(
+                                    'min-w-8 rounded-md px-2 py-1 font-medium disabled:text-muted-foreground/50',
+                                    buchstabe === l
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'hover:bg-accent hover:text-accent-foreground',
+                                )}
+                            >
+                                {l}
+                            </button>
+                        ))}
+                    </nav>
+
+                    <div className="mt-3 grid gap-2">
+                        <LabelFilter
+                            list="herkunft"
+                            title="Herkunft"
+                            labels={herkuenfte}
+                            selected={herkunft}
+                            onChange={setHerkunft}
+                        />
+                        <LabelFilter
+                            list="kategorien"
+                            title="Kategorie"
+                            labels={kategorien}
+                            selected={gewaehlt}
+                            onChange={setGewaehlt}
+                        />
+                    </div>
                 </div>
             </div>
 
-            {/* Anzahl und Ansicht bleiben beim Scrollen unter der Kopfzeile (#238) */}
-            <div className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 bg-background px-4 py-2">
-                <p className="text-sm text-muted-foreground" aria-live="polite">
-                    {liste.length === 1
-                        ? '1 Begriff'
-                        : `${liste.length} Begriffe`}
-                    {liste.length !== begriffe.length
-                        ? ` von ${begriffe.length}`
-                        : ''}
-                </p>
-                <ToggleGroup
-                    type="single"
-                    variant="outline"
-                    size="sm"
-                    value={ansicht}
-                    onValueChange={(v) => v && setAnsicht(v as Ansicht)}
-                    aria-label="Ansicht"
-                >
-                    <ToggleGroupItem
-                        value="balken"
-                        aria-label="Balken"
-                        title="Balken"
+            {/* Desktop: Anzahl und Ansicht bleiben beim Scrollen unter der Kopfzeile (#238); Handy immer Kacheln (#246) */}
+            {handy ? null : (
+                <div className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 bg-background px-4 py-2">
+                    {anzahl}
+                    <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        size="sm"
+                        value={ansicht}
+                        onValueChange={(v) => v && setAnsicht(v as Ansicht)}
+                        aria-label="Ansicht"
                     >
-                        <List aria-hidden />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                        value="tabelle"
-                        aria-label="Tabelle"
-                        title="Tabelle"
-                    >
-                        <Table2 aria-hidden />
-                    </ToggleGroupItem>
-                    <ToggleGroupItem
-                        value="kacheln"
-                        aria-label="Kacheln"
-                        title="Kacheln"
-                    >
-                        <LayoutGrid aria-hidden />
-                    </ToggleGroupItem>
-                </ToggleGroup>
-            </div>
+                        <ToggleGroupItem
+                            value="balken"
+                            aria-label="Balken"
+                            title="Balken"
+                        >
+                            <List aria-hidden />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                            value="tabelle"
+                            aria-label="Tabelle"
+                            title="Tabelle"
+                        >
+                            <Table2 aria-hidden />
+                        </ToggleGroupItem>
+                        <ToggleGroupItem
+                            value="kacheln"
+                            aria-label="Kacheln"
+                            title="Kacheln"
+                        >
+                            <LayoutGrid aria-hidden />
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+                </div>
+            )}
 
-            {ansicht === 'balken' ? (
+            {sicht === 'balken' ? (
                 <ul className="mt-2 divide-y divide-border border-y border-border">
                     {liste.map((b) => (
                         <li key={b.slug}>
@@ -315,12 +335,24 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                         </li>
                     ))}
                 </ul>
-            ) : ansicht === 'kacheln' ? (
+            ) : sicht === 'kacheln' ? (
                 <ul className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {liste.map((b) => (
                         <li
                             key={b.slug}
-                            className="min-w-0 rounded-lg border border-border bg-card p-3"
+                            className="min-w-0 cursor-pointer rounded-lg border border-border bg-card p-3 select-none hover:bg-accent/30 sm:select-text"
+                            onClick={(e) => {
+                                // Ganze Kachel öffnet die Details (#249); Links und Knöpfe darin behalten ihr Ziel
+                                if (
+                                    (e.target as HTMLElement).closest(
+                                        'a, button',
+                                    ) ||
+                                    window.getSelection()?.toString()
+                                ) {
+                                    return;
+                                }
+                                router.visit(`/begriffe/${b.slug}`);
+                            }}
                         >
                             <TermCard
                                 begriff={b}

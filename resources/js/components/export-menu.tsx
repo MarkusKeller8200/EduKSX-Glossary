@@ -19,6 +19,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 type Format = 'xlsx' | 'csv' | 'md';
+
+/** Icon-Farben angelehnt an die Produkte (#247): Excel/CSV grün, PDF rot, Markdown neutral; dunkel heller. */
+const FARBE: Record<Format | 'pdf', string> = {
+    xlsx: 'text-[#1d6f42] dark:text-[#4cc38a]',
+    csv: 'text-[#107c41] dark:text-[#5fd39a]',
+    pdf: 'text-[#d93025] dark:text-[#f2786f]',
+    md: 'text-foreground',
+};
 type Umfang = 'sichtbar' | 'vollstaendig';
 
 /** XSRF-Token aus dem Cookie (Laravel prüft den Header X-XSRF-TOKEN). */
@@ -38,6 +46,7 @@ export default function ExportMenu({
     allowed,
     hint,
     onPdf,
+    compact = false,
 }: {
     /** `/export` (veröffentlicht) bzw. `/admin/export` (Arbeitsstand) */
     endpoint: string;
@@ -47,6 +56,8 @@ export default function ExportMenu({
     /** Hinweis ohne Recht, z. B. «Zum Exportieren anmelden» */
     hint?: { text: string; href?: string; link?: string };
     onPdf?: () => void;
+    /** Handy-Leiste (#245): Hinweis ohne Recht nur als Tooltip */
+    compact?: boolean;
 }) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -99,13 +110,16 @@ export default function ExportMenu({
                 <Button
                     variant="outline"
                     disabled
-                    aria-describedby="export-hinweis"
+                    aria-describedby={compact ? undefined : 'export-hinweis'}
+                    aria-label={
+                        compact && hint ? `Export – ${hint.text}` : undefined
+                    }
                     title={hint?.text}
                 >
                     <Download aria-hidden /> Export
                     <ChevronDown aria-hidden />
                 </Button>
-                {hint ? (
+                {hint && !compact ? (
                     <span
                         id="export-hinweis"
                         className="text-sm text-muted-foreground"
@@ -148,35 +162,39 @@ export default function ExportMenu({
                         disabled={n === 0}
                         onSelect={() => void download('xlsx', 'sichtbar')}
                     >
-                        <FileSpreadsheet aria-hidden /> Excel – {zeilen}
+                        <FileSpreadsheet aria-hidden className={FARBE.xlsx} />{' '}
+                        Excel – {zeilen}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         disabled={n === 0}
                         onSelect={() => void download('csv', 'sichtbar')}
                     >
-                        <Sheet aria-hidden /> CSV – {zeilen}
+                        <Sheet aria-hidden className={FARBE.csv} /> CSV –{' '}
+                        {zeilen}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         disabled={n === 0}
                         onSelect={() => void download('xlsx', 'vollstaendig')}
                     >
-                        <FileSpreadsheet aria-hidden /> Excel vollständig (alle
-                        Daten) – {zeilen}
+                        <FileSpreadsheet aria-hidden className={FARBE.xlsx} />{' '}
+                        Excel vollständig (alle Daten) – {zeilen}
                     </DropdownMenuItem>
                     {onPdf ? (
                         <DropdownMenuItem
                             disabled={n === 0}
                             onSelect={() => onPdf()}
                         >
-                            <FileText aria-hidden /> PDF … – {zeilen}
+                            <FileText aria-hidden className={FARBE.pdf} /> PDF …
+                            – {zeilen}
                         </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem
                         disabled={n === 0}
                         onSelect={() => void download('md', 'sichtbar')}
                     >
-                        <FileCode2 aria-hidden /> Markdown – {zeilen}
+                        <FileCode2 aria-hidden className={FARBE.md} /> Markdown
+                        – {zeilen}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

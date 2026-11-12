@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/react';
 import { initializeTheme } from '@/hooks/use-appearance';
 import AdminLayout from '@/layouts/admin-layout';
 import PublicLayout from '@/layouts/public-layout';
+import { navigationZaehlen } from '@/lib/navigation';
 
 const appName = import.meta.env.VITE_APP_NAME || 'EduKSX-Glossary';
 
@@ -24,6 +25,8 @@ void createInertiaApp({
         color: '#007EBB',
     },
 });
+
+navigationZaehlen();
 
 // Hell/Dunkel beim Laden setzen (wie im Intranet)
 initializeTheme();

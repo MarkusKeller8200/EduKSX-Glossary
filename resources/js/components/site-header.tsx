@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
+import GlossaryIcon from '@/components/glossary-icon';
 import { Button } from '@/components/ui/button';
 import ViewWidthTabs from '@/components/view-width-tabs';
 import { useViewWidth, widthClass } from '@/hooks/use-view-width';
@@ -75,8 +76,9 @@ export default function SiteHeader({
             >
                 <Link
                     href={area === 'admin' ? '/admin' : '/'}
-                    className="shrink-0 rounded-sm text-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:text-xl"
+                    className="flex shrink-0 items-center gap-2 rounded-sm text-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:text-xl"
                 >
+                    <GlossaryIcon className="size-6 sm:size-7" />
                     <BrandWordmark brand="education" suffix="Glossary" />
                     {area === 'admin' ? (
                         <span className="ml-2 hidden text-sm font-normal text-muted-foreground sm:inline">
