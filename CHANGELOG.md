@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.9.1] – 2026-11-12
+
 ### Neu
 
 - **Prüfung der Konfiguration (#196):** `php artisan glossary:pruefen` und Systemseite zeigen fehlende, unsichere oder
