@@ -226,3 +226,31 @@ sed -i '/github-deploy-glossary$/d;/github-deploy-intranet$/d' /root/.ssh/author
 
 Schlägt etwas fehl: Variable `VPS_USER` in GitHub löschen – dann rollt der Workflow wieder als root aus, solange
 die alten Schlüssel noch eingetragen sind (darum Schritt 8 zuletzt).
+
+## Fertiges Image aus der Registry (#175)
+
+Der Workflow **image** baut nach jeder geprüften Änderung auf `main` ein Image und legt es in die GitHub Container
+Registry: `ghcr.io/markuskeller8200/eduksx-glossary:main` bzw. `:main-<commit>`. Ein Release-Commit (Datei `VERSION`
+geändert) erzeugt zusätzlich `:X.Y.Z`, `:X.Y` und `:latest` für amd64 und arm64. Jedes Image ist mit cosign signiert und
+hat einen Herkunftsnachweis.
+
+**Einmalig von Hand:** Nach dem ersten Lauf ist das Paket privat. Für selbst gehostete Instanzen und Komodo ohne
+Anmeldung: GitHub → Profil → Packages → `eduksx-glossary` → Package settings → Change visibility → Public.
+
+Starten ohne Bauen (z. B. Test auf einem leeren Server):
+
+```bash
+mkdir -p /opt/glossary && cd /opt/glossary
+curl -fsSLO https://raw.githubusercontent.com/MarkusKeller8200/EduKSX-Glossary/main/docker/compose.yaml
+printf 'GLOSSARY_HOST=glossary.example.ch\n' > .env
+docker compose pull && docker compose up -d
+curl -fsS http://127.0.0.1:8080/up
+```
+
+Signatur prüfen:
+
+```bash
+cosign verify ghcr.io/markuskeller8200/eduksx-glossary:latest \
+  --certificate-identity-regexp 'https://github.com/MarkusKeller8200/EduKSX-Glossary/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
