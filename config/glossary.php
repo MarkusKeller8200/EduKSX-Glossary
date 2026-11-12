@@ -47,4 +47,7 @@ return [
 
     // Reduzierte Fassung auf GitHub Pages (docs/KONZEPT-HOSTING.md)
     'pages_url' => env('GLOSSARY_PAGES_URL', 'https://markuskeller8200.github.io/EduKSX-Glossary/'),
+
+    // Mail-Versand (#219): mit MAIL_MAILER in der Umgebung gilt diese, die Einstellung in der Administration ist gesperrt
+    'mail_env' => env('MAIL_MAILER') !== null,
 ];

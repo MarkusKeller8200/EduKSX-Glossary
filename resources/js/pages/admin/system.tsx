@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import MailSettingsForm, {
+    type MailEinstellung,
+} from '@/components/mail-settings-form';
 
 type Mail = {
     mailer: string;
@@ -15,6 +18,7 @@ type Mail = {
     from_name: string;
     queue: string;
     configured: boolean;
+    quelle: string;
 };
 
 type Pruefung = {
@@ -36,11 +40,13 @@ export default function System({
     warteschlange,
     version,
     pruefung,
+    mailEinstellung,
 }: {
     mail: Mail;
     warteschlange: { offen: number; fehlgeschlagen: number };
     version: string;
     pruefung: Pruefung[];
+    mailEinstellung: MailEinstellung;
 }) {
     const { auth } = usePage().props;
     const form = useForm({ an: auth.user?.email ?? '' });
@@ -49,7 +55,15 @@ export default function System({
         form.post('/admin/system/testmail', { preserveScroll: true });
     };
     const zeilen: [string, string][] = [
-        ['Mailer (MAIL_MAILER)', mail.mailer],
+        ['Mailer', mail.mailer],
+        [
+            'Eingestellt über',
+            mail.quelle === 'umgebung'
+                ? 'Umgebung des Servers (MAIL_*)'
+                : mail.quelle === 'administration'
+                  ? 'Administration (unten)'
+                  : 'Vorgabe (kein Versand)',
+        ],
         ['Server', mail.host ? `${mail.host}:${mail.port ?? ''}` : '–'],
         ['Verschlüsselung', mail.scheme ?? '–'],
         ['Absender', `${mail.from_name} <${mail.from}>`],
@@ -158,6 +172,11 @@ export default function System({
                     </div>
                 </form>
             </section>
+
+            <MailSettingsForm
+                einstellung={mailEinstellung}
+                an={auth.user?.email ?? ''}
+            />
         </>
     );
 }

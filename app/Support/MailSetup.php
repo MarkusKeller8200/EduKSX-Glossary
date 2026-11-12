@@ -14,6 +14,11 @@ final class MailSetup
     /** Ein echter Versand ist eingerichtet (Mailer sendet und Absender ist gesetzt). */
     public static function configured(): bool
     {
+        MailSettings::apply();
+        // aus der Administration erst nach erfolgreicher Testmail (#219)
+        if (MailSettings::unverified()) {
+            return false;
+        }
         $mailer = (string) config('mail.default');
         $from = (string) config('mail.from.address');
 
@@ -24,10 +29,11 @@ final class MailSetup
     /**
      * Angaben für die Systemseite – ohne Zugangsdaten.
      *
-     * @return array{mailer: string, host: string|null, port: int|null, scheme: string|null, from: string, from_name: string, queue: string, configured: bool}
+     * @return array{mailer: string, host: string|null, port: int|null, scheme: string|null, from: string, from_name: string, queue: string, configured: bool, quelle: string}
      */
     public static function info(): array
     {
+        MailSettings::apply();
         $mailer = (string) config('mail.default');
         /** @var array<string, mixed> $settings */
         $settings = (array) config("mail.mailers.{$mailer}", []);
@@ -41,6 +47,7 @@ final class MailSetup
             'from_name' => (string) config('mail.from.name'),
             'queue' => (string) config('queue.default'),
             'configured' => self::configured(),
+            'quelle' => MailSettings::source(),
         ];
     }
 }

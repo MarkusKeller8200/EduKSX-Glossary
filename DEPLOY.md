@@ -89,7 +89,12 @@ docker compose exec app php artisan glossary:developer E-MAIL --grund="Erstes Se
 
 3. Prüfen: `https://glossary.eduksx.ch/up`, `https://glossary.eduksx.ch/versionen`, Anmelden unter `/anmelden`.
 
-## 6. E-Mail-Versand (#40)
+## 6. E-Mail-Versand (#40, #219)
+
+**Einfachster Weg:** Administration → System → «Versand einrichten» (Recht `system`): Anbieter wählen, Zugang
+eintragen, «Speichern und testen». Das Passwort wird verschlüsselt in der Datenbank gespeichert. Das geht nur, wenn
+`MAIL_MAILER` **nicht** in der Umgebung bzw. `.env` des Servers steht – sonst gilt die Umgebung (Vorrang) und das
+Formular ist gesperrt. Alternative für den Betrieb mit Secrets: wie folgt über `.env`.
 
 Der Versand ist an keinen Anbieter gebunden. Eingestellt wird er in `/docker/glossary/.env` auf dem Server;
 Zugangsdaten nie ins Repository. Danach `docker compose up -d` und in der Administration unter **System** eine
