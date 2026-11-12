@@ -1,8 +1,8 @@
-# Konzept: Deployment und Installationsarten (DEC-028, Entwurf)
+# Konzept: Deployment und Installationsarten (DEC-028)
 
-Stand: Entwurf 08.11.2026, ergänzt 11.11.2026 (Umgebungen, Operation, Datenschutz), offene Fragen entschieden 12.11.2026, zur Abnahme. Baut auf [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md) (DEC-027) und
+Stand: beschlossen 12.11.2026 (Entwurf 08.11.2026, ergänzt 11.11.2026 (Umgebungen, Operation, Datenschutz), offene Fragen entschieden 12.11.2026). Baut auf [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md) (DEC-027) und
 [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (DEC-013) auf; die Plattform-Schnittstellen stehen im Konzept
-EduKSX-Plattform (Repo EduKSX-Architektur). Umsetzung erst nach Freigabe.
+EduKSX-Plattform (Repo EduKSX-Architektur). Umsetzung nach Freigabe der Issues.
 
 ## Ziel
 

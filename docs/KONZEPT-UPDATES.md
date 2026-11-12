@@ -1,6 +1,6 @@
-# Konzept: Selbst hosten und Updates (DEC-027, Entwurf)
+# Konzept: Selbst hosten und Updates (DEC-027)
 
-Stand: Entwurf 08.11.2026, offene Fragen entschieden 12.11.2026, zur Abnahme. Umsetzung erst nach Freigabe (Meilenstein «0.10.0 – Selbst hosten und
+Stand: beschlossen 12.11.2026 (Entwurf 08.11.2026, offene Fragen entschieden 12.11.2026). Umsetzung nach Freigabe der Issues (Meilenstein «0.10.0 – Selbst hosten und
 Updates»).
 
 ## Ziel
