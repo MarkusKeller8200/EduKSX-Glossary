@@ -4,23 +4,31 @@ import type { LucideIcon } from 'lucide-react';
 import {
     BookOpenText,
     Code2,
+    Download,
     Globe,
     History,
     LifeBuoy,
     LogIn,
     LogOut,
     Menu,
+    Share,
     ShieldCheck,
     UserRound,
     X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
 import GlossaryIcon from '@/components/glossary-icon';
 import { Button } from '@/components/ui/button';
 import { can, hasAdminArea } from '@/lib/access';
 import { ADMIN_NAV } from '@/lib/admin-nav';
+import {
+    installieren,
+    installiert,
+    ios,
+    useInstallierbar,
+} from '@/lib/install';
 import { cn } from '@/lib/utils';
 
 /** Menüpunkte der Website im Flyout-Menü. */
@@ -33,7 +41,8 @@ const WEBSITE: { href: string; label: string; icon: LucideIcon }[] = [
 
 /**
  * Flyout-Menü links für das Handy, hoch und quer (#259): angemeldete Person mit Ab-/Anmelden, Wechsel zwischen
- * Website und Administration, die Menüpunkte (in der Administration alle mit Recht) und das Farbschema.
+ * Website und Administration, die Menüpunkte (in der Administration alle mit Recht), «App installieren» (#263) und
+ * das Farbschema.
  */
 export default function MobileMenu({
     area,
@@ -47,6 +56,21 @@ export default function MobileMenu({
     const [offen, setOffen] = useState(false);
     const admin = hasAdminArea(auth);
     const zu = () => setOffen(false);
+    // «App installieren» (#263): nicht in der installierten App
+    const kann = useInstallierbar();
+    const [app, setApp] = useState(false);
+    const [anleitung, setAnleitung] = useState(false);
+    useEffect(() => setApp(!installiert()), [offen]);
+    const appKlick = async () => {
+        if (kann) {
+            if (await installieren()) {
+                setApp(false);
+                zu();
+            }
+        } else {
+            setAnleitung(!anleitung);
+        }
+    };
 
     const eintrag = (
         href: string,
@@ -200,6 +224,41 @@ export default function MobileMenu({
                                       path === i.href,
                                   ),
                               )}
+
+                        {app ? (
+                            <>
+                                <div className="my-2 border-t border-border" />
+                                <button
+                                    type="button"
+                                    onClick={() => void appKlick()}
+                                    aria-expanded={kann ? undefined : anleitung}
+                                    className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                                >
+                                    <Download
+                                        className="size-4 shrink-0"
+                                        aria-hidden
+                                    />
+                                    App installieren
+                                </button>
+                                {anleitung ? (
+                                    <p className="mx-3 mt-1 rounded-md bg-muted p-3 text-xs text-muted-foreground">
+                                        {ios() ? (
+                                            <>
+                                                In Safari{' '}
+                                                <Share
+                                                    className="inline size-3.5 align-text-bottom"
+                                                    aria-label="Teilen"
+                                                />{' '}
+                                                antippen, dann «Zum
+                                                Home-Bildschirm».
+                                            </>
+                                        ) : (
+                                            'Im Menü des Browsers «App installieren» bzw. «Zum Startbildschirm hinzufügen» wählen.'
+                                        )}
+                                    </p>
+                                ) : null}
+                            </>
+                        ) : null}
                     </nav>
 
                     <div className="border-t border-border px-4 py-3">
