@@ -23,6 +23,20 @@ export default function AlphabetLeiste({
     const timer = useRef<number | undefined>(undefined);
 
     const grenze = () => oben.current?.getBoundingClientRect().bottom ?? 0;
+    // Oberkante der Leiste unter dem fixierten Bereich; bei wenig Höhe (Handy quer) nur jeder n-te Buchstabe (#253)
+    const [oberkante, setOberkante] = useState(0);
+    const [schritt, setSchritt] = useState(1);
+    const messen = () => {
+        const top = Math.max(grenze(), 0) + 8;
+        setOberkante(top);
+        const hoehe = window.innerHeight - top - 64;
+        setSchritt(
+            Math.max(
+                1,
+                Math.ceil((buchstaben.length * 14) / Math.max(hoehe, 1)),
+            ),
+        );
+    };
 
     const zeigen = () => {
         setSichtbar(true);
@@ -32,6 +46,7 @@ export default function AlphabetLeiste({
 
     useEffect(() => {
         const beimScrollen = () => {
+            messen();
             const g = grenze();
             const eintraege =
                 document.querySelectorAll<HTMLElement>('[data-initial]');
@@ -43,10 +58,13 @@ export default function AlphabetLeiste({
             }
             zeigen();
         };
+        messen();
         window.addEventListener('scroll', beimScrollen, { passive: true });
+        window.addEventListener('resize', messen);
 
         return () => {
             window.removeEventListener('scroll', beimScrollen);
+            window.removeEventListener('resize', messen);
             window.clearTimeout(timer.current);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,18 +121,21 @@ export default function AlphabetLeiste({
                 role="navigation"
                 aria-label="Springen zu Buchstabe"
                 className={cn(
-                    'fixed right-0 bottom-16 z-10 flex w-7 touch-none flex-col items-center justify-between rounded-l-lg py-1 text-[0.625rem] leading-none font-semibold select-none',
-                    'top-[calc(var(--kopf-hoehe,0px)+7.5rem)]',
+                    'fixed right-0 bottom-14 z-10 flex w-7 touch-none flex-col items-center justify-between rounded-l-lg py-1 text-[0.625rem] leading-none font-semibold select-none',
                     ziehen || sichtbar ? 'bg-muted/90' : 'bg-muted/50',
                 )}
+                style={{ top: oberkante }}
                 onPointerDown={runter}
                 onPointerMove={(e) => ziehen && springen(e.clientY)}
                 onPointerUp={() => setZiehen(false)}
                 onPointerCancel={() => setZiehen(false)}
             >
-                {buchstaben.map((b) => (
+                {buchstaben.map((b, i) => (
                     <span
                         key={b}
+                        hidden={
+                            i % schritt !== 0 && i !== buchstaben.length - 1
+                        }
                         className={cn(
                             b === aktuell
                                 ? 'text-primary'

@@ -175,43 +175,58 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 ref={suchleiste}
                 className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-6 bg-background px-4 py-2 desk:static desk:mx-0 desk:px-0 desk:py-0"
             >
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="w-full max-w-xl">
-                        <label htmlFor="suche" className="sr-only">
-                            Begriff suchen
-                        </label>
-                        <Input
-                            id="suche"
-                            type="search"
-                            placeholder="Begriff oder Abkürzung suchen …"
-                            value={suche}
-                            onChange={(e) => setSuche(e.target.value)}
-                            autoFocus={autofokus}
-                        />
+                {/* Handy quer (#253): Suchfeld und Leiste auf einer Zeile */}
+                <div
+                    className={cn(
+                        handy &&
+                            'flex flex-col gap-2 sm:flex-row sm:items-center',
+                    )}
+                >
+                    <div
+                        className={cn(
+                            'flex flex-wrap items-center gap-3',
+                            handy && 'sm:min-w-0 sm:flex-1',
+                        )}
+                    >
+                        <div className="w-full max-w-xl">
+                            <label htmlFor="suche" className="sr-only">
+                                Begriff suchen
+                            </label>
+                            <Input
+                                id="suche"
+                                type="search"
+                                placeholder="Begriff oder Abkürzung suchen …"
+                                value={suche}
+                                onChange={(e) => setSuche(e.target.value)}
+                                autoFocus={autofokus}
+                            />
+                        </div>
+                        {handy ? null : export_()}
                     </div>
-                    {handy ? null : export_()}
-                </div>
 
-                {handy ? (
-                    <div className="mt-2 flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            className="shrink-0"
-                            onClick={() => setFilterOffen(!filterOffen)}
-                            aria-expanded={filterOffen}
-                            aria-controls="filter-bereich"
-                        >
-                            <Filter aria-hidden /> Filter
-                            {aktiveFilter > 0 ? (
-                                <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
-                                    {aktiveFilter}
-                                </span>
-                            ) : null}
-                        </Button>
-                        {anzahl}
-                        <div className="ml-auto shrink-0">{export_(true)}</div>
-                    </div>
-                ) : null}
+                    {handy ? (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                className="shrink-0"
+                                onClick={() => setFilterOffen(!filterOffen)}
+                                aria-expanded={filterOffen}
+                                aria-controls="filter-bereich"
+                            >
+                                <Filter aria-hidden /> Filter
+                                {aktiveFilter > 0 ? (
+                                    <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                                        {aktiveFilter}
+                                    </span>
+                                ) : null}
+                            </Button>
+                            {anzahl}
+                            <div className="ml-auto shrink-0">
+                                {export_(true)}
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
 
                 <div
                     id="filter-bereich"
