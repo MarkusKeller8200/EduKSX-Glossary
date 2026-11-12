@@ -11,7 +11,7 @@ use Tests\TestCase;
 class ConfigCheckTest extends TestCase
 {
     /** @param  list<array{bereich: string, pruefung: string, status: string, hinweis: string}>  $checks */
-    private function status(array $checks, string $pruefung): string
+    private function ergebnis(array $checks, string $pruefung): string
     {
         foreach ($checks as $c) {
             if (str_starts_with($c['pruefung'], $pruefung)) {
@@ -26,9 +26,9 @@ class ConfigCheckTest extends TestCase
         config(['app.env' => 'production', 'app.debug' => true, 'app.url' => 'http://glossary.example.ch', 'session.secure' => false]);
         $checks = ConfigCheck::run();
 
-        $this->assertSame(ConfigCheck::FEHLER, $this->status($checks, 'Fehleranzeige'));
-        $this->assertSame(ConfigCheck::FEHLER, $this->status($checks, 'Adresse'));
-        $this->assertSame(ConfigCheck::FEHLER, $this->status($checks, 'Sichere Cookies'));
+        $this->assertSame(ConfigCheck::FEHLER, $this->ergebnis($checks, 'Fehleranzeige'));
+        $this->assertSame(ConfigCheck::FEHLER, $this->ergebnis($checks, 'Adresse'));
+        $this->assertSame(ConfigCheck::FEHLER, $this->ergebnis($checks, 'Sichere Cookies'));
         $this->assertTrue(ConfigCheck::hasErrors($checks));
         $this->artisan('glossary:pruefen')->assertExitCode(1);
     }
@@ -38,9 +38,9 @@ class ConfigCheckTest extends TestCase
         config(['app.env' => 'production', 'app.debug' => false, 'app.url' => 'https://glossary.example.ch', 'session.secure' => true, 'mail.default' => 'log']);
         $checks = ConfigCheck::run();
 
-        $this->assertSame(ConfigCheck::WARNUNG, $this->status($checks, 'Versand eingerichtet'));
-        $this->assertSame(ConfigCheck::OK, $this->status($checks, 'Adresse'));
-        $this->assertSame(ConfigCheck::OK, $this->status($checks, 'Datenbank erreichbar'));
+        $this->assertSame(ConfigCheck::WARNUNG, $this->ergebnis($checks, 'Versand eingerichtet'));
+        $this->assertSame(ConfigCheck::OK, $this->ergebnis($checks, 'Adresse'));
+        $this->assertSame(ConfigCheck::OK, $this->ergebnis($checks, 'Datenbank erreichbar'));
     }
 
     public function test_halb_eingerichteter_dienst_ist_eine_warnung_ohne_geheimnis(): void
@@ -48,7 +48,7 @@ class ConfigCheckTest extends TestCase
         config(['glossary.turnstile.site_key' => 'site', 'glossary.turnstile.secret' => '', 'services.microsoft.client_secret' => 'sehr-geheim']);
         $checks = ConfigCheck::run();
 
-        $this->assertSame(ConfigCheck::WARNUNG, $this->status($checks, 'Spam-Schutz'));
+        $this->assertSame(ConfigCheck::WARNUNG, $this->ergebnis($checks, 'Spam-Schutz'));
         $this->assertStringNotContainsString('sehr-geheim', json_encode($checks, JSON_THROW_ON_ERROR));
     }
 
