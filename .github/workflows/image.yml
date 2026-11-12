@@ -4,6 +4,7 @@ name: image
 # Jeder geprüfte Stand auf main → ghcr.io/<owner>/eduksx-glossary:main und :main-<sha>.
 # Ein Release-Commit (Datei VERSION geändert) → zusätzlich :X.Y.Z, :X.Y und :latest, für amd64 und arm64.
 # Signiert mit cosign (ohne Schlüssel, über GitHub OIDC) und mit Herkunftsnachweis (attest-build-provenance).
+# Danach geht das Image auf dev (Workflow «deploy», #195); ein Release entsteht erst, wenn dieser Workflow grün ist.
 on:
   push:
     branches: [main]
@@ -32,6 +33,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    outputs:
+      tag: main-${{ steps.meta.outputs.sha }}
     permissions:
       contents: read
       packages: write
@@ -61,6 +64,7 @@ jobs:
           fi
           {
             echo "image=$image"
+            echo "sha=$sha"
             echo "tags=$tags"
             echo "platforms=$platforms"
             echo "version=$version"
@@ -134,3 +138,10 @@ jobs:
             echo "- Tags: \`${TAGS//,/\`, \`}\`"
             echo "- Prüfen: \`cosign verify $IMAGE@$DIGEST --certificate-identity-regexp 'https://github.com/${GITHUB_REPOSITORY}/' --certificate-oidc-issuer https://token.actions.githubusercontent.com\`"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-dev:
+    needs: image
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit
+    with:
+      tag: ${{ needs.image.outputs.tag }}
