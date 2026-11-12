@@ -2,7 +2,9 @@ name: image
 
 # Fertiges Docker-Image in der GitHub Container Registry (#175, docs/KONZEPT-DEPLOYMENT.md D1/D2, KONZEPT-UPDATES.md U1/U2).
 # Jeder geprüfte Stand auf main → ghcr.io/<owner>/eduksx-glossary:main und :main-<sha>.
-# Ein Release-Commit (Datei VERSION geändert) → zusätzlich :X.Y.Z, :X.Y und :latest, für amd64 und arm64.
+# Ein Release-Commit (Datei VERSION geändert) → zusätzlich :X.Y.Z, :X.Y und :latest.
+# Nur amd64 (12.11.2026): arm64 per Emulation verlängerte ein Release von 4 auf 18 Minuten und wird heute nicht
+# gebraucht. Bei Bedarf: platforms im Schritt «Tags bestimmen» auf "linux/amd64,linux/arm64" und QEMU wieder einschalten.
 # Signiert mit cosign (ohne Schlüssel, über GitHub OIDC) und mit Herkunftsnachweis (attest-build-provenance).
 # Danach geht das Image auf dev (Workflow «deploy», #195); ein Release entsteht erst, wenn dieser Workflow grün ist.
 on:
@@ -59,7 +61,6 @@ jobs:
           if git rev-parse -q --verify HEAD^ >/dev/null && ! git diff --quiet HEAD^ HEAD -- VERSION; then
             minor="${version%.*}"
             tags="$tags,$image:$version,$image:$minor,$image:latest"
-            platforms="linux/amd64,linux/arm64"
             echo "release=true" >> "$GITHUB_OUTPUT"
           fi
           {
@@ -71,10 +72,6 @@ jobs:
             echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "describe=$(git describe --tags --long --match 'v[0-9]*' 2>/dev/null || true)"
           } >> "$GITHUB_OUTPUT"
-
-      - name: QEMU (arm64)
-        if: steps.meta.outputs.release == 'true'
-        uses: docker/setup-qemu-action@v3
 
       - name: Buildx
         uses: docker/setup-buildx-action@v3
