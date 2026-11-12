@@ -56,6 +56,7 @@ Wir verwenden nur technisch notwendige Cookies und speichern vom Besucher selbst
 | `glossary.ansicht`        | Browser (localStorage) | gewählte Ansicht der Begriffe (Balken, Tabelle, Kacheln)                                                  | bis zum Löschen im Browser                        | Glossary   |
 | `glossary.grid.…`         | Browser (localStorage) | Spaltenbreiten und Sortierung von Tabellen                                                                | bis zum Löschen im Browser                        | Glossary   |
 | `glossary.app-hinweis`    | Browser (localStorage) | Hinweis «App installieren» geschlossen (#240); der Service Worker speichert keine Inhalte zwischen        | bis zum Löschen im Browser                        | Glossary   |
+| `glossary.version`        | Browser (localStorage) | zuletzt gesehener Stand der Anwendung für den Hinweis nach einem Update (#255)                            | bis zum Löschen im Browser                        | Glossary   |
 | Turnstile                 | Cookie/Speicher        | Schutz der Registrierung, nur auf `/registrieren`, **nur falls eingeschaltet** (derzeit nicht vorgesehen) | [prüfen]                                          | Cloudflare |
 
 Die Lesefassung auf GitHub Pages setzt selbst keine Cookies.

@@ -23,14 +23,14 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
         <footer className="sticky bottom-0 z-20 border-t border-border bg-background text-sm text-muted-foreground">
             <div
                 className={cn(
-                    'mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2 sm:py-4',
+                    'mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2 desk:py-4',
                     widthClass(view, narrow),
                 )}
             >
                 <span
                     id="fuss-links"
                     className={cn(
-                        'w-full sm:inline sm:w-auto',
+                        'w-full desk:inline desk:w-auto',
                         offen ? 'block' : 'hidden',
                     )}
                 >
@@ -113,7 +113,7 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                         </>
                     ) : null}
                 </span>
-                <div className="flex w-full items-center gap-2 sm:w-auto">
+                <div className="flex w-full items-center gap-2 desk:w-auto">
                     <a
                         href="https://markussx.ch/eduksx"
                         className="underline-offset-4 hover:underline"
@@ -123,7 +123,7 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     {/* Handy: Version immer sichtbar (#233) */}
                     <Link
                         href="/versionen"
-                        className="ml-auto text-link underline-offset-4 hover:underline sm:hidden"
+                        className="ml-auto text-link underline-offset-4 hover:underline desk:hidden"
                         title={`Version ${versionLabel(appVersion)}`}
                     >
                         {versionLabelShort(appVersion)}
@@ -131,7 +131,7 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 shrink-0 sm:hidden"
+                        className="size-8 shrink-0 desk:hidden"
                         onClick={() => setOffen(!offen)}
                         aria-expanded={offen}
                         aria-controls="fuss-links"

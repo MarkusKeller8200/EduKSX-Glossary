@@ -11,6 +11,14 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
+/* desk: nicht Handy (#253) – ab 640 px Breite, ausser Handy quer (grobe Bedienung und höchstens 500 px hoch).
+   Gegenstück in JS: resources/js/hooks/use-handy.tsx */
+@custom-variant desk {
+    @media (min-width: 40rem) and (pointer: fine),
+        (min-width: 40rem) and (min-height: 501px) {
+        @slot;
+    }
+}
 
 @theme {
     --font-sans:
