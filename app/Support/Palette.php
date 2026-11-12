@@ -34,4 +34,31 @@ final class Palette
 
         return $out;
     }
+
+    /**
+     * Bezeichnung, Beschreibung und Link je Label der Listen (#258): erscheinen beim Antippen eines Labels.
+     * Nur Einträge mit Bezeichnung (abweichend vom Label), Beschreibung oder Link; die interne Notiz nie.
+     *
+     * @return array{kategorien: array<string, array{name: string, beschreibung: string, url: string}>, herkunft: array<string, array{name: string, beschreibung: string, url: string}>}
+     */
+    public static function listInfo(): array
+    {
+        $out = ['kategorien' => [], 'herkunft' => []];
+        foreach (['kategorien' => Category::class, 'herkunft' => Source::class] as $list => $model) {
+            foreach ($model::query()->get() as $item) {
+                $label = $item->displayLabel();
+                $name = (string) $item->name;
+                $info = [
+                    'name' => $name !== $label ? $name : '',
+                    'beschreibung' => (string) $item->description,
+                    'url' => (string) $item->url,
+                ];
+                if ($info['name'] !== '' || $info['beschreibung'] !== '' || $info['url'] !== '') {
+                    $out[$list][$label] = $info;
+                }
+            }
+        }
+
+        return $out;
+    }
 }

@@ -108,8 +108,8 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                 </h1>
 
                 <div className="mt-3 flex flex-wrap items-start gap-2">
-                    <ListBadges list="herkunft" labels={herkunftLabels} />
-                    <ListBadges list="kategorien" labels={b.kategorien} />
+                    <ListBadges list="herkunft" labels={herkunftLabels} info />
+                    <ListBadges list="kategorien" labels={b.kategorien} info />
                     <StatusBadge status={b.status} />
                     {b.mehrdeutig ? (
                         <Badge variant="outline">mehrdeutig</Badge>
