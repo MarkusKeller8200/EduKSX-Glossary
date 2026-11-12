@@ -76,19 +76,19 @@ export default function SiteHeader({
             >
                 <Link
                     href={area === 'admin' ? '/admin' : '/'}
-                    className="flex shrink-0 items-center gap-2 rounded-sm text-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none sm:text-xl"
+                    className="flex shrink-0 items-center gap-2 rounded-sm text-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none desk:text-xl"
                 >
-                    <GlossaryIcon className="size-6 sm:size-7" />
+                    <GlossaryIcon className="size-6 desk:size-7" />
                     <BrandWordmark brand="education" suffix="Glossary" />
                     {area === 'admin' ? (
-                        <span className="ml-2 hidden text-sm font-normal text-muted-foreground sm:inline">
+                        <span className="ml-2 hidden text-sm font-normal text-muted-foreground desk:inline">
                             Administration
                         </span>
                     ) : null}
                 </Link>
 
                 {/* Handy (#227): Person, Ab-/Anmelden und Ausklappen auf der Titelzeile */}
-                <div className="flex min-w-0 flex-1 items-center justify-end gap-1 text-sm sm:hidden">
+                <div className="flex min-w-0 flex-1 items-center justify-end gap-1 text-sm desk:hidden">
                     {auth.user ? (
                         <>
                             <Link
@@ -164,7 +164,7 @@ export default function SiteHeader({
                 <div
                     id="kopf-schaltflaechen"
                     className={cn(
-                        'w-full flex-wrap items-center gap-2 text-sm sm:flex sm:w-auto',
+                        'w-full flex-wrap items-center gap-2 text-sm desk:flex desk:w-auto',
                         offen ? 'flex' : 'hidden',
                     )}
                 >
@@ -178,7 +178,7 @@ export default function SiteHeader({
                         </Button>
                     ) : null}
                     {/* Ansichtsbreite auf dem Handy nicht nötig (#241) */}
-                    <div className="hidden sm:block">
+                    <div className="hidden desk:block">
                         <ViewWidthTabs />
                     </div>
                     <AppearanceToggleTab />
@@ -186,7 +186,7 @@ export default function SiteHeader({
                         <>
                             <Link
                                 href="/konto"
-                                className="hidden items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent sm:flex"
+                                className="hidden items-center gap-1.5 rounded-md px-2 py-1 hover:bg-accent desk:flex"
                                 title="Mein Konto"
                             >
                                 <UserRound className="size-4" aria-hidden />
@@ -198,7 +198,7 @@ export default function SiteHeader({
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="hidden sm:inline-flex"
+                                className="hidden desk:inline-flex"
                                 onClick={() => router.post('/abmelden')}
                             >
                                 <LogOut aria-hidden /> Abmelden
@@ -206,7 +206,7 @@ export default function SiteHeader({
                         </>
                     ) : (
                         <>
-                            <span className="hidden items-center gap-1.5 px-2 py-1 text-muted-foreground sm:flex">
+                            <span className="hidden items-center gap-1.5 px-2 py-1 text-muted-foreground desk:flex">
                                 <UserRound className="size-4" aria-hidden />
                                 Gast
                             </span>
@@ -214,7 +214,7 @@ export default function SiteHeader({
                                 asChild
                                 variant="outline"
                                 size="sm"
-                                className="hidden sm:inline-flex"
+                                className="hidden desk:inline-flex"
                             >
                                 <Link href="/anmelden">
                                     <LogIn aria-hidden /> Anmelden

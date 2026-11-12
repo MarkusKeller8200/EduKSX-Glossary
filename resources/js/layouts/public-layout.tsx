@@ -2,6 +2,7 @@ import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import ConfirmHost from '@/components/confirm-dialog';
 import CookieNotice from '@/components/cookie-notice';
+import UpdateNotice from '@/components/update-notice';
 import InstallApp from '@/components/install-app';
 import SiteFooter from '@/components/site-footer';
 import NewsQuestion from '@/components/news-question';
@@ -30,6 +31,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen flex-col bg-background text-foreground">
             <SiteHeader area="website" />
             <NewsQuestion />
+            <UpdateNotice />
             <CookieNotice />
             <InstallApp />
             <ConfirmHost />

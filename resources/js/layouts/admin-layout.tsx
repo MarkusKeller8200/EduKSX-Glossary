@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import ConfirmHost from '@/components/confirm-dialog';
 import CookieNotice from '@/components/cookie-notice';
+import UpdateNotice from '@/components/update-notice';
 import SiteFooter from '@/components/site-footer';
 import NewsQuestion from '@/components/news-question';
 import SiteHeader from '@/components/site-header';
@@ -73,6 +74,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </nav>
             </SiteHeader>
             <NewsQuestion />
+            <UpdateNotice />
             <CookieNotice />
             <ConfirmHost />
             <main

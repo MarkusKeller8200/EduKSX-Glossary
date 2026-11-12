@@ -12,6 +12,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Titel; das Glossar lässt sich als App installieren, auf dem Handy mit Hinweis «App installieren» (iPhone mit
   Anleitung).
 
+- **Hinweis nach einem Update (#255):** «Aktualisiert auf Version …» mit Link zu den Neuerungen, bis er weggeklickt
+  wird.
+- **Scroll-Leiste A–Z (#254):** Auf dem Handy rechts, zeigt beim Scrollen den aktuellen Buchstaben und springt beim
+  Antippen.
+
 ### Geändert
 
 - **Handy-Ansicht (#225, #226, #227, #233, #235, #236, #237, #241):** Kacheln passen auf den Bildschirm; Kopfzeile auf
@@ -24,7 +29,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Export (#234, #247):** Icons in den Farben der Formate.
 - **Kacheln öffnen die Details (#249, #250):** Symbol unten links und Tippen auf die Kachel; Detailansicht mit
   «Schliessen».
-- **Handy-Startseite (#244, #245, #246, #248):** Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer Kacheln,
+- **Handy-Startseite (#244, #245, #246, #248, #253):** Auch quer (zwei Kacheln nebeneinander). Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer Kacheln,
   Text in Kacheln nicht markierbar.
 
 ## [0.10.0] – 2026-11-12

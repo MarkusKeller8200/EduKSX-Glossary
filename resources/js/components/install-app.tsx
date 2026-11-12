@@ -1,6 +1,7 @@
 import { Download, Share, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { HANDY_QUERY } from '@/hooks/use-handy';
 
 /**
  * Hinweis «App installieren» auf dem Handy (#240). Android/Chrome: Installation über das Ereignis
@@ -16,7 +17,7 @@ type InstallEvent = Event & {
 
 const handy = (): boolean =>
     window.matchMedia('(pointer: coarse)').matches &&
-    window.matchMedia('(max-width: 767px)').matches;
+    window.matchMedia(HANDY_QUERY).matches;
 
 const installiert = (): boolean =>
     window.matchMedia('(display-mode: standalone)').matches ||

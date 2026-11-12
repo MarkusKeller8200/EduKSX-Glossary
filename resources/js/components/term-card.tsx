@@ -122,7 +122,7 @@ export default function TermCard({
                             </p>
                         ) : null}
                         {b.kategorien.length > 0 ? (
-                            <div className="ml-auto flex shrink-0 flex-col items-end gap-1 sm:max-w-[60%] sm:flex-row sm:flex-wrap sm:justify-end">
+                            <div className="ml-auto flex shrink-0 flex-col items-end gap-1 desk:max-w-[60%] desk:flex-row desk:flex-wrap desk:justify-end">
                                 {b.kategorien.map((l) => (
                                     <ListBadge
                                         key={`k-${l}`}

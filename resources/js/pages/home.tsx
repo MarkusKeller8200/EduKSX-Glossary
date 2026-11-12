@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Filter, LayoutGrid, List, Table2 } from 'lucide-react';
-import { useMemo, useState, lazy, Suspense } from 'react';
+import { useMemo, useRef, useState, lazy, Suspense } from 'react';
+import AlphabetLeiste from '@/components/alphabet-leiste';
 import DataGrid from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
 import LabelFilter from '@/components/label-filter';
@@ -85,6 +86,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     // Handy (#237): Index A–Z und Filter eingeklappt
     const [filterOffen, setFilterOffen] = useState(false);
     const handy = useHandy();
+    const suchleiste = useRef<HTMLDivElement>(null);
     const [pdf, setPdf] = useState(false);
     const [buchstabe, setBuchstabe] = useState<string | null>(null);
     // Filter Kategorie und Herkunft, Mehrfachauswahl (#145)
@@ -169,7 +171,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             </p>
 
             {/* Handy (#244, #245): ab dem Suchfeld fixiert, darunter Filter, Anzahl und Export */}
-            <div className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-6 bg-background px-4 py-2 sm:static sm:mx-0 sm:px-0 sm:py-0">
+            <div
+                ref={suchleiste}
+                className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-6 bg-background px-4 py-2 desk:static desk:mx-0 desk:px-0 desk:py-0"
+            >
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="w-full max-w-xl">
                         <label htmlFor="suche" className="sr-only">
@@ -336,11 +341,17 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                     ))}
                 </ul>
             ) : sicht === 'kacheln' ? (
-                <ul className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <ul
+                    className={cn(
+                        'mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3',
+                        handy && 'pr-6',
+                    )}
+                >
                     {liste.map((b) => (
                         <li
                             key={b.slug}
-                            className="min-w-0 cursor-pointer rounded-lg border border-border bg-card p-3 select-none hover:bg-accent/30 sm:select-text"
+                            data-initial={initial(b)}
+                            className="min-w-0 cursor-pointer rounded-lg border border-border bg-card p-3 select-none hover:bg-accent/30 desk:select-text"
                             onClick={(e) => {
                                 // Ganze Kachel öffnet die Details (#249); Links und Knöpfe darin behalten ihr Ziel
                                 if (
@@ -362,7 +373,16 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                         </li>
                     ))}
                 </ul>
-            ) : (
+            ) : null}
+            {/* Scroll-Leiste A–Z auf dem Handy (#254) */}
+            {handy && sicht === 'kacheln' && liste.length > 0 ? (
+                <AlphabetLeiste
+                    buchstaben={[...ALPHABET, '#']}
+                    vorhanden={new Set(liste.map(initial))}
+                    oben={suchleiste}
+                />
+            ) : null}
+            {sicht === 'tabelle' ? (
                 <div className="mt-2">
                     {/* Tabelle ohne Funktionen (#213): keine Auswahl, keine Aktionen, nur Sortieren */}
                     <DataGrid
@@ -437,7 +457,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                         ]}
                     />
                 </div>
-            )}
+            ) : null}
 
             {begriffe.length === 0 ? (
                 <p className="mt-6 text-muted-foreground">
