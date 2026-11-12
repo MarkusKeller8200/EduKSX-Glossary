@@ -73,7 +73,11 @@ return new class extends Migration
         }
     }
 
-    /** Alle Tabellen in Reihenfolge der Abhängigkeiten. @return list<string> */
+    /**
+     * Alle Tabellen in Reihenfolge der Abhängigkeiten.
+     *
+     * @return list<string>
+     */
     public static function tables(): array
     {
         return [
@@ -98,7 +102,7 @@ return new class extends Migration
 
     private function framework(): void
     {
-        StrictSchema::create('users', function (Blueprint $t) {
+        Schema::create('users', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->string('name');                                   // Anzeigename (Vorgabe: Vor- und Nachname)
             $t->string('first_name', 80)->default('');
@@ -125,20 +129,22 @@ return new class extends Migration
             $t->boolean('has_news_opt_in')->default(false);
             $t->timestamp('news_answered_at')->nullable();
             $t->timestamps();
-        }, [
+        });
+        StrictSchema::harden('users', [
             'users_status_check' => UserStatus::check('status'),
             'users_institution_type_check' => InstitutionType::check('institution_type', true),
             'users_has_password_check' => '"has_password" in (0, 1)',
             'users_has_news_opt_in_check' => '"has_news_opt_in" in (0, 1)',
         ]);
 
-        StrictSchema::create('password_reset_tokens', function (Blueprint $t) {
+        Schema::create('password_reset_tokens', function (Blueprint $t) {
             $t->string('email')->primary();
             $t->string('token');
             $t->timestamp('created_at')->nullable();
         });
+        StrictSchema::harden('password_reset_tokens', []);
 
-        StrictSchema::create('sessions', function (Blueprint $t) {
+        Schema::create('sessions', function (Blueprint $t) {
             $t->string('id')->primary();
             $t->foreignUuid('user_id')->nullable()->index();
             $t->string('ip_address', 45)->nullable();
@@ -146,20 +152,23 @@ return new class extends Migration
             $t->longText('payload');
             $t->integer('last_activity')->index();
         });
+        StrictSchema::harden('sessions', []);
 
-        StrictSchema::create('cache', function (Blueprint $t) {
+        Schema::create('cache', function (Blueprint $t) {
             $t->string('key')->primary();
             $t->mediumText('value');
             $t->integer('expiration')->index();
         });
+        StrictSchema::harden('cache', []);
 
-        StrictSchema::create('cache_locks', function (Blueprint $t) {
+        Schema::create('cache_locks', function (Blueprint $t) {
             $t->string('key')->primary();
             $t->string('owner');
             $t->integer('expiration')->index();
         });
+        StrictSchema::harden('cache_locks', []);
 
-        StrictSchema::create('jobs', function (Blueprint $t) {
+        Schema::create('jobs', function (Blueprint $t) {
             $t->id();
             $t->string('queue')->index();
             $t->longText('payload');
@@ -168,8 +177,9 @@ return new class extends Migration
             $t->unsignedInteger('available_at');
             $t->unsignedInteger('created_at');
         });
+        StrictSchema::harden('jobs', []);
 
-        StrictSchema::create('job_batches', function (Blueprint $t) {
+        Schema::create('job_batches', function (Blueprint $t) {
             $t->string('id')->primary();
             $t->string('name');
             $t->integer('total_jobs');
@@ -181,8 +191,9 @@ return new class extends Migration
             $t->integer('created_at');
             $t->integer('finished_at')->nullable();
         });
+        StrictSchema::harden('job_batches', []);
 
-        StrictSchema::create('failed_jobs', function (Blueprint $t) {
+        Schema::create('failed_jobs', function (Blueprint $t) {
             $t->id();
             $t->string('uuid')->unique();
             $t->text('connection');
@@ -191,11 +202,12 @@ return new class extends Migration
             $t->longText('exception');
             $t->timestamp('failed_at')->useCurrent();
         });
+        StrictSchema::harden('failed_jobs', []);
     }
 
     private function access(): void
     {
-        StrictSchema::create('roles', function (Blueprint $t) {
+        Schema::create('roles', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->string('key', 40)->unique();
             $t->string('name', 80);
@@ -203,23 +215,26 @@ return new class extends Migration
             $t->boolean('is_system')->default(false);
             $t->unsignedSmallInteger('sort_order')->default(100);
             $t->timestamps();
-        }, ['roles_is_system_check' => '"is_system" in (0, 1)']);
+        });
+        StrictSchema::harden('roles', ['roles_is_system_check' => '"is_system" in (0, 1)']);
 
-        StrictSchema::create('role_permissions', function (Blueprint $t) {
+        Schema::create('role_permissions', function (Blueprint $t) {
             $t->foreignUuid('role_id')->constrained('roles')->cascadeOnDelete();
             $t->string('permission', 40);
             $t->primary(['role_id', 'permission']);
         });
+        StrictSchema::harden('role_permissions', []);
 
-        StrictSchema::create('user_roles', function (Blueprint $t) {
+        Schema::create('user_roles', function (Blueprint $t) {
             $t->foreignUuid('user_id')->constrained('users')->cascadeOnDelete();
             $t->foreignUuid('role_id')->constrained('roles')->cascadeOnDelete();
             $t->primary(['user_id', 'role_id']);
             $t->index('role_id');
         });
+        StrictSchema::harden('user_roles', []);
 
         // Sicherheitsprotokoll: Verweise ohne Fremdschlüssel (überleben die Kontolöschung, N5), mit Index
-        StrictSchema::create('user_audit', function (Blueprint $t) {
+        Schema::create('user_audit', function (Blueprint $t) {
             $t->id();
             $t->uuid('actor_id')->nullable()->index();
             $t->string('actor_label', 120)->nullable();
@@ -230,11 +245,12 @@ return new class extends Migration
             $t->json('new')->nullable();
             $t->string('result', 20)->default(AuditResult::Ok->value);
             $t->timestamp('created_at')->useCurrent();
-        }, ['user_audit_result_check' => AuditResult::check('result')]);
+        });
+        StrictSchema::harden('user_audit', ['user_audit_result_check' => AuditResult::check('result')]);
 
-        StrictSchema::create('user_identities', function (Blueprint $t) {
+        Schema::create('user_identities', function (Blueprint $t) {
             $t->id();
-            $t->foreignUuid('user_id')->constrained('users')->cascadeOnDelete()->index();
+            $t->foreignUuid('user_id')->index()->constrained('users')->cascadeOnDelete();
             $t->string('provider', 30);
             $t->string('issuer', 255);
             $t->string('subject', 255);
@@ -243,12 +259,13 @@ return new class extends Migration
             $t->timestamps();
             $t->unique(['provider', 'issuer', 'subject']);
         });
+        StrictSchema::harden('user_identities', []);
     }
 
     private function glossary(): void
     {
         foreach (['categories', 'sources'] as $list) {
-            StrictSchema::create($list, function (Blueprint $t) {
+            Schema::create($list, function (Blueprint $t) {
                 $t->uuid('id')->primary();
                 $t->string('key', 50)->unique();
                 $t->string('abbreviation', 30)->nullable();
@@ -261,10 +278,11 @@ return new class extends Migration
                 $t->unsignedInteger('sort_order')->default(0);
                 $t->timestamps();
             });
+            StrictSchema::harden($list, []);
         }
 
         $sqlite = DB::connection()->getDriverName() === 'sqlite';
-        StrictSchema::create('terms', function (Blueprint $t) use ($sqlite) {
+        Schema::create('terms', function (Blueprint $t) use ($sqlite) {
             $t->uuid('id')->primary();
             $t->string('slug')->unique();
             $t->string('code', 6)->nullable()->unique();          // Permalink /g/{code} (DEC-026)
@@ -280,7 +298,7 @@ return new class extends Migration
             $t->date('valid_until')->nullable();
             $t->unsignedInteger('revision')->default(0);          // letzte Revision (Zähler, Ausnahme A2)
             $t->uuid('published_revision_id')->nullable()->index();
-            $t->foreignUuid('merged_into_id')->nullable()->constrained('terms')->nullOnDelete()->index();
+            $t->foreignUuid('merged_into_id')->nullable()->index()->constrained('terms')->nullOnDelete();
             $t->timestamp('merged_at')->nullable();
             $t->timestamps();
             if ($sqlite) {
@@ -288,13 +306,14 @@ return new class extends Migration
                 $t->foreign(['id', 'published_revision_id'], 'terms_published_revision_foreign')
                     ->references(['term_id', 'id'])->on('term_revisions');
             }
-        }, [
+        });
+        StrictSchema::harden('terms', [
             'terms_lifecycle_status_check' => TermStatus::check('lifecycle_status'),
             'terms_is_active_check' => '"is_active" in (0, 1)',
             'terms_valid_range_check' => '"valid_from" is null or "valid_until" is null or "valid_until" >= "valid_from"',
         ]);
 
-        StrictSchema::create('term_revisions', function (Blueprint $t) {
+        Schema::create('term_revisions', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->foreignUuid('term_id')->constrained()->cascadeOnDelete();
             $t->unsignedInteger('revision');
@@ -303,90 +322,97 @@ return new class extends Migration
             $t->json('change_set')->nullable();                   // Feld → {old, new}
             $t->string('actor_type', 20)->nullable();
             $t->json('context')->nullable();
-            $t->foreignUuid('author_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('author_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->string('author_label')->nullable();
-            $t->foreignUuid('approved_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('approved_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamp('published_at')->nullable();
             $t->timestamp('created_at')->useCurrent();
             $t->unique(['term_id', 'revision']);
             $t->unique(['term_id', 'id']);
-        }, [
+        });
+        StrictSchema::harden('term_revisions', [
             'term_revisions_change_type_check' => ChangeType::check('change_type'),
             'term_revisions_actor_type_check' => ActorType::check('actor_type', true),
         ]);
         if (! $sqlite) {
             Schema::table('terms', function (Blueprint $t) {
                 $t->foreign(['id', 'published_revision_id'], 'terms_published_revision_foreign')
-                    ->references(['term_id', 'id'])->on('term_revisions')->deferrable()->initiallyDeferred();
+                    ->references(['term_id', 'id'])->on('term_revisions')->deferrable()->initiallyImmediate(false);
             });
         }
 
-        StrictSchema::create('term_aliases', function (Blueprint $t) {
+        Schema::create('term_aliases', function (Blueprint $t) {
             $t->id();
-            $t->foreignUuid('term_id')->constrained()->cascadeOnDelete()->index();
+            $t->foreignUuid('term_id')->index()->constrained()->cascadeOnDelete();
             $t->string('alias', 120)->index();
             $t->string('alias_type', 20);
             $t->string('language', 10)->default(Locale::De->value);
-        }, [
+        });
+        StrictSchema::harden('term_aliases', [
             'term_aliases_alias_type_check' => AliasType::check('alias_type'),
             'term_aliases_language_check' => Locale::check('language'),
         ]);
 
-        StrictSchema::create('term_categories', function (Blueprint $t) {
+        Schema::create('term_categories', function (Blueprint $t) {
             $t->foreignUuid('term_id')->constrained()->cascadeOnDelete();
-            $t->foreignUuid('category_id')->constrained()->restrictOnDelete()->index();
+            $t->foreignUuid('category_id')->index()->constrained()->restrictOnDelete();
             $t->primary(['term_id', 'category_id']);
         });
+        StrictSchema::harden('term_categories', []);
 
-        StrictSchema::create('term_sources', function (Blueprint $t) {
+        Schema::create('term_sources', function (Blueprint $t) {
             $t->foreignUuid('term_id')->constrained()->cascadeOnDelete();
-            $t->foreignUuid('source_id')->constrained()->restrictOnDelete()->index();
+            $t->foreignUuid('source_id')->index()->constrained()->restrictOnDelete();
             $t->date('retrieved_on')->nullable();
             $t->string('note')->nullable();
             $t->string('evidence', 20)->nullable();
             $t->primary(['term_id', 'source_id']);
-        }, ['term_sources_evidence_check' => Evidence::check('evidence', true)]);
+        });
+        StrictSchema::harden('term_sources', ['term_sources_evidence_check' => Evidence::check('evidence', true)]);
 
-        StrictSchema::create('publication_releases', function (Blueprint $t) {
+        Schema::create('publication_releases', function (Blueprint $t) {
             $t->id();                                             // Nummer des Datenstands
             $t->uuid('term_id')->nullable()->index();             // auslösender Begriff, ohne Fremdschlüssel (Protokoll)
             $t->string('action', 20);
             $t->char('checksum', 64);
             $t->unsignedInteger('term_count');
-            $t->foreignUuid('published_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('published_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamp('created_at')->useCurrent();
-        }, ['publication_releases_action_check' => PublicationAction::check('action')]);
+        });
+        StrictSchema::harden('publication_releases', ['publication_releases_action_check' => PublicationAction::check('action')]);
 
         // Change-Feed: Verweise ohne Fremdschlüssel (Ereignisse bleiben), mit Index
-        StrictSchema::create('term_publication_events', function (Blueprint $t) {
+        Schema::create('term_publication_events', function (Blueprint $t) {
             $t->id();                                             // Cursor, streng steigend
             $t->uuid('term_id')->index();
             $t->string('action', 20);
             $t->unsignedInteger('revision')->nullable();
-            $t->foreignId('release_id')->nullable()->constrained('publication_releases')->nullOnDelete()->index();
+            $t->foreignId('release_id')->nullable()->index()->constrained('publication_releases')->nullOnDelete();
             $t->uuid('merged_into_id')->nullable()->index();
             $t->string('actor_type', 20)->nullable();
             $t->string('actor_label', 120)->nullable();
             $t->uuid('actor_id')->nullable()->index();
             $t->timestamp('created_at')->useCurrent();
-        }, [
+        });
+        StrictSchema::harden('term_publication_events', [
             'term_publication_events_action_check' => PublicationAction::check('action'),
             'term_publication_events_actor_type_check' => ActorType::check('actor_type', true),
         ]);
 
-        StrictSchema::create('duplicate_decisions', function (Blueprint $t) {
+        Schema::create('duplicate_decisions', function (Blueprint $t) {
             $t->id();
             $t->string('signature', 64)->unique();
             $t->string('match_type', 20);
             $t->string('value');
             $t->json('term_ids');
-            $t->foreignUuid('decided_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('decided_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamp('created_at')->useCurrent();
-        }, ['duplicate_decisions_match_type_check' => DuplicateMatchType::check('match_type')]);
+        });
+        StrictSchema::harden('duplicate_decisions', ['duplicate_decisions_match_type_check' => DuplicateMatchType::check('match_type')]);
 
-        StrictSchema::create('import_batches', function (Blueprint $t) {
+        Schema::create('import_batches', function (Blueprint $t) {
             $t->id();
-            $t->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('user_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->string('user_label', 120)->nullable();
             $t->string('file_name', 255);
             $t->unsignedTinyInteger('format_version');
@@ -397,25 +423,28 @@ return new class extends Migration
             $t->json('errors')->nullable();
             $t->timestamp('created_at')->useCurrent()->index();
         });
+        StrictSchema::harden('import_batches', []);
 
-        StrictSchema::create('settings', function (Blueprint $t) {
+        Schema::create('settings', function (Blueprint $t) {
             $t->string('key', 60)->primary();
             $t->json('value');
             $t->uuid('updated_by_id')->nullable()->index();       // ohne Fremdschlüssel (bleibt nach Kontolöschung)
             $t->timestamp('updated_at')->nullable();
         });
+        StrictSchema::harden('settings', []);
     }
 
     private function organizations(): void
     {
-        StrictSchema::create('organizations', function (Blueprint $t) {
+        Schema::create('organizations', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->string('name', 120)->unique();
-            $t->foreignUuid('created_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('created_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamps();
         });
+        StrictSchema::harden('organizations', []);
 
-        StrictSchema::create('organization_members', function (Blueprint $t) {
+        Schema::create('organization_members', function (Blueprint $t) {
             $t->id();
             $t->foreignUuid('organization_id')->constrained()->cascadeOnDelete();
             $t->foreignUuid('user_id')->unique()->constrained()->cascadeOnDelete();
@@ -424,70 +453,75 @@ return new class extends Migration
             $t->boolean('is_role_granted')->default(false);
             $t->timestamps();
             $t->index(['organization_id', 'role']);
-        }, [
+        });
+        StrictSchema::harden('organization_members', [
             'organization_members_role_check' => MemberRole::check('role'),
             'organization_members_status_check' => MemberStatus::check('status'),
             'organization_members_is_role_granted_check' => '"is_role_granted" in (0, 1)',
         ]);
 
-        StrictSchema::create('organization_invitations', function (Blueprint $t) {
+        Schema::create('organization_invitations', function (Blueprint $t) {
             $t->id();
             $t->foreignUuid('organization_id')->constrained()->cascadeOnDelete();
             $t->string('email');
-            $t->foreignUuid('invited_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('invited_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamp('expires_at');
             $t->timestamp('created_at')->useCurrent();
             $t->unique(['organization_id', 'email']);
             $t->index('email');
         });
+        StrictSchema::harden('organization_invitations', []);
 
-        StrictSchema::create('organization_term_overrides', function (Blueprint $t) {
+        Schema::create('organization_term_overrides', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->foreignUuid('organization_id')->constrained()->cascadeOnDelete();
-            $t->foreignUuid('term_id')->constrained()->cascadeOnDelete()->index();
+            $t->foreignUuid('term_id')->index()->constrained()->cascadeOnDelete();
             $t->string('abbreviation_override', 60)->nullable();
             $t->string('name_override')->nullable();
             $t->string('short_description_override', 160)->nullable();
             $t->text('description_override')->nullable();
             $t->json('aliases_override')->nullable();
-            $t->foreignUuid('updated_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('updated_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamps();
             $t->unique(['organization_id', 'term_id']);
         });
+        StrictSchema::harden('organization_term_overrides', []);
 
-        StrictSchema::create('term_user_overrides', function (Blueprint $t) {
+        Schema::create('term_user_overrides', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->foreignUuid('term_id')->constrained()->cascadeOnDelete();
-            $t->foreignUuid('user_id')->constrained()->cascadeOnDelete()->index();
+            $t->foreignUuid('user_id')->index()->constrained()->cascadeOnDelete();
             $t->string('abbreviation_override', 60)->nullable();
             $t->string('name_override')->nullable();
             $t->string('short_description_override', 160)->nullable();
             $t->text('description_override')->nullable();
             $t->json('aliases_override')->nullable();
-            $t->foreignUuid('approved_organization_id')->nullable()->constrained('organizations')->nullOnDelete()->index();
-            $t->foreignUuid('approved_by_id')->nullable()->constrained('users')->nullOnDelete()->index();
+            $t->foreignUuid('approved_organization_id')->nullable()->index()->constrained('organizations')->nullOnDelete();
+            $t->foreignUuid('approved_by_id')->nullable()->index()->constrained('users')->nullOnDelete();
             $t->timestamp('approved_at')->nullable();
             $t->timestamps();
             $t->unique(['term_id', 'user_id']);
         });
+        StrictSchema::harden('term_user_overrides', []);
     }
 
     private function services(): void
     {
-        StrictSchema::create('service_accounts', function (Blueprint $t) {
+        Schema::create('service_accounts', function (Blueprint $t) {
             $t->uuid('id')->primary();
             $t->string('name', 80);
             $t->string('purpose', 255);
-            $t->foreignUuid('responsible_user_id')->nullable()->constrained('users')->nullOnDelete()->index();
-            $t->foreignUuid('organization_id')->nullable()->constrained()->cascadeOnDelete()->index();
+            $t->foreignUuid('responsible_user_id')->nullable()->index()->constrained('users')->nullOnDelete();
+            $t->foreignUuid('organization_id')->nullable()->index()->constrained()->cascadeOnDelete();
             $t->string('status', 20)->default(ServiceAccountStatus::Active->value);
             $t->json('scopes');
             $t->timestamps();
-        }, ['service_accounts_status_check' => ServiceAccountStatus::check('status')]);
+        });
+        StrictSchema::harden('service_accounts', ['service_accounts_status_check' => ServiceAccountStatus::check('status')]);
 
-        StrictSchema::create('service_account_tokens', function (Blueprint $t) {
+        Schema::create('service_account_tokens', function (Blueprint $t) {
             $t->uuid('id')->primary();
-            $t->foreignUuid('service_account_id')->constrained('service_accounts')->cascadeOnDelete()->index();
+            $t->foreignUuid('service_account_id')->index()->constrained('service_accounts')->cascadeOnDelete();
             $t->string('name', 80);
             $t->string('token_hash', 64)->unique();
             $t->string('prefix', 12);
@@ -496,8 +530,9 @@ return new class extends Migration
             $t->timestamp('revoked_at')->nullable();
             $t->timestamps();
         });
+        StrictSchema::harden('service_account_tokens', []);
 
-        StrictSchema::create('service_account_audit', function (Blueprint $t) {
+        Schema::create('service_account_audit', function (Blueprint $t) {
             $t->id();
             $t->uuid('service_account_id')->nullable()->index();  // ohne Fremdschlüssel: Protokoll bleibt
             $t->uuid('token_id')->nullable()->index();
@@ -507,32 +542,34 @@ return new class extends Migration
             $t->json('details')->nullable();
             $t->string('result', 20)->default(AuditResult::Ok->value);
             $t->timestamp('created_at')->useCurrent();
-        }, ['service_account_audit_result_check' => AuditResult::check('result')]);
+        });
+        StrictSchema::harden('service_account_audit', ['service_account_audit_result_check' => AuditResult::check('result')]);
 
-        StrictSchema::create('proposals', function (Blueprint $t) {
+        Schema::create('proposals', function (Blueprint $t) {
             $t->id();                                             // Vorschlags-Nummer
             $t->string('proposal_type', 10);
-            $t->foreignUuid('term_id')->nullable()->constrained('terms')->nullOnDelete()->index();
+            $t->foreignUuid('term_id')->nullable()->index()->constrained('terms')->nullOnDelete();
             $t->unsignedInteger('base_revision')->nullable();
             $t->json('changes');
             $t->text('reason')->nullable();
             $t->string('status', 30)->default(ProposalStatus::Submitted->value)->index();
-            $t->foreignUuid('user_id')->nullable()->constrained('users')->nullOnDelete()->index();
-            $t->foreignUuid('service_account_id')->nullable()->constrained('service_accounts')->nullOnDelete()->index();
-            $t->foreignUuid('organization_id')->nullable()->constrained()->nullOnDelete()->index();
+            $t->foreignUuid('user_id')->nullable()->index()->constrained('users')->nullOnDelete();
+            $t->foreignUuid('service_account_id')->nullable()->index()->constrained('service_accounts')->nullOnDelete();
+            $t->foreignUuid('organization_id')->nullable()->index()->constrained()->nullOnDelete();
             $t->string('author_label', 120);
-            $t->foreignUuid('result_term_id')->nullable()->constrained('terms')->nullOnDelete()->index();
+            $t->foreignUuid('result_term_id')->nullable()->index()->constrained('terms')->nullOnDelete();
             $t->unsignedInteger('result_revision')->nullable();
             $t->timestamp('resolved_at')->nullable()->index();
             $t->timestamps();
-        }, [
+        });
+        StrictSchema::harden('proposals', [
             'proposals_proposal_type_check' => ProposalType::check('proposal_type'),
             'proposals_status_check' => ProposalStatus::check('status'),
         ]);
 
-        StrictSchema::create('proposal_events', function (Blueprint $t) {
+        Schema::create('proposal_events', function (Blueprint $t) {
             $t->id();
-            $t->foreignId('proposal_id')->constrained('proposals')->cascadeOnDelete()->index();
+            $t->foreignId('proposal_id')->index()->constrained('proposals')->cascadeOnDelete();
             $t->string('event_type', 30);
             $t->uuid('actor_id')->nullable()->index();            // ohne Fremdschlüssel: Verlauf bleibt
             $t->string('actor_label', 120)->nullable();
@@ -540,7 +577,8 @@ return new class extends Migration
             $t->text('message')->nullable();
             $t->json('details')->nullable();
             $t->timestamp('created_at')->useCurrent();
-        }, [
+        });
+        StrictSchema::harden('proposal_events', [
             'proposal_events_event_type_check' => ProposalEventType::check('event_type'),
             'proposal_events_is_by_author_check' => '"is_by_author" in (0, 1)',
         ]);

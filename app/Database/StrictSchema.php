@@ -2,14 +2,14 @@
 
 namespace App\Database;
 
-use Closure;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 /**
  * Tabellen nach dem DB-Standard (A4, #266): SQLite als STRICT-Tabelle mit CHECK-Regeln in der ersten Migration,
- * PostgreSQL mit denselben CHECK-Regeln als benannte Constraints. Die Spalten beschreibt wie gewohnt ein Blueprint;
- * für SQLite wird das erzeugte CREATE TABLE auf die STRICT-Typen (INTEGER, REAL, TEXT, BLOB) abgebildet.
+ * PostgreSQL mit denselben CHECK-Regeln als benannte Constraints. Die Spalten beschreibt wie gewohnt Schema::create;
+ * für SQLite wird das CREATE TABLE auf die STRICT-Typen (INTEGER, REAL, TEXT, BLOB) abgebildet.
  *
  * Datenbankspezifische Umsetzung gebündelt hier (A5): `if ($driver === 'pgsql')` nur in diesem Helfer.
  */
@@ -23,28 +23,33 @@ final class StrictSchema
     ];
 
     /**
+     * Eben angelegte (leere) Tabelle härten: SQLite als STRICT neu aufbauen (mit ihren Indizes), CHECK-Regeln setzen;
+     * PostgreSQL erhält die CHECK-Regeln als Constraints. Die Tabelle selbst legt die Migration mit Schema::create an
+     * (so lesen auch Larastan und Werkzeuge das Schema).
+     *
      * @param  array<string, string>  $checks  Name der Regel → SQL-Ausdruck
      */
-    public static function create(string $table, Closure $callback, array $checks = []): void
+    public static function harden(string $table, array $checks = []): void
     {
         /** @var Connection $db */
         $db = Schema::getConnection();
         if ($db->getDriverName() !== 'sqlite') {
-            Schema::create($table, $callback);
             foreach ($checks as $name => $expression) {
-                $db->statement("alter table \"{$table}\" add constraint \"{$table}_{$name}_check\" check ({$expression})");
+                $db->statement("alter table \"{$table}\" add constraint \"{$name}\" check ({$expression})");
             }
 
             return;
         }
-
-        $queries = $db->pretend(fn () => Schema::create($table, $callback));
-        foreach ($queries as $i => $query) {
-            $sql = (string) $query['query'];
-            if ($i === 0 && str_starts_with(strtolower($sql), 'create table')) {
-                $sql = self::strictSql($sql, $checks);
-            }
-            $db->statement($sql, $query['bindings']);
+        if ($db->table($table)->exists()) {
+            throw new RuntimeException("Tabelle {$table} ist nicht leer – STRICT nur direkt nach dem Anlegen.");
+        }
+        $create = (string) $db->scalar("select sql from sqlite_master where type = 'table' and name = ?", [$table]);
+        /** @var list<object{sql: string}> $indexes */
+        $indexes = $db->select("select sql from sqlite_master where type = 'index' and tbl_name = ? and sql is not null", [$table]);
+        $db->statement("drop table \"{$table}\"");
+        $db->statement(self::strictSql($create, $checks));
+        foreach ($indexes as $index) {
+            $db->statement($index->sql);
         }
     }
 

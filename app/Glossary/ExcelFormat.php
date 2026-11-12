@@ -151,7 +151,7 @@ final class ExcelFormat
             $data[$field] = match (true) {
                 in_array($column, self::MULTI, true) => self::list($value),
                 $column === 'Aktiv' => ! in_array(mb_strtolower($value), ['nein', 'n', 'no', '0', 'false', 'falsch'], true),
-                $column === 'Status' => $value === '' ? TermStatus::Current->value : (TermStatus::fromAny($value)?->value ?? $value),
+                $column === 'Status' => $value === '' ? TermStatus::Current->value : (TermStatus::fromAny($value) !== null ? TermStatus::normalize($value) : $value),
                 in_array($column, ['Gültig ab', 'Gültig bis'], true) => self::date($value),
                 default => $value,
             };
@@ -183,7 +183,8 @@ final class ExcelFormat
             } elseif (in_array($column, ['Gültig ab', 'Gültig bis'], true)) {
                 $value = self::date($value);
             } elseif ($column === 'Status') {
-                $value = TermStatus::fromAny($value === '' ? null : $value)?->label() ?? ($value === '' ? TermStatus::Current->label() : $value);
+                $case = $value === '' ? TermStatus::Current : TermStatus::fromAny($value);
+                $value = $case !== null ? $case->label() : $value;
             }
             $out[$column] = $value;
         }

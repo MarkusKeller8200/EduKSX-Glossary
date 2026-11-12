@@ -134,14 +134,14 @@ final class Uebergang012
     {
         $rows = DB::select("select name from sqlite_master where type = 'table' and name not like 'sqlite_%' and name <> 'migrations' and name not like 'alt_%'");
 
-        return array_values(array_map(fn (object $r): string => (string) $r->name, $rows));
+        return array_values(array_map(fn (object $r): string => (string) ((array) $r)['name'], $rows));
     }
 
     private function moveAside(string $table): void
     {
         $indexes = DB::select("select name from sqlite_master where type = 'index' and tbl_name = ? and sql is not null", [$table]);
         foreach ($indexes as $index) {
-            DB::statement('drop index "'.$index->name.'"');
+            DB::statement('drop index "'.((array) $index)['name'].'"');
         }
         DB::statement('alter table "'.$table.'" rename to "alt_'.$table.'"');
     }

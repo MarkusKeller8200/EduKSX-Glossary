@@ -44,7 +44,7 @@ class GlossaryApiController extends Controller
         $page = max(1, (int) $request->query('page', '1'));
         $perPage = min(self::MAX_PER_PAGE, max(1, (int) $request->query('per_page', '50')));
         if ($status !== '') {
-            $status = TermStatus::fromAny($status)?->value ?? $status;   // auch Werte bis 0.11.0 (aktuell, zu_pruefen)
+            $status = TermStatus::fromAny($status) !== null ? TermStatus::normalize($status) : $status;   // auch Werte bis 0.11.0 (aktuell, zu_pruefen)
         }
         if ($status !== '' && ! array_key_exists($status, Term::STATUS)) {
             throw new BadRequestHttpException('Unbekannter Status «'.$status.'». Erlaubt: '.implode(', ', array_keys(Term::STATUS)).'.');

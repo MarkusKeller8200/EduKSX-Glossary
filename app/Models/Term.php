@@ -107,7 +107,11 @@ class Term extends Model
         return $this->belongsToMany(Source::class, 'term_sources')->withPivot(['retrieved_on', 'note', 'evidence']);
     }
 
-    /** Suchbegriffe als Text (E1, #266): nur gespeichert als Aliase vom Typ search. @return Attribute<string, never> */
+    /**
+     * Suchbegriffe als Text (E1, #266): nur gespeichert als Aliase vom Typ search.
+     *
+     * @return Attribute<string, never>
+     */
     protected function searchTerms(): Attribute
     {
         return Attribute::get(fn (): string => implode('; ', $this->aliases
