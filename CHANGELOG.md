@@ -6,17 +6,17 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.11.0] – 2026-11-12
+
 ### Neu
 
 - **WebApp und Icon (#239, #240, #251):** Glossary-Symbol aus dem CI für Browser-Tab, Home-Bildschirm und vor dem
   Titel; das Glossar lässt sich als App installieren, auf dem Handy mit Hinweis «App installieren» (iPhone mit
   Anleitung).
-
 - **Hinweis nach einem Update (#255):** «Aktualisiert auf Version …» mit Link zu den Neuerungen, bis er weggeklickt
   wird.
 - **Scroll-Leiste A–Z (#254):** Auf dem Handy rechts, zeigt beim Scrollen den aktuellen Buchstaben und springt beim
   Antippen.
-
 - **Labels mit Erklärung (#258):** Antippen eines Labels zeigt Bezeichnung, Beschreibung und Link.
 - **Flyout-Menü auf dem Handy (#259, #263):** links mit Person, Ab-/Anmelden, Wechsel Website/Administration,
   Menüpunkten mit Icons, «App installieren» und Farbschema.
@@ -24,7 +24,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 ### Geändert
 
 - **Handy-Ansicht (#225, #226, #227, #233, #235, #236, #237, #241):** Kacheln passen auf den Bildschirm; Kopfzeile auf
-  einer Zeile mit Titel, Person, Ab-/Anmelde-Icon und Ausklapp-Button für Farbschema und Wechsel (ohne Ansichtsbreite);
+  einer Zeile mit Titel, Person und Ab-/Anmelde-Icon (Farbschema und Wechsel im Flyout-Menü, ohne Ansichtsbreite);
   Fusszeile eingeklappt mit Version und Ausklapp-Button; Suchfeld ohne Autofokus; Index A–Z und Filter einklappbar;
   PDF-Dialog passt auf den Bildschirm.
 - **Kacheln (#229):** Kopf zweizeilig – Abkürzung mit Herkunft und Status, Bezeichnung mit Kategorien (auf dem Handy
@@ -33,8 +33,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Export (#234, #247):** Icons in den Farben der Formate.
 - **Kacheln öffnen die Details (#249, #250):** Symbol unten links und Tippen auf die Kachel; Detailansicht mit
   «Schliessen».
-- **Handy-Startseite (#244, #245, #246, #248, #253):** Auch quer (zwei Kacheln nebeneinander). Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer Kacheln,
-  Text in Kacheln nicht markierbar.
+- **Handy-Startseite (#244, #245, #246, #248, #253):** Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer
+  Kacheln, Text in Kacheln nicht markierbar; auch quer, dort zwei Kacheln nebeneinander.
 
 ## [0.10.0] – 2026-11-12
 
