@@ -96,9 +96,12 @@ jetzt (O2).
 
 | Nr. | Ergänzung zur Migration                                                                                                                                                                                                                                                                          |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| M6  | **Zusammenfassen ohne Datenverlust:** neuer Anfangsstand; bestehende Datenbanken (dev) erkennt eine Übergangs-Migration und überführt sie Schritt für Schritt (Umbenennen, Werte übersetzen, Suchbegriffe, Altwerte archivieren). Probelauf mit dem Dump; Zählung je Tabelle vorher und nachher. |
+| M6  | **Zusammenfassen ohne Datenverlust:** neuer Anfangsstand; bestehende Datenbanken (dev) erkennt eine Übergangs-Migration und überführt sie Schritt für Schritt (Umbenennen, Werte übersetzen, Suchbegriffe, Altwerte archivieren). Probelauf mit dem Dump; Zählung je Tabelle vorher und nachher. Die Dateien des Anfangsstands liegen zeitlich vor dem Stichtag von `MigrationCompatibilityTest` (`2026_11_12_000000`); der Test bleibt unverändert (DEC-033). |
 
 ## Offene Fragen (beantwortet)
+
+**Überholt** (DEC-033): Diese Tabelle zeigt den Stand vor dem Chat vom 12.11.2026. Massgebend sind die Antworten
+O1–O4 oben – insbesondere O4: Migrationen **jetzt** zusammenfassen.
 
 | Nr. | Frage                                                                                                                                                                                                                                                                 | Vorschlag                                |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |

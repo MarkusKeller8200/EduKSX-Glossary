@@ -1,6 +1,6 @@
 # Löschkonzept (#42)
 
-**Version 1.0 · Stand 07.11.2026 · Status: vorläufig.** Die Fristen in eckigen Klammern sind fachlich und rechtlich noch
+**Version 1.1 · Stand 12.11.2026 · Status: vorläufig.** Die Fristen in eckigen Klammern sind fachlich und rechtlich noch
 zu prüfen (Freigabecheck in [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) Abschnitt 11, DEC-019). Umgesetzt durch
 `php artisan glossary:loeschfristen`. Der Befehl läuft täglich um 03:15 Uhr über den Dienst `scheduler`; mit
 `--trocken` zeigt er nur an, was er tun würde.
@@ -9,7 +9,11 @@ zu prüfen (Freigabecheck in [DATENSCHUTZ-ENTWURF.md](DATENSCHUTZ-ENTWURF.md) Ab
 | --------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
 | Unbestätigte Registrierung                    | 7 Tage nach Anlage                                                                      | `glossary:loeschfristen`                                                                                                                                                                                     | –                                                                                  |
 | Inaktives Community-Konto (ohne Rolle)        | 24 Monate ohne Anmeldung; Hinweis per Mail 30 Tage vorher (`inactivity_notice_sent_at`) | `glossary:loeschfristen`; Anmelden setzt den Hinweis zurück                                                                                                                                                  | ohne Mailversand kein Hinweis und keine Löschung; Konten mit Rolle nie automatisch |
-| Konto auf Wunsch                              | sofort («Mein Konto» → Konto löschen)                                                   | `AccountManager::delete`                                                                                                                                                                                     | letztes Developer- bzw. Verwaltungskonto                                           |
+| Konto auf Wunsch                              | sofort gesperrt und vorläufig gelöscht («Mein Konto» → Konto löschen); endgültig nach [30 Tagen], solange auf Wunsch durch Super-Admins wiederherstellbar; auf ausdrücklichen Antrag nach Datenschutzrecht sofort endgültig | `AccountManager::delete` (vorläufig: Anmeldung, Sitzungen, Tokens beendet), `glossary:loeschfristen` (endgültig), Eintrag im Löschregister | letztes Developer- bzw. Verwaltungskonto; Frist nur durch Super-Admins einstellbar |
+| Papierkorb (Kategorien, Herkünfte, Organisationen, Vorschläge, Entwürfe) | endgültig [30 Tage] nach dem vorläufigen Löschen | `deleted_at`/`deleted_by_id`, `glossary:loeschfristen` | veröffentlichte Begriffe werden nie gelöscht, nur zurückgezogen (DEC-022) |
+| Löschregister | dauerhaft; enthält nur Art, ID, Zeitpunkt und Grund, keine Personendaten | eigener Bucket ausserhalb der Datenbank mit Objektsperre, getrennt von den Sicherungen | – |
+| Archiv der Altwerte (Migration M3) | [12 Monate] nach der Archivierung | `storage/app/archiv/`, verschlüsselt | enthält keine Personendaten |
+| Änderungshistorie (`data_changes`) | wie die Daten, auf die sie sich bezieht; personenbezogene Werte werden gar nicht gespeichert (nur «geändert») | Datenklassen je Spalte (#276), `Journal::forget` bei Kontolöschung | – |
 | Sitzungen, «angemeldet bleiben»               | beim Abmelden, Sperren, Löschen, Passwortwechsel; sonst nach [120] Minuten Inaktivität  | Datenbank-Sitzungen, `remember_token`                                                                                                                                                                        | –                                                                                  |
 | Persönliche Darstellung («Meine Darstellung») | mit dem Konto                                                                           | `TermUserOverride`, beim Löschen jedes Kontos (`Journal::forget`)                                                                                                                                            | –                                                                                  |
 | Änderungsjournal der Begriffe                 | bleibt; beim Löschen des Kontos Bezeichnung → «Gelöschtes Konto», Bezüge leer           | `Journal::forget` (DEC-020)                                                                                                                                                                                  | Bezeichnungen ohne Personenbezug (z. B. «Excel-Import») bleiben                    |
@@ -29,7 +33,9 @@ auf und löscht ihn, sobald er nicht mehr gebraucht wird – spätestens nach 30
 
 ## Nach einer Wiederherstellung
 
-Wird eine Sicherung zurückgespielt, sofort `php artisan glossary:loeschfristen` ausführen. Seit der Sicherung
+Wird eine Sicherung zurückgespielt, wendet der Dienst vor dem Start das **Löschregister** an (alle seither endgültig
+gelöschten Konten und Daten werden erneut gelöscht); ohne erreichbares Register startet er nicht. Danach
+`php artisan glossary:loeschfristen` ausführen. Seit der Sicherung
 gelöschte Konten (Einträge `account.deleted` im aktuellen Protokoll) nochmals löschen und gesperrte Konten erneut
 sperren.
 

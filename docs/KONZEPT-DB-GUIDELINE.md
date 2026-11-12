@@ -54,7 +54,7 @@ persönlicher Darstellung `Cache-Control: private, no-store`.
 | `service_account_tokens` | – | Name, Präfix, Ablauf | – | `token_hash` |
 | `search_misses` | – | Suchtext, Anzahl | – (keine Person, keine IP) | – |
 
-OFFEN: vollständige Liste je Spalte als Anhang zum Datenmodell mit 0.12.0.
+Vollständig je Spalte im Code mit 0.12.0, mit Test und daraus erzeugter Übersicht (W7, #276).
 
 ## 4. Namen und Bereinigung 0.12.0 (A1, DEC-030)
 
@@ -148,19 +148,24 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
 ## 12. Offene Punkte
 
-| Nr. | Thema | Widerspruch / Frage | Vorschlag |
+Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über die genannten Issues.
+
+| Nr. | Thema | Entscheid | Umsetzung |
 | --- | --- | --- | --- |
-| W1 | PostgreSQL | DEC-010, KONZEPT-STACK und KONZEPT-DATENMODELL sagen «kein PostgreSQL»; DEC-028 und das Plattformkonzept sagen PostgreSQL für zentrale Dienste. | DEC-010 als «abgelöst durch DEC-028» markieren, beide Konzepte nachführen. |
-| W2 | Umbenennen | `MigrationCompatibilityTest` verbietet `renameColumn`; DEC-030 benennt in 0.12.0 direkt um. | Ausnahme «bereinigter Anfangsstand» nach A5 (Abschnitt 7). |
-| W3 | Migrationen zusammenfassen | KONZEPT-DATENBANK nennt O4 einmal «jetzt», einmal «erst bei PostgreSQL». | Tabelle «Offene Fragen» dort als überholt kennzeichnen. |
-| W4 | Enums | Der Ordner `App\Enums` existiert noch nicht. | Mit 0.12.0 anlegen, ein Enum je Feld aus E4. |
-| W5 | Super-Admin | Rollenkonzept (DEC-017) kennt Community, Moderator, Admin, Developer. | Entschieden 12.11.2026 (Plattform E6): Super-Admin = Plattformrolle aus Ident; bis zum Anschluss übernimmt die Rolle Developer. KONZEPT-BENUTZER nachführen. |
-| W6 | Kontolöschung | Löschkonzept: sofort; Guideline: vorläufig mit Frist. | Löschkonzept (neue Version) und Datenschutzerklärung anpassen; Frist rechtlich prüfen. |
-| W7 | Datenklassen | Liste je Spalte fehlt (Abschnitt 3). | Mit 0.12.0 als Anhang zum Datenmodell. |
-| W8 | Identitäten | `user_identities` speichert `tenant_id`; B4 verlangt `issuer` + `subject`. | Beim Anschluss an EduKSX-Ident umstellen. |
+| W1 | PostgreSQL | DEC-010 abgelöst: SQLite zu Beginn, PostgreSQL für den zentralen Betrieb; CI gegen beide | Konzepte nachgeführt (#274); PostgreSQL #191 |
+| W2 | Umbenennen | neuer Anfangsstand mit Dateien vor dem Stichtag des Kompatibilitätstests; Test bleibt unverändert; Übergangs-Migration für dev | 0.12.0 |
+| W3 | Migrationen zusammenfassen | jetzt (O4); alte Antwort in KONZEPT-DATENBANK als überholt markiert | #274 |
+| W4 | Enums | mit 0.12.0, mit CHECK-Regeln | #275 |
+| W5 | Super-Admin | Plattformrolle aus Ident, bis dahin Developer (DEC-032) | KONZEPT-BENUTZER nachführen |
+| W6 | Kontolöschung | Löschkonzept 1.1 und Datenschutzerklärung nachgeführt; Fristen in Klammern | #274 |
+| W7 | Datenklassen | je Spalte im Code, Test, erzeugte Übersicht | #276 |
+| W8 | Identitäten | `issuer` + `subject` mit 0.12.0 | #277 |
+| – | Löschfristen | rechtlich prüfen vor dem öffentlichen Betrieb | #278 |
+| – | Row-Level Security | Prototyp mit PostgreSQL | EduKSX-Architektur #13 |
 
 ## Verlauf
 
 - 12.11.2026: Version 1.0 abgenommen (DEC-031, #270).
 - 12.11.2026: Version 1.1 abgenommen (DEC-032) – allgemeine Regeln in den Plattform-Standard verschoben, Glossary-Teil mit Geltungsbereichen,
   Datenklassen, Löschregister, zusammengesetztem Fremdschlüssel für `published_revision_id`, Archivfrist (#272).
+- 12.11.2026: offene Punkte W1–W8 entschieden (DEC-033, #274).
