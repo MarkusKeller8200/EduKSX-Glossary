@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { ChevronDown, Download } from 'lucide-react';
+import {
+    ChevronDown,
+    Download,
+    FileCode2,
+    FileSpreadsheet,
+    FileText,
+    Sheet,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +30,7 @@ function xsrf(): string {
 
 /**
  * Export-Menü (#131, wie im Intranet): sichtbare Zeilen als Excel (sichtbare Spalten), CSV, Excel vollständig,
- * PDF (Dialog) und Markdown. Der Server prüft das Recht; ohne Recht ist der Knopf ausgegraut mit Hinweis.
+ * PDF (Dialog) und Markdown, je mit Icon (#234). Der Server prüft das Recht; ohne Recht ist der Knopf ausgegraut mit Hinweis.
  */
 export default function ExportMenu({
     endpoint,
@@ -141,34 +148,35 @@ export default function ExportMenu({
                         disabled={n === 0}
                         onSelect={() => void download('xlsx', 'sichtbar')}
                     >
-                        Excel – {zeilen}
+                        <FileSpreadsheet aria-hidden /> Excel – {zeilen}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         disabled={n === 0}
                         onSelect={() => void download('csv', 'sichtbar')}
                     >
-                        CSV – {zeilen}
+                        <Sheet aria-hidden /> CSV – {zeilen}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         disabled={n === 0}
                         onSelect={() => void download('xlsx', 'vollstaendig')}
                     >
-                        Excel vollständig (alle Daten) – {zeilen}
+                        <FileSpreadsheet aria-hidden /> Excel vollständig (alle
+                        Daten) – {zeilen}
                     </DropdownMenuItem>
                     {onPdf ? (
                         <DropdownMenuItem
                             disabled={n === 0}
                             onSelect={() => onPdf()}
                         >
-                            PDF … – {zeilen}
+                            <FileText aria-hidden /> PDF … – {zeilen}
                         </DropdownMenuItem>
                     ) : null}
                     <DropdownMenuItem
                         disabled={n === 0}
                         onSelect={() => void download('md', 'sichtbar')}
                     >
-                        Markdown – {zeilen}
+                        <FileCode2 aria-hidden /> Markdown – {zeilen}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>

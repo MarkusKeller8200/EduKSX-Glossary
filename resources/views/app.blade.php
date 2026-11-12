@@ -22,7 +22,12 @@
             html.dark { background-color: #151b24; }
         </style>
 
+        {{-- Icons und WebApp (#239, #240) --}}
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+        <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="apple-mobile-web-app-title" content="Glossary">
         <meta name="theme-color" content="#ff8a00">
 
         @fonts

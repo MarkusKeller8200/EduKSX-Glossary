@@ -27,3 +27,10 @@ void createInertiaApp({
 
 // Hell/Dunkel beim Laden setzen (wie im Intranet)
 initializeTheme();
+
+// WebApp (#240): Service Worker nur für die Installation, ohne Zwischenspeicher
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+        void navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+    });
+}

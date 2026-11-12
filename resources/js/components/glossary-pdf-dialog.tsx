@@ -91,7 +91,7 @@ function Wahl<T extends string>({
     onChange: (value: T) => void;
 }) {
     return (
-        <div className="grid gap-1.5 sm:grid-cols-[8rem_1fr] sm:items-center">
+        <div className="grid min-w-0 grid-cols-1 gap-1.5 sm:grid-cols-[8rem_1fr] sm:items-center">
             <span id={id} className="text-sm font-medium">
                 {label}
             </span>
@@ -99,7 +99,7 @@ function Wahl<T extends string>({
                 type="single"
                 variant="outline"
                 size="sm"
-                className="flex-wrap justify-start"
+                className="w-full flex-wrap justify-start"
                 aria-labelledby={id}
                 value={value}
                 onValueChange={(v: string) => v && onChange(v as T)}
@@ -211,7 +211,8 @@ export default function GlossaryPdfDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            {/* Handy (#236): schmaler Rand, scrollbar bei wenig Höhe */}
+            <DialogContent className="max-h-[calc(100dvh-2rem)] grid-cols-1 overflow-y-auto p-4 sm:p-6">
                 <DialogHeader>
                     <DialogTitle>PDF erstellen</DialogTitle>
                     <DialogDescription>
@@ -219,7 +220,7 @@ export default function GlossaryPdfDialog({
                         PDF enthält den Lizenzhinweis CC BY 4.0.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4">
+                <div className="grid min-w-0 grid-cols-1 gap-4">
                     <Wahl
                         id="pdf-auswahl"
                         label="Begriffe"
@@ -237,7 +238,7 @@ export default function GlossaryPdfDialog({
                         options={CHOICES.format.options}
                         onChange={(v) => set('format', v)}
                     />
-                    <div className="grid gap-1">
+                    <div className="grid min-w-0 grid-cols-1 gap-1">
                         <Wahl
                             id="pdf-umfang"
                             label={CHOICES.umfang.label}
