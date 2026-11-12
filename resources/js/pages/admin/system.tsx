@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import DumpPanel from '@/components/dump-panel';
 import UpdatePanel, { type UpdateStand } from '@/components/update-panel';
 import MailSettingsForm, {
     type MailEinstellung,
@@ -43,6 +44,7 @@ export default function System({
     pruefung,
     mailEinstellung,
     update,
+    dump,
 }: {
     mail: Mail;
     warteschlange: { offen: number; fehlgeschlagen: number };
@@ -50,6 +52,7 @@ export default function System({
     pruefung: Pruefung[];
     mailEinstellung: MailEinstellung;
     update: UpdateStand;
+    dump: { passwortPflicht: boolean };
 }) {
     const { auth } = usePage().props;
     const form = useForm({ an: auth.user?.email ?? '' });
@@ -175,6 +178,8 @@ export default function System({
                     </div>
                 </form>
             </section>
+
+            <DumpPanel passwortPflicht={dump.passwortPflicht} />
 
             <UpdatePanel update={update} />
 

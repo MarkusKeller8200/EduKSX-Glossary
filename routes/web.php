@@ -231,6 +231,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('system/mail', [SystemController::class, 'saveMail'])->middleware('throttle:10,1')->name('admin.system.mail');
         Route::post('system/mail/entfernen', [SystemController::class, 'removeMail'])->name('admin.system.mail.remove');
         Route::post('system/update', [SystemController::class, 'requestUpdate'])->middleware('throttle:5,1')->name('admin.system.update');
+        Route::post('system/dump', [SystemController::class, 'dump'])->middleware('throttle:3,10')->name('admin.system.dump');
     });
 
     // Excel (#13, #15, #111): Export des Arbeitsstands (Redaktion) getrennt vom Import mit Vorschau

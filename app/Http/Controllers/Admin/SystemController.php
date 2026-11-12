@@ -8,6 +8,7 @@ use App\Mail\TestMail;
 use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\ConfigCheck;
+use App\Support\DatabaseDump;
 use App\Support\MailSettings;
 use App\Support\MailSetup;
 use App\Support\UpdateCheck;
@@ -23,6 +24,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 /** Systemseite (#40, Recht «system»): Stand des E-Mail-Versands und Testmail; keine Zugangsdaten anzeigen. */
@@ -49,6 +52,8 @@ class SystemController extends Controller
                 'protokoll' => UpdateJobs::history(10),
                 'schluessel' => (string) config('glossary.update_key') !== '',
             ],
+            // Vollständiger Dump (#268)
+            'dump' => ['passwortPflicht' => DatabaseDump::passwordRequired()],
         ]);
     }
 
@@ -135,6 +140,40 @@ class SystemController extends Controller
         }
 
         return back()->with('status', "Auftrag für {$data['ziel']} abgelegt – der Update-Dienst übernimmt ihn innert einer Minute.");
+    }
+
+    /**
+     * Vollständiger Dump zum Herunterladen (#268): Recht «system» mit zweitem Faktor; Passwort optional, solange nicht
+     * vorgeschrieben. Wird protokolliert; die Datei liegt nur bis zum Versand auf dem Server.
+     */
+    public function dump(Request $request): BinaryFileResponse
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+        $data = $request->validate([
+            'passwort' => [DatabaseDump::passwordRequired() ? 'required' : 'nullable', 'string', 'min:12', 'max:200', 'confirmed'],
+        ]);
+        $password = (string) ($data['passwort'] ?? '');
+        $file = storage_path('app/private/dump-'.bin2hex(random_bytes(8)).'.zip');
+        if (! is_dir(dirname($file))) {
+            mkdir(dirname($file), 0700, true);
+        }
+        try {
+            $manifest = DatabaseDump::create($file, $password);
+        } catch (RuntimeException $e) {
+            @unlink($file);
+            Audit::log($user, null, 'system.dump', ['fehler' => $e->getMessage()], 'failed');
+
+            throw ValidationException::withMessages(['passwort' => $e->getMessage()]);
+        }
+        Audit::log($user, null, 'system.dump', [
+            'verschluesselt' => $manifest['encrypted'],
+            'tabellen' => count($manifest['tables']),
+            'zeilen' => array_sum($manifest['tables']),
+        ]);
+        $name = 'glossary-dump-'.now()->format('Y-m-d-His').'.zip';
+
+        return response()->download($file, $name, ['Content-Type' => 'application/zip'])->deleteFileAfterSend();
     }
 
     /** Einstellung aus der Administration entfernen (#219). */
