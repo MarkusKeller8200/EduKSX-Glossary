@@ -1,0 +1,30 @@
+# Zusatz zu compose.yaml: eigener Proxy Caddy mit automatischem HTTPS (Let's Encrypt) – Standard für
+# Selbstinstallationen (DEC-028, Entscheid 12.11.2026). Braucht freie Ports 80 und 443 und einen DNS-Eintrag auf
+# diesen Server.
+#   COMPOSE_FILE=compose.yaml:compose.proxy.yaml  (in .env)
+services:
+    app:
+        ports: !reset []
+
+    proxy:
+        image: caddy:2
+        restart: unless-stopped
+        depends_on:
+            - app
+        command: caddy reverse-proxy --from ${GLOSSARY_HOST:?GLOSSARY_HOST fehlt in .env} --to app:80
+        ports:
+            - '80:80'
+            - '443:443'
+            - '443:443/udp'
+        volumes:
+            - caddy-data:/data
+            - caddy-config:/config
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+                max-file: '3'
+
+volumes:
+    caddy-data:
+    caddy-config:

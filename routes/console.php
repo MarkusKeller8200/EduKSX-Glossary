@@ -10,5 +10,8 @@ Schedule::command('glossary:loeschfristen')->dailyAt('03:15')->withoutOverlappin
 // Fehlgeschlagene Mail-Aufträge nach 30 Tagen entfernen (Löschkonzept)
 Schedule::command('queue:prune-failed', ['--hours' => 720])->dailyAt('03:30');
 
+// Kopie der Datenbank für die Sicherung ausser Haus (#197): täglich vor dem Dienst «backup» (02:30)
+Schedule::command('glossary:sicherung')->dailyAt('02:15')->withoutOverlapping();
+
 // Automatische Updates nach Richtlinie (#178): stündlich prüfen, ausgeführt nur im eingestellten Zeitfenster
 Schedule::command('glossary:updates-pruefen')->hourlyAt(5)->withoutOverlapping();

@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Selbst hosten (#179, #197, #198, #199):** Installationsskript `docker/install.sh` für Ubuntu 24.04/26.04 und Debian
+  12/13 mit Bausteinen für Caddy (Standard), vorhandenen Traefik, Schulnetz (Proxy, eigene Zertifizierungsstelle),
+  Update-Dienst und Sicherung ausser Haus (restic, verschlüsselt, 30 Tage, monatlicher Wiederherstellungstest);
+  Anleitung `docs/SELBST-HOSTEN.md`.
 - **Updates (#176, #177, #178):** Hinweis auf neue Versionen in der Administration (höchstens täglich, abschaltbar);
   «Jetzt aktualisieren» auf der Systemseite mit Update-Dienst (`docker/compose.updater.yaml`): Image holen, Datenbank
   sichern, Neustart, Prüfung, bei Fehler zurück; Protokoll auf der Systemseite. Automatische Updates nach Richtlinie

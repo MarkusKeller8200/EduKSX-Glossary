@@ -1,5 +1,7 @@
 # Einrichten und Deployment: glossary.eduksx.ch
 
+> Eigene Instanz für eine Schule oder Gemeinde: [docs/SELBST-HOSTEN.md](docs/SELBST-HOSTEN.md).
+
 Anleitung für das Gerüst (#7). Aufbau wie im sek-intranet (`DEPLOY.md` dort), Konzept in
 [docs/KONZEPT-HOSTING.md](docs/KONZEPT-HOSTING.md).
 
