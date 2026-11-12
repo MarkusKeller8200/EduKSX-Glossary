@@ -38,9 +38,9 @@ const datum = (iso: string | null | undefined): string =>
     iso ? new Date(iso).toLocaleDateString('de-CH') : '';
 
 /**
- * Kachel eines Begriffs mit allen Werten (#205), angelehnt an die Glossar-Kachel im Intranet: oben Abkürzung,
- * Bezeichnung und Zustand, dann Herkunft vor Kategorie, Kurzbeschreibung, lange Texte gekürzt (ganzer Text als
- * Tooltip) und unten klein die übrigen Angaben. Leere Werte brauchen keinen Platz.
+ * Kachel eines Begriffs mit allen Werten (#205), angelehnt an die Glossar-Kachel im Intranet: Kopf zweizeilig (#229)
+ * mit Abkürzung | Herkunft und Zustand, Bezeichnung | Kategorien; dann Kurzbeschreibung, lange Texte gekürzt (ganzer
+ * Text als Tooltip) und unten klein die übrigen Angaben. Leere Werte brauchen keinen Platz.
  */
 export default function TermCard({
     begriff: b,
@@ -77,48 +77,63 @@ export default function TermCard({
 
     return (
         <article className="flex h-full min-w-0 flex-col gap-2 break-words">
-            <header className="flex items-start gap-2">
-                <div className="min-w-0 flex-1">
+            {/* Kopf zweizeilig (#229): Abkürzung | Herkunft, Status – Bezeichnung | Kategorien */}
+            <header className="grid gap-1">
+                <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                     <Link
                         href={href}
-                        className="text-base font-semibold text-link underline-offset-4 hover:underline"
+                        className="min-w-0 text-base font-semibold break-words text-link underline-offset-4 hover:underline"
                         translate="no"
                     >
                         {titel}
                     </Link>
-                    {zeigeBezeichnung ? (
-                        <p className="text-sm" translate="no">
-                            {b.bezeichnung}
-                        </p>
-                    ) : null}
+                    <div className="ml-auto flex flex-wrap justify-end gap-1">
+                        {b.herkunft.map((l) => (
+                            <ListBadge
+                                key={`h-${l}`}
+                                list="herkunft"
+                                label={l}
+                            />
+                        ))}
+                        {!oeffentlich || b.status !== 'aktuell' ? (
+                            <StatusBadge status={b.status} />
+                        ) : null}
+                        {!oeffentlich && b.revision !== undefined ? (
+                            <RevisionBadges
+                                published={b.veroeffentlicht ?? null}
+                                revision={b.revision}
+                                draft={b.entwurf}
+                            />
+                        ) : null}
+                        {!oeffentlich && b.aktiv === false ? (
+                            <StateBadge state="inactive">inaktiv</StateBadge>
+                        ) : null}
+                    </div>
                 </div>
-                <div className="flex shrink-0 flex-wrap justify-end gap-1">
-                    {!oeffentlich || b.status !== 'aktuell' ? (
-                        <StatusBadge status={b.status} />
-                    ) : null}
-                    {!oeffentlich && b.revision !== undefined ? (
-                        <RevisionBadges
-                            published={b.veroeffentlicht ?? null}
-                            revision={b.revision}
-                            draft={b.entwurf}
-                        />
-                    ) : null}
-                    {!oeffentlich && b.aktiv === false ? (
-                        <StateBadge state="inactive">inaktiv</StateBadge>
-                    ) : null}
-                </div>
+                {zeigeBezeichnung || b.kategorien.length > 0 ? (
+                    <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                        {zeigeBezeichnung ? (
+                            <p
+                                className="min-w-0 text-sm break-words"
+                                translate="no"
+                            >
+                                {b.bezeichnung}
+                            </p>
+                        ) : null}
+                        {b.kategorien.length > 0 ? (
+                            <div className="ml-auto flex flex-wrap justify-end gap-1">
+                                {b.kategorien.map((l) => (
+                                    <ListBadge
+                                        key={`k-${l}`}
+                                        list="kategorien"
+                                        label={l}
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
+                    </div>
+                ) : null}
             </header>
-
-            {b.herkunft.length > 0 || b.kategorien.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                    {b.herkunft.map((l) => (
-                        <ListBadge key={`h-${l}`} list="herkunft" label={l} />
-                    ))}
-                    {b.kategorien.map((l) => (
-                        <ListBadge key={`k-${l}`} list="kategorien" label={l} />
-                    ))}
-                </div>
-            ) : null}
 
             {b.kurz ? (
                 <p className="text-sm" translate="no">
