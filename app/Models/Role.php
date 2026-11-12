@@ -35,10 +35,10 @@ class Role extends Model
     public const ORG_ADMIN = 'org-admin';
 
     /** Benutzer (#110): exportieren, Vorschläge einreichen, persönliche Darstellung. */
-    public const USER = 'benutzer';
+    public const USER = 'user';
 
     /** Gast (#110): angemeldet, nur lesen. */
-    public const GUEST = 'gast';
+    public const GUEST = 'guest';
 
     /** Rolle neuer Konten (Registrierung, Microsoft, administrativ angelegt), bestätigt am 08.11.2026 (#110). */
     public const DEFAULT_FOR_NEW = self::USER;

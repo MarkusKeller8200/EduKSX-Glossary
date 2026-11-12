@@ -43,8 +43,8 @@ const KLASSE_FARBE: Record<Recht['klasse'], string> = {
 
 /** Voreingestellte Rollen in aufsteigender Reihenfolge (#115); eigene Rollen stehen nur in der Matrix. */
 const HIERARCHIE = [
-    'gast',
-    'benutzer',
+    'guest',
+    'user',
     'org-admin',
     'moderator',
     'admin',

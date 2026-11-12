@@ -18,8 +18,8 @@ const ROLLEN: [string, string][] = [
     ['admin', 'Admin'],
     ['moderator', 'Moderator'],
     ['org-admin', 'Organisations-Admin'],
-    ['benutzer', 'Benutzer'],
-    ['gast', 'Gast'],
+    ['user', 'Benutzer'],
+    ['guest', 'Gast'],
 ];
 
 /**

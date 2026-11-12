@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Database\StrictSchema;
+use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
@@ -69,6 +70,18 @@ class AnfangsstandTest extends TestCase
         $alt->table('proposal_events')->insert(['proposal_id' => 7, 'type' => 'org_bestaetigt', 'by_author' => 1]);
 
         config(['database.default' => 'alt']);
+        try {
+            $this->pruefeUebergang($alt, $storage, $user, $term, $rev);
+        } finally {
+            config(['database.default' => 'sqlite']);
+            DB::purge('alt');
+            @unlink($file);
+            array_map('unlink', glob($storage.'/app/archiv/*') ?: []);
+        }
+    }
+
+    private function pruefeUebergang(Connection $alt, string $storage, string $user, string $term, string $rev): void
+    {
         $this->assertSame(0, Artisan::call('migrate', ['--database' => 'alt', '--force' => true]));
 
         $this->assertSame('under_review', $alt->table('terms')->value('lifecycle_status'));
@@ -82,7 +95,8 @@ class AnfangsstandTest extends TestCase
         $this->assertSame(1, (int) $alt->table('users')->value('has_news_opt_in'));
         $this->assertSame(['change', 'query'], [$alt->table('proposals')->value('proposal_type'), $alt->table('proposals')->value('status')]);
         $this->assertSame('confirmed_by_organization', $alt->table('proposal_events')->value('event_type'));
-        $this->assertSame(['2026_11_01_000000_anfangsstand'], $alt->table('migrations')->pluck('migration')->all());
+        $this->assertSame('2026_11_01_000000_anfangsstand', $alt->table('migrations')->orderBy('id')->value('migration'));
+        $this->assertSame(0, $alt->table('migrations')->where('migration', 'like', '%create_glossary_tables')->count());
         $this->assertSame([], $alt->select("select name from sqlite_master where name like 'alt_%' or name = 'term_legacy_values'"));
         $this->assertSame([], $alt->select('pragma foreign_key_check'));
 
@@ -96,10 +110,5 @@ class AnfangsstandTest extends TestCase
         $report = json_decode((string) file_get_contents($storage.'/app/archiv/uebergang-0.12.0-bericht.json'), true);
         $this->assertSame(1, $report['suchbegriffe_ergaenzt']);
         $this->assertSame($report['zeilen_vorher']['terms'], $report['zeilen_nachher']['terms']);
-
-        config(['database.default' => 'sqlite']);
-        DB::purge('alt');
-        @unlink($file);
-        array_map('unlink', glob($storage.'/app/archiv/*') ?: []);
     }
 }
