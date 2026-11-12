@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.10.0] – 2026-11-12
+
 ### Neu
 
 - **Selbst hosten (#179, #197, #198, #199):** Installationsskript `docker/install.sh` für Ubuntu 24.04/26.04 und Debian
