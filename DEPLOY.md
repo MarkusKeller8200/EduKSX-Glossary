@@ -232,7 +232,7 @@ die alten Schlüssel noch eingetragen sind (darum Schritt 8 zuletzt).
 
 Der Workflow **image** baut nach jeder geprüften Änderung auf `main` ein Image und legt es in die GitHub Container
 Registry: `ghcr.io/markuskeller8200/eduksx-glossary:main` bzw. `:main-<commit>`. Ein Release-Commit (Datei `VERSION`
-geändert) erzeugt zusätzlich `:X.Y.Z`, `:X.Y` und `:latest` für amd64 und arm64. Jedes Image ist mit cosign signiert und
+geändert) erzeugt zusätzlich `:X.Y.Z`, `:X.Y` und `:latest` (amd64). Jedes Image ist mit cosign signiert und
 hat einen Herkunftsnachweis.
 
 **Einmalig von Hand:** Nach dem ersten Lauf ist das Paket privat. Für selbst gehostete Instanzen und Komodo ohne
