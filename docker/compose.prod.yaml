@@ -25,11 +25,11 @@ services:
               required: false
         environment:
             APP_URL: https://${GLOSSARY_HOST:-glossary.eduksx.ch}
-            APP_NAME: EduKSX-Glossary
+            APP_NAME: ${APP_NAME:-EduKSX-Glossary}
             # Sitzungs-Cookie nur über HTTPS (#37)
-            SESSION_SECURE_COOKIE: 'true'
+            SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
             # Mails über die Warteschlange mit Wiederholung (#40); abgearbeitet vom Dienst «worker»
-            QUEUE_CONNECTION: database
+            QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
         volumes:
             - glossary-storage:/var/www/html/storage
         labels:
@@ -54,8 +54,8 @@ services:
               required: false
         environment:
             APP_URL: https://${GLOSSARY_HOST:-glossary.eduksx.ch}
-            APP_NAME: EduKSX-Glossary
-            QUEUE_CONNECTION: database
+            APP_NAME: ${APP_NAME:-EduKSX-Glossary}
+            QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
             GLOSSARY_ROLE: worker
         command: php artisan queue:work --tries=3 --backoff=60 --max-time=3600
         volumes:
@@ -78,8 +78,8 @@ services:
               required: false
         environment:
             APP_URL: https://${GLOSSARY_HOST:-glossary.eduksx.ch}
-            APP_NAME: EduKSX-Glossary
-            QUEUE_CONNECTION: database
+            APP_NAME: ${APP_NAME:-EduKSX-Glossary}
+            QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
             GLOSSARY_ROLE: scheduler
         command: php artisan schedule:work
         volumes:

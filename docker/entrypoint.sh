@@ -7,6 +7,18 @@ cd /var/www/html
 mkdir -p storage/app/database storage/app/private storage/app/public storage/app/backups \
     storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
 
+# Geheimnisse aus Dateien (#196): NAME_FILE=/pfad setzt NAME auf den Inhalt der Datei (Docker/Kubernetes Secrets),
+# z. B. APP_KEY_FILE, MAIL_PASSWORD_FILE. Der Wert erscheint nie in der Ausgabe.
+for name in $(env | sed -n 's/^\([A-Z0-9_]*\)_FILE=.*/\1/p'); do
+    file="$(printenv "${name}_FILE")"
+    if [ -r "$file" ]; then
+        value="$(cat "$file")"
+        export "$name=$value"
+    else
+        echo "[glossary] ${name}_FILE: Datei nicht lesbar – ${name} bleibt ungesetzt." >&2
+    fi
+done
+
 # APP_KEY: aus der Umgebung oder einmalig erzeugen und im Volume speichern.
 if [ -z "${APP_KEY:-}" ]; then
     if [ ! -s storage/app/.app_key ]; then

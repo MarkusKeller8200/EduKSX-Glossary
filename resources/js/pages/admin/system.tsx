@@ -17,15 +17,30 @@ type Mail = {
     configured: boolean;
 };
 
-/** Systemseite (#40): E-Mail-Versand prüfen. Zugangsdaten stehen nur in der Umgebung des Servers. */
+type Pruefung = {
+    bereich: string;
+    pruefung: string;
+    status: 'ok' | 'warnung' | 'fehler';
+    hinweis: string;
+};
+
+const STATUS: Record<Pruefung['status'], string> = {
+    ok: 'ok',
+    warnung: 'Warnung',
+    fehler: 'Fehler',
+};
+
+/** Systemseite (#40, #196): E-Mail-Versand und Konfiguration prüfen. Zugangsdaten stehen nur in der Umgebung des Servers. */
 export default function System({
     mail,
     warteschlange,
     version,
+    pruefung,
 }: {
     mail: Mail;
     warteschlange: { offen: number; fehlgeschlagen: number };
     version: string;
+    pruefung: Pruefung[];
 }) {
     const { auth } = usePage().props;
     const form = useForm({ an: auth.user?.email ?? '' });
@@ -50,6 +65,55 @@ export default function System({
         <>
             <Head title="System" />
             <h1 className="text-3xl font-semibold tracking-tight">System</h1>
+
+            <section className="mt-6 max-w-3xl">
+                <h2 className="text-lg font-semibold">Konfiguration</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    Prüfung der Einstellungen dieser Installation, ohne Werte
+                    von Geheimnissen. Auf dem Server auch mit{' '}
+                    <code>php artisan glossary:pruefen</code>.
+                </p>
+                <table className="mt-3 w-full text-sm">
+                    <thead className="text-left text-muted-foreground">
+                        <tr>
+                            <th className="py-1 pr-3 font-medium">Prüfung</th>
+                            <th className="py-1 pr-3 font-medium">Ergebnis</th>
+                            <th className="py-1 font-medium">Hinweis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {pruefung.map((p) => (
+                            <tr
+                                key={`${p.bereich}-${p.pruefung}`}
+                                className="border-t border-border align-top"
+                            >
+                                <td className="py-1.5 pr-3">
+                                    <span className="text-muted-foreground">
+                                        {p.bereich}:
+                                    </span>{' '}
+                                    {p.pruefung}
+                                </td>
+                                <td className="py-1.5 pr-3">
+                                    <Badge
+                                        variant={
+                                            p.status === 'fehler'
+                                                ? 'destructive'
+                                                : p.status === 'warnung'
+                                                  ? 'outline'
+                                                  : 'secondary'
+                                        }
+                                    >
+                                        {STATUS[p.status]}
+                                    </Badge>
+                                </td>
+                                <td className="py-1.5 text-muted-foreground">
+                                    {p.hinweis}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </section>
 
             <section className="mt-6 max-w-2xl">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">

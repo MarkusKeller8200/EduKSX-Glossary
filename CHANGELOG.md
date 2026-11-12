@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Prüfung der Konfiguration (#196):** `php artisan glossary:pruefen` und Systemseite zeigen fehlende, unsichere oder
+  widersprüchliche Einstellungen (Schlüssel, Adresse, sichere Cookies, Datenbank, Sicherung, Mail, Dienste), ohne Werte
+  von Geheimnissen. Geheimnisse auch als Datei (`NAME_FILE`); Vorlage für den Server in `.env.example`.
 - **Docker-Image in der Registry (#175):** Jeder geprüfte Stand und jedes Release als fertiges, signiertes Image
   (`ghcr.io/markuskeller8200/eduksx-glossary`) mit Herkunftsnachweis; `docker/compose.yaml` startet es ohne Bauen.
 

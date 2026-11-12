@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\TestMail;
 use App\Models\User;
 use App\Support\AppVersion;
+use App\Support\ConfigCheck;
 use App\Support\MailSetup;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +31,8 @@ class SystemController extends Controller
                 'fehlgeschlagen' => DB::table('failed_jobs')->count(),
             ],
             'version' => AppVersion::info()['version'],
+            // Prüfung der Konfiguration (#196), ohne Werte von Geheimnissen
+            'pruefung' => ConfigCheck::run(),
         ]);
     }
 
