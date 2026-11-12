@@ -3,7 +3,8 @@
 **Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitte 3 und 6) und dem Glossar-Modul des Intranets
 (`docs/KONZEPT-GLOSSAR.md`, `app/Support/Glossary.php`). Entscheide DEC-002 und DEC-010.
 
-Speicher: **SQLite** (eine Datei im Docker-Volumen), Migrationen von Laravel. Kein PostgreSQL. JSON dient als
+Speicher: **SQLite** (eine Datei im Docker-Volumen), Migrationen von Laravel. PostgreSQL folgt für den zentralen Betrieb
+(DEC-028, DEC-033; «kein PostgreSQL» aus DEC-010 ist abgelöst). JSON dient als
 Austausch- und Startformat (Übernahme aus dem Intranet, Export, GitHub Pages).
 
 ## Felder aus dem Intranet (beschlossen: Ausgangsbasis)
