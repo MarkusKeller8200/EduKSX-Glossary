@@ -4,6 +4,10 @@ Entscheid des Projektverantwortlichen vom 07.11.2026 (#4), nach Entscheidungsvor
 Anpassungen am selben Tag. Betrifft DEC-012
 (Hosting) in [ENTSCHEIDE.md](ENTSCHEIDE.md).
 
+> **Teilweise abgelöst durch DEC-028 (12.11.2026, [KONZEPT-DEPLOYMENT.md](KONZEPT-DEPLOYMENT.md)):** test und prod laufen
+> auf `prod-01` bei Infomaniak (`glossary-test.eduksx.ch`, `glossary.eduksx.ch`) über MarKusSX-Operation; der
+> Hostinger-VPS ist nur noch Entwicklungsserver (dev, `glossary.markussx.ch`).
+
 ## Entscheid
 
 1. **Zuerst Hostinger, später Infomaniak prüfen.** Das Glossar läuft als eigener Container auf dem bestehenden
