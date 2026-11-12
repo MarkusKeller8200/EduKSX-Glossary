@@ -131,14 +131,15 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
 
 ## Betrieb
 
-| Aufgabe             | Befehl auf dem Server (`cd /docker/glossary`)                                          |
-| ------------------- | -------------------------------------------------------------------------------------- |
-| Status              | `docker compose ps`                                                                    |
-| Logs                | `docker compose logs -f app`                                                           |
-| Admin/Passwort      | `docker compose exec app php artisan glossary:admin`                                   |
-| Warteschlange/Mails | `docker compose logs -f worker`, `docker compose exec worker php artisan queue:failed` |
-| Developer           | `docker compose exec app php artisan glossary:developer E-MAIL` (`--entziehen`)        |
-| Sicherungen ansehen | `docker compose exec app ls storage/app/backups`                                       |
+| Aufgabe              | Befehl auf dem Server (`cd /docker/glossary`)                                          |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| Konfiguration prüfen | `docker compose exec app php artisan glossary:pruefen` (#196)                          |
+| Status               | `docker compose ps`                                                                    |
+| Logs                 | `docker compose logs -f app`                                                           |
+| Admin/Passwort       | `docker compose exec app php artisan glossary:admin`                                   |
+| Warteschlange/Mails  | `docker compose logs -f worker`, `docker compose exec worker php artisan queue:failed` |
+| Developer            | `docker compose exec app php artisan glossary:developer E-MAIL` (`--entziehen`)        |
+| Sicherungen ansehen  | `docker compose exec app ls storage/app/backups`                                       |
 
 - **Logs (#60):** Die Dienste `app`, `worker` und `scheduler` schreiben nach stderr; Docker rotiert je Dienst nach
   Grösse (höchstens 3 Dateien à 10 MB, `x-logging` in `compose.prod.yaml`). Damit die Frist von 14 Tagen sicher

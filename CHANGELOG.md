@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Prüfung der Konfiguration (#196):** `php artisan glossary:pruefen` und Systemseite zeigen fehlende, unsichere oder
+  widersprüchliche Einstellungen (Schlüssel, Adresse, sichere Cookies, Datenbank, Sicherung, Mail, Dienste), ohne Werte
+  von Geheimnissen. Geheimnisse auch als Datei (`NAME_FILE`); Vorlage für den Server in `.env.example`.
+
 ### Geändert
 
 - **Ansichten der Begriffe (#205, #213):** drei Darstellungen in der Administration und auf der Startseite: Tabelle,
