@@ -1,6 +1,6 @@
 # Konzept: Selbst hosten und Updates (DEC-027, Entwurf)
 
-Stand: Entwurf 08.11.2026 zur Abnahme. Umsetzung erst nach Freigabe (Meilenstein «0.10.0 – Selbst hosten und
+Stand: Entwurf 08.11.2026, offene Fragen entschieden 12.11.2026, zur Abnahme. Umsetzung erst nach Freigabe (Meilenstein «0.10.0 – Selbst hosten und
 Updates»).
 
 ## Ziel
@@ -97,15 +97,21 @@ Vorgaben der Gemeinde). Für diese gilt:
 **Grössenordnung:** Mit vorab geladenen Images dauert ein Update je Instanz rund eine Minute, der sichtbare
 Unterbruch wenige Sekunden. 200 Instanzen in zwei Ringen sind in einer Nacht aktualisiert – ohne Handarbeit.
 
-## Offene Fragen (Entscheid durch die Projektverantwortliche Person)
+## Entscheide zu den offenen Fragen (12.11.2026)
 
-1. Wer darf aktualisieren: nur Developer (Recht `system`) oder auch Admin?
-2. Vorgabe für automatische Updates: «nur Korrekturen» (Vorschlag) oder «aus»?
-3. Soll unser Server künftig nur noch Releases ausliefern statt jeden Merge?
-4. Braucht es die Variante ohne Docker (U12) überhaupt?
-5. Abgleich der Inhalte (U11): automatisch übernehmen oder neue Begriffe zuerst in der lokalen Moderation zeigen?
-6. Ziel für viele Kunden: zuerst zentral mit Organisationen und eigene Instanzen nur auf Wunsch (Vorschlag)?
-7. Leitstand (U14) als Teil des zentralen Glossary oder als eigene, interne Anwendung?
+1. **Wer darf aktualisieren:** nur mit dem Recht `system`. Das Recht wird nicht automatisch vergeben, sondern
+   beantragt; die Freigabe kann zusätzlich an einen Schlüssel gebunden werden (Ausgestaltung mit #177).
+2. **Automatische Updates:** Vorgabe «nur Korrekturen» (PATCH); in den Einstellungen abschaltbar.
+3. **Ausgelieferte Stände:** test und prod sowie selbst gehostete Instanzen erhalten nur Releases; jeder Merge
+   geht nur auf dev (Hostinger, DEC-028).
+4. **Variante ohne Docker (U12):** vorerst nicht umsetzen; nur Docker wird unterstützt. #181 bleibt zurückgestellt
+   und wird erst bei einer konkreten Anfrage einer Schule geprüft (Empfehlung, Bestätigung ausstehend).
+5. **Abgleich der Inhalte (U11):** wählbar je Instanz – automatisch übernehmen oder manuell. Manuell zeigt eine
+   Liste der Änderungen mit Kontrollkästchen; einzelne, mehrere oder alle lassen sich auf einmal übernehmen.
+6. **Viele Kunden:** zuerst zentral mit Organisationen. Eigene Instanzen werden vorbereitet, aber nur auf
+   ausdrücklichen Wunsch ausgeliefert (Stand heute).
+7. **Leitstand (U14):** eigene Anwendung, nicht Teil des Glossary; Zugriff nur mit Recht `system` (bzw. dem
+   entsprechenden Recht der Plattform).
 
 ## Issues (Meilenstein «0.10.0 – Selbst hosten und Updates»)
 
