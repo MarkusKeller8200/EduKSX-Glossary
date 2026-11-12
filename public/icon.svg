@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!-- Entwurf bis zur Freigabe eines Signets (CI-Manual Abschnitt 7, #239) --><rect width="512" height="512" rx="112" fill="#222222"/><g><rect x="112" y="140" width="56" height="56" rx="14" fill="#7952b3"/><rect x="196" y="140" width="204" height="56" rx="28" fill="#ffffff"/><rect x="112" y="228" width="56" height="56" rx="14" fill="#ff8a00"/><rect x="196" y="228" width="160" height="56" rx="28" fill="#ffffff"/><rect x="112" y="316" width="56" height="56" rx="14" fill="#007ebb"/><rect x="196" y="316" width="184" height="56" rx="28" fill="#ffffff"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img">
+  <title>EduKSX-Glossary</title>
+  <rect width="48" height="48" rx="11" fill="#222222"/>
+  <g transform="translate(9.0 9.0) scale(1.25)">
+  <path d="M12 6.6C9.8 5.1 6.9 4.7 3 5.2v13.3c3.9-.5 6.8-.1 9 1.4 2.2-1.5 5.1-1.9 9-1.4V5.2c-3.9-.5-6.8-.1-9 1.4Z" fill="none" stroke="#F2F5F8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 6.6v13.3" fill="none" stroke="#F2F5F8" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M5.6 15.2 7.4 9.6l1.8 5.6M6.2 13.4h2.4" fill="none" stroke="#FF8A00" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14.6 9.8h3.2l-3.2 5.2h3.2" fill="none" stroke="#32B8F2" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

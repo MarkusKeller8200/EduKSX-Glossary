@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { X } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { confirmAction } from '@/components/confirm-dialog';
@@ -9,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ListBadge, ListBadges, StatusBadge } from '@/components/tags';
+import { zurueckOderStart } from '@/lib/navigation';
 
 type Meine = {
     abbreviation_override: string;
@@ -76,14 +78,23 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
     return (
         <>
             <Head title={titel} />
-            <p className="text-sm">
+            <div className="flex items-center justify-between gap-2 text-sm">
                 <Link
                     href="/"
                     className="text-link underline-offset-4 hover:underline"
                 >
                     ← Alle Begriffe
                 </Link>
-            </p>
+                {/* Schliessen (#250): zurück zur vorherigen Seite der Website, sonst zur Startseite */}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={zurueckOderStart}
+                    aria-label="Detailansicht schliessen"
+                >
+                    <X aria-hidden /> Schliessen
+                </Button>
+            </div>
 
             <article className="mt-4">
                 <h1 className="text-3xl font-semibold tracking-tight">

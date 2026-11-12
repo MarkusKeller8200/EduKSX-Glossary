@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { ExternalLink, Link2 } from 'lucide-react';
+import { ExternalLink, Link2, Maximize2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
     ListBadge,
@@ -167,8 +167,19 @@ export default function TermCard({
                 </dl>
             ) : null}
 
-            {b.code || b.url ? (
+            {oeffentlich || b.code || b.url ? (
                 <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                    {/* Detailansicht (#249) */}
+                    {oeffentlich ? (
+                        <Link
+                            href={href}
+                            className="inline-flex size-6 items-center justify-center rounded-md text-link hover:bg-accent"
+                            aria-label={`Details zu ${titel}`}
+                            title="Details"
+                        >
+                            <Maximize2 className="size-3.5" aria-hidden />
+                        </Link>
+                    ) : null}
                     {b.code ? (
                         <a
                             href={`/g/${b.code}`}
