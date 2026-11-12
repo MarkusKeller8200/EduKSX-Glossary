@@ -10,6 +10,8 @@ use App\Support\AppVersion;
 use App\Support\ConfigCheck;
 use App\Support\MailSettings;
 use App\Support\MailSetup;
+use App\Support\UpdateCheck;
+use App\Support\UpdateJobs;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -20,6 +22,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
 use Throwable;
 
 /** Systemseite (#40, Recht «system»): Stand des E-Mail-Versands und Testmail; keine Zugangsdaten anzeigen. */
@@ -38,6 +41,14 @@ class SystemController extends Controller
             'pruefung' => ConfigCheck::run(),
             // Mail-Versand in der Administration (#219), ohne Passwort
             'mailEinstellung' => MailSettings::form(),
+            // Hinweis auf neue Versionen (#176) und Update-Dienst (#177)
+            'update' => UpdateCheck::status() + [
+                'dienst' => UpdateJobs::serviceActive(),
+                'stand' => UpdateJobs::state(),
+                'auftrag' => UpdateJobs::pending(),
+                'protokoll' => UpdateJobs::history(10),
+                'schluessel' => (string) config('glossary.update_key') !== '',
+            ],
         ]);
     }
 
@@ -91,6 +102,39 @@ class SystemController extends Controller
         Audit::log($user, $user, 'system.testmail', ['mailer' => 'administration']);
 
         return back()->with('status', 'Gespeichert und Testmail versendet – der Versand ist eingerichtet.');
+    }
+
+    /**
+     * Update aus der Administration anstossen (#177): legt einen Auftrag für den Update-Dienst ab. Nur Recht
+     * «system» mit zweitem Faktor; ist GLOSSARY_UPDATE_KEY gesetzt, zusätzlich dieser Schlüssel (Entscheid 12.11.2026).
+     */
+    public function requestUpdate(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user instanceof User, 403);
+        $data = $request->validate([
+            'ziel' => ['required', 'string', 'regex:/^\d+\.\d+\.\d+$/'],
+            'schluessel' => ['nullable', 'string', 'max:200'],
+        ]);
+        $key = (string) config('glossary.update_key');
+        if ($key !== '' && ! hash_equals($key, (string) ($data['schluessel'] ?? ''))) {
+            Audit::log($user, null, 'system.update.requested', ['ziel' => $data['ziel']], 'failed');
+
+            throw ValidationException::withMessages(['schluessel' => 'Der Update-Schlüssel stimmt nicht.']);
+        }
+        if (! UpdateJobs::serviceActive()) {
+            throw ValidationException::withMessages(['ziel' => 'Kein Update-Dienst aktiv. Auf dem Server: docker compose up -d updater (Anleitung «Selbst hosten»).']);
+        }
+        if (! version_compare((string) $data['ziel'], (string) config('glossary.version'), '>')) {
+            throw ValidationException::withMessages(['ziel' => 'Die Zielversion muss neuer sein als die installierte.']);
+        }
+        try {
+            UpdateJobs::request($user, (string) $data['ziel'], 'Administration');
+        } catch (InvalidArgumentException $e) {
+            throw ValidationException::withMessages(['ziel' => $e->getMessage()]);
+        }
+
+        return back()->with('status', "Auftrag für {$data['ziel']} abgelegt – der Update-Dienst übernimmt ihn innert einer Minute.");
     }
 
     /** Einstellung aus der Administration entfernen (#219). */
