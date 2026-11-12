@@ -99,7 +99,7 @@ Beispiel-URL und -Datum sind Platzhalter.
 - **Sichtbar** ist ein Begriff, wenn er veröffentlicht ist und im veröffentlichten Abbild `is_active` gilt – der
   Arbeitsstand ändert nichts an Website oder API, bis er veröffentlicht wird.
 - **ETag** = Prüfsumme des Antwortinhalts (auch Listen-Änderungen werden erkannt), `Cache-Control: public,
-max-age=60`, Kopfzeile `X-Glossary-Release`.
+  max-age=60`, Kopfzeile `X-Glossary-Release`.
 - **Fehler** als `application/problem+json` (RFC 9457) für alle Pfade unter `/api/`.
 - **CORS:** `GET` von jeder Herkunft, ohne Cookies (`config/cors.php`).
 - Rate-Limit 120 Abrufe pro Minute und Adresse.
