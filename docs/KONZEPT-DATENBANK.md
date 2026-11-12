@@ -2,7 +2,8 @@
 
 Stand: **beschlossen** 12.11.2026 (#266), aus der Prüfung des Schemas im Chat vom 12.11.2026. Meilenstein «0.12.0 – API-
 und DB-Cleanup». Umsetzung erst, wenn ein vollständiger Dump vorliegt (M0). Ergänzt
-[KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md).
+[KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md). Die Regeln für die Entwicklung fasst
+[KONZEPT-DB-GUIDELINE.md](KONZEPT-DB-GUIDELINE.md) zusammen.
 
 ## Ausgangslage
 

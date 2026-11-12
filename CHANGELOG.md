@@ -8,6 +8,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **DB-Entwickler-Guideline (#270):** Regeln für Datenbank, Migrationen und Modelle abgenommen (`docs/KONZEPT-DB-GUIDELINE.md`), verlinkt aus AGENTS.md und dem Datenbank-Konzept.
 - **Vollständiger Dump (#268):** Administration › System und `php artisan glossary:dump`: ZIP mit Kopie der Datenbank,
   allen Tabellen als JSON und Manifest; mit Passwort AES-256-verschlüsselt, ohne Passwort nur bis zur Einstellung
   `GLOSSARY_DUMP_REQUIRE_PASSWORD`.
