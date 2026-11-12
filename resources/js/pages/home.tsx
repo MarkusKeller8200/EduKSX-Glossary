@@ -271,11 +271,11 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                     ))}
                 </ul>
             ) : ansicht === 'kacheln' ? (
-                <ul className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <ul className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {liste.map((b) => (
                         <li
                             key={b.slug}
-                            className="rounded-lg border border-border bg-card p-3"
+                            className="min-w-0 rounded-lg border border-border bg-card p-3"
                         >
                             <TermCard
                                 begriff={b}

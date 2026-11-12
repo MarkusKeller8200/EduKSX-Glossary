@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Handy-Ansicht (#225, #226, #227):** Kacheln passen auf den Bildschirm; Kopfzeile auf einer Zeile mit Titel,
+  Person, Ab-/Anmelde-Icon und Ausklapp-Button für Ansicht und Farbschema; Fusszeile eingeklappt mit Ausklapp-Button.
+
 ## [0.10.0] – 2026-11-12
 
 ### Neu

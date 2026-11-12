@@ -353,7 +353,7 @@ export default function DataGrid<T>({
                         ) : null}
                         <ul
                             className={cn(
-                                'grid',
+                                'grid grid-cols-1',
                                 layout === 'cards'
                                     ? 'gap-3 sm:grid-cols-2 xl:grid-cols-3'
                                     : 'gap-2',
@@ -362,7 +362,7 @@ export default function DataGrid<T>({
                             {g.rows.map((r) => (
                                 <li
                                     key={`${g.key}-${getRowId(r)}`}
-                                    className="rounded-lg border border-border bg-card p-3"
+                                    className="min-w-0 rounded-lg border border-border bg-card p-3"
                                 >
                                     {renderItem(r)}
                                 </li>
