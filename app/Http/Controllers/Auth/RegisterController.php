@@ -72,7 +72,7 @@ class RegisterController extends Controller
                 'privacy_notice_version' => (string) config('glossary.privacy_version'),
                 'privacy_notice_acknowledged_at' => now(),
                 // News (#169): freiwillig, Vorgabe nein; Antwort mit Zeitpunkt
-                'news_opt_in' => (bool) ($data['news'] ?? false),
+                'has_news_opt_in' => (bool) ($data['news'] ?? false),
                 'news_answered_at' => now(),
             ])->save();
             Audit::log($user, $user, 'account.registered');

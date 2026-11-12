@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\PublicationRelease;
 use App\Models\Source;
@@ -170,7 +171,7 @@ final class ApiPresenter
             'url' => $str('url'),
             'categories' => $this->refs($this->categories(), $s['categories'] ?? []),
             'sources' => $this->refs($this->sources(), $s['sources'] ?? []),
-            'status' => (string) ($s['lifecycle_status'] ?? 'aktuell'),
+            'status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
             'is_active' => (bool) ($s['is_active'] ?? true),
             'valid_from' => $str('valid_from'),
             'valid_until' => $str('valid_until'),

@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Organization;
 use App\Models\OrganizationTermOverride;
@@ -69,7 +70,7 @@ final class PublicGlossary
                     'kategorien' => $this->mapLabels($categories, $s['categories']),
                     // Filter nach Herkunft auf der Startseite (#145)
                     'herkunft' => $this->mapLabels($sources, $s['sources'] ?? []),
-                    'status' => Term::STATUS[(string) $s['lifecycle_status']] ?? (string) $s['lifecycle_status'],
+                    'status' => Term::STATUS[TermStatus::normalize($s['lifecycle_status'] ?? null)],
                     // Kacheln und Tabelle auf der Startseite (#213): nur öffentliche Felder
                     'code' => (string) ($s['code'] ?? ''),
                     'beschreibung' => (string) ($o->description_override ?? $g->description_override ?? $s['description'] ?? ''),
@@ -157,7 +158,7 @@ final class PublicGlossary
                 'name' => $source->name,
                 'url' => $source->url,
             ])->all(),
-            'status' => Term::STATUS[(string) $s['lifecycle_status']] ?? (string) $s['lifecycle_status'],
+            'status' => Term::STATUS[TermStatus::normalize($s['lifecycle_status'] ?? null)],
             'gueltig_ab' => $s['valid_from'],
             'gueltig_bis' => $s['valid_until'],
             'revision' => $revision->revision,

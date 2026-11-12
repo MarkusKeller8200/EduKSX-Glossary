@@ -107,7 +107,7 @@ final class Settings
                     DB::table('settings')->where('key', $key)->delete();
                 } else {
                     DB::table('settings')->updateOrInsert(['key' => $key], [
-                        'value' => json_encode($value), 'updated_by' => $actor->id, 'updated_at' => now(),
+                        'value' => json_encode($value), 'updated_by_id' => $actor->id, 'updated_at' => now(),
                     ]);
                 }
                 Audit::log($actor, null, 'settings.changed', ['key' => $key, 'old' => $old, 'new' => $value]);

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Evidence;
+use App\Enums\TermStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Source;
 use App\Models\Term;
@@ -21,11 +23,12 @@ use Inertia\Response;
 class SourceCheckController extends Controller
 {
     /** Belegstatus → Bezeichnung. */
+    /** Beleg einer Herkunft: Wert → Label ({@see Evidence}). */
     public const EVIDENCE = [
-        'amtlich' => 'amtlich belegt',
-        'belegt' => 'belegt (Fachquelle)',
-        'sekundaer' => 'sekundär',
-        'offen' => 'offen',
+        'official' => 'amtlich belegt',
+        'documented' => 'belegt (Fachquelle)',
+        'secondary' => 'sekundär',
+        'open' => 'offen',
     ];
 
     /** Wiedervorlage nach Monaten: Einstellung «source_check.months» (#106, Vorgabe 12). */
@@ -38,7 +41,7 @@ class SourceCheckController extends Controller
         $rows = [];
         foreach (Term::query()->current()->with('sources')->get() as $term) {
             $reasons = [];
-            if ($term->lifecycle_status === 'zu_pruefen') {
+            if ($term->lifecycle_status === TermStatus::UnderReview->value) {
                 $reasons[] = 'Status «zu prüfen»';
             }
             if ($term->sources->isEmpty()) {
@@ -46,7 +49,7 @@ class SourceCheckController extends Controller
             }
             $oldest = null;
             foreach ($term->sources as $source) {
-                $checked = $this->pivot($source, 'retrieved_at');
+                $checked = $this->pivot($source, 'retrieved_on');
                 $date = $checked !== null ? CarbonImmutable::parse($checked) : null;
                 if ($date === null || $date->lessThan($limit)) {
                     $reasons[] = $date === null ? "{$source->displayLabel()}: nie geprüft" : "{$source->displayLabel()}: geprüft am {$date->format('d.m.Y')}";
@@ -56,7 +59,7 @@ class SourceCheckController extends Controller
                 }
             }
             $official = ($term->official_abbreviation ?? '') !== '' || ($term->official_name ?? '') !== '';
-            $amtlich = $term->sources->contains(fn (Source $s): bool => $this->pivot($s, 'evidence') === 'amtlich');
+            $amtlich = $term->sources->contains(fn (Source $s): bool => $this->pivot($s, 'evidence') === Evidence::Official->value);
             if ($official && $term->sources->isNotEmpty() && ! $amtlich) {
                 $reasons[] = 'offiziell ohne amtlichen Beleg';
             }
@@ -75,7 +78,7 @@ class SourceCheckController extends Controller
         $data = $request->validate([
             'herkunft' => ['required', 'array', 'max:50'],
             'herkunft.*.source_id' => ['required', 'uuid'],
-            'herkunft.*.retrieved_at' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'herkunft.*.retrieved_on' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'herkunft.*.evidence' => ['nullable', 'string', Rule::in(array_keys(self::EVIDENCE))],
             'herkunft.*.note' => ['nullable', 'string', 'max:255'],
         ]);
@@ -86,7 +89,7 @@ class SourceCheckController extends Controller
                 continue;
             }
             $term->sources()->updateExistingPivot((string) $row['source_id'], [
-                'retrieved_at' => $row['retrieved_at'] ?? null,
+                'retrieved_on' => $row['retrieved_on'] ?? null,
                 'evidence' => $row['evidence'] ?? null,
                 'note' => $row['note'] ?? null,
             ]);
@@ -101,6 +104,6 @@ class SourceCheckController extends Controller
         $pivot = $source->getRelationValue('pivot');
         $value = $pivot instanceof Pivot ? $pivot->getAttribute($key) : null;
 
-        return is_scalar($value) ? substr((string) $value, 0, $key === 'retrieved_at' ? 10 : null) : null;
+        return is_scalar($value) ? substr((string) $value, 0, $key === 'retrieved_on' ? 10 : null) : null;
     }
 }

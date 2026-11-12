@@ -18,7 +18,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $created_count
  * @property int $updated_count
  * @property int $error_count
- * @property int $legacy_count
  * @property list<array{zeile: int, meldung: string}>|null $errors
  * @property CarbonImmutable $created_at
  */
@@ -32,7 +31,7 @@ class ImportBatch extends Model
     /** @var list<string> */
     protected $fillable = [
         'user_id', 'user_label', 'file_name', 'format_version', 'rows', 'created_count', 'updated_count',
-        'error_count', 'legacy_count', 'errors',
+        'error_count', 'errors',
     ];
 
     /**

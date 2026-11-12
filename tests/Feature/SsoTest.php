@@ -23,7 +23,7 @@ class SsoTest extends TestCase
     {
         return [
             'issuer' => self::ISSUER, 'subject' => $sub, 'tenant_id' => '11111111-2222-3333-4444-555555555555',
-            'object_id' => 'oid-1', 'email' => $email, 'given_name' => 'Anna', 'family_name' => 'Muster', 'name' => 'Anna Muster',
+            'email' => $email, 'given_name' => 'Anna', 'family_name' => 'Muster', 'name' => 'Anna Muster',
         ];
     }
 
@@ -56,7 +56,7 @@ class SsoTest extends TestCase
         $user = User::query()->where('email', 'anna@schule.example')->firstOrFail();
         $this->assertAuthenticatedAs($user);
         $this->assertSame('Anna Muster', $user->name);
-        $this->assertFalse($user->password_set);
+        $this->assertFalse($user->has_password);
         $this->assertSame([Role::USER], $user->roleKeys());
         $this->assertSame(Permission::BASIC, $user->permissions());
         $this->assertSame(1, UserIdentity::query()->where('issuer', self::ISSUER)->where('subject', 'sub-anna')->count());

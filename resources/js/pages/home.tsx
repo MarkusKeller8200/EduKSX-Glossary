@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useHandy } from '@/hooks/use-handy';
+import { isCurrentStatus } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
 
@@ -342,7 +343,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                         list="kategorien"
                                         labels={b.kategorien}
                                     />
-                                    {b.status !== 'aktuell' ? (
+                                    {!isCurrentStatus(b.status) ? (
                                         <StatusBadge status={b.status} />
                                     ) : null}
                                 </span>

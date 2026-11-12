@@ -45,10 +45,10 @@ final class Duplicates
         foreach ($this->all() as $group) {
             if ($group['signatur'] === $signature) {
                 DuplicateDecision::query()->firstOrCreate(['signature' => $signature], [
-                    'kind' => $group['art'],
+                    'match_type' => $group['art'],
                     'value' => mb_substr($group['wert'], 0, 255),
                     'term_ids' => array_map(fn (array $t): string => (string) $t['id'], $group['begriffe']),
-                    'decided_by' => $user?->id,
+                    'decided_by_id' => $user?->id,
                 ]);
 
                 return;

@@ -88,11 +88,11 @@ final class ProposalService
         // Organisations-Admins und Servicekonten gehen direkt in die Moderation
         $member = $service === null ? app(OrganizationService::class)->membershipOf($user) : null;
         $member = $member !== null && $member->isActive() ? $member : null;
-        $status = $member !== null && ! $member->isAdmin() ? Proposal::ORG_REVIEW : 'eingereicht';
+        $status = $member !== null && ! $member->isAdmin() ? Proposal::ORG_REVIEW : 'submitted';
 
         return DB::transaction(function () use ($term, $values, $reason, $user, $service, $base, $label, $member, $status): Proposal {
             $proposal = Proposal::query()->create([
-                'kind' => $term === null ? 'new' : 'change',
+                'proposal_type' => $term === null ? 'new' : 'change',
                 'term_id' => $term?->id,
                 'base_revision' => $base?->revision,
                 'changes' => $values,
@@ -103,7 +103,7 @@ final class ProposalService
                 'service_account_id' => $service?->id,
                 'author_label' => $label,
             ]);
-            $this->event($proposal, 'eingereicht', $user, true, null, $service !== null ? ['service_account' => $service->id] : null, $label);
+            $this->event($proposal, 'submitted', $user, true, null, $service !== null ? ['service_account' => $service->id] : null, $label);
 
             return $proposal;
         });
@@ -115,8 +115,8 @@ final class ProposalService
         $this->requireModeration($proposal);
         $this->requireText($message, 'Bitte die Rückfrage formulieren.');
         DB::transaction(function () use ($proposal, $moderator, $message): void {
-            $proposal->forceFill(['status' => 'rueckfrage'])->save();
-            $this->event($proposal, 'rueckfrage', $moderator, false, $message);
+            $proposal->forceFill(['status' => 'query'])->save();
+            $this->event($proposal, 'query', $moderator, false, $message);
         });
     }
 
@@ -124,13 +124,13 @@ final class ProposalService
     public function answer(Proposal $proposal, User $author, string $message): void
     {
         $this->requireAuthor($proposal, $author);
-        if ($proposal->status !== 'rueckfrage') {
+        if ($proposal->status !== 'query') {
             throw new InvalidArgumentException('Zu diesem Vorschlag gibt es keine offene Rückfrage.');
         }
         $this->requireText($message, 'Bitte eine Antwort eingeben.');
         DB::transaction(function () use ($proposal, $author, $message): void {
-            $proposal->forceFill(['status' => 'eingereicht'])->save();
-            $this->event($proposal, 'antwort', $author, true, $message);
+            $proposal->forceFill(['status' => 'submitted'])->save();
+            $this->event($proposal, 'reply', $author, true, $message);
         });
     }
 
@@ -139,8 +139,8 @@ final class ProposalService
         $this->requireAuthor($proposal, $author);
         $this->requireOpen($proposal);
         DB::transaction(function () use ($proposal, $author): void {
-            $proposal->forceFill(['status' => 'zurueckgezogen', 'resolved_at' => now()])->save();
-            $this->event($proposal, 'zurueckgezogen', $author, true);
+            $proposal->forceFill(['status' => 'withdrawn', 'resolved_at' => now()])->save();
+            $this->event($proposal, 'withdrawn', $author, true);
         });
     }
 
@@ -149,8 +149,8 @@ final class ProposalService
         $this->requireModeration($proposal);
         $this->requireText($reason, 'Bitte eine Begründung für die Ablehnung angeben.');
         DB::transaction(function () use ($proposal, $moderator, $reason): void {
-            $proposal->forceFill(['status' => 'abgelehnt', 'resolved_at' => now()])->save();
-            $this->event($proposal, 'abgelehnt', $moderator, false, $reason);
+            $proposal->forceFill(['status' => 'rejected', 'resolved_at' => now()])->save();
+            $this->event($proposal, 'rejected', $moderator, false, $reason);
         });
     }
 
@@ -168,8 +168,8 @@ final class ProposalService
         if ($data === []) {
             throw new InvalidArgumentException('Mindestens ein Feld übernehmen – oder den Vorschlag ablehnen.');
         }
-        $term = $proposal->kind === 'change' ? $proposal->term : null;
-        if ($proposal->kind === 'change' && $term === null) {
+        $term = $proposal->proposal_type === 'change' ? $proposal->term : null;
+        if ($proposal->proposal_type === 'change' && $term === null) {
             throw new InvalidArgumentException('Den Begriff gibt es nicht mehr.');
         }
         if ($term !== null && $term->merged_into_id !== null) {
@@ -180,11 +180,11 @@ final class ProposalService
             $context = ['via' => 'vorschlag', 'proposal_id' => $proposal->id, 'proposed_by' => $proposal->author_label];
             $result = $this->glossary->save($term, $data, $moderator, $canEditOfficial, null, 'updated', $context);
             $proposal->forceFill([
-                'status' => 'angenommen', 'resolved_at' => now(),
+                'status' => 'accepted', 'resolved_at' => now(),
                 'result_term_id' => $result->id, 'result_revision' => $result->revision,
             ])->save();
             $skipped = array_values(array_diff(array_keys($proposal->changes), $fields));
-            $this->event($proposal, 'angenommen', $moderator, false, $note, [
+            $this->event($proposal, 'accepted', $moderator, false, $note, [
                 'revision' => $result->revision, 'fields' => array_keys($data), 'skipped' => $skipped,
             ]);
 
@@ -202,7 +202,7 @@ final class ProposalService
     {
         $base = [];
         $current = [];
-        if ($proposal->kind === 'change' && $proposal->term !== null) {
+        if ($proposal->proposal_type === 'change' && $proposal->term !== null) {
             $base = TermRevision::query()->where('term_id', $proposal->term_id)->where('revision', $proposal->base_revision)
                 ->value('snapshot') ?? [];
             $base = is_array($base) ? $base : (array) json_decode((string) $base, true);
@@ -218,8 +218,8 @@ final class ProposalService
                 'basis' => $b,
                 'aktuell' => $c,
                 'vorschlag' => $value,
-                'konflikt' => $proposal->kind === 'change' && $this->norm($b) !== $this->norm($c),
-                'erledigt' => $proposal->kind === 'change' && $this->norm($c) === $this->norm($value),
+                'konflikt' => $proposal->proposal_type === 'change' && $this->norm($b) !== $this->norm($c),
+                'erledigt' => $proposal->proposal_type === 'change' && $this->norm($c) === $this->norm($value),
             ];
         }
 
@@ -254,7 +254,7 @@ final class ProposalService
             return;
         }
         Proposal::query()->whereIn('id', $ids)->toBase()->update(['user_id' => null, 'author_label' => Proposal::ANONYMOUS]);
-        ProposalEvent::query()->whereIn('proposal_id', $ids)->where('by_author', true)->toBase()
+        ProposalEvent::query()->whereIn('proposal_id', $ids)->where('is_by_author', true)->toBase()
             ->update(['actor_id' => null, 'actor_label' => Proposal::ANONYMOUS]);
     }
 
@@ -327,8 +327,8 @@ final class ProposalService
             $this->requireText((string) $reason, 'Bitte eine Begründung für die Ablehnung angeben.');
         }
         DB::transaction(function () use ($proposal, $orgAdmin, $confirm, $reason): void {
-            $proposal->forceFill($confirm ? ['status' => 'eingereicht'] : ['status' => 'abgelehnt', 'resolved_at' => now()])->save();
-            $this->event($proposal, $confirm ? 'org_bestaetigt' : 'org_abgelehnt', $orgAdmin, false, $reason);
+            $proposal->forceFill($confirm ? ['status' => 'submitted'] : ['status' => 'rejected', 'resolved_at' => now()])->save();
+            $this->event($proposal, $confirm ? 'confirmed_by_organization' : 'rejected_by_organization', $orgAdmin, false, $reason);
         });
     }
 
@@ -342,8 +342,8 @@ final class ProposalService
     {
         $service = app(self::class);
         foreach (Proposal::query()->whereIn('id', $ids)->where('status', Proposal::ORG_REVIEW)->get() as $proposal) {
-            $proposal->forceFill(['status' => 'eingereicht'])->save();
-            $service->event($proposal, 'org_weitergeleitet', null, false, $reason, null, OrganizationService::LABEL);
+            $proposal->forceFill(['status' => 'submitted'])->save();
+            $service->event($proposal, 'forwarded_by_organization', null, false, $reason, null, OrganizationService::LABEL);
         }
     }
 
@@ -382,10 +382,10 @@ final class ProposalService
     {
         ProposalEvent::query()->create([
             'proposal_id' => $proposal->id,
-            'type' => $type,
+            'event_type' => $type,
             'actor_id' => $actor?->id,
             'actor_label' => $label ?? Journal::actorLabel($actor),
-            'by_author' => $byAuthor,
+            'is_by_author' => $byAuthor,
             'message' => $message !== null && trim($message) !== '' ? trim($message) : null,
             'details' => $details,
         ]);

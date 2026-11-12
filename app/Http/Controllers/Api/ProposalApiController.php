@@ -60,7 +60,7 @@ class ProposalApiController extends Controller
     {
         return [
             'id' => $proposal->id,
-            'kind' => $proposal->kind,
+            'kind' => $proposal->proposal_type,
             'term_id' => $proposal->term_id,
             'base_revision' => $proposal->base_revision,
             'changes' => $proposal->changes,

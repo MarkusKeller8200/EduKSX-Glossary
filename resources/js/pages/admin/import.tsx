@@ -23,7 +23,6 @@ type Protokoll = {
     neu: number;
     geaendert: number;
     fehler: number;
-    altwerte: number;
     meldungen: { zeile: number; meldung: string }[];
 };
 
@@ -154,9 +153,6 @@ export default function Import({
                                 <span className="block">
                                     {p.zeilen} Zeilen: {p.neu} neu,{' '}
                                     {p.geaendert} geändert, {p.fehler} Fehler
-                                    {p.altwerte > 0
-                                        ? `, ${p.altwerte} Altwerte`
-                                        : ''}
                                 </span>
                                 {p.meldungen.length > 0 ? (
                                     <details className="mt-1">

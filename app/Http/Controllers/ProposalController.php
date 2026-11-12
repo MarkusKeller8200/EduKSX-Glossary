@@ -97,10 +97,10 @@ class ProposalController extends Controller
                 ], $this->proposals->compare($proposal)),
                 'begruendung' => $proposal->reason,
                 'ereignisse' => $proposal->events->map(fn (ProposalEvent $e): array => [
-                    'typ' => $e->type,
+                    'typ' => $e->event_type,
                     'am' => $e->created_at->toIso8601String(),
                     // Moderation ohne Namen (nicht nötig für die einreichende Person)
-                    'von' => $e->by_author ? 'Sie' : 'Redaktion',
+                    'von' => $e->is_by_author ? 'Sie' : 'Redaktion',
                     'text' => $e->message,
                 ])->all(),
             ],
@@ -127,12 +127,12 @@ class ProposalController extends Controller
     {
         return [
             'id' => $p->id,
-            'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
+            'art' => $p->proposal_type === 'new' ? 'Neuer Begriff' : 'Korrektur',
             // nur der veröffentlichte Stand – nie Entwürfe der Redaktion
             'begriff' => $p->term?->publishedRevision === null ? null : [
                 'slug' => $p->term->slug, 'titel' => Term::titleFrom($p->term->publishedRevision->snapshot),
             ],
-            'titel' => $p->kind === 'new'
+            'titel' => $p->proposal_type === 'new'
                 ? Term::titleFrom($p->changes)
                 : null,
             'status' => $p->status,

@@ -25,7 +25,6 @@ final class DataModel
         'term_aliases' => 'Offizielle und alternative Schreibweisen, Suchbegriffe',
         'term_categories' => 'Zuordnung Begriff ↔ Kategorie',
         'term_sources' => 'Zuordnung Begriff ↔ Herkunft mit Prüfdatum und Beleg',
-        'term_legacy_values' => 'Gesicherte Altwerte aus dem Intranet-Format',
         'term_user_overrides' => 'Meine Darstellung je Konto, mit Freigabe für die Organisation',
         'term_publication_events' => 'Veröffentlichen, Zurückziehen, Zusammenführen (Change-Feed)',
         'publication_releases' => 'Datenstände mit Nummer und Prüfsumme',

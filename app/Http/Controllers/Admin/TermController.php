@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TermStatus;
 use App\Glossary\FourEyesRequired;
 use App\Glossary\GlossaryService;
 use App\Glossary\OfficialFieldLocked;
@@ -118,7 +119,6 @@ class TermController extends Controller
                 'zusammengefuehrt_in' => ($target = $term->mergeTarget()) !== null
                     ? ['id' => $target->id, 'titel' => $target->title()]
                     : null,
-                'altwerte' => $term->legacyValues()->open()->count(),
                 // Quellenprüfung (#69): redaktionell, ohne Revision
                 'herkunft_pruefung' => $term->sources()->orderBy('sort_order')->get()->map(function (Source $src): array {
                     $pivot = $src->getRelationValue('pivot');
@@ -128,7 +128,7 @@ class TermController extends Controller
                         'source_id' => $src->id,
                         'label' => $src->displayLabel(),
                         'name' => $src->name,
-                        'retrieved_at' => substr($get('retrieved_at'), 0, 10),
+                        'retrieved_on' => substr($get('retrieved_on'), 0, 10),
                         'evidence' => $get('evidence'),
                         'note' => $get('note'),
                     ];
@@ -310,7 +310,7 @@ class TermController extends Controller
             return [
                 'official_abbreviation' => '', 'official_aliases' => '', 'alternative_aliases' => '', 'official_name' => '',
                 'short_description' => '', 'description' => '', 'url' => '', 'note' => '', 'categories' => [],
-                'sources' => [], 'lifecycle_status' => 'aktuell',
+                'sources' => [], 'lifecycle_status' => TermStatus::Current->value,
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
             ];
         }
@@ -327,7 +327,7 @@ class TermController extends Controller
             'note' => (string) $s['note'],
             'categories' => (array) $s['categories'],
             'sources' => (array) $s['sources'],
-            'lifecycle_status' => (string) $s['lifecycle_status'],
+            'lifecycle_status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
             'search_terms' => (string) $s['search_terms'],
             'valid_from' => (string) $s['valid_from'],
             'valid_until' => (string) $s['valid_until'],

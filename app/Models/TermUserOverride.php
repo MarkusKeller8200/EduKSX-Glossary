@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $description_override
  * @property list<string>|null $aliases_override
  * @property string|null $approved_organization_id freigegeben für diese Organisation; NULL = wartet
- * @property string|null $approved_by
+ * @property string|null $approved_by_id
  * @property CarbonImmutable|null $approved_at
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at

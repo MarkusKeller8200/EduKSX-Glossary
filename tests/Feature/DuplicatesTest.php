@@ -110,7 +110,7 @@ class DuplicatesTest extends TestCase
 
         // API: alte ID leitet weiter, Change-Feed meldet «merged»
         $this->get("/api/v1/terms/{$alt->id}")->assertStatus(301)->assertHeader('Location', url("/api/v1/terms/{$neu->id}"));
-        $this->assertSame($neu->id, TermPublicationEvent::query()->where('action', 'merged')->value('merged_into'));
+        $this->assertSame($neu->id, TermPublicationEvent::query()->where('action', 'merged')->value('merged_into_id'));
         $this->getJson('/api/v1/changes')->assertOk()->assertJsonFragment(['action' => 'merged', 'merged_into' => $neu->id]);
 
         // Redaktion: nur noch der verbleibende Begriff; der alte zeigt die Weiterleitung

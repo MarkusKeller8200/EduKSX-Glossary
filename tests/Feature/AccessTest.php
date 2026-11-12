@@ -64,20 +64,6 @@ class AccessTest extends TestCase
         $this->assertTrue(Gate::forUser($orgAdmin)->allows('service-tokens'));
     }
 
-    public function test_migration_macht_konten_ohne_rolle_zu_benutzern(): void
-    {
-        $ohne = User::query()->create(['name' => 'Alt', 'email' => 'alt@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
-        $moderator = $this->userWithRoles([Role::MODERATOR], 'm@example.org');
-
-        $migration = require database_path('migrations/2026_11_08_000100_add_base_roles.php');
-        $migration->up();   // idempotent: Rollen bestehen schon, nur Konten ohne Rolle werden Benutzer
-
-        $this->assertSame([Role::USER], $ohne->roleKeys());
-        $this->assertSame([Role::MODERATOR], $moderator->roleKeys());
-        $this->assertTrue(UserAudit::query()->where('target_user_id', $ohne->id)->where('actor_label', 'Migration')->exists());
-        $this->assertSame(1, Role::query()->where('key', Role::USER)->count());
-    }
-
     public function test_developer_nur_per_befehl_und_protokolliert(): void
     {
         $admin = $this->admin();

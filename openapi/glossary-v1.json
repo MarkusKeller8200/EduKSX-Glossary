@@ -104,9 +104,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "aktuell",
-                "historisch",
-                "zu_pruefen"
+                "current",
+                "historical",
+                "under_review"
               ]
             }
           },
@@ -283,7 +283,7 @@
                         "color": null
                       }
                     ],
-                    "status": "aktuell",
+                    "status": "current",
                     "is_active": true,
                     "valid_from": null,
                     "valid_until": null,
@@ -1306,9 +1306,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "aktuell",
-              "historisch",
-              "zu_pruefen"
+              "current",
+                "historical",
+                "under_review"
             ]
           },
           "is_active": {
@@ -1406,7 +1406,7 @@
               "color": null
             }
           ],
-          "status": "aktuell",
+          "status": "current",
           "is_active": true,
           "valid_from": null,
           "valid_until": null,
@@ -1782,11 +1782,12 @@
           "status": {
             "type": "string",
             "enum": [
-              "eingereicht",
-              "rueckfrage",
-              "angenommen",
-              "abgelehnt",
-              "zurueckgezogen"
+              "organization_review",
+              "submitted",
+              "query",
+              "accepted",
+              "rejected",
+              "withdrawn"
             ]
           },
           "created_at": {

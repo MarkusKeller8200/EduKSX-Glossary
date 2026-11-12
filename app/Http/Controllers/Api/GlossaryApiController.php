@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\TermStatus;
 use App\Glossary\ApiPresenter;
 use App\Http\Controllers\Controller;
 use App\Models\Term;
@@ -42,6 +43,9 @@ class GlossaryApiController extends Controller
         $status = trim((string) $request->query('status', ''));
         $page = max(1, (int) $request->query('page', '1'));
         $perPage = min(self::MAX_PER_PAGE, max(1, (int) $request->query('per_page', '50')));
+        if ($status !== '') {
+            $status = TermStatus::fromAny($status)?->value ?? $status;   // auch Werte bis 0.11.0 (aktuell, zu_pruefen)
+        }
         if ($status !== '' && ! array_key_exists($status, Term::STATUS)) {
             throw new BadRequestHttpException('Unbekannter Status «'.$status.'». Erlaubt: '.implode(', ', array_keys(Term::STATUS)).'.');
         }
@@ -160,7 +164,7 @@ class GlossaryApiController extends Controller
                 'action' => $e->action,
                 'term_id' => $e->term_id,
                 'revision' => $e->revision,
-                'merged_into' => $e->merged_into,
+                'merged_into' => $e->merged_into_id,
                 'release' => $e->release_id,
                 'occurred_at' => $e->created_at->toIso8601ZuluString(),
                 'term' => $revision instanceof TermRevision ? $this->presenter->term($revision) : null,

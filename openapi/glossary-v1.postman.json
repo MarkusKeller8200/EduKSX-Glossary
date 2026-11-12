@@ -56,7 +56,7 @@
                 },
                 {
                   "key": "status",
-                  "value": "aktuell",
+                  "value": "current",
                   "description": "Status des Begriffs",
                   "disabled": true
                 },

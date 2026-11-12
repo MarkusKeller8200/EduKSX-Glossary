@@ -21,17 +21,17 @@ class SourceCheckTest extends TestCase
                 ->where('begriffe.0.gruende', fn ($g): bool => collect($g)->contains('VSA: nie geprüft') && collect($g)->contains('offiziell ohne amtlichen Beleg')));
 
         $this->put("/admin/begriffe/{$term->id}/herkunft", ['herkunft' => [
-            ['source_id' => $vsa->id, 'retrieved_at' => now()->toDateString(), 'evidence' => 'amtlich', 'note' => 'Website VSA'],
+            ['source_id' => $vsa->id, 'retrieved_on' => now()->toDateString(), 'evidence' => 'official', 'note' => 'Website VSA'],
         ]])->assertRedirect()->assertSessionHasNoErrors();
         $this->assertSame(1, $term->refresh()->revision);   // keine neue Revision
 
         $this->get('/admin/pruefung')->assertInertia(fn (Assert $p) => $p->has('begriffe', 0));
         $this->get("/admin/begriffe/{$term->id}")
-            ->assertInertia(fn (Assert $p) => $p->where('begriff.herkunft_pruefung.0.evidence', 'amtlich'));
+            ->assertInertia(fn (Assert $p) => $p->where('begriff.herkunft_pruefung.0.evidence', 'official'));
 
         // älter als ein Jahr → wieder in der Liste
         $this->put("/admin/begriffe/{$term->id}/herkunft", ['herkunft' => [
-            ['source_id' => $vsa->id, 'retrieved_at' => now()->subMonths(13)->toDateString(), 'evidence' => 'amtlich'],
+            ['source_id' => $vsa->id, 'retrieved_on' => now()->subMonths(13)->toDateString(), 'evidence' => 'official'],
         ]]);
         $this->get('/admin/pruefung')->assertInertia(fn (Assert $p) => $p->has('begriffe', 1));
 

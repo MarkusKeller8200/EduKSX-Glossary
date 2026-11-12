@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
@@ -12,9 +13,8 @@ use Carbon\CarbonImmutable;
  * dort): gleiche Spaltennamen, Mehrfachwerte mit «;», Kategorien/Herkunft als Label, Aktiv als ja/nein, Status als
  * Text. Neu «Alternative Schreibweisen» (gemeinsam freigegeben).
  *
- * Version 1 (Intranet) wird beim Import weiterhin erkannt: «Abkürzung eigene», «Alias eigene», «Bezeichnung eigene»
- * und «Intern genutzt in» sind keine gemeinsamen Daten mehr. Sie werden nicht übernommen, sondern als Altwerte
- * gesichert und in der Vorschau gemeldet (LEGACY_COLUMNS).
+ * Version 1 (Intranet mit «Abkürzung eigene», «Alias eigene», «Bezeichnung eigene», «Intern genutzt in») wird seit
+ * 0.12.0 nicht mehr unterstützt (DEC-030): der Import erkennt sie an OLD_COLUMNS und lehnt die Datei ab.
  */
 final class ExcelFormat
 {
@@ -40,19 +40,11 @@ final class ExcelFormat
     /** Version des Formats (Version 1 = Intranet mit eigenen Feldern). */
     public const VERSION = 2;
 
-    /** Spalten des alten Formats → Feld der Altwerte (TermLegacyValue). */
-    public const LEGACY_COLUMNS = [
-        'Abkürzung eigene' => 'own_abbreviation',
-        'Alias eigene' => 'own_alias',
-        'Bezeichnung eigene' => 'own_name',
-        'Intern genutzt in' => 'used_in',
-    ];
+    /** Spalten des alten Formats (Version 1), nur zum Erkennen. */
+    public const OLD_COLUMNS = ['Abkürzung eigene', 'Alias eigene', 'Bezeichnung eigene', 'Intern genutzt in'];
 
     /** Spalten mit Mehrfachwerten («;»). */
     public const MULTI = ['Kategorien', 'Aliase offiziell', 'Alternative Schreibweisen', 'Herkunft'];
-
-    /** Mehrfachwerte im alten Format. */
-    public const LEGACY_MULTI = ['Intern genutzt in'];
 
     /** Offizielle Spalten (Recht «edit-official»). */
     public const OFFICIAL = ['Abkürzung offiziell', 'Aliase offiziell', 'Bezeichnung offiziell'];
@@ -159,43 +151,13 @@ final class ExcelFormat
             $data[$field] = match (true) {
                 in_array($column, self::MULTI, true) => self::list($value),
                 $column === 'Aktiv' => ! in_array(mb_strtolower($value), ['nein', 'n', 'no', '0', 'false', 'falsch'], true),
-                $column === 'Status' => $value === '' ? 'aktuell' : $value,
+                $column === 'Status' => $value === '' ? TermStatus::Current->value : (TermStatus::fromAny($value)?->value ?? $value),
                 in_array($column, ['Gültig ab', 'Gültig bis'], true) => self::date($value),
                 default => $value,
             };
         }
 
         return $data;
-    }
-
-    /**
-     * Werte der alten Spalten einer Zeile: Feld der Altwerte → Liste der Werte (nur nicht leere).
-     *
-     * @param  array<string, string>  $row
-     * @return array<string, list<string>>
-     */
-    public static function legacy(array $row): array
-    {
-        $out = [];
-        foreach (self::LEGACY_COLUMNS as $column => $field) {
-            $value = trim((string) ($row[$column] ?? ''));
-            if ($value === '') {
-                continue;
-            }
-            $out[$field] = in_array($column, self::LEGACY_MULTI, true) ? self::list($value) : [$value];
-        }
-
-        return $out;
-    }
-
-    /**
-     * Version einer Datei an ihren Spalten: 1, wenn eine Spalte des alten Formats vorkommt.
-     *
-     * @param  list<string>  $header
-     */
-    public static function versionOf(array $header): int
-    {
-        return array_intersect($header, array_keys(self::LEGACY_COLUMNS)) !== [] ? 1 : self::VERSION;
     }
 
     /**
@@ -220,8 +182,8 @@ final class ExcelFormat
                 $value = self::data([$column => $value])['is_active'] ? 'ja' : 'nein';
             } elseif (in_array($column, ['Gültig ab', 'Gültig bis'], true)) {
                 $value = self::date($value);
-            } elseif ($column === 'Status' && $value === '') {
-                $value = 'aktuell';
+            } elseif ($column === 'Status') {
+                $value = TermStatus::fromAny($value === '' ? null : $value)?->label() ?? ($value === '' ? TermStatus::Current->label() : $value);
             }
             $out[$column] = $value;
         }
