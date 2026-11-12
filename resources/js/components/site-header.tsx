@@ -1,10 +1,11 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronDown, LogIn, LogOut, UserRound } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { LogIn, LogOut, UserRound } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
 import GlossaryIcon from '@/components/glossary-icon';
+import MobileMenu from '@/components/mobile-menu';
 import { Button } from '@/components/ui/button';
 import ViewWidthTabs from '@/components/view-width-tabs';
 import { useViewWidth, widthClass } from '@/hooks/use-view-width';
@@ -24,8 +25,8 @@ const ROLLEN: [string, string][] = [
 /**
  * Kopfzeile für Website und Administration, überall gleich (#146): Titel, Wechsel Website/Administration, Ansicht,
  * Farbschema, angemeldete Person mit Rolle bzw. «Gast», Anmelden/Abmelden. Die Administration ergänzt darunter ihr
- * Menü (`children`). Auf dem Handy (#227) eine Zeile: Titel, Person, Ab-/Anmelde-Icon und ein Ausklapp-Button für
- * die übrigen Schaltflächen.
+ * Menü (`children`). Auf dem Handy (#227, #259) eine Zeile: Flyout-Menü, Titel, Person und Ab-/Anmelde-Icon;
+ * Farbschema und Wechsel stehen im Flyout-Menü.
  */
 export default function SiteHeader({
     area,
@@ -42,7 +43,6 @@ export default function SiteHeader({
           'ohne Rolle')
         : 'Gast';
 
-    const [offen, setOffen] = useState(false);
     const kopf = useRef<HTMLElement>(null);
 
     // Höhe als CSS-Variable --kopf-hoehe, damit fixierte Leisten darunter stehen (#238)
@@ -74,18 +74,24 @@ export default function SiteHeader({
                     widthClass(view, 'max-w-6xl'),
                 )}
             >
-                <Link
-                    href={area === 'admin' ? '/admin' : '/'}
-                    className="flex shrink-0 items-center gap-2 rounded-sm text-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none desk:text-xl"
-                >
-                    <GlossaryIcon className="size-6 desk:size-7" />
-                    <BrandWordmark brand="education" suffix="Glossary" />
-                    {area === 'admin' ? (
-                        <span className="ml-2 hidden text-sm font-normal text-muted-foreground desk:inline">
-                            Administration
-                        </span>
-                    ) : null}
-                </Link>
+                {/* Handy (#259): Flyout-Menü links */}
+                <div className="flex min-w-0 items-center gap-1">
+                    <div className="desk:hidden">
+                        <MobileMenu area={area} rolle={rolle} />
+                    </div>
+                    <Link
+                        href={area === 'admin' ? '/admin' : '/'}
+                        className="flex shrink-0 items-center gap-2 rounded-sm text-lg focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none desk:text-xl"
+                    >
+                        <GlossaryIcon className="size-6 desk:size-7" />
+                        <BrandWordmark brand="education" suffix="Glossary" />
+                        {area === 'admin' ? (
+                            <span className="ml-2 hidden text-sm font-normal text-muted-foreground desk:inline">
+                                Administration
+                            </span>
+                        ) : null}
+                    </Link>
+                </div>
 
                 {/* Handy (#227): Person, Ab-/Anmelden und Ausklappen auf der Titelzeile */}
                 <div className="flex min-w-0 flex-1 items-center justify-end gap-1 text-sm desk:hidden">
@@ -137,36 +143,11 @@ export default function SiteHeader({
                             </Button>
                         </>
                     )}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 shrink-0"
-                        onClick={() => setOffen(!offen)}
-                        aria-expanded={offen}
-                        aria-controls="kopf-schaltflaechen"
-                        aria-label={
-                            offen
-                                ? 'Weitere Schaltflächen ausblenden'
-                                : 'Weitere Schaltflächen anzeigen'
-                        }
-                        title={offen ? 'Einklappen' : 'Ausklappen'}
-                    >
-                        <ChevronDown
-                            aria-hidden
-                            className={cn(
-                                'transition-transform',
-                                offen && 'rotate-180',
-                            )}
-                        />
-                    </Button>
                 </div>
 
                 <div
                     id="kopf-schaltflaechen"
-                    className={cn(
-                        'w-full flex-wrap items-center gap-2 text-sm desk:flex desk:w-auto',
-                        offen ? 'flex' : 'hidden',
-                    )}
+                    className="hidden flex-wrap items-center gap-2 text-sm desk:flex"
                 >
                     {area === 'admin' ? (
                         <Button asChild size="sm" variant="ghost">

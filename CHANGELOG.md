@@ -17,6 +17,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Scroll-Leiste A–Z (#254):** Auf dem Handy rechts, zeigt beim Scrollen den aktuellen Buchstaben und springt beim
   Antippen.
 
+- **Labels mit Erklärung (258):** Antippen eines Labels zeigt Bezeichnung, Beschreibung und Link.
+- **Flyout-Menü auf dem Handy (259):** links mit Person, Ab-/Anmelden, Wechsel Website/Administration, Menüpunkten mit
+  Icons und Farbschema.
+
 ### Geändert
 
 - **Handy-Ansicht (#225, #226, #227, #233, #235, #236, #237, #241):** Kacheln passen auf den Bildschirm; Kopfzeile auf

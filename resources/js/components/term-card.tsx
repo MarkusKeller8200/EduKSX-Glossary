@@ -93,6 +93,7 @@ export default function TermCard({
                                 key={`h-${l}`}
                                 list="herkunft"
                                 label={l}
+                                info
                             />
                         ))}
                         {!oeffentlich || b.status !== 'aktuell' ? (
@@ -128,6 +129,7 @@ export default function TermCard({
                                         key={`k-${l}`}
                                         list="kategorien"
                                         label={l}
+                                        info
                                     />
                                 ))}
                             </div>

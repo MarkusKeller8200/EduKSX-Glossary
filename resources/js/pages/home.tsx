@@ -370,6 +370,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                             onClick={(e) => {
                                 // Ganze Kachel öffnet die Details (#249); Links und Knöpfe darin behalten ihr Ziel
                                 if (
+                                    // Klicks aus Dialogen (Portal) und auf Links/Knöpfe nicht umleiten
+                                    !e.currentTarget.contains(
+                                        e.target as Node,
+                                    ) ||
                                     (e.target as HTMLElement).closest(
                                         'a, button',
                                     ) ||

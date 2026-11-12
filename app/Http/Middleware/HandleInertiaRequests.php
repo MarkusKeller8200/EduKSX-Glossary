@@ -45,6 +45,7 @@ class HandleInertiaRequests extends Middleware
             ],
             // Farben der Kategorien und Herkunft je Label (#77), für die farbigen Tags
             'farben' => fn (): array => Palette::listColors(),
+            'labelInfo' => fn (): array => Palette::listInfo(),
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
             ],

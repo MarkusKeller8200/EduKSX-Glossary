@@ -31,6 +31,11 @@ export type SharedData = {
         kategorien: Record<string, string>;
         herkunft: Record<string, string>;
     };
+    /** Bezeichnung, Beschreibung und Link je Label (#258) */
+    labelInfo: Record<
+        'kategorien' | 'herkunft',
+        Record<string, { name: string; beschreibung: string; url: string }>
+    >;
 };
 
 export type Release = {

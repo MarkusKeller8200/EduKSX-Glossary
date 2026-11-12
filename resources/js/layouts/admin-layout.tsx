@@ -13,27 +13,8 @@ import {
     widthClass,
 } from '@/hooks/use-view-width';
 import { can } from '@/lib/access';
+import { ADMIN_NAV as NAV } from '@/lib/admin-nav';
 import { cn } from '@/lib/utils';
-
-/** Navigation; Einträge nur mit dem nötigen Recht (#36). */
-const NAV = [
-    { href: '/admin', label: 'Übersicht', recht: null },
-    { href: '/admin/begriffe', label: 'Begriffe', recht: 'edit-terms' },
-    { href: '/admin/vorschlaege', label: 'Vorschläge', recht: 'moderate' },
-    { href: '/admin/doppelte', label: 'Doppelte', recht: 'edit-terms' },
-    { href: '/admin/altwerte', label: 'Altwerte', recht: 'edit-terms' },
-    { href: '/admin/pruefung', label: 'Prüfung', recht: 'edit-terms' },
-    { href: '/admin/listen', label: 'Listen', recht: 'lists' },
-    { href: '/admin/import', label: 'Excel-Import', recht: 'import' },
-    { href: '/admin/benutzer', label: 'Benutzer', recht: 'manage-users' },
-    {
-        href: '/admin/servicekonten',
-        label: 'Servicekonten',
-        recht: 'service-tokens',
-    },
-    { href: '/admin/einstellungen', label: 'Einstellungen', recht: 'settings' },
-    { href: '/admin/system', label: 'System', recht: 'system' },
-];
 
 /** Rahmen der Administration (nur angemeldet): gleiche Kopfzeile wie die Website (#146) plus Menü (#90), Breite nach Ansicht (#76, #144). */
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -45,11 +26,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return (
         <div className="flex min-h-screen flex-col bg-background text-foreground">
             <SiteHeader area="admin">
-                {/* Zeile 2 (#90): alle Menüpunkte */}
+                {/* Zeile 2 (#90): alle Menüpunkte; auf dem Handy im Flyout-Menü (#259) */}
                 <nav
                     aria-label="Administration"
                     className={cn(
-                        'mx-auto flex flex-wrap items-center gap-1 px-4 pb-2 text-sm',
+                        'mx-auto hidden flex-wrap items-center gap-1 px-4 pb-2 text-sm desk:flex',
                         widthClass(view, 'max-w-6xl'),
                     )}
                 >
