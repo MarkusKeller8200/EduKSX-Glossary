@@ -15,7 +15,11 @@ enum Locale: string
     case It = 'it';
     case En = 'en';
 
-    /** Übersetzungssprachen (X1, #282): alle ausser der Grundsprache. @return list<string> */
+    /**
+     * Übersetzungssprachen (X1, #282): alle ausser der Grundsprache.
+     *
+     * @return list<string>
+     */
     public static function translated(): array
     {
         return [self::Fr->value, self::It->value, self::En->value];

@@ -187,7 +187,7 @@ class ListController extends Controller
         foreach (Locale::translated() as $locale) {
             $row = $item->translations->firstWhere('locale', $locale);
             foreach (ListTranslation::FIELDS as $field) {
-                $out[$locale][$field] = (string) ($row?->{$field} ?? '');
+                $out[$locale][$field] = $row !== null ? (string) $row->{$field} : '';
             }
         }
 
