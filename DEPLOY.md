@@ -255,3 +255,46 @@ cosign verify ghcr.io/markuskeller8200/eduksx-glossary:latest \
   --certificate-identity-regexp 'https://github.com/MarkusKeller8200/EduKSX-Glossary/' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
+
+## dev mit fertigem Image statt Bauen auf dem Server (#195)
+
+Seit #195 baut der Server nichts mehr. Ablauf: Merge auf `main` → Workflow **image** (CI, Image bauen, signieren) →
+ruft **deploy** auf → der Server holt `ghcr.io/markuskeller8200/eduksx-glossary:main-<commit>`, startet es, prüft
+`/up` und springt bei einem Fehler auf das vorherige Image zurück. Ein Release entsteht erst, wenn **image**
+(inklusive Ausrollen auf dev) grün ist.
+
+Der Schlüssel in GitHub darf auf dem Server nur noch `/usr/local/bin/glossary-deploy` ausführen
+(`docker/server/glossary-deploy.sh`): compose-Dateien übernehmen, ein Image aus der eigenen Registry ausrollen, Zustand
+und Protokoll anzeigen. Keine Shell, kein anderes Image.
+
+### Einmalig auf dem Server (Browser-Terminal, als root) – vor dem ersten Ausrollen
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MarkusKeller8200/EduKSX-Glossary/main/docker/server/glossary-deploy.sh -o /tmp/glossary-deploy.sh
+less /tmp/glossary-deploy.sh                                  # kurz ansehen
+install -m 755 -o root -g root /tmp/glossary-deploy.sh /usr/local/bin/glossary-deploy
+# Glossary-Schlüssel von «deploy» auf diesen Befehl beschränken
+sed -i 's|^no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty \(ssh-ed25519 .* github-deploy-glossary-deploy\)$|command="/usr/local/bin/glossary-deploy",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty \1|' /home/deploy/.ssh/authorized_keys
+grep github-deploy-glossary /home/deploy/.ssh/authorized_keys   # beginnt jetzt mit command="/usr/local/bin/glossary-deploy"
+su - deploy -c '/usr/local/bin/glossary-deploy status'
+```
+
+Ausserdem muss das Paket öffentlich sein (Abschnitt «Fertiges Image»), sonst kann der Server das Image nicht laden.
+
+Beim ersten Ausrollen schreibt das Skript in `/docker/glossary/.env` die Zeilen `GLOSSARY_IMAGE` und
+`COMPOSE_FILE=compose.yaml:compose.traefik.yaml`. Befehle von Hand funktionieren danach wie bisher, z. B.
+`cd /docker/glossary && docker compose exec app php artisan glossary:pruefen`. Die alten Ordner `src/`, `src.old/` und
+die Datei `docker-compose.yml` werden nicht mehr gebraucht und können gelöscht werden.
+
+**Anderer Stand von Hand:** Actions → deploy → Run workflow → Tag, z. B. `main-1a2b3c4` (zurück auf einen älteren
+Stand) oder `0.10.0`.
+
+**Ausweg ohne Registry** (z. B. ghcr.io nicht erreichbar): als root im Ordner `/docker/glossary` den Code holen und mit
+`docker/compose.prod.yaml` bauen wie vor #195.
+
+### test und prod auf prod-01 (MarKusSX-Operation)
+
+Gleiches Image, Zusatz `docker/compose.caddy.yaml` (Netzwerk `proxy`, Name je Instanz über `GLOSSARY_ALIAS`):
+`COMPOSE_FILE=compose.yaml:compose.caddy.yaml`, `GLOSSARY_IMAGE=ghcr.io/markuskeller8200/eduksx-glossary:0.10` (nur
+Korrekturen) und im Caddyfile `glossary.eduksx.ch { reverse_proxy glossary:80 }`. Komodo aktualisiert im
+Wartungsfenster (Operation-Issue #17).

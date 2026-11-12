@@ -1,0 +1,12 @@
+# Zusatz zu compose.yaml: hinter einem vorhandenen Traefik (dev auf Hostinger, #195). Kein Port auf dem Host;
+# Traefik findet den Container über die Labels (wie bisher compose.prod.yaml).
+#   COMPOSE_FILE=compose.yaml:compose.traefik.yaml  (in .env)
+services:
+    app:
+        ports: !reset []
+        labels:
+            - traefik.enable=true
+            - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.rule=Host(`${GLOSSARY_HOST}`)
+            - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.entrypoints=websecure
+            - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.tls.certresolver=letsencrypt
+            - traefik.http.services.${GLOSSARY_INSTANZ:-glossary}.loadbalancer.server.port=80

@@ -86,7 +86,7 @@ startversion = "0.1.0"
 # Titel des GitHub-Releases
 release_titel = "{kurz} {version}"
 # Workflows (Namen), die für den Release-Commit grün sein müssen, z. B. ["deploy"]; leer = sofort
-release_nach = ["deploy"]
+release_nach = ["image"]  # enthält das Ausrollen auf dev (#195)
 # Manifeste mit eigener «version», die bei Änderung erhöht werden muss (Globs), leer = keine Prüfung
 # z. B. ["plugins/*/plugin.json", "modules/*/module.json"]
 plugin_manifeste = []
