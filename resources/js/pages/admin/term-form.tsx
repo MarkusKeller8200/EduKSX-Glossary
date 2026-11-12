@@ -84,7 +84,7 @@ export default function TermForm({
                 : form.data[field].filter((k) => k !== key),
         );
     const text = (
-        field: keyof Werte,
+        field: Exclude<keyof Werte, 'translations'>,
         label: string,
         hint?: string,
         props: { disabled?: boolean; maxLength?: number; type?: string } = {},
