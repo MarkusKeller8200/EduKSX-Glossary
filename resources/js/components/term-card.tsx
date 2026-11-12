@@ -9,13 +9,13 @@ import {
 } from '@/components/tags';
 
 export type TermCardData = {
-    id: string;
     code: string;
     abkuerzung: string;
     bezeichnung: string;
     kurz: string;
     beschreibung: string;
-    notiz: string;
+    /** nur Administration */
+    notiz?: string;
     url: string;
     aliase: string[];
     schreibweisen: string[];
@@ -25,15 +25,16 @@ export type TermCardData = {
     kategorien: string[];
     herkunft: string[];
     status: string;
-    aktiv: boolean;
-    revision: number;
-    veroeffentlicht: number | null;
-    entwurf: boolean;
-    angelegt: string | null;
-    geaendert: string | null;
+    /** nur Administration */
+    aktiv?: boolean;
+    revision?: number;
+    veroeffentlicht?: number | null;
+    entwurf?: boolean;
+    angelegt?: string | null;
+    geaendert?: string | null;
 };
 
-const datum = (iso: string | null): string =>
+const datum = (iso: string | null | undefined): string =>
     iso ? new Date(iso).toLocaleDateString('de-CH') : '';
 
 /**
@@ -41,7 +42,17 @@ const datum = (iso: string | null): string =>
  * Bezeichnung und Zustand, dann Herkunft vor Kategorie, Kurzbeschreibung, lange Texte gekürzt (ganzer Text als
  * Tooltip) und unten klein die übrigen Angaben. Leere Werte brauchen keinen Platz.
  */
-export default function TermCard({ begriff: b }: { begriff: TermCardData }) {
+export default function TermCard({
+    begriff: b,
+    href,
+    oeffentlich = false,
+}: {
+    begriff: TermCardData;
+    /** Ziel des Titels: Bearbeiten (Administration) bzw. Detailseite (Website, #213) */
+    href: string;
+    /** Website: ohne interne Angaben (Notiz, Veröffentlichung, Daten der Redaktion), Status nur wenn nicht aktuell */
+    oeffentlich?: boolean;
+}) {
     const titel = b.abkuerzung || b.bezeichnung || '(ohne Bezeichnung)';
     const zeigeBezeichnung = b.abkuerzung !== '' && b.bezeichnung !== '';
     const gueltig =
@@ -59,8 +70,8 @@ export default function TermCard({ begriff: b }: { begriff: TermCardData }) {
             ['Schreibweisen', b.schreibweisen.join(', ')],
             ['Suchbegriffe', b.suchbegriffe],
             ['Gültig', gueltig],
-            ['Angelegt', datum(b.angelegt)],
-            ['Geändert', datum(b.geaendert)],
+            ['Angelegt', oeffentlich ? '' : datum(b.angelegt)],
+            ['Geändert', oeffentlich ? '' : datum(b.geaendert)],
         ] as [string, string][]
     ).filter(([, v]) => v !== '');
 
@@ -69,7 +80,7 @@ export default function TermCard({ begriff: b }: { begriff: TermCardData }) {
             <header className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                     <Link
-                        href={`/admin/begriffe/${b.id}`}
+                        href={href}
                         className="text-base font-semibold text-link underline-offset-4 hover:underline"
                         translate="no"
                     >
@@ -82,13 +93,17 @@ export default function TermCard({ begriff: b }: { begriff: TermCardData }) {
                     ) : null}
                 </div>
                 <div className="flex shrink-0 flex-wrap justify-end gap-1">
-                    <StatusBadge status={b.status} />
-                    <RevisionBadges
-                        published={b.veroeffentlicht}
-                        revision={b.revision}
-                        draft={b.entwurf}
-                    />
-                    {!b.aktiv ? (
+                    {!oeffentlich || b.status !== 'aktuell' ? (
+                        <StatusBadge status={b.status} />
+                    ) : null}
+                    {!oeffentlich && b.revision !== undefined ? (
+                        <RevisionBadges
+                            published={b.veroeffentlicht ?? null}
+                            revision={b.revision}
+                            draft={b.entwurf}
+                        />
+                    ) : null}
+                    {!oeffentlich && b.aktiv === false ? (
                         <StateBadge state="inactive">inaktiv</StateBadge>
                     ) : null}
                 </div>
@@ -114,7 +129,9 @@ export default function TermCard({ begriff: b }: { begriff: TermCardData }) {
             {b.beschreibung ? (
                 <Text label="Beschreibung" text={b.beschreibung} />
             ) : null}
-            {b.notiz ? <Text label="Notiz" text={b.notiz} /> : null}
+            {!oeffentlich && b.notiz ? (
+                <Text label="Notiz" text={b.notiz} />
+            ) : null}
 
             {details.length > 0 ? (
                 <dl className="mt-auto flex flex-wrap gap-x-3 gap-y-0.5 border-t border-border pt-2 text-xs text-muted-foreground">

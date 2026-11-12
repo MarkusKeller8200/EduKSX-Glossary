@@ -23,7 +23,15 @@ const GlossaryPdfDialog = lazy(
     () => import('@/components/glossary-pdf-dialog'),
 );
 
-type Begriff = TermCardData;
+type Begriff = TermCardData & {
+    id: string;
+    aktiv: boolean;
+    revision: number;
+    veroeffentlicht: number | null;
+    entwurf: boolean;
+    angelegt: string | null;
+    geaendert: string | null;
+};
 
 type Feld = 'official_abbreviation' | 'official_name' | 'short_description';
 type Gruppierung =
@@ -308,7 +316,12 @@ export default function Terms({
                     onSortChange={(sort) => aendern({ sort })}
                     layout={ansicht.layout}
                     resetToken={resetToken}
-                    renderCard={(b) => <TermCard begriff={b} />}
+                    renderCard={(b) => (
+                        <TermCard
+                            begriff={b}
+                            href={`/admin/begriffe/${b.id}`}
+                        />
+                    )}
                     renderBar={(b) => <Balken begriff={b} />}
                     onVisibleRows={(rows) =>
                         setSichtbar([...new Set(rows.map((b) => b.id))])

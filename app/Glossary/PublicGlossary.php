@@ -42,7 +42,7 @@ final class PublicGlossary
     /**
      * Kurzform für Liste und Suche.
      *
-     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, suche: string, persoenlich?: bool, organisation?: bool}>
+     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, code: string, beschreibung: string, url: string, aliase: list<string>, schreibweisen: list<string>, gueltigAb: mixed, gueltigBis: mixed, suchbegriffe: string, suche: string, persoenlich?: bool, organisation?: bool}>
      */
     public function list(?User $user = null): array
     {
@@ -70,6 +70,15 @@ final class PublicGlossary
                     // Filter nach Herkunft auf der Startseite (#145)
                     'herkunft' => $this->mapLabels($sources, $s['sources'] ?? []),
                     'status' => Term::STATUS[(string) $s['lifecycle_status']] ?? (string) $s['lifecycle_status'],
+                    // Kacheln und Tabelle auf der Startseite (#213): nur öffentliche Felder
+                    'code' => (string) ($s['code'] ?? ''),
+                    'beschreibung' => (string) ($o->description_override ?? $g->description_override ?? $s['description'] ?? ''),
+                    'url' => (string) ($s['url'] ?? ''),
+                    'aliase' => array_values(array_map('strval', array_filter((array) ($s['official_aliases'] ?? [])))),
+                    'schreibweisen' => array_values(array_map('strval', array_filter((array) ($s['alternative_aliases'] ?? [])))),
+                    'gueltigAb' => $s['valid_from'] ?? null,
+                    'gueltigBis' => $s['valid_until'] ?? null,
+                    'suchbegriffe' => implode(', ', array_map('strval', array_filter((array) ($s['search_aliases'] ?? [])))),
                     'suche' => mb_strtolower(implode(' ', array_filter([
                         $abk, $name, $kurz, implode(' ', (array) ($s['official_aliases'] ?? [])),
                         implode(' ', (array) ($s['alternative_aliases'] ?? [])), $s['search_terms'] ?? null,
@@ -309,7 +318,8 @@ final class PublicGlossary
             foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
                 $snapshot = $term->publishedRevision?->snapshot;
                 if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
-                    $snapshots[] = $snapshot;
+                    // Permalink-Code gehört zum Begriff, nicht zur Revision (#213)
+                    $snapshots[] = $snapshot + ['code' => $term->code];
                 }
             }
 
