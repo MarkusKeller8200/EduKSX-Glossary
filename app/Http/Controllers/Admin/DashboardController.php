@@ -9,6 +9,8 @@ use App\Models\Role;
 use App\Models\Source;
 use App\Models\Term;
 use App\Models\User;
+use App\Support\UpdateCheck;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,6 +28,8 @@ class DashboardController extends Controller
                 'sources' => Source::query()->count(),
                 'release' => PublicationRelease::query()->max('id'),
             ],
+            // Neue Version verfügbar (#176): nur für das Recht «system»
+            'update' => Gate::allows('system') && UpdateCheck::status()['neu'] ? UpdateCheck::status() : null,
         ]);
     }
 }

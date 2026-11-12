@@ -17,9 +17,12 @@ type Stats = {
 export default function Dashboard({
     admins,
     stats,
+    update,
 }: {
     admins: number;
     stats: Stats;
+    /** neue Version verfügbar (#176), nur mit Recht «system» */
+    update: { neueste: string; art: string | null; url: string | null } | null;
 }) {
     const { appVersion, auth } = usePage().props;
 
@@ -29,6 +32,28 @@ export default function Dashboard({
             <h1 className="text-3xl font-semibold tracking-tight">
                 Willkommen, {auth.user?.name}
             </h1>
+            {update ? (
+                <p
+                    role="status"
+                    className="mt-4 rounded-md border border-info/30 bg-info-soft px-3 py-2 text-sm text-info"
+                >
+                    Neue Version {update.neueste} verfügbar
+                    {update.art === 'korrektur'
+                        ? ' (Korrektur)'
+                        : update.art === 'funktion'
+                          ? ' (neue Funktionen)'
+                          : update.art === 'hauptversion'
+                            ? ' (Hauptversion)'
+                            : ''}
+                    .{' '}
+                    <Link
+                        href="/admin/system"
+                        className="underline underline-offset-4"
+                    >
+                        Zu den Updates
+                    </Link>
+                </p>
+            ) : null}
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <Card>
                     <CardHeader>

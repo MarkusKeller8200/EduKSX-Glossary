@@ -1,0 +1,23 @@
+# Zusatz zu compose.yaml: Update-Dienst (#177). Führt Aufträge aus der Administration und automatische Updates nach
+# Richtlinie aus (#178). Hat als Einziger Zugriff auf Docker – die App nicht.
+#   COMPOSE_FILE=compose.yaml:compose.proxy.yaml:compose.updater.yaml  (in .env)
+#   GLOSSARY_DIR=/opt/glossary  (Ordner dieser Installation, Pflicht)
+services:
+    updater:
+        image: docker:27-cli
+        restart: unless-stopped
+        working_dir: ${GLOSSARY_DIR:?GLOSSARY_DIR fehlt in .env}
+        entrypoint: ['sh', '/updater/updater.sh']
+        environment:
+            GLOSSARY_DIR: ${GLOSSARY_DIR}
+            GLOSSARY_DATA: /data
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ${GLOSSARY_DIR}:${GLOSSARY_DIR}
+            - ${GLOSSARY_DIR}/updater.sh:/updater/updater.sh:ro
+            - glossary-storage:/data
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+                max-file: '3'
