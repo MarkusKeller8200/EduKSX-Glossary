@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\Locale;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\PublicationRelease;
@@ -16,7 +17,7 @@ use App\Models\TermRevision;
  * Altwerte, Journal oder Akteure (DEC-018, DEC-020). «abbreviation» und «name» sind die gemeinsamen Werte.
  */
 /**
- * @phpstan-type ListItem array{key: string, abbreviation: string|null, label: string, name: string, description: string|null, url: string|null, color: string|null}
+ * @phpstan-type ListItem array{key: string, abbreviation: string|null, label: string, name: string, description: string|null, url: string|null, color: string|null, translations: array<string, array<string, string|null>>}
  */
 final class ApiPresenter
 {
@@ -28,8 +29,19 @@ final class ApiPresenter
         'id', 'slug', 'code', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
         'alternative_aliases', 'aliases', 'search_terms', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
         'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
-        'valid_until', 'revision', 'published_at', 'updated_at', 'web_url', 'permalink',
+        'valid_until', 'translations', 'revision', 'published_at', 'updated_at', 'web_url', 'permalink',
     ];
+
+    /** Nur mit ?lang= (X1, #282): verlangte und je Feld gelieferte Sprache; steht nach den übrigen Feldern. */
+    public const LOCALIZED_FIELDS = ['language'];
+
+    /** Übersetzbare Felder eines Begriffs in der API (X1, #282): API-Feld → Feld der Übersetzung. */
+    public const TRANSLATED_TERM_FIELDS = [
+        'abbreviation' => 'abbreviation', 'name' => 'name', 'short_description' => 'short_description', 'description' => 'description',
+    ];
+
+    /** Übersetzbare Felder einer Kategorie oder Herkunft (X1, #282). */
+    public const TRANSLATED_LIST_FIELDS = ['name', 'label', 'description'];
 
     /**
      * Vom Gesamtstand abhängige Felder: nur in Liste, Einzelbegriff und Vollstand, nicht im Change-Feed (ein altes
@@ -175,6 +187,8 @@ final class ApiPresenter
             'is_active' => (bool) ($s['is_active'] ?? true),
             'valid_from' => $str('valid_from'),
             'valid_until' => $str('valid_until'),
+            // Übersetzungen (X1, #282) aus dem Abbild: nur veröffentlichte Werte
+            'translations' => self::publicTranslations($s['translations'] ?? []),
             'revision' => $revision->revision,
             'published_at' => $revision->published_at?->toIso8601ZuluString(),
             // Sync-Vertrag (#62): Zeitpunkt der veröffentlichten Revision (Stand der Inhalte)
@@ -290,7 +304,7 @@ final class ApiPresenter
         foreach ((array) $keys as $key) {
             $out[] = $map[(string) $key] ?? [
                 'key' => (string) $key, 'abbreviation' => null, 'label' => (string) $key, 'name' => (string) $key,
-                'description' => null, 'url' => null, 'color' => null,
+                'description' => null, 'url' => null, 'color' => null, 'translations' => [],
             ];
         }
 
@@ -316,14 +330,99 @@ final class ApiPresenter
     private function list(string $model): array
     {
         $out = [];
-        foreach ($model::query()->orderBy('sort_order')->orderBy('name')->get() as $item) {
+        foreach ($model::query()->with('translations')->orderBy('sort_order')->orderBy('name')->get() as $item) {
+            $translations = [];
+            foreach (Locale::translated() as $locale) {
+                $row = $item->translations->firstWhere('locale', $locale);
+                if ($row !== null) {
+                    foreach (self::TRANSLATED_LIST_FIELDS as $field) {
+                        $translations[$locale][$field] = $row->{$field};
+                    }
+                }
+            }
             // ohne redaktionelle Notiz; Farbe = Name aus der Palette wie im Intranet (colors.ts)
             $out[$item->key] = [
                 'key' => $item->key, 'abbreviation' => $item->abbreviation, 'label' => $item->displayLabel(),
                 'name' => $item->name, 'description' => $item->description, 'url' => $item->url, 'color' => $item->color,
+                'translations' => $translations,
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * Übersetzungen aus dem Abbild, nur bekannte Sprachen und Felder.
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    private static function publicTranslations(mixed $translations): array
+    {
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            $row = ((array) $translations)[$locale] ?? null;
+            if (! is_array($row)) {
+                continue;
+            }
+            foreach (self::TRANSLATED_TERM_FIELDS as $field) {
+                $value = $row[$field] ?? null;
+                $out[$locale][$field] = is_scalar($value) && (string) $value !== '' ? (string) $value : null;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Begriff in einer Sprache (?lang=, X1, #282): übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung,
+     * bleibt der deutsche Wert. «language» nennt die verlangte und je Feld die gelieferte Sprache. Die offiziellen
+     * Felder (official_*) bleiben deutsch, die Kategorien und Herkünfte werden mit übersetzt.
+     *
+     * @param  array<string, mixed>  $term
+     * @return array<string, mixed>
+     */
+    public static function localizeTerm(array $term, string $locale): array
+    {
+        $row = (array) (((array) ($term['translations'] ?? []))[$locale] ?? []);
+        $fields = [];
+        foreach (array_keys(self::TRANSLATED_TERM_FIELDS) as $field) {
+            $value = $row[$field] ?? null;
+            if ($locale !== Locale::De->value && is_string($value) && $value !== '') {
+                $term[$field] = $value;
+                $fields[$field] = $locale;
+            } else {
+                $fields[$field] = Locale::De->value;
+            }
+        }
+        if ($fields['abbreviation'] === $locale || $fields['name'] === $locale) {
+            $term['display_label'] = (string) ($term['abbreviation'] ?: $term['name']);
+        }
+        foreach (['categories', 'sources'] as $list) {
+            if (isset($term[$list]) && is_array($term[$list])) {
+                $term[$list] = array_map(fn (array $item): array => self::localizeItem($item, $locale), $term[$list]);
+            }
+        }
+        $term['language'] = ['requested' => $locale, 'fields' => $fields];
+
+        return $term;
+    }
+
+    /**
+     * Kategorie oder Herkunft in einer Sprache; ohne Übersetzung der deutsche Wert.
+     *
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    public static function localizeItem(array $item, string $locale): array
+    {
+        $row = (array) (((array) ($item['translations'] ?? []))[$locale] ?? []);
+        foreach (self::TRANSLATED_LIST_FIELDS as $field) {
+            $value = $row[$field] ?? null;
+            if ($locale !== Locale::De->value && is_string($value) && $value !== '') {
+                $item[$field] = $value;
+            }
+        }
+
+        return $item;
     }
 }

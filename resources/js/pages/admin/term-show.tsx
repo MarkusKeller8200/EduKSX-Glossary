@@ -22,7 +22,21 @@ type Begriff = Record<string, unknown> & {
     lifecycle_status: string;
     zusammengefuehrt_in: { id: string; titel: string } | null;
     herkunft_pruefung: Pruefung[];
+    translations: Record<string, Record<string, string>>;
 };
+
+/** Übersetzungen im Arbeitsstand (#282). */
+const SPRACHEN: Record<string, string> = {
+    fr: 'Französisch',
+    it: 'Italienisch',
+    en: 'Englisch',
+};
+const UEBERSETZT: [string, string][] = [
+    ['abbreviation', 'Abkürzung'],
+    ['name', 'Bezeichnung'],
+    ['short_description', 'Kurzbeschreibung'],
+    ['description', 'Beschreibung'],
+];
 
 type Pruefung = {
     source_id: string;
@@ -326,6 +340,40 @@ export default function TermShow({
                     );
                 })}
             </dl>
+
+            {Object.entries(b.translations).some(([, t]) =>
+                Object.values(t).some((v) => v !== ''),
+            ) ? (
+                <>
+                    <h3 className="mt-6 font-semibold">Übersetzungen</h3>
+                    {Object.entries(b.translations).map(([sprache, t]) =>
+                        Object.values(t).every((v) => v === '') ? null : (
+                            <dl
+                                key={sprache}
+                                lang={sprache}
+                                className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[14rem_1fr]"
+                            >
+                                {UEBERSETZT.map(([feld, label]) =>
+                                    t[feld] ? (
+                                        <div key={feld} className="contents">
+                                            <dt className="text-muted-foreground">
+                                                {label} (
+                                                {SPRACHEN[sprache] ?? sprache})
+                                            </dt>
+                                            <dd
+                                                className="whitespace-pre-line"
+                                                translate="no"
+                                            >
+                                                {t[feld]}
+                                            </dd>
+                                        </div>
+                                    ) : null,
+                                )}
+                            </dl>
+                        ),
+                    )}
+                </>
+            ) : null}
 
             {b.herkunft_pruefung.length > 0 && darfBearbeiten ? (
                 <HerkunftPruefen

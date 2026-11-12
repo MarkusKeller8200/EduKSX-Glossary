@@ -130,6 +130,21 @@
             }
           },
           {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
+          {
             "name": "If-None-Match",
             "in": "header",
             "required": false,
@@ -193,6 +208,21 @@
               "type": "string"
             },
             "example": "klassenlehrperson"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
           },
           {
             "name": "If-None-Match",
@@ -446,6 +476,21 @@
         "operationId": "listCategories",
         "parameters": [
           {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
+          {
             "name": "If-None-Match",
             "in": "header",
             "required": false,
@@ -505,6 +550,21 @@
         "summary": "Herkunft (Quelleninstitutionen)",
         "operationId": "listSources",
         "parameters": [
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
           {
             "name": "If-None-Match",
             "in": "header",
@@ -645,6 +705,21 @@
             }
           },
           {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
+          {
             "name": "If-None-Match",
             "in": "header",
             "required": false,
@@ -706,6 +781,21 @@
               ],
               "default": "json"
             }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
           },
           {
             "name": "If-None-Match",
@@ -1135,6 +1225,40 @@
             "examples": [
               "blue"
             ]
+          },
+          "translations": {
+            "type": "object",
+            "description": "Übersetzungen je Sprache (fr, it, en): name, label, description.",
+            "propertyNames": {
+              "enum": [
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
           }
         }
       },
@@ -1307,8 +1431,8 @@
             "type": "string",
             "enum": [
               "current",
-                "historical",
-                "under_review"
+              "historical",
+              "under_review"
             ]
           },
           "is_active": {
@@ -1327,6 +1451,56 @@
               "null"
             ],
             "format": "date"
+          },
+          "translations": {
+            "type": "object",
+            "description": "Übersetzungen der veröffentlichten Revision je Sprache (fr, it, en); nur Sprachen mit Inhalt, fehlende Felder null.",
+            "propertyNames": {
+              "enum": [
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "abbreviation": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "short_description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "examples": [
+              {
+                "fr": {
+                  "abbreviation": "MCL",
+                  "name": "Maître de classe",
+                  "short_description": null,
+                  "description": null
+                }
+              }
+            ]
           },
           "revision": {
             "type": "integer",
@@ -1356,6 +1530,44 @@
             "format": "uri",
             "description": "Kurze, unveränderliche Adresse des Begriffs (/g/{code}); leitet auf die Seite des Begriffs",
             "example": "https://glossary.eduksx.ch/g/7KQ2MX"
+          },
+          "language": {
+            "type": "object",
+            "description": "Nur mit ?lang=: verlangte Sprache und je übersetzbarem Feld die tatsächlich gelieferte Sprache (de, wenn die Übersetzung fehlt).",
+            "properties": {
+              "requested": {
+                "type": "string",
+                "enum": [
+                  "de",
+                  "fr",
+                  "it",
+                  "en"
+                ]
+              },
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "fr",
+                    "it",
+                    "en"
+                  ]
+                }
+              }
+            },
+            "examples": [
+              {
+                "requested": "fr",
+                "fields": {
+                  "abbreviation": "fr",
+                  "name": "fr",
+                  "short_description": "de",
+                  "description": "de"
+                }
+              }
+            ]
           }
         },
         "example": {

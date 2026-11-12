@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Locale;
 use App\Enums\TermStatus;
 use App\Glossary\FourEyesRequired;
 use App\Glossary\GlossaryService;
@@ -84,7 +85,12 @@ class TermController extends Controller
     }
 
     /** Weitere Felder im Journal, die nicht im Formular stehen. */
-    public const JOURNAL_LABELS = ['slug' => 'Adresse (Slug)', 'search_aliases' => 'Suchbegriffe (Aliase)'];
+    public const JOURNAL_LABELS = ['slug' => 'Adresse (Slug)', 'search_aliases' => 'Suchbegriffe (Aliase)', 'translations' => 'Übersetzungen'];
+
+    /** Übersetzbare Felder (X1, #282) mit Bezeichnung. */
+    public const TRANSLATION_LABELS = [
+        'abbreviation' => 'Abkürzung', 'name' => 'Bezeichnung', 'short_description' => 'Kurzbeschreibung', 'description' => 'Beschreibung',
+    ];
 
     /** Detail: Arbeitsstand, veröffentlichter Stand, Verlauf (Journal) mit altem und neuem Wert je Feld. */
     public function show(Term $term): Response
@@ -285,6 +291,12 @@ class TermController extends Controller
             'valid_from' => ['nullable', 'date_format:Y-m-d'],
             'valid_until' => ['nullable', 'date_format:Y-m-d'],
             'is_active' => ['boolean'],
+            'translations' => ['array'],
+            'translations.*' => ['array'],
+            'translations.*.abbreviation' => ['nullable', 'string', 'max:60'],
+            'translations.*.name' => ['nullable', 'string', 'max:255'],
+            'translations.*.short_description' => ['nullable', 'string', 'max:160'],
+            'translations.*.description' => ['nullable', 'string', 'max:20000'],
         ]);
         $data['categories'] ??= [];
         $data['sources'] ??= [];
@@ -312,6 +324,7 @@ class TermController extends Controller
                 'short_description' => '', 'description' => '', 'url' => '', 'note' => '', 'categories' => [],
                 'sources' => [], 'lifecycle_status' => TermStatus::Current->value,
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
+                'translations' => $this->translationForm([]),
             ];
         }
         $s = $this->glossary->snapshot($term);
@@ -332,7 +345,27 @@ class TermController extends Controller
             'valid_from' => (string) $s['valid_from'],
             'valid_until' => (string) $s['valid_until'],
             'is_active' => (bool) $s['is_active'],
+            'translations' => $this->translationForm((array) $s['translations']),
         ];
+    }
+
+    /**
+     * Übersetzungen fürs Formular: alle Sprachen und Felder, leer als ''.
+     *
+     * @param  array<mixed>  $translations
+     * @return array<string, array<string, string>>
+     */
+    private function translationForm(array $translations): array
+    {
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            foreach (array_keys(self::TRANSLATION_LABELS) as $field) {
+                $value = ((array) ($translations[$locale] ?? []))[$field] ?? null;
+                $out[$locale][$field] = is_scalar($value) ? (string) $value : '';
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -353,6 +386,22 @@ class TermController extends Controller
         };
         $out = [];
         foreach ($revision->change_set ?? [] as $field => $change) {
+            if ($field === 'translations') {
+                // je Sprache und Feld eine Zeile statt eines verschachtelten Werts (X1, #282)
+                $old = (array) ($change['old'] ?? []);
+                $new = (array) ($change['new'] ?? []);
+                foreach (Locale::translated() as $locale) {
+                    foreach (self::TRANSLATION_LABELS as $key => $label) {
+                        $a = ((array) ($old[$locale] ?? []))[$key] ?? null;
+                        $b = ((array) ($new[$locale] ?? []))[$key] ?? null;
+                        if ($a !== $b) {
+                            $out[] = ['feld' => $label.' ('.strtoupper($locale).')', 'alt' => $text($a), 'neu' => $text($b)];
+                        }
+                    }
+                }
+
+                continue;
+            }
             $out[] = ['feld' => $labels[$field] ?? $field, 'alt' => $text($change['old'] ?? null), 'neu' => $text($change['new'] ?? null)];
         }
 
@@ -370,7 +419,7 @@ class TermController extends Controller
             return [];
         }
         $fields = [];
-        foreach (self::LABELS as $key => $label) {
+        foreach (self::LABELS + ['translations' => 'Übersetzungen'] as $key => $label) {
             if (($previous->snapshot[$key] ?? null) != ($current->snapshot[$key] ?? null)) {
                 $fields[] = $label;
             }

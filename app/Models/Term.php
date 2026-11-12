@@ -44,6 +44,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, Source> $sources
  * @property-read Collection<int, TermAlias> $aliases
+ * @property-read Collection<int, TermTranslation> $translations
  * @property-read Collection<int, TermRevision> $revisions
  * @property-read Collection<int, TermUserOverride> $overrides
  */
@@ -116,6 +117,12 @@ class Term extends Model
     {
         return Attribute::get(fn (): string => implode('; ', $this->aliases
             ->where('alias_type', AliasType::Search->value)->pluck('alias')->all()));
+    }
+
+    /** @return HasMany<TermTranslation, $this> Übersetzungen fr/it/en (X1, #282) */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(TermTranslation::class);
     }
 
     /** @return HasMany<TermAlias, $this> */

@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\Locale;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\PublicationRelease;
@@ -9,6 +10,7 @@ use App\Models\Source;
 use App\Models\Term;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
+use App\Models\TermTranslation;
 use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Support\Settings;
@@ -102,6 +104,9 @@ final class GlossaryService
             }
             if (array_key_exists('sources', $values)) {
                 $term->sources()->sync($values['sources']);
+            }
+            if (array_key_exists('translations', $values)) {
+                $this->syncTranslations($term, $values['translations']);
             }
 
             $term->unsetRelations();
@@ -267,7 +272,7 @@ final class GlossaryService
 
         $categories = $sources = $official = $alternative = $search = [];
         foreach ($all as $term) {
-            $term->loadMissing(['categories', 'sources', 'aliases']);
+            $term->loadMissing(['categories', 'sources', 'aliases', 'translations']);
             foreach ($term->categories as $category) {
                 $categories[] = (string) $category->key;
             }
@@ -413,6 +418,7 @@ final class GlossaryService
             'is_active' => (bool) ($s['is_active'] ?? true),
             'valid_from' => $s['valid_from'] ?? null,
             'valid_until' => $s['valid_until'] ?? null,
+            'translations' => (array) ($s['translations'] ?? []),
         ];
 
         return DB::transaction(function () use ($term, $data, $user, $canEditOfficial, $publish, $revision): Term {
@@ -486,7 +492,35 @@ final class GlossaryService
             'is_active' => $term->is_active,
             'valid_from' => $term->valid_from?->toDateString(),
             'valid_until' => $term->valid_until?->toDateString(),
+            'translations' => $this->translationsOf($term),
         ];
+    }
+
+    /**
+     * Übersetzungen fürs Abbild (X1, #282): Sprache → Felder, nur Sprachen mit Inhalt, feste Reihenfolge.
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    private function translationsOf(Term $term): array
+    {
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            $row = $term->translations->firstWhere('locale', $locale);
+            if ($row instanceof TermTranslation) {
+                $out[$locale] = array_combine(TermTranslation::FIELDS, array_map(fn (string $f): ?string => $row->{$f}, TermTranslation::FIELDS));
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param  array<string, array<string, string|null>>  $translations */
+    private function syncTranslations(Term $term, array $translations): void
+    {
+        $term->translations()->whereNotIn('locale', array_keys($translations))->delete();
+        foreach ($translations as $locale => $fields) {
+            $term->translations()->updateOrCreate(['locale' => $locale], $fields);
+        }
     }
 
     /** Prüfsumme über alle veröffentlichten Revisionen (gleiche Daten → gleiche Prüfsumme). */
@@ -557,6 +591,10 @@ final class GlossaryService
             $values['sources'] = $this->resolve(Source::class, $this->list($data['sources']), 'Herkunft');
         }
 
+        if (array_key_exists('translations', $data)) {
+            $values['translations'] = $this->normalizeTranslations($data['translations']);
+        }
+
         if ($creating) {
             $names = array_filter([$values['official_abbreviation'] ?? null, $values['official_name'] ?? null]);
             if ($names === []) {
@@ -565,6 +603,35 @@ final class GlossaryService
         }
 
         return $values;
+    }
+
+    /**
+     * Übersetzungen prüfen (X1, #282): nur fr/it/en, leere Felder → null, Sprachen ganz ohne Inhalt entfallen.
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    private function normalizeTranslations(mixed $data): array
+    {
+        $out = [];
+        foreach ((array) $data as $locale => $fields) {
+            if (! in_array($locale, Locale::translated(), true)) {
+                throw new InvalidArgumentException("Sprache «{$locale}» wird nicht übersetzt (erlaubt: ".implode(', ', Locale::translated()).').');
+            }
+            $row = [];
+            foreach (TermTranslation::FIELDS as $field) {
+                $value = trim((string) (((array) $fields)[$field] ?? ''));
+                $row[$field] = $value === '' ? null : $value;
+            }
+            if (isset($row['short_description']) && mb_strlen($row['short_description']) > 160) {
+                throw new InvalidArgumentException('Kurzbeschreibung ('.$locale.') höchstens 160 Zeichen.');
+            }
+            if (array_filter($row) !== []) {
+                $out[$locale] = $row;
+            }
+        }
+        ksort($out);
+
+        return $out;
     }
 
     /**
