@@ -1,6 +1,6 @@
 # DB-Entwickler-Guideline EduKSX
 
-Stand: 12.11.2026 · Verantwortlich: Markus Keller · Status: **Entwurf zur Abnahme**
+Stand: 12.11.2026 · Verantwortlich: Markus Keller · Status: **abgenommen** am 12.11.2026 (DEC-031)
 
 Gleichlautend abgelegt in EduKSX-Architektur (`docs/KONZEPT-DB-GUIDELINE.md`, massgebend für die Produktfamilie) und EduKSX-Glossary (`docs/KONZEPT-DB-GUIDELINE.md`). Bearbeitet wird zuerst in EduKSX-Architektur.
 
