@@ -66,6 +66,14 @@ COPY --from=build --chown=www-data:www-data /app /var/www/html
 COPY docker/entrypoint.sh /usr/local/bin/glossary-entrypoint
 RUN chmod +x /usr/local/bin/glossary-entrypoint
 
+# Stand des Images (#175): aus der CI (Workflow «image»); ein Deployment kann die Werte über .env überschreiben
+ARG GLOSSARY_BUILD=""
+ARG GLOSSARY_BUILD_DATE=""
+ARG GLOSSARY_BUILD_DESCRIBE=""
+ENV GLOSSARY_BUILD=$GLOSSARY_BUILD \
+    GLOSSARY_BUILD_DATE=$GLOSSARY_BUILD_DATE \
+    GLOSSARY_BUILD_DESCRIBE=$GLOSSARY_BUILD_DESCRIBE
+
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \

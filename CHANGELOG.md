@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Docker-Image in der Registry (#175):** Jeder geprüfte Stand und jedes Release als fertiges, signiertes Image
+  (`ghcr.io/markuskeller8200/eduksx-glossary`) mit Herkunftsnachweis; `docker/compose.yaml` startet es ohne Bauen.
+
 ### Geändert
 
 - **Ansichten der Begriffe (#205, #213):** drei Darstellungen in der Administration und auf der Startseite: Tabelle,
