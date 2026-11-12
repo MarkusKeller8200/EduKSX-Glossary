@@ -19,6 +19,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Fremdschlüsseln und Indizes; Namen nach dem DB-Standard. Bestehende Daten werden beim Update überführt und gezählt.
   Suchbegriffe nur noch als Aliase. Altwerte und der Import des alten Excel-Formats des Intranets entfallen; die Werte
   sind verschlüsselt archiviert.
+- **Rollen-Schlüssel englisch (#288):** Die Rollen Gast und Benutzer heissen intern `guest` und `user`. Die Anzeige bleibt
+  gleich, und bestehende Zuordnungen bleiben erhalten.
 - **API: Werte englisch (#266):** Status eines Begriffs `current`, `historical`, `under_review`; Status eines Vorschlags
   `organization_review`, `submitted`, `query`, `accepted`, `rejected`, `withdrawn`. Feldnamen bleiben; der Filter
   `status` nimmt auch die bisherigen Werte an.

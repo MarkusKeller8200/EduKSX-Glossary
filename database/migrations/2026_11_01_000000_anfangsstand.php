@@ -41,8 +41,8 @@ return new class extends Migration
 {
     /** Rollen mit Rechten (Stand 0.11.0; Developer hat alle Rechte ohne Einträge). */
     private const ROLES = [
-        ['gast', 'Gast', 'Angemeldet, nur lesen', false, 1, []],
-        ['benutzer', 'Benutzer', 'Exportieren, Vorschläge einreichen, persönliche Darstellung', false, 2,
+        ['guest', 'Gast', 'Angemeldet, nur lesen', false, 1, []],
+        ['user', 'Benutzer', 'Exportieren, Vorschläge einreichen, persönliche Darstellung', false, 2,
             ['propose', 'export', 'personal-display', 'create-organization']],
         ['org-admin', 'Organisations-Admin', 'Wie Benutzer, dazu Verwaltung der eigenen Organisation und Servicekonten mit Token', false, 5,
             ['propose', 'export', 'personal-display', 'service-tokens', 'create-organization']],
