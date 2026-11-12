@@ -37,7 +37,13 @@ class SelfHostingTest extends TestCase
 
     public function test_taegliche_kopie_ist_eine_sqlite_datei(): void
     {
+        // eigene Datei statt der Testdatenbank im Speicher
+        $source = tempnam(sys_get_temp_dir(), 'glossary').'.sqlite';
+        (new \PDO('sqlite:'.$source))->exec('CREATE TABLE t (x INTEGER); INSERT INTO t VALUES (1);');
+        config(['database.connections.sqlite.database' => $source]);
+
         $this->artisan('glossary:sicherung')->assertSuccessful();
+        @unlink($source);
 
         $this->assertFileExists($this->dir.'/taeglich.sqlite');
         $this->assertStringStartsWith('SQLite format 3', (string) file_get_contents($this->dir.'/taeglich.sqlite', length: 15));

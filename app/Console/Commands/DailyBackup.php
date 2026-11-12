@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use PDO;
 use Throwable;
 
 /**
@@ -27,12 +27,20 @@ class DailyBackup extends Command
         if (! is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
+        $source = (string) config('database.connections.sqlite.database');
+        if ($source === '' || $source === ':memory:' || ! is_file($source)) {
+            $this->error('Datenbankdatei nicht gefunden.');
+
+            return self::FAILURE;
+        }
         $target = $dir.'/taeglich.sqlite';
         $tmp = $dir.'/taeglich.sqlite.tmp';
         @unlink($tmp);
         try {
-            // VACUUM INTO: vollständige, in sich stimmige Kopie, auch während die App schreibt
-            DB::statement("VACUUM INTO '".str_replace("'", "''", $tmp)."'");
+            // VACUUM INTO über eine eigene Verbindung: vollständige, in sich stimmige Kopie, auch während die App schreibt
+            $pdo = new PDO('sqlite:'.$source);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->exec("VACUUM INTO '".str_replace("'", "''", $tmp)."'");
             rename($tmp, $target);
         } catch (Throwable $e) {
             @unlink($tmp);
