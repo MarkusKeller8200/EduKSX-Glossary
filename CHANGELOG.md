@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Updates (#176, #177, #178):** Hinweis auf neue Versionen in der Administration (höchstens täglich, abschaltbar);
+  «Jetzt aktualisieren» auf der Systemseite mit Update-Dienst (`docker/compose.updater.yaml`): Image holen, Datenbank
+  sichern, Neustart, Prüfung, bei Fehler zurück; Protokoll auf der Systemseite. Automatische Updates nach Richtlinie
+  (Vorgabe «nur Korrekturen», abschaltbar, mit Zeitfenster); optionaler Update-Schlüssel.
 - **Mail-Versand in der Administration (#219):** Systemseite «Versand einrichten» mit Vorlagen (Microsoft 365, Google,
   Infomaniak, Hostinger); Speichern sendet sofort eine Testmail, erst danach gilt der Versand als eingerichtet. Passwort
   verschlüsselt gespeichert und nie angezeigt; Einstellungen in der Umgebung des Servers haben Vorrang.

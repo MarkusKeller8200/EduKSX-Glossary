@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NativeSelect } from '@/components/ui/native-select';
 
 type Wert = number | boolean | string;
 
@@ -13,7 +14,8 @@ type Einstellung = {
     gruppe: string;
     label: string;
     hinweis: string;
-    typ: 'int' | 'bool' | 'repo' | 'url';
+    typ: 'int' | 'bool' | 'repo' | 'url' | 'choice';
+    optionen?: Record<string, string>;
     min?: number;
     max?: number;
     einheit?: string;
@@ -158,6 +160,28 @@ function Feld({
                     />
                     {e.label}
                 </label>
+                {hint}
+            </div>
+        );
+    }
+
+    if (e.typ === 'choice') {
+        return (
+            <div className="grid gap-1">
+                <Label htmlFor={id}>{e.label}</Label>
+                <NativeSelect
+                    id={id}
+                    className="max-w-md"
+                    aria-describedby={`${id}-hint`}
+                    value={String(wert)}
+                    onChange={(ev) => onChange(ev.target.value)}
+                >
+                    {Object.entries(e.optionen ?? {}).map(([k, l]) => (
+                        <option key={k} value={k}>
+                            {l}
+                        </option>
+                    ))}
+                </NativeSelect>
                 {hint}
             </div>
         );

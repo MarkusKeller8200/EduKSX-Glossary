@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import UpdatePanel, { type UpdateStand } from '@/components/update-panel';
 import MailSettingsForm, {
     type MailEinstellung,
 } from '@/components/mail-settings-form';
@@ -41,12 +42,14 @@ export default function System({
     version,
     pruefung,
     mailEinstellung,
+    update,
 }: {
     mail: Mail;
     warteschlange: { offen: number; fehlgeschlagen: number };
     version: string;
     pruefung: Pruefung[];
     mailEinstellung: MailEinstellung;
+    update: UpdateStand;
 }) {
     const { auth } = usePage().props;
     const form = useForm({ an: auth.user?.email ?? '' });
@@ -172,6 +175,8 @@ export default function System({
                     </div>
                 </form>
             </section>
+
+            <UpdatePanel update={update} />
 
             <MailSettingsForm
                 einstellung={mailEinstellung}

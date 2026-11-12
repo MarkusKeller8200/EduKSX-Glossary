@@ -50,4 +50,10 @@ return [
 
     // Mail-Versand (#219): mit MAIL_MAILER in der Umgebung gilt diese, die Einstellung in der Administration ist gesperrt
     'mail_env' => env('MAIL_MAILER') !== null,
+
+    // Updates (#176, #177, #178): Hinweis auf neue Versionen (GitHub-Releases), Quelle der Releases
+    'update_check' => (bool) env('GLOSSARY_UPDATE_CHECK', true),
+    'update_repo' => env('GLOSSARY_UPDATE_REPO', 'MarkusKeller8200/EduKSX-Glossary'),
+    // Zusätzlicher Schlüssel für «Jetzt aktualisieren» (#177); leer = nur Recht «system» mit zweitem Faktor
+    'update_key' => env('GLOSSARY_UPDATE_KEY', ''),
 ];

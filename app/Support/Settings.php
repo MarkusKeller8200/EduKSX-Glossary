@@ -19,7 +19,7 @@ final class Settings
     /**
      * Schlüssel → Definition (Gruppe, Bezeichnung, Hinweis, Typ, Grenzen).
      *
-     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url', min?: int, max?: int, einheit?: string}>
+     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice', min?: int, max?: int, einheit?: string, optionen?: array<string, string>}>
      */
     public const DEFINITIONS = [
         'retention.inactive_months' => ['gruppe' => 'Löschfristen', 'label' => 'Inaktive Community-Konten löschen nach', 'hinweis' => 'Ohne Anmeldung; vorher kommt ein Hinweis per Mail.', 'typ' => 'int', 'min' => 6, 'max' => 60, 'einheit' => 'Monaten'],
@@ -30,6 +30,9 @@ final class Settings
         'publish.four_eyes' => ['gruppe' => 'Freigabe', 'label' => 'Vier-Augen-Prinzip', 'hinweis' => 'Freigeben nicht durch die Person der letzten Änderung. Gilt für «Veröffentlichen»; Zusammenführen und Wiederherstellen sind ausgenommen.', 'typ' => 'bool'],
         'privacy.draft_notice' => ['gruppe' => 'Hinweise und Links', 'label' => 'Hinweis «Datenschutzerklärung im Entwurf»', 'hinweis' => 'Auf /datenschutz, bis die Erklärung juristisch geprüft ist (#66).', 'typ' => 'bool'],
         'links.github_repo' => ['gruppe' => 'Hinweise und Links', 'label' => 'GitHub-Repository für «Fehler melden»', 'hinweis' => 'Form «Besitzer/Repository»; leer blendet den Link aus.', 'typ' => 'repo'],
+        'updates.check' => ['gruppe' => 'Updates', 'label' => 'Auf neue Versionen prüfen', 'hinweis' => 'Fragt höchstens täglich die öffentlichen Releases auf GitHub ab (nur die Versionsnummer, keine Daten dieser Installation) und zeigt einen Hinweis in der Administration.', 'typ' => 'bool'],
+        'updates.policy' => ['gruppe' => 'Updates', 'label' => 'Automatische Updates', 'hinweis' => 'Nur mit eingerichtetem Update-Dienst. «Nur Korrekturen» spielt X.Y.Z mit gleicher Haupt- und Nebenversion ein; neue Funktionen nie automatisch über eine Hauptversion.', 'typ' => 'choice', 'optionen' => ['aus' => 'aus', 'korrektur' => 'nur Korrekturen', 'funktion' => 'Korrekturen und neue Funktionen']],
+        'updates.window' => ['gruppe' => 'Updates', 'label' => 'Zeitfenster für automatische Updates', 'hinweis' => 'Stunde, ab der automatische Updates laufen dürfen (Ortszeit), z. B. 3 für 03:00–04:00.', 'typ' => 'int', 'min' => 0, 'max' => 23, 'einheit' => 'Uhr'],
         'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
     ];
 
@@ -49,6 +52,9 @@ final class Settings
             'privacy.draft_notice' => (bool) config('glossary.privacy_draft', true),
             'links.github_repo' => (string) config('glossary.github_repo', ''),
             'links.pages_url' => (string) config('glossary.pages_url', ''),
+            'updates.check' => (bool) config('glossary.update_check', true),
+            'updates.policy' => 'korrektur',
+            'updates.window' => 3,
             default => throw new InvalidArgumentException("Unbekannte Einstellung «{$key}»."),
         };
     }
@@ -139,6 +145,16 @@ final class Settings
                 $v = trim((string) $value);
                 if ($v !== '' && preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $v) !== 1) {
                     throw new InvalidArgumentException("«{$label}»: Form «Besitzer/Repository».");
+                }
+
+                return $v;
+            })(),
+            'choice' => (function () use ($label, $value, $def): string {
+                $v = (string) $value;
+                /** @var array<string, string> $options */
+                $options = $def['optionen'] ?? [];
+                if (! array_key_exists($v, $options)) {
+                    throw new InvalidArgumentException("«{$label}»: ungültige Auswahl.");
                 }
 
                 return $v;
