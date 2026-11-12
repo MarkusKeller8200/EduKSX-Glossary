@@ -76,7 +76,7 @@ export default function TermCard({
     ).filter(([, v]) => v !== '');
 
     return (
-        <article className="flex h-full flex-col gap-2">
+        <article className="flex h-full min-w-0 flex-col gap-2 break-words">
             <header className="flex items-start gap-2">
                 <div className="min-w-0 flex-1">
                     <Link
@@ -136,7 +136,10 @@ export default function TermCard({
             {details.length > 0 ? (
                 <dl className="mt-auto flex flex-wrap gap-x-3 gap-y-0.5 border-t border-border pt-2 text-xs text-muted-foreground">
                     {details.map(([label, value]) => (
-                        <div key={label} className="flex min-w-0 gap-1">
+                        <div
+                            key={label}
+                            className="flex max-w-full min-w-0 gap-1"
+                        >
                             <dt className="font-medium text-foreground/70">
                                 {label}:
                             </dt>
