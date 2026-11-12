@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDown, LogIn, LogOut, UserRound } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import BrandWordmark from '@/components/brand-wordmark';
@@ -42,9 +42,31 @@ export default function SiteHeader({
         : 'Gast';
 
     const [offen, setOffen] = useState(false);
+    const kopf = useRef<HTMLElement>(null);
+
+    // Höhe als CSS-Variable --kopf-hoehe, damit fixierte Leisten darunter stehen (#238)
+    useEffect(() => {
+        const el = kopf.current;
+        if (!el) {
+            return;
+        }
+        const setzen = () =>
+            document.documentElement.style.setProperty(
+                '--kopf-hoehe',
+                `${el.offsetHeight}px`,
+            );
+        setzen();
+        const ro = new ResizeObserver(setzen);
+        ro.observe(el);
+
+        return () => ro.disconnect();
+    }, []);
 
     return (
-        <header className="sticky top-0 z-20 border-b border-border bg-background">
+        <header
+            ref={kopf}
+            className="sticky top-0 z-20 border-b border-border bg-background"
+        >
             <div
                 className={cn(
                     'mx-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3',
@@ -153,7 +175,10 @@ export default function SiteHeader({
                             <Link href="/admin">Administration</Link>
                         </Button>
                     ) : null}
-                    <ViewWidthTabs />
+                    {/* Ansichtsbreite auf dem Handy nicht nötig (#241) */}
+                    <div className="hidden sm:block">
+                        <ViewWidthTabs />
+                    </div>
                     <AppearanceToggleTab />
                     {auth.user ? (
                         <>

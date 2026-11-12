@@ -6,11 +6,21 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **WebApp und Icon (#239, #240):** Eigenes Icon (Entwurf) für Browser-Tab und Home-Bildschirm; das Glossar lässt sich
+  als App installieren, auf dem Handy mit Hinweis «App installieren» (iPhone mit Anleitung).
+
 ### Geändert
 
-- **Handy-Ansicht (#225, #226, #227):** Kacheln passen auf den Bildschirm; Kopfzeile auf einer Zeile mit Titel,
-  Person, Ab-/Anmelde-Icon und Ausklapp-Button für Ansicht und Farbschema; Fusszeile eingeklappt mit Ausklapp-Button.
-- **Kacheln (#229):** Kopf zweizeilig – Abkürzung mit Herkunft und Status, Bezeichnung mit Kategorien.
+- **Handy-Ansicht (#225, #226, #227, #233, #235, #236, #237, #241):** Kacheln passen auf den Bildschirm; Kopfzeile auf
+  einer Zeile mit Titel, Person, Ab-/Anmelde-Icon und Ausklapp-Button für Farbschema und Wechsel (ohne Ansichtsbreite);
+  Fusszeile eingeklappt mit Version und Ausklapp-Button; Suchfeld ohne Autofokus; Index A–Z und Filter einklappbar;
+  PDF-Dialog passt auf den Bildschirm.
+- **Kacheln (#229):** Kopf zweizeilig – Abkürzung mit Herkunft und Status, Bezeichnung mit Kategorien (auf dem Handy
+  untereinander, #232).
+- **Startseite (#238):** Anzahl und Ansicht bleiben beim Scrollen unter der Kopfzeile.
+- **Export (#234):** Icons für die Formate.
 
 ## [0.10.0] – 2026-11-12
 

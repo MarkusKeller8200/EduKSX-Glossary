@@ -3,7 +3,7 @@ import { ChevronUp } from 'lucide-react';
 import { useState } from 'react';
 import BrandWordmark from '@/components/brand-wordmark';
 import { Button } from '@/components/ui/button';
-import { versionLabel } from '@/components/version-label';
+import { versionLabel, versionLabelShort } from '@/components/version-label';
 import { useViewWidth, widthClass } from '@/hooks/use-view-width';
 import { hasAdminArea } from '@/lib/access';
 import { cn } from '@/lib/utils';
@@ -113,13 +113,21 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                         </>
                     ) : null}
                 </span>
-                <div className="flex w-full items-center justify-between gap-2 sm:w-auto">
+                <div className="flex w-full items-center gap-2 sm:w-auto">
                     <a
                         href="https://markussx.ch/eduksx"
                         className="underline-offset-4 hover:underline"
                     >
                         Developed by <BrandWordmark brand="developer" />
                     </a>
+                    {/* Handy: Version immer sichtbar (#233) */}
+                    <Link
+                        href="/versionen"
+                        className="ml-auto text-link underline-offset-4 hover:underline sm:hidden"
+                        title={`Version ${versionLabel(appVersion)}`}
+                    >
+                        {versionLabelShort(appVersion)}
+                    </Link>
                     <Button
                         variant="ghost"
                         size="icon"
