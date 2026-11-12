@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Herkunft/Quelleninstitution (erweiterbare Liste, z. B. VSA) – Felder wie die Listen im Intranet-Glossar.
@@ -39,5 +40,11 @@ class Source extends Model
     public function displayLabel(): string
     {
         return (string) ($this->label ?: ($this->abbreviation ?: $this->key));
+    }
+
+    /** @return HasMany<SourceTranslation, $this> Übersetzungen fr/it/en (X1, #282) */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(SourceTranslation::class);
     }
 }

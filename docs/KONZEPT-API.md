@@ -99,7 +99,7 @@ Beispiel-URL und -Datum sind Platzhalter.
 - **Sichtbar** ist ein Begriff, wenn er veröffentlicht ist und im veröffentlichten Abbild `is_active` gilt – der
   Arbeitsstand ändert nichts an Website oder API, bis er veröffentlicht wird.
 - **ETag** = Prüfsumme des Antwortinhalts (auch Listen-Änderungen werden erkannt), `Cache-Control: public,
-  max-age=60`, Kopfzeile `X-Glossary-Release`.
+max-age=60`, Kopfzeile `X-Glossary-Release`.
 - **Fehler** als `application/problem+json` (RFC 9457) für alle Pfade unter `/api/`.
 - **CORS:** `GET` von jeder Herkunft, ohne Cookies (`config/cors.php`).
 - Rate-Limit 120 Abrufe pro Minute und Adresse.
@@ -180,6 +180,11 @@ ohne v2 und ohne Übergangsfrist; der CHANGELOG nennt die Änderung.
 - **Ergänzt (#87):** `search_terms` (Suchbegriffe, nur für die Suche). Kategorien und Herkunft liefern neben
   `key`, `label`, `name`, `url` auch `abbreviation`, `description` und `color` (Name aus der Palette wie im
   Intranet); die redaktionelle Notiz bleibt intern.
+- **Sprache (`?lang=`, #282):** `de`, `fr`, `it`, `en` für Begriffe, Kategorien, Herkünfte, Change-Feed und Vollstand.
+  Übersetzte Felder (`abbreviation`, `name`, `short_description`, `description`; bei Listen `name`, `label`,
+  `description`) ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. `official_*` bleiben deutsch.
+  Nur mit `?lang=` gibt es das Feld `language` (verlangte und je Feld gelieferte Sprache). `translations` enthält immer
+  alle veröffentlichten Übersetzungen.
 - **`updated_at` (#62):** Zeitpunkt der veröffentlichten Revision, wie im Synchronisationsvertrag verlangt.
 
 ## Organisations-API (DEC-025, #148, Entwurf)

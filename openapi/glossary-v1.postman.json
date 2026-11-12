@@ -71,6 +71,12 @@
                   "value": "50",
                   "description": "",
                   "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+                  "disabled": true
                 }
               ]
             },
@@ -100,6 +106,14 @@
                 "v1",
                 "terms",
                 ":idOrSlug"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+                  "disabled": true
+                }
               ],
               "variable": [
                 {
@@ -167,6 +181,14 @@
               "path": [
                 "v1",
                 "categories"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+                  "disabled": true
+                }
               ]
             },
             "description": "Kategorien",
@@ -194,6 +216,14 @@
               "path": [
                 "v1",
                 "sources"
+              ],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+                  "disabled": true
+                }
               ]
             },
             "description": "Herkunft (Quelleninstitutionen)",
@@ -268,6 +298,12 @@
                   "value": "500",
                   "description": "",
                   "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+                  "disabled": true
                 }
               ]
             },
@@ -302,6 +338,12 @@
                   "key": "format",
                   "value": "json",
                   "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lang",
+                  "value": "fr",
+                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
                   "disabled": true
                 }
               ]

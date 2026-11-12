@@ -12,6 +12,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Vollständiger Dump (#268):** Administration › System und `php artisan glossary:dump`: ZIP mit Kopie der Datenbank,
   allen Tabellen als JSON und Manifest; mit Passwort AES-256-verschlüsselt, ohne Passwort nur bis zur Einstellung
   `GLOSSARY_DUMP_REQUIRE_PASSWORD`.
+- **Übersetzungen (#282):** Begriffe, Kategorien und Herkünfte lassen sich auf Französisch, Italienisch und Englisch
+  erfassen. Übersetzungen von Begriffen gehören zur Revision und werden mit dem Begriff veröffentlicht. Die API liefert
+  sie in `translations`; mit `?lang=fr|it|en` ersetzen sie die deutschen Felder, fehlende bleiben deutsch und
+  `language` zeigt je Feld die gelieferte Sprache. Die Website bleibt deutsch.
 
 ### Geändert
 

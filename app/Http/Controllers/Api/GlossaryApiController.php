@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\Locale;
 use App\Enums\TermStatus;
 use App\Glossary\ApiPresenter;
 use App\Http\Controllers\Controller;
@@ -50,7 +51,9 @@ class GlossaryApiController extends Controller
             throw new BadRequestHttpException('Unbekannter Status «'.$status.'». Erlaubt: '.implode(', ', array_keys(Term::STATUS)).'.');
         }
 
-        $terms = array_values(array_filter($this->presenter->terms(), function (array $t) use ($q, $category, $status): bool {
+        $lang = $this->language($request);
+        $all = $lang === null ? $this->presenter->terms() : array_map(fn (array $t): array => ApiPresenter::localizeTerm($t, $lang), $this->presenter->terms());
+        $terms = array_values(array_filter($all, function (array $t) use ($q, $category, $status): bool {
             if ($status !== '' && $t['status'] !== $status) {
                 return false;
             }
@@ -69,6 +72,7 @@ class GlossaryApiController extends Controller
             }
             $haystack = mb_strtolower(implode(' ', array_filter([
                 $t['abbreviation'], $t['name'], $t['official_abbreviation'], $t['official_name'], $t['short_description'],
+                $t['display_label'],
                 implode(' ', $t['aliases']),
             ])));
 
@@ -114,19 +118,21 @@ class GlossaryApiController extends Controller
             throw new NotFoundHttpException("Begriff «{$idOrSlug}» ist nicht veröffentlicht oder existiert nicht.");
         }
 
-        return $this->cached($request, ['data' => $term], $this->presenter->release()['release']);
+        $lang = $this->language($request);
+
+        return $this->cached($request, ['data' => $lang === null ? $term : ApiPresenter::localizeTerm($term, $lang)], $this->presenter->release()['release']);
     }
 
     /** GET /api/v1/categories */
     public function categories(Request $request): Response
     {
-        return $this->cached($request, ['data' => $this->presenter->categoryList()], $this->presenter->release()['release']);
+        return $this->cached($request, ['data' => $this->localizeList($request, $this->presenter->categoryList())], $this->presenter->release()['release']);
     }
 
     /** GET /api/v1/sources */
     public function sources(Request $request): Response
     {
-        return $this->cached($request, ['data' => $this->presenter->sourceList()], $this->presenter->release()['release']);
+        return $this->cached($request, ['data' => $this->localizeList($request, $this->presenter->sourceList())], $this->presenter->release()['release']);
     }
 
     /** GET /api/v1/releases/latest – aktueller Datenstand (für günstige periodische Prüfung). */
@@ -156,7 +162,8 @@ class GlossaryApiController extends Controller
             ->get()
             ->keyBy(fn (TermRevision $r): string => $r->term_id.'#'.$r->revision);
 
-        $data = $events->map(function (TermPublicationEvent $e) use ($revisions): array {
+        $lang = $this->language($request);
+        $data = $events->map(function (TermPublicationEvent $e) use ($revisions, $lang): array {
             $revision = $e->revision !== null ? $revisions->get($e->term_id.'#'.$e->revision) : null;
 
             return [
@@ -167,7 +174,9 @@ class GlossaryApiController extends Controller
                 'merged_into' => $e->merged_into_id,
                 'release' => $e->release_id,
                 'occurred_at' => $e->created_at->toIso8601ZuluString(),
-                'term' => $revision instanceof TermRevision ? $this->presenter->term($revision) : null,
+                'term' => $revision instanceof TermRevision
+                    ? ($lang === null ? $this->presenter->term($revision) : ApiPresenter::localizeTerm($this->presenter->term($revision), $lang))
+                    : null,
             ];
         })->values()->all();
 
@@ -197,10 +206,41 @@ class GlossaryApiController extends Controller
             'license' => $this->presenter->license(),
             'checksum' => $release['checksum'],
             'published_at' => $release['published_at'],
-            'categories' => $this->presenter->categoryList(),
-            'sources' => $this->presenter->sourceList(),
-            'terms' => $this->presenter->terms(),
+            'categories' => $this->localizeList($request, $this->presenter->categoryList()),
+            'sources' => $this->localizeList($request, $this->presenter->sourceList()),
+            'terms' => ($lang = $this->language($request)) === null
+                ? $this->presenter->terms()
+                : array_map(fn (array $t): array => ApiPresenter::localizeTerm($t, $lang), $this->presenter->terms()),
         ], $release['release']);
+    }
+
+    /**
+     * Verlangte Sprache (?lang=de|fr|it|en, X1, #282); ohne Angabe null (Ausgabe wie bisher, deutsch).
+     *
+     * @throws BadRequestHttpException bei unbekannter Sprache
+     */
+    private function language(Request $request): ?string
+    {
+        $lang = strtolower(trim((string) $request->query('lang', '')));
+        if ($lang === '') {
+            return null;
+        }
+        if (Locale::tryFrom($lang) === null) {
+            throw new BadRequestHttpException('Unbekannte Sprache «'.$lang.'». Erlaubt: '.implode(', ', Locale::values()).'.');
+        }
+
+        return $lang;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $items
+     * @return list<array<string, mixed>>
+     */
+    private function localizeList(Request $request, array $items): array
+    {
+        $lang = $this->language($request);
+
+        return $lang === null ? $items : array_map(fn (array $i): array => ApiPresenter::localizeItem($i, $lang), $items);
     }
 
     /**

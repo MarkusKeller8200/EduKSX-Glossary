@@ -1,4 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -25,7 +26,23 @@ type Werte = {
     valid_from: string;
     valid_until: string;
     is_active: boolean;
+    translations: Record<Sprache, Uebersetzung>;
 };
+
+type Sprache = 'fr' | 'it' | 'en';
+type Uebersetzung = {
+    abbreviation: string;
+    name: string;
+    short_description: string;
+    description: string;
+};
+
+/** Übersetzungssprachen (#282); Deutsch steht in den Feldern oben. */
+const SPRACHEN: [Sprache, string][] = [
+    ['fr', 'Französisch'],
+    ['it', 'Italienisch'],
+    ['en', 'Englisch'],
+];
 
 type Option = { key: string; label: string };
 
@@ -83,6 +100,15 @@ export default function TermForm({
         </Feld>
     );
     const gesperrt = !offiziellErlaubt;
+    const setUebersetzung = (
+        sprache: Sprache,
+        feld: keyof Uebersetzung,
+        wert: string,
+    ) =>
+        form.setData('translations', {
+            ...form.data.translations,
+            [sprache]: { ...form.data.translations[sprache], [feld]: wert },
+        });
 
     return (
         <>
@@ -205,6 +231,12 @@ export default function TermForm({
                         />
                     </Feld>
                 </fieldset>
+
+                <Uebersetzungen
+                    werte={form.data.translations}
+                    fehler={errors}
+                    onChange={setUebersetzung}
+                />
 
                 <fieldset className="grid gap-4 sm:grid-cols-2">
                     <legend className="mb-2 font-semibold">Einordnung</legend>
@@ -361,5 +393,125 @@ function Auswahl({
             )}
             <InputError message={error} />
         </div>
+    );
+}
+
+/**
+ * Übersetzungen (#282): je Sprache Abkürzung, Bezeichnung und Texte. Leere Felder liefert die API auf Deutsch.
+ * Gespeichert wird mit dem Begriff (Revision), öffentlich erst mit «Veröffentlichen».
+ */
+function Uebersetzungen({
+    werte,
+    fehler,
+    onChange,
+}: {
+    werte: Record<Sprache, Uebersetzung>;
+    fehler: Record<string, string | undefined>;
+    onChange: (
+        sprache: Sprache,
+        feld: keyof Uebersetzung,
+        wert: string,
+    ) => void;
+}) {
+    const [aktiv, setAktiv] = useState<Sprache>('fr');
+    const w = werte[aktiv];
+    const id = (feld: string) => `translations-${aktiv}-${feld}`;
+    const err = (feld: string) => fehler[`translations.${aktiv}.${feld}`];
+    const gefuellt = (s: Sprache) =>
+        Object.values(werte[s]).some((v) => v.trim() !== '');
+
+    return (
+        <fieldset className="grid gap-4">
+            <legend className="mb-2 font-semibold">Übersetzungen</legend>
+            <p className="-mt-2 text-xs text-muted-foreground">
+                Optional. Leere Felder liefert die API auf Deutsch.
+            </p>
+            <div
+                role="tablist"
+                aria-label="Sprache der Übersetzung"
+                className="flex flex-wrap gap-1"
+            >
+                {SPRACHEN.map(([s, label]) => (
+                    <Button
+                        key={s}
+                        type="button"
+                        role="tab"
+                        aria-selected={aktiv === s}
+                        variant={aktiv === s ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setAktiv(s)}
+                    >
+                        {label}
+                        {gefuellt(s) ? ' •' : ''}
+                    </Button>
+                ))}
+            </div>
+            <div role="tabpanel" className="grid gap-4 sm:grid-cols-2">
+                <Feld
+                    id={id('abbreviation')}
+                    label="Abkürzung"
+                    error={err('abbreviation')}
+                >
+                    <Input
+                        id={id('abbreviation')}
+                        lang={aktiv}
+                        maxLength={60}
+                        value={w.abbreviation}
+                        onChange={(e) =>
+                            onChange(aktiv, 'abbreviation', e.target.value)
+                        }
+                    />
+                </Feld>
+                <Feld id={id('name')} label="Bezeichnung" error={err('name')}>
+                    <Input
+                        id={id('name')}
+                        lang={aktiv}
+                        value={w.name}
+                        onChange={(e) =>
+                            onChange(aktiv, 'name', e.target.value)
+                        }
+                    />
+                </Feld>
+                <div className="sm:col-span-2">
+                    <Feld
+                        id={id('short_description')}
+                        label="Kurzbeschreibung"
+                        hint={`Höchstens 160 Zeichen (${w.short_description.length}/160)`}
+                        error={err('short_description')}
+                    >
+                        <Input
+                            id={id('short_description')}
+                            lang={aktiv}
+                            maxLength={160}
+                            value={w.short_description}
+                            onChange={(e) =>
+                                onChange(
+                                    aktiv,
+                                    'short_description',
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </Feld>
+                </div>
+                <div className="sm:col-span-2">
+                    <Feld
+                        id={id('description')}
+                        label="Beschreibung"
+                        error={err('description')}
+                    >
+                        <Textarea
+                            id={id('description')}
+                            lang={aktiv}
+                            rows={4}
+                            value={w.description}
+                            onChange={(e) =>
+                                onChange(aktiv, 'description', e.target.value)
+                            }
+                        />
+                    </Feld>
+                </div>
+            </div>
+        </fieldset>
     );
 }

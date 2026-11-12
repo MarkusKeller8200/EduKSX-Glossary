@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Locale;
 use App\Glossary\ListTransfer;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\ListTranslation;
 use App\Models\Source;
 use App\Support\Download;
 use App\Support\Palette;
@@ -84,11 +86,12 @@ class ListController extends Controller
     {
         $data = [];
         foreach (self::LISTS as $name => $model) {
-            $data[$name] = $model::query()->orderBy('sort_order')->orderBy('name')->withCount('terms')->get()
+            $data[$name] = $model::query()->with('translations')->orderBy('sort_order')->orderBy('name')->withCount('terms')->get()
                 ->map(fn (Category|Source $i): array => [
                     'id' => $i->id, 'key' => $i->key, 'abbreviation' => $i->abbreviation, 'name' => $i->name,
                     'label' => $i->label, 'description' => $i->description, 'url' => $i->url, 'note' => $i->note, 'color' => $i->color,
                     'sort_order' => $i->sort_order, 'begriffe' => (int) $i->getAttribute('terms_count'),
+                    'translations' => $this->translationForm($i),
                 ])->all();
         }
 
@@ -108,7 +111,8 @@ class ListController extends Controller
             $data['key'] = $key;
         }
         $data['sort_order'] ??= (int) $model::query()->max('sort_order') + 1;
-        $model::query()->create($data);
+        $translations = $this->pullTranslations($data);
+        $this->syncTranslations($model::query()->create($data), $translations);
 
         return back()->with('status', 'Eintrag angelegt.');
     }
@@ -119,7 +123,9 @@ class ListController extends Controller
         $item = $model::query()->findOrFail($id);
         $data = $this->validated($request, $model, $item->id);
         unset($data['key']);   // Schlüssel bleibt stabil (API, Excel)
+        $translations = $this->pullTranslations($data);
         $item->update($data);
+        $this->syncTranslations($item, $translations);
 
         return back()->with('status', 'Eintrag gespeichert.');
     }
@@ -162,6 +168,68 @@ class ListController extends Controller
             'note' => ['nullable', 'string', 'max:5000'],
             'color' => ['nullable', 'string', Rule::in(Palette::NAMES)],
             'sort_order' => ['nullable', 'integer', 'min:0'],
+            'translations' => ['array'],
+            'translations.*' => ['array'],
+            'translations.*.name' => ['nullable', 'string', 'max:255'],
+            'translations.*.label' => ['nullable', 'string', 'max:60'],
+            'translations.*.description' => ['nullable', 'string', 'max:2000'],
         ]);
+    }
+
+    /**
+     * Übersetzungen fürs Formular (X1, #282): alle Sprachen und Felder, leer als ''.
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function translationForm(Category|Source $item): array
+    {
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            $row = $item->translations->firstWhere('locale', $locale);
+            foreach (ListTranslation::FIELDS as $field) {
+                $out[$locale][$field] = (string) ($row?->{$field} ?? '');
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Übersetzungen aus den Formulardaten lösen; nur fr/it/en, leere Felder → null.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, array<string, string|null>>|null null = nicht mitgeschickt (unverändert lassen)
+     */
+    private function pullTranslations(array &$data): ?array
+    {
+        if (! array_key_exists('translations', $data)) {
+            return null;
+        }
+        $input = (array) $data['translations'];
+        unset($data['translations']);
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            foreach (ListTranslation::FIELDS as $field) {
+                $value = trim((string) (((array) ($input[$locale] ?? []))[$field] ?? ''));
+                $out[$locale][$field] = $value === '' ? null : $value;
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param  array<string, array<string, string|null>>|null  $translations */
+    private function syncTranslations(Category|Source $item, ?array $translations): void
+    {
+        if ($translations === null) {
+            return;
+        }
+        foreach ($translations as $locale => $fields) {
+            if (array_filter($fields) === []) {
+                $item->translations()->where('locale', $locale)->delete();
+            } else {
+                $item->translations()->updateOrCreate(['locale' => $locale], $fields);
+            }
+        }
     }
 }
