@@ -1,6 +1,6 @@
 # Konzept: Deployment und Installationsarten (DEC-028, Entwurf)
 
-Stand: Entwurf 08.11.2026, ergänzt 11.11.2026 (Umgebungen, Operation, Datenschutz) zur Abnahme. Baut auf [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md) (DEC-027) und
+Stand: Entwurf 08.11.2026, ergänzt 11.11.2026 (Umgebungen, Operation, Datenschutz), offene Fragen entschieden 12.11.2026, zur Abnahme. Baut auf [KONZEPT-UPDATES.md](KONZEPT-UPDATES.md) (DEC-027) und
 [KONZEPT-HOSTING.md](KONZEPT-HOSTING.md) (DEC-013) auf; die Plattform-Schnittstellen stehen im Konzept
 EduKSX-Plattform (Repo EduKSX-Architektur). Umsetzung erst nach Freigabe.
 
@@ -101,7 +101,7 @@ Das Glossary liefert dafür ein fertiges Image und eine compose-Datei je Proxy.
 - **Proxy-Bausteine:** `compose.proxy.yaml` (Caddy mit automatischem Zertifikat – einfacher als Traefik für
   Einzelinstallationen) oder `compose.traefik.yaml` (Labels für einen vorhandenen Traefik, wie bei uns). Ohne
   Zusatz lauscht das Glossary nur auf `127.0.0.1:8080` für einen eigenen Proxy (nginx, Apache).
-- **Getestet** wird die Anleitung mindestens auf Debian 12/13 und Ubuntu 24.04 (#179); weitere Systeme ohne Zusage.
+- **Zugesichert** (Entscheid 12.11.2026): Ubuntu 24.04/26.04 und Debian 12/13; die Anleitung wird dort getestet (#179). Weitere Systeme ohne Zusage.
 
 ### C – Installation im Schulnetz (on premise)
 
@@ -183,14 +183,14 @@ Ergebnis: Die Entscheide verletzen keine Datenschutzziele, wenn P1 (dev ohne ech
 P3 entschieden am 11.11.2026 nach Löschkonzept (Logs 14 Tage, Sicherungen 30 Tage); die Umsetzung liegt in
 MarKusSX-Operation. P4 und P5 sind in der Datenschutzerklärung nachgeführt (#207, PR #208).
 
-## Offene Fragen (Entscheid durch die Projektverantwortliche Person)
+## Fragen und Entscheide
 
 1. ~~Vorschau aus `main`~~ – entschieden 11.11.2026: dev auf Hostinger aus jedem Merge, test/prod nur aus Releases.
 2. ~~Zeitpunkt Infomaniak~~ – entschieden 11.11.2026: `prod-01` nach MarKusSX-Operation, VPS Lite oder VPS Cloud.
 3. ~~Datenbank~~ – entschieden 11.11.2026: SQLite für dev und zu Beginn in prod, bald PostgreSQL (#191).
-4. Proxy für Einzelinstallationen (B, C): Caddy als einfacher Standard, Traefik nur für vorhandene Installationen?
-5. Offline-Paket (C ohne Internet) von Beginn an oder erst auf Nachfrage einer Schule?
-6. Welche Betriebssysteme sichern wir für die Selbstinstallation zu?
+4. ~~Proxy~~ – entschieden 12.11.2026: Caddy als Standard für Einzelinstallationen (B, C); Traefik nur für Server mit vorhandenem Traefik.
+5. ~~Offline-Paket~~ – entschieden 12.11.2026: erst auf Wunsch einer Schule.
+6. ~~Betriebssysteme~~ – entschieden 12.11.2026: Ubuntu 24.04/26.04 und Debian 12/13; andere ohne Zusage.
 7. ~~Logfrist (P2)~~ – entschieden 11.11.2026: wie im Löschkonzept, 14 Tage, auch in der zentralen Protokollierung.
 8. ~~Frist der Sicherungen (P3)~~ – entschieden 11.11.2026: wie im Löschkonzept, 30 Tage (eigener Backrest-Plan).
 
