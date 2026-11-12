@@ -8,15 +8,13 @@ use App\Mail\TestMail;
 use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\ConfigCheck;
+use App\Support\DatabaseDump;
 use App\Support\MailSettings;
 use App\Support\MailSetup;
 use App\Support\UpdateCheck;
 use App\Support\UpdateJobs;
 use Illuminate\Http\RedirectResponse;
-use App\Support\DatabaseDump;
 use Illuminate\Http\Request;
-use RuntimeException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +24,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 /** Systemseite (#40, Recht «system»): Stand des E-Mail-Versands und Testmail; keine Zugangsdaten anzeigen. */
