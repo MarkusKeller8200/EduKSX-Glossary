@@ -6,6 +6,7 @@ use App\Access\Permission;
 use App\Glossary\PublicCache;
 use App\Models\User;
 use App\Organizations\OrganizationService;
+use App\Support\MailSettings;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // je Anfrage eine Instanz: Schlüssel des Zwischenspeichers nur einmal berechnen (#137)
         $this->app->scoped(PublicCache::class);
+
+        // Mail-Versand aus der Administration (#219): erst übernehmen, wenn Mail gebraucht wird
+        $this->app->afterResolving('mail.manager', fn () => MailSettings::apply());
     }
 
     public function boot(): void

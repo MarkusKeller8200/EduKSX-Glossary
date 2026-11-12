@@ -70,8 +70,11 @@ final class ConfigCheck
         }
 
         // Mail und Warteschlange
+        $mailHint = MailSettings::unverified()
+            ? 'In der Administration eingestellt, aber noch ohne erfolgreiche Testmail (Systemseite).'
+            : 'Ohne Versand bleibt die Registrierung aus (Systemseite oder MAIL_MAILER, MAIL_FROM_ADDRESS).';
         $add('Mail', 'Versand eingerichtet', MailSetup::configured() ? self::OK : self::WARNUNG,
-            MailSetup::configured() ? (string) config('mail.default') : 'Ohne Versand bleibt die Registrierung aus (MAIL_MAILER, MAIL_FROM_ADDRESS).');
+            MailSetup::configured() ? (string) config('mail.default').' ('.MailSettings::source().')' : $mailHint);
         $sync = config('queue.default') === 'sync';
         $add('Mail', 'Warteschlange (QUEUE_CONNECTION)', $production && $sync && MailSetup::configured() ? self::WARNUNG : self::OK,
             $production && $sync && MailSetup::configured() ? 'Mit «sync» gibt es keine Wiederholung bei Fehlern; «database» mit Dienst «worker» verwenden.' : (string) config('queue.default'));

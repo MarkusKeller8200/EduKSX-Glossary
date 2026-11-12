@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Mail-Versand in der Administration (#219):** Systemseite «Versand einrichten» mit Vorlagen (Microsoft 365, Google,
+  Infomaniak, Hostinger); Speichern sendet sofort eine Testmail, erst danach gilt der Versand als eingerichtet. Passwort
+  verschlüsselt gespeichert und nie angezeigt; Einstellungen in der Umgebung des Servers haben Vorrang.
+
 ## [0.9.1] – 2026-11-12
 
 ### Neu
