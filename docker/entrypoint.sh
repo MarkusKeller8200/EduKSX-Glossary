@@ -19,6 +19,17 @@ for name in $(env | sed -n 's/^\([A-Z0-9_]*\)_FILE=.*/\1/p'); do
     fi
 done
 
+# Eigene Zertifizierungsstelle (#199): Zertifikate in /etc/glossary/ca/*.crt zusätzlich vertrauen. Funktioniert auch
+# für worker/scheduler (ohne root): eigenes Bündel und PHP-Einstellung in /tmp.
+if ls /etc/glossary/ca/*.crt > /dev/null 2>&1; then
+    mkdir -p /tmp/glossary-ini
+    cat /etc/ssl/certs/ca-certificates.crt /etc/glossary/ca/*.crt > /tmp/glossary-ca.pem
+    printf 'curl.cainfo=/tmp/glossary-ca.pem\nopenssl.cafile=/tmp/glossary-ca.pem\n' > /tmp/glossary-ini/zz-ca.ini
+    export PHP_INI_SCAN_DIR="${PHP_INI_SCAN_DIR:-$PHP_INI_DIR/conf.d}:/tmp/glossary-ini"
+    export SSL_CERT_FILE=/tmp/glossary-ca.pem
+    echo "[glossary] Eigene Zertifizierungsstelle aktiv ($(ls /etc/glossary/ca/*.crt | wc -l) Datei(en))."
+fi
+
 # APP_KEY: aus der Umgebung oder einmalig erzeugen und im Volume speichern.
 if [ -z "${APP_KEY:-}" ]; then
     if [ ! -s storage/app/.app_key ]; then

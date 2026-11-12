@@ -69,6 +69,19 @@ final class ConfigCheck
                 $latest === null ? 'Noch keine Sicherung in storage/app/backups (entsteht beim nächsten Start des Containers).' : 'zuletzt '.date('d.m.Y H:i', $latest));
         }
 
+        // Sicherung ausser Haus (#197): Stand des Dienstes «backup»
+        $offsite = storage_path('app/backups/sicherung.json');
+        if (is_file($offsite)) {
+            $o = json_decode((string) file_get_contents($offsite), true);
+            $am = is_array($o) ? strtotime((string) ($o['am'] ?? '')) : false;
+            $failed = ! is_array($o) || ($o['ergebnis'] ?? '') !== 'ok';
+            $stale = $am === false || time() - $am > 2 * 86400;
+            $add('Daten', 'Sicherung ausser Haus', $failed ? self::FEHLER : ($stale ? self::WARNUNG : self::OK),
+                $failed ? (string) ($o['meldung'] ?? 'unbekannter Fehler') : ($stale ? 'Letzte Sicherung älter als zwei Tage.' : 'zuletzt '.date('d.m.Y H:i', (int) $am)));
+        } else {
+            $add('Daten', 'Sicherung ausser Haus', self::OK, 'nicht über den Dienst «backup» eingerichtet (z. B. Sicherung durch den Betrieb)');
+        }
+
         // Mail und Warteschlange
         $mailHint = MailSettings::unverified()
             ? 'In der Administration eingestellt, aber noch ohne erfolgreiche Testmail (Systemseite).'

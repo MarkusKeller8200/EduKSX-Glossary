@@ -1,0 +1,16 @@
+# Zusatz zu compose.yaml: Betrieb im Schulnetz (#199). Ausgehender Proxy und eigene Zertifizierungsstelle der Schule.
+#   COMPOSE_FILE=compose.yaml:compose.proxy.yaml:compose.schulnetz.yaml  (in .env)
+#   HTTPS_PROXY=http://proxy.schule.local:3128   NO_PROXY=localhost,127.0.0.1,app
+#   Zertifikate der Schule (PEM, Endung .crt) in den Ordner ./ca legen – sie gelten zusätzlich zu den üblichen.
+x-schulnetz: &schulnetz
+    environment:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+        NO_PROXY: ${NO_PROXY:-localhost,127.0.0.1,app}
+    volumes:
+        - ${GLOSSARY_CA_DIR:-./ca}:/etc/glossary/ca:ro
+
+services:
+    app: *schulnetz
+    worker: *schulnetz
+    scheduler: *schulnetz

@@ -1,0 +1,31 @@
+# Zusatz zu compose.yaml: Sicherung ausser Haus mit restic (#197). Verschlüsselt, Ziel S3-kompatibel oder Ordner.
+#   COMPOSE_FILE=compose.yaml:compose.proxy.yaml:compose.backup.yaml  (in .env)
+#   RESTIC_REPOSITORY=s3:https://s3.pub1.infomaniak.cloud/mein-bucket/glossary   (oder /sicherung für einen Ordner)
+#   RESTIC_PASSWORD_FILE=/run/secrets/restic   bzw. RESTIC_PASSWORD=…  (Schlüssel sicher aufbewahren – ohne ihn keine
+#   Wiederherstellung)
+#   AWS_ACCESS_KEY_ID=…  AWS_SECRET_ACCESS_KEY=…  (bei S3)
+#   SICHERUNG_ORDNER=/mnt/nas/glossary  (nur bei einem Ordner als Ziel)
+# Sofort sichern und testen: docker compose run --rm -e SICHERUNG_TEST=jetzt backup jetzt
+services:
+    backup:
+        image: restic/restic:0.17.3
+        restart: unless-stopped
+        entrypoint: ['sh', '/sichern.sh']
+        environment:
+            RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:?RESTIC_REPOSITORY fehlt in .env}
+            RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
+            RESTIC_PASSWORD_FILE: ${RESTIC_PASSWORD_FILE:-}
+            AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+            AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+            SICHERUNG_UHRZEIT: ${SICHERUNG_UHRZEIT:-02:30}
+            SICHERUNG_TAGE: ${SICHERUNG_TAGE:-30}
+            TZ: ${TZ:-Europe/Zurich}
+        volumes:
+            - ./backup/sichern.sh:/sichern.sh:ro
+            - glossary-storage:/data
+            - ${SICHERUNG_ORDNER:-./sicherung}:/sicherung
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+                max-file: '3'

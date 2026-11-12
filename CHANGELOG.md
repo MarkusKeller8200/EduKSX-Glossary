@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Selbst hosten (#179, #197, #198, #199):** Installationsskript `docker/install.sh` für Ubuntu 24.04/26.04 und Debian
+  12/13 mit Bausteinen für Caddy (Standard), vorhandenen Traefik, Schulnetz (Proxy, eigene Zertifizierungsstelle),
+  Update-Dienst und Sicherung ausser Haus (restic, verschlüsselt, 30 Tage, monatlicher Wiederherstellungstest);
+  Anleitung `docs/SELBST-HOSTEN.md`.
 - **Mail-Versand in der Administration (#219):** Systemseite «Versand einrichten» mit Vorlagen (Microsoft 365, Google,
   Infomaniak, Hostinger); Speichern sendet sofort eine Testmail, erst danach gilt der Versand als eingerichtet. Passwort
   verschlüsselt gespeichert und nie angezeigt; Einstellungen in der Umgebung des Servers haben Vorrang.
