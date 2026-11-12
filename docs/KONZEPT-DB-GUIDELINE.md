@@ -126,8 +126,8 @@ entfällt (Quelle ist `terms.url`, K1).
 
 Litestream nach Swiss Backup (laufend) und Einzelsnapshot vor jedem Update durch `docker/entrypoint.sh` (die letzten 10
 lokal), ausser Haus 30 Tage, verschlüsselt. Dateiname `glossary_<YYYY-MM-DD_HH-MM-SS>_v<version>.sqlite` mit
-Begleitdatei (SHA-256, Zeilen je Tabelle). RPO/RTO nach Plattform-Vorschlag für zentrale Dienste (1 Minute / 4 Stunden,
-OFFEN).
+Begleitdatei (SHA-256, Zeilen je Tabelle). RPO/RTO für zentrale Dienste: 1 Minute / 4 Stunden (Plattform-Entscheid E4,
+12.11.2026).
 
 ## 11. Tests im Glossary (C3)
 
@@ -154,7 +154,7 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 | W2 | Umbenennen | `MigrationCompatibilityTest` verbietet `renameColumn`; DEC-030 benennt in 0.12.0 direkt um. | Ausnahme «bereinigter Anfangsstand» nach A5 (Abschnitt 7). |
 | W3 | Migrationen zusammenfassen | KONZEPT-DATENBANK nennt O4 einmal «jetzt», einmal «erst bei PostgreSQL». | Tabelle «Offene Fragen» dort als überholt kennzeichnen. |
 | W4 | Enums | Der Ordner `App\Enums` existiert noch nicht. | Mit 0.12.0 anlegen, ein Enum je Feld aus E4. |
-| W5 | Super-Admin | Rollenkonzept (DEC-017) kennt Community, Moderator, Admin, Developer. | Mit Plattform-Entscheid E6 klären: Super-Admin = Plattformrolle aus Ident; bis dahin Developer. |
+| W5 | Super-Admin | Rollenkonzept (DEC-017) kennt Community, Moderator, Admin, Developer. | Entschieden 12.11.2026 (Plattform E6): Super-Admin = Plattformrolle aus Ident; bis zum Anschluss übernimmt die Rolle Developer. KONZEPT-BENUTZER nachführen. |
 | W6 | Kontolöschung | Löschkonzept: sofort; Guideline: vorläufig mit Frist. | Löschkonzept (neue Version) und Datenschutzerklärung anpassen; Frist rechtlich prüfen. |
 | W7 | Datenklassen | Liste je Spalte fehlt (Abschnitt 3). | Mit 0.12.0 als Anhang zum Datenmodell. |
 | W8 | Identitäten | `user_identities` speichert `tenant_id`; B4 verlangt `issuer` + `subject`. | Beim Anschluss an EduKSX-Ident umstellen. |
