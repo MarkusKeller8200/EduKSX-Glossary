@@ -1,7 +1,7 @@
 # Konzept: Datenbank – Namen, Bereinigung und Erweiterungen (DEC-030)
 
-Stand: **Vorschlag** 12.11.2026 (#266), aus der Prüfung des Schemas im Chat vom 12.11.2026. Meilenstein «0.12.0 – API-
-und DB-Cleanup». Umsetzung erst nach Rückmeldung zu diesem Entwurf. Ergänzt
+Stand: **beschlossen** 12.11.2026 (#266), aus der Prüfung des Schemas im Chat vom 12.11.2026. Meilenstein «0.12.0 – API-
+und DB-Cleanup». Umsetzung erst, wenn ein vollständiger Dump vorliegt (M0). Ergänzt
 [KONZEPT-DATENMODELL.md](KONZEPT-DATENMODELL.md).
 
 ## Ausgangslage
@@ -11,7 +11,8 @@ und DB-Cleanup». Umsetzung erst nach Rückmeldung zu diesem Entwurf. Ergänzt
   Indizes und Fremdschlüssel, ungenutzte Felder und uneinheitliche Namen.
 - **Noch nie produktiv ausgeliefert** (Chat 12.11.2026): Altlasten und Abwärtskompatibilität müssen nicht berücksichtigt
   werden. Daten auf dev bleiben aber erhalten – jede Änderung überführt bestehende Daten, nichts geht verloren.
-- Die **API bleibt v1**; ihre Felder und Werte ändern sich durch diese Bereinigung nicht.
+- Die **API bleibt v1**. Ihre Feldnamen bleiben; die **Werte** von Status und Arten werden wie in der Datenbank englisch
+  (O1, [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md)).
 
 ## Namenskonzept
 
@@ -27,7 +28,7 @@ werden.
 | N5  | **Fremdschlüssel-Regel (E2):** Constraint immer, **ausser** der Verweis muss das Löschen einer Person oder Organisation überleben (Journal, Audit, Ereignisse, Einstellungen) – dann ohne Constraint, aber mit Index.      |
 | N6  | **Zeit:** Zeitpunkt `<x>_at` (timestamp), Datum `<x>_on` (date), Zeitraum `valid_from`/`valid_until` (date).                                                                                                               |
 | N7  | **Ja/Nein:** `is_<x>` oder `has_<x>`, nie verneint.                                                                                                                                                                        |
-| N8  | **Status und Arten:** Spalte `status` bzw. `<x>_type`, Werte als PHP-Enum (E4); mit PostgreSQL zusätzlich CHECK-Regel. Werte siehe O1.                                                                                     |
+| N8  | **Status und Arten:** Spalte `status` bzw. `<x>_type`, Werte englisch `snake_case` als PHP-Enum (E4, O1); mit PostgreSQL zusätzlich CHECK-Regel. Liste der Werte in [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md).    |
 | N9  | **Mehrsprachige Texte:** Deutsch in der Haupttabelle, Französisch/Italienisch/Englisch in `<objekt>_translations` mit `locale` (X1).                                                                                       |
 | N10 | **Abweichungen pro Organisation/Person:** `<feld>_override` in `organization_term_overrides` bzw. `term_user_overrides`.                                                                                                   |
 | N11 | **Indizes** mit den Standardnamen von Laravel (`<tabelle>_<spalten>_index`, `_unique`, `_foreign`); **jede** Fremdschlüssel-Spalte ist indexiert.                                                                          |
@@ -43,7 +44,8 @@ werden.
 | N7    | `users.password_set`, `organization_members.granted_role`, `proposal_events.by_author`, `users.news_opt_in`                                                                                                                                                                                                  | `has_password`, `is_role_granted`, `is_by_author`, `has_news_opt_in` |
 | N2    | `user_audit`, `service_account_audit` (Singular)                                                                                                                                                                                                                                                             | bleiben – Protokoll-Regel N2                                         |
 
-Die Umbenennungen betreffen nur Datenbank und Code; API, Excel und Exporte behalten ihre Feldnamen.
+Die Umbenennungen betreffen nur Datenbank und Code; API, Excel und Exporte behalten ihre Feldnamen. Umgesetzt werden sie
+jetzt (O2).
 
 ## Entscheide aus dem Chat (12.11.2026)
 
@@ -73,15 +75,29 @@ Die Umbenennungen betreffen nur Datenbank und Code; API, Excel und Exporte behal
 
 ## Migration ohne Datenverlust
 
-| Nr. | Vorgehen                                                                                                                                                                                                                              |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M1  | Vor dem Ausrollen eine Sicherung der Datenbank (bestehender Sicherungsbefehl); Probelauf auf einer Kopie der dev-Datenbank.                                                                                                           |
-| M2  | Jede Datenüberführung zählt vorher und nachher (z. B. Suchbegriffe → Aliase) und bricht bei Abweichung ab.                                                                                                                            |
-| M3  | **Altwerte:** Vor dem Entfernen werden alle Einträge als JSON nach `storage/app/archiv/` geschrieben und die Anzahl (offen/erledigt) im Protokoll ausgegeben. Offene Altwerte → Abbruch, bis sie in der Administration erledigt sind. |
-| M4  | Umbenennungen mit `renameColumn` (Daten bleiben); keine neu angelegten Tabellen mit Kopie, ausser SQLite verlangt es.                                                                                                                 |
-| M5  | Tests je Migration: Daten vorher anlegen, migrieren, Inhalt prüfen.                                                                                                                                                                   |
+| Nr. | Vorgehen                                                                                                                                                                                                                                                                                                                                        |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M0  | **Vorbedingung:** Es liegt ein vollständiger Dump der dev-Datenbank vor (Chat 12.11.2026). Dafür gibt es zuerst den Dump als Funktion (#268): Befehl und Download in der Administration, mit oder ohne Passwort (später nur noch mit). Erst danach werden die Änderungen zusammengeführt (jedes Zusammenführen rollt auf dev aus und migriert). |
+| M1  | Vor dem Ausrollen eine Sicherung der Datenbank (bestehender Sicherungsbefehl); Probelauf auf einer Kopie der dev-Datenbank.                                                                                                                                                                                                                     |
+| M2  | Jede Datenüberführung zählt vorher und nachher (z. B. Suchbegriffe → Aliase) und bricht bei Abweichung ab.                                                                                                                                                                                                                                      |
+| M3  | **Altwerte:** Vor dem Entfernen werden alle Einträge als JSON nach `storage/app/archiv/` geschrieben und die Anzahl (offen/erledigt) im Protokoll ausgegeben. Offene Altwerte → Abbruch, bis sie in der Administration erledigt sind.                                                                                                           |
+| M4  | Umbenennungen mit `renameColumn` (Daten bleiben); keine neu angelegten Tabellen mit Kopie, ausser SQLite verlangt es.                                                                                                                                                                                                                           |
+| M5  | Tests je Migration: Daten vorher anlegen, migrieren, Inhalt prüfen.                                                                                                                                                                                                                                                                             |
 
-## Offene Fragen
+## Antworten (Chat 12.11.2026)
+
+| Nr. | Antwort                                                                                                                                                  |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| O1  | **Alles englisch**, auch die Werte in der API; festgehalten im allgemeinen Konzept [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md).                   |
+| O2  | Umbenennungen **jetzt**.                                                                                                                                 |
+| O3  | **Alle Erweiterungen** X1–X4 in 0.12.0 (Tabellen, Logik und Oberfläche; X1 mindestens Erfassung in der Administration und Ausgabe in der API).           |
+| O4  | Migrationen **jetzt zusammenfassen** zu einem bereinigten Anfangsstand; PostgreSQL kommt später. Die dev-Daten werden über den Dump übernommen (M0, M6). |
+
+| Nr. | Ergänzung zur Migration                                                                                                                                                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M6  | **Zusammenfassen ohne Datenverlust:** neuer Anfangsstand; bestehende Datenbanken (dev) erkennt eine Übergangs-Migration und überführt sie Schritt für Schritt (Umbenennen, Werte übersetzen, Suchbegriffe, Altwerte archivieren). Probelauf mit dem Dump; Zählung je Tabelle vorher und nachher. |
+
+## Offene Fragen (beantwortet)
 
 | Nr. | Frage                                                                                                                                                                                                                                                                 | Vorschlag                                |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
