@@ -16,7 +16,8 @@ Projekt: EduKSX-Glossary.
   vorherige Version noch liest – erst erweitern, eine Version später aufräumen. Der Test
   `tests/Unit/MigrationCompatibilityTest.php` prüft das; bewusste Ausnahmen mit Vermerk `abwaertskompatibel: <Grund>`.
 - **Datenbank nach Guideline:** Änderungen an Datenbank, Migrationen und Modellen folgen
-  `docs/KONZEPT-DB-GUIDELINE.md` (DEC-031); deren PR-Checkliste in die Beschreibung übernehmen.
+  `docs/KONZEPT-DB-GUIDELINE.md` (DEC-031, DEC-032) und dem dort verlinkten DB-Standard der Plattform (EduKSX-Architektur);
+  dessen PR-Checkliste in die Beschreibung übernehmen.
 - **CHANGELOG je Thema ein Eintrag:** Folge-Issues im selben Release ergänzen den bestehenden Eintrag (Nummern
   zusammen, z. B. «Fusszeile (#102, #125)») statt einen zweiten anzulegen; keine Leerzeilen zwischen Einträgen.
 
