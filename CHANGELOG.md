@@ -6,6 +6,19 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Ansichten der Begriffe (#205, #213):** drei Darstellungen in der Administration und auf der Startseite: Tabelle,
+  Balken (eine Zeile je Begriff) und Kacheln mit allen Werten (Herkunft und Kategorien, Kurzbeschreibung, Beschreibung
+  und Notiz gekürzt, Aliase, Schreibweisen, Suchbegriffe, Gültigkeit, Daten, Permalink und Quelle), bis drei
+  nebeneinander. Auf der Startseite umschaltbar mit Symbolen, im Browser gemerkt, ohne Funktionen der Administration
+  und nur mit öffentlichen Werten.
+- **Datenschutzerklärung und Löschkonzept (#207):** Betrieb bei Infomaniak in der Schweiz (Server, verschlüsselte
+  Sicherungen, Mail-Versand); Cloudflare nur für DNS, ohne Cloudflare-Cookies; Fristen festgelegt: Serverlogs 14 Tage,
+  Sicherungen 30 Tage.
+
+## [0.9.0] – 2026-11-09
+
 ### Neu
 
 - **Datenmodell (#170):** «Für Entwickler» zeigt alle Tabellen mit Spalten, Schlüsseln und Verweisen, ein

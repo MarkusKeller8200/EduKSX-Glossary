@@ -2,7 +2,7 @@
 
 > **Nicht zur Veröffentlichung freigegeben.** Die folgenden Angaben müssen vor öffentlicher Nutzung anhand tatsächlicher Betriebsdaten, Verträge und Rechtsgrundlagen geprüft werden. Insbesondere sind Betreiber, Anschrift, Kontakt, Datenstandorte und Fristen zu bestätigen. Die anwendbare Schweizer Rechtsordnung hängt auch davon ab, wer die Anwendung rechtlich betreibt; für eine öffentliche Stelle können kantonale Bestimmungen massgeblich sein. Aussagen zur EU-DSGVO gelten nur, soweit diese im Einzelfall anwendbar ist.
 
-**Version:** [1.0] · **Gültig ab:** [Datum] · **Status:** Entwurf vom 07.11.2026
+**Version:** [1.0] · **Gültig ab:** [Datum] · **Status:** Entwurf vom 07.11.2026, nachgeführt am 11.11.2026 (Betrieb bei Infomaniak)
 
 ## 1. Verantwortliche Stelle
 
@@ -16,7 +16,7 @@ EduKSX-Glossary ist eine öffentlich lesbare Begriffssammlung für das Umfeld vo
 
 ### a) Website und öffentliche API
 
-Bei Zugriffen können IP-Adresse, Zeitpunkt, angefragte URL, Browser-/Client-Kennung sowie technische Sicherheitsmerkmale verarbeitet werden. Zweck sind Auslieferung, Fehlerdiagnose, Sicherheit und Missbrauchsschutz beziehungsweise Rate-Limiting. **Vorgesehene Frist für Serverlogs: [14 Tage; technisch prüfen].** Es sind keine Werbe- oder Nutzungsanalyse-Tracker vorgesehen. Temporäre Sicherheitsdaten bei Dienstleistern können abweichenden Fristen folgen; diese sind vor Freigabe zu prüfen.
+Bei Zugriffen können IP-Adresse, Zeitpunkt, angefragte URL, Browser-/Client-Kennung sowie technische Sicherheitsmerkmale verarbeitet werden. Zweck sind Auslieferung, Fehlerdiagnose, Sicherheit und Missbrauchsschutz beziehungsweise Rate-Limiting. **Frist für Serverlogs: 14 Tage**, auch in der zentralen Protokollierung des Betriebs. Es sind keine Werbe- oder Nutzungsanalyse-Tracker vorgesehen. Die Anwendung läuft auf Servern von Infomaniak in der Schweiz; Cloudflare wird nur für die Namensauflösung (DNS) genutzt, Zugriffe laufen nicht über Cloudflare.
 
 ### b) Persönliche Benutzerkonten
 
@@ -45,16 +45,17 @@ Für automatisierte schreibende Integrationen speichern wir Bezeichnung, Zweck, 
 
 Wir verwenden nur technisch notwendige Cookies und speichern vom Besucher selbst gewählte Einstellungen im Browser. Es sind keine Drittanbieter-Cookies zu Werbe- oder Trackingzwecken und keine Nutzungsanalyse vorgesehen. Deshalb zeigt die Website beim ersten Besuch einen Hinweis (keine Einwilligung); kommen später nicht notwendige Cookies dazu, wird daraus eine Einwilligung mit Ablehnen-Möglichkeit. [Rechtliche Einordnung nach DSG bzw. DSGVO/ePrivacy prüfen, #66.]
 
-| Name                      | Art                    | Zweck                                             | Dauer                                             | Anbieter   |
-| ------------------------- | ---------------------- | ------------------------------------------------- | ------------------------------------------------- | ---------- |
-| `eduksx-glossary-session` | Cookie, notwendig      | Sitzung (Anmeldung, Formulare)                    | bis zum Schliessen bzw. [120 Minuten] Inaktivität | Glossary   |
-| `XSRF-TOKEN`              | Cookie, notwendig      | Schutz gegen gefälschte Formulare                 | wie die Sitzung                                   | Glossary   |
-| `remember_web_…`          | Cookie, notwendig      | «Angemeldet bleiben», nur wenn gewählt            | bis zum Abmelden, höchstens [400 Tage; prüfen]    | Glossary   |
-| `appearance`              | Cookie und Browser     | Einstellung hell/dunkel/System                    | 1 Jahr                                            | Glossary   |
-| `view-width`              | Browser (localStorage) | Ansicht Mobil/Desktop schmal/ganze Breite (#76)   | bis zum Löschen im Browser                        | Glossary   |
-| `cookie-notice`           | Browser (localStorage) | Hinweis zu Cookies gelesen (mit Fassung)          | bis zum Löschen im Browser                        | Glossary   |
-| `__cf_bm` u. a.           | Cookie, notwendig      | Schutz vor Bots im Betrieb hinter Cloudflare      | [30 Minuten; prüfen]                              | Cloudflare |
-| Turnstile                 | Cookie/Speicher        | Schutz der Registrierung, nur auf `/registrieren` | [prüfen]                                          | Cloudflare |
+| Name                      | Art                    | Zweck                                                                                                     | Dauer                                             | Anbieter   |
+| ------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ---------- |
+| `eduksx-glossary-session` | Cookie, notwendig      | Sitzung (Anmeldung, Formulare)                                                                            | bis zum Schliessen bzw. [120 Minuten] Inaktivität | Glossary   |
+| `XSRF-TOKEN`              | Cookie, notwendig      | Schutz gegen gefälschte Formulare                                                                         | wie die Sitzung                                   | Glossary   |
+| `remember_web_…`          | Cookie, notwendig      | «Angemeldet bleiben», nur wenn gewählt                                                                    | bis zum Abmelden, höchstens [400 Tage; prüfen]    | Glossary   |
+| `appearance`              | Cookie und Browser     | Einstellung hell/dunkel/System                                                                            | 1 Jahr                                            | Glossary   |
+| `view-width`              | Browser (localStorage) | Ansicht Mobil/Desktop schmal/ganze Breite (#76)                                                           | bis zum Löschen im Browser                        | Glossary   |
+| `cookie-notice`           | Browser (localStorage) | Hinweis zu Cookies gelesen (mit Fassung)                                                                  | bis zum Löschen im Browser                        | Glossary   |
+| `glossary.ansicht`        | Browser (localStorage) | gewählte Ansicht der Begriffe (Balken, Tabelle, Kacheln)                                                  | bis zum Löschen im Browser                        | Glossary   |
+| `glossary.grid.…`         | Browser (localStorage) | Spaltenbreiten und Sortierung von Tabellen                                                                | bis zum Löschen im Browser                        | Glossary   |
+| Turnstile                 | Cookie/Speicher        | Schutz der Registrierung, nur auf `/registrieren`, **nur falls eingeschaltet** (derzeit nicht vorgesehen) | [prüfen]                                          | Cloudflare |
 
 Die Lesefassung auf GitHub Pages setzt selbst keine Cookies.
 
@@ -68,15 +69,16 @@ Microsoft-Anmeldung wird für private und organisatorische Microsoft-Konten vorg
 
 Wir verwenden Dienstleister ausschliesslich für dokumentierte Zwecke. Die konkrete Konfiguration und Unterauftragsbearbeitung sind vor Publikation zu verifizieren:
 
-| Anbieter / Dienst                                             | Datenkategorien / Zweck                                                                 | Standort / Prüfung                                          |
-| ------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Hostinger                                                     | Hosting von Anwendung, Konten, Datenbank und Betriebsdaten                              | [konkretes Rechenzentrum und Verträge prüfen]               |
-| Cloudflare                                                    | IP-Adresse, Verbindungs- und Sicherheitsdaten für Proxy/WAF und ggf. Turnstile          | [Verarbeitungsorte, Produktkonfiguration, Garantien prüfen] |
-| [tatsächlicher Mailanbieter]                                  | E-Mail-Adresse, Versand- und Nachrichtenmetadaten, technische Konto-Nachrichten         | [Anbieter, Ort, Unterauftragsbearbeiter]                    |
-| Microsoft, nur bei Nutzung der Anmeldung                      | Authentifizierungsdaten und angeforderte Attribute                                      | [vertragliche Hinweise / Auslandbearbeitung prüfen]         |
-| Edulog/angeschlossene Identitätsdienste, erst bei Aktivierung | pseudonyme Kennungen und vereinbarte Attribute                                          | [Föderationsbedingungen / konkrete Stellen prüfen]          |
-| GitHub                                                        | öffentliche statische Lesefassung; personenbezogene GitHub-Issues nur bei deren Nutzung | [Datenflüsse und Hinweise prüfen]                           |
-| jsDelivr / Bunny Fonts                                        | keine – Schrift und API-Doku werden selbst ausgeliefert (#44)                           | entfällt; Zustand bei Änderungen erneut prüfen              |
+| Anbieter / Dienst                                             | Datenkategorien / Zweck                                                                 | Standort / Prüfung                                              |
+| ------------------------------------------------------------- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Infomaniak (Server)                                           | Hosting von Anwendung, Konten, Datenbank und Betriebsdaten (inkl. Serverlogs)           | Schweiz; [Vertrag zur Auftragsbearbeitung abschliessen]         |
+| Infomaniak Swiss Backup                                       | verschlüsselte Sicherungskopien (Schlüssel nur beim Betreiber)                          | Schweiz; [im Vertrag mit Infomaniak abdecken]                   |
+| Cloudflare                                                    | nur Namensauflösung (DNS), kein Proxy; Turnstile nur falls eingeschaltet                | USA/weltweit; [bei Einsatz als Proxy oder Turnstile neu prüfen] |
+| Infomaniak (Mail-Versand)                                     | E-Mail-Adresse, Versand- und Nachrichtenmetadaten, technische Konto-Nachrichten         | Schweiz; [im Vertrag mit Infomaniak abdecken]                   |
+| Microsoft, nur bei Nutzung der Anmeldung                      | Authentifizierungsdaten und angeforderte Attribute                                      | [vertragliche Hinweise / Auslandbearbeitung prüfen]             |
+| Edulog/angeschlossene Identitätsdienste, erst bei Aktivierung | pseudonyme Kennungen und vereinbarte Attribute                                          | [Föderationsbedingungen / konkrete Stellen prüfen]              |
+| GitHub                                                        | öffentliche statische Lesefassung; personenbezogene GitHub-Issues nur bei deren Nutzung | [Datenflüsse und Hinweise prüfen]                               |
+| jsDelivr / Bunny Fonts                                        | keine – Schrift und API-Doku werden selbst ausgeliefert (#44)                           | entfällt; Zustand bei Änderungen erneut prüfen                  |
 
 Daten werden weder verkauft noch für fremde Werbung bereitgestellt. Internationale Übermittlungen werden anhand der tatsächlich beteiligten Empfänger und einer im Einzelfall einschlägigen Grundlage abgesichert. Die Verfügbarkeit eines Datenschutzrahmens oder von Standardvertragsklauseln darf **nicht pauschal für jeden Anbieter oder jede Bearbeitung** unterstellt werden.
 
@@ -94,8 +96,8 @@ Die tatsächlichen Fristen werden in einem internen, versionierten Löschkonzept
 | Änderungsjournal der Begriffe                            | Name bei Kontolöschung durch «Gelöschtes Konto» ersetzt              | Freitexte in Änderungswerten auf Personenbezug prüfen                     |
 | Vorschläge und private Moderationsdaten                  | zweckbezogen begrenzen; keine unbegrenzte Personenbindung            | konkrete Frist und redaktioneller Archivbedarf                            |
 | Rollen- und Sicherheits-Audits                           | **[vorläufig 5 Jahre]**                                              | Erforderlichkeit, Verhältnismässigkeit, Rechtsgrundlage und Umfang prüfen |
-| Serverlogs                                               | [14 Tage]                                                            | tatsächliche Einstellungen auch bei Dienstleistern                        |
-| Sicherungskopien                                         | [30 Tage]                                                            | Wiederherstellungsverfahren und ausgenommene Daten                        |
+| Serverlogs                                               | 14 Tage, auch in der zentralen Protokollierung                       | Umsetzung im Betrieb nachweisen                                           |
+| Sicherungskopien                                         | 30 Tage (verschlüsselt, Schweiz)                                     | Wiederherstellungsverfahren und ausgenommene Daten                        |
 
 Nach Kontolöschung können fachliche Vorschlagsinhalte nur dann ohne Personenbezug verbleiben, wenn nicht nur die Kontoreferenz, sondern auch identifizierende Freitextinhalte und Verknüpfungsmöglichkeiten angemessen berücksichtigt werden. Sicherheitsprotokolle können bei dokumentiertem Bedarf begrenzt fortbestehen. Bei der Wiederherstellung von Backups werden bereits ausgeführte Löschungen und Sperren erneut angewandt.
 

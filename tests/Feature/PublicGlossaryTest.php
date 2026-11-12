@@ -39,6 +39,25 @@ class PublicGlossaryTest extends TestCase
             ->where('begriffe.0.kategorien', ['Personal']));
     }
 
+    /** Kacheln und Tabelle auf der Startseite (#213): alle öffentlichen Werte, keine internen. */
+    public function test_startseite_liefert_oeffentliche_werte_fuer_kacheln(): void
+    {
+        $this->term([
+            'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'short_description' => 'Leitet die Schule.',
+            'description' => 'Führt die Schule pädagogisch und organisatorisch.', 'url' => 'https://example.ch/sl',
+            'note' => 'intern', 'official_aliases' => ['Schulleiterin'],
+        ]);
+
+        $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('home')
+            ->where('begriffe.0.beschreibung', 'Führt die Schule pädagogisch und organisatorisch.')
+            ->where('begriffe.0.url', 'https://example.ch/sl')
+            ->where('begriffe.0.aliase', ['Schulleiterin'])
+            ->where('begriffe.0.code', fn ($code): bool => is_string($code) && strlen($code) === 6)
+            ->missing('begriffe.0.notiz')
+            ->missing('begriffe.0.note')
+            ->missing('begriffe.0.revision'));
+    }
+
     public function test_detailseite_zeigt_veroeffentlichten_stand(): void
     {
         $term = $this->term(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'short_description' => 'Alt.', 'note' => 'intern']);
