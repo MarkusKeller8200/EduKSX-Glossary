@@ -12,6 +12,9 @@ Projekt: EduKSX-Glossary.
 - **Dateien nur nach Rückfrage löschen.**
 - **Anzeigetexte ohne Entscheidnummern:** «DEC-xxx» nur in Konzepten, `docs/ENTSCHEIDE.md` und Code-Kommentaren, nie in
   Texten für Nutzer (Website, Hilfe, Changelog, API-Beschreibung) – Chat 08.11.2026, #172.
+- **Migrationen abwärtskompatibel (#184, DEC-027 U18):** In derselben Version nichts entfernen oder umbenennen, was die
+  vorherige Version noch liest – erst erweitern, eine Version später aufräumen. Der Test
+  `tests/Unit/MigrationCompatibilityTest.php` prüft das; bewusste Ausnahmen mit Vermerk `abwaertskompatibel: <Grund>`.
 - **CHANGELOG je Thema ein Eintrag:** Folge-Issues im selben Release ergänzen den bestehenden Eintrag (Nummern
   zusammen, z. B. «Fusszeile (#102, #125)») statt einen zweiten anzulegen; keine Leerzeilen zwischen Einträgen.
 
