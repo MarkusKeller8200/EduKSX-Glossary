@@ -104,8 +104,7 @@ Unterbruch wenige Sekunden. 200 Instanzen in zwei Ringen sind in einer Nacht akt
 2. **Automatische Updates:** Vorgabe «nur Korrekturen» (PATCH); in den Einstellungen abschaltbar.
 3. **Ausgelieferte Stände:** test und prod sowie selbst gehostete Instanzen erhalten nur Releases; jeder Merge
    geht nur auf dev (Hostinger, DEC-028).
-4. **Variante ohne Docker (U12):** vorerst nicht umsetzen; nur Docker wird unterstützt. #181 bleibt zurückgestellt
-   und wird erst bei einer konkreten Anfrage einer Schule geprüft (Empfehlung, Bestätigung ausstehend).
+4. **Variante ohne Docker (U12):** wird nicht umgesetzt; unterstützt wird nur Docker (#181 geschlossen).
 5. **Abgleich der Inhalte (U11):** wählbar je Instanz – automatisch übernehmen oder manuell. Manuell zeigt eine
    Liste der Änderungen mit Kontrollkästchen; einzelne, mehrere oder alle lassen sich auf einmal übernehmen.
 6. **Viele Kunden:** zuerst zentral mit Organisationen. Eigene Instanzen werden vorbereitet, aber nur auf
