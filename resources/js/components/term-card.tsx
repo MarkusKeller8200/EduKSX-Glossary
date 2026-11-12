@@ -78,7 +78,7 @@ export default function TermCard({
     return (
         <article className="flex h-full min-w-0 flex-col gap-2 break-words">
             {/* Kopf zweizeilig (#229): Abkürzung | Herkunft, Status – Bezeichnung | Kategorien */}
-            <header className="grid gap-1">
+            <header className="grid grid-cols-1 gap-1">
                 <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
                     <Link
                         href={href}
@@ -122,7 +122,7 @@ export default function TermCard({
                             </p>
                         ) : null}
                         {b.kategorien.length > 0 ? (
-                            <div className="ml-auto flex max-w-[60%] shrink-0 flex-col items-end gap-1 sm:flex-row sm:flex-wrap sm:justify-end">
+                            <div className="ml-auto flex shrink-0 flex-col items-end gap-1 sm:max-w-[60%] sm:flex-row sm:flex-wrap sm:justify-end">
                                 {b.kategorien.map((l) => (
                                     <ListBadge
                                         key={`k-${l}`}
