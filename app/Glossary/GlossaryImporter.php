@@ -60,6 +60,15 @@ final class GlossaryImporter
                         if ($term === null && $id !== '') {
                             $data['id'] = $id;
                         }
+                        // Übersetzungen (#291): Spalten der Datei über den Bestand legen, fehlende Spalten bleiben
+                        if (isset($data['translation_columns'])) {
+                            $translations = $term !== null ? (array) ($this->glossary->snapshot($term)['translations'] ?? []) : [];
+                            foreach ((array) $data['translation_columns'] as $locale => $fields) {
+                                $translations[$locale] = (array) ($fields) + (array) ($translations[$locale] ?? []);
+                            }
+                            $data['translations'] = $translations;
+                            unset($data['translation_columns']);
+                        }
                         $saved = $this->glossary->save($term, $data, $user, $canEditOfficial || $term === null, null, 'updated', ['via' => 'excel']);
                         $after = ExcelFormat::normalize(ExcelFormat::row($saved->refresh()));
 
