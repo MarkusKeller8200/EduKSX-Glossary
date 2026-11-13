@@ -27,6 +27,9 @@ return [
     'api_stability' => env('GLOSSARY_API_STABILITY', 'preview'),
 
     // Datenschutzerklärung: Version, deren Kenntnisnahme bei Registrierung bzw. Änderung gespeichert wird (#41, #42)
+    // Selbstregistrierung (#302): Vorgabe des Schalters in den Einstellungen; wirkt nur mit eingerichtetem Versand
+    'registration_open' => (bool) env('GLOSSARY_REGISTRATION_OPEN', false),
+
     // Papierkorb (#286): Tage bis zur endgültigen Löschung; einstellen nur im Betrieb (Super-Admin)
     'trash_days' => (int) env('GLOSSARY_TRASH_DAYS', 30),
 
