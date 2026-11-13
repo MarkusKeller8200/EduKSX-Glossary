@@ -23,26 +23,17 @@ export type MailEinstellung = {
 };
 
 /** Vorlagen der gängigen Anbieter (DEPLOY.md, Abschnitt E-Mail-Versand). */
-const VORLAGEN: Record<
-    string,
-    { host: string; port: number; scheme: string; username?: string }
-> = {
-    'Microsoft 365': {
-        host: 'smtp.office365.com',
-        port: 587,
-        scheme: 'smtp',
-    },
-    Google: { host: 'smtp.gmail.com', port: 587, scheme: 'smtp' },
-    Infomaniak: { host: 'mail.infomaniak.com', port: 465, scheme: 'smtps' },
-    Hostinger: { host: 'smtp.hostinger.com', port: 465, scheme: 'smtps' },
-    // Cloudflare Email Service (#300): Benutzer fest «api_token», Passwort = API-Token mit Recht Email Sending
-    Cloudflare: {
-        host: 'smtp.mx.cloudflare.net',
-        port: 465,
-        scheme: 'smtps',
-        username: 'api_token',
-    },
-};
+const VORLAGEN: Record<string, { host: string; port: number; scheme: string }> =
+    {
+        'Microsoft 365': {
+            host: 'smtp.office365.com',
+            port: 587,
+            scheme: 'smtp',
+        },
+        Google: { host: 'smtp.gmail.com', port: 587, scheme: 'smtp' },
+        Infomaniak: { host: 'mail.infomaniak.com', port: 465, scheme: 'smtps' },
+        Hostinger: { host: 'smtp.hostinger.com', port: 465, scheme: 'smtps' },
+    };
 
 /**
  * Mail-Versand in der Administration einrichten (#219): Speichern sendet sofort eine Testmail; erst danach gilt der
