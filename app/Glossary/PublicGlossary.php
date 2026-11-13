@@ -308,11 +308,6 @@ final class PublicGlossary
     }
 
     /**
-     * Abbilder der veröffentlichten Revisionen aktiver Begriffe.
-     *
-     * @return Collection<int, array<string, mixed>>
-     */
-    /**
      * Beziehungen eines Begriffs für die Detailseite (X2, #283): eigene und – in Gegenrichtung benannt – solche
      * anderer veröffentlichter Begriffe auf diesen; nur öffentliche Ziele, zusammengeführte aufgelöst.
      *
@@ -357,6 +352,11 @@ final class PublicGlossary
         return $out;
     }
 
+    /**
+     * Abbilder der veröffentlichten Revisionen aktiver Begriffe.
+     *
+     * @return Collection<int, array<string, mixed>>
+     */
     private function published(): Collection
     {
         // Abbilder je Datenstand zwischengespeichert (#137)

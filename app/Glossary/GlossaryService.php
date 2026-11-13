@@ -328,8 +328,8 @@ final class GlossaryService
         $successors = array_filter($relations, fn (array $r): bool => $r['type'] === RelationType::Successor->value);
         if (count(array_unique(array_column($successors, 'term_id'))) > 1) {
             $first = reset($successors);
-            $keep = $target->termRelations->firstWhere('relation_type', RelationType::Successor->value)?->related_term_id
-                ?? ($first !== false ? $first['term_id'] : null);
+            $own = $target->termRelations->firstWhere('relation_type', RelationType::Successor->value);
+            $keep = $own !== null ? $own->related_term_id : ($first !== false ? $first['term_id'] : null);
             $relations = array_values(array_filter($relations, fn (array $r): bool => $r['type'] !== RelationType::Successor->value || $r['term_id'] === $keep));
         }
         $data['relations'] = $relations;
