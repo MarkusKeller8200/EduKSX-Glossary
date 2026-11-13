@@ -9,7 +9,6 @@ use App\Models\Organization;
 use App\Models\Source;
 use App\Models\User;
 use App\Organizations\OrganizationService;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -66,7 +65,7 @@ class TrashController extends Controller
         return back()->with('status', "{$label} «{$item->name}» wiederhergestellt.");
     }
 
-    private function restoreList(Model $item): void
+    private function restoreList(Category|Source $item): void
     {
         $item->restoreFromTrash();
     }
