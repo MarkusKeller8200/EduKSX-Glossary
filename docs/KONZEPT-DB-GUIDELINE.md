@@ -1,7 +1,7 @@
-# Konzept: DB-Guideline EduKSX-Glossary (#270, #272)
+# Konzept: DB-Guideline EduKSX-Glossary (#270, #272, #310)
 
-Stand: 12.11.2026 (Version 1.1) · Verantwortlich: Markus Keller · Status: **abgenommen** am 12.11.2026 (Version 1.0: DEC-031,
-Version 1.1: DEC-032)
+Stand: 13.11.2026 (Version 1.2) · Verantwortlich: Markus Keller · Status: **abgenommen** am 13.11.2026 (Version 1.0: DEC-031,
+Version 1.1: DEC-032, Version 1.2: DEC-037) · arbeitet nach **DB-Standard 1.2** der Plattform
 
 Diese Guideline wendet den **DB-Standard der EduKSX-Plattform** (Repo EduKSX-Architektur,
 `docs/KONZEPT-DB-GUIDELINE.md`, nicht öffentlich) auf das Glossary an. Allgemeine Regeln – Namen, Normalisierung,
@@ -149,7 +149,23 @@ Begleitdatei (SHA-256, Zeilen je Tabelle). RPO/RTO für zentrale Dienste: 1 Minu
 Zusätzlich zur PR-Checkliste des Standards: API-Werte unverändert oder Abgleich im Intranet (sek-intranet) informiert;
 CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
-## 12. Offene Punkte
+## 12. DB-Standard 1.2 im Glossary (Teil E, B7–B14)
+
+| Regel | Im Glossary | Umsetzung |
+| --- | --- | --- |
+| E1 Modulschlüssel | `glossary` | – |
+| E2 Schema je Modul | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary` | mit PostgreSQL #191 |
+| E3 Plattform-IDs | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186) | #311 |
+| E5 Versionsbindung | dieses Dokument: «arbeitet nach DB-Standard 1.2»; Konformitätstests aus `eduksx/core`, sobald herausgelöst | – |
+| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration | #312 |
+| B9 Zweck je Tabelle | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen | #314 |
+| B10 Folgenabschätzung | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278 |
+| B11 Lesezugriffe | entfällt (keine Daten der Klasse besonders schützenswert) | – |
+| B12 Anonymisierte Kopien | Dump (#268) für dev und test nur anonymisiert | #313 |
+| B13 Einschränkung | `users.is_processing_restricted` | #312 |
+| B14 Zusammenlegen | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API | – |
+
+## 13. Offene Punkte
 
 Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über die genannten Issues.
 
@@ -172,3 +188,4 @@ Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über d
 - 12.11.2026: Version 1.1 abgenommen (DEC-032) – allgemeine Regeln in den Plattform-Standard verschoben, Glossary-Teil mit Geltungsbereichen,
   Datenklassen, Löschregister, zusammengesetztem Fremdschlüssel für `published_revision_id`, Archivfrist (#272).
 - 12.11.2026: offene Punkte W1–W8 entschieden (DEC-033, #274).
+- 13.11.2026: Version 1.2 abgenommen (DEC-037) – Anwendung von DB-Standard 1.2 (Modularität, Datenschutz) (#310).
