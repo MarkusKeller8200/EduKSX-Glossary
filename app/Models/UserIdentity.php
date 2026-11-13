@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Verknüpfter Anmeldedienst eines Kontos (#45). Eindeutig über provider + issuer + subject.
+ * Verknüpfter Anmeldedienst eines Kontos (#45). Eindeutig über issuer + subject (W8, #277); tenant_id ist abgeleitet.
  *
  * @property int $id
  * @property string $user_id
@@ -21,6 +21,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class UserIdentity extends Model
 {
+    /** Tenant der privaten Microsoft-Konten (kein Mandant einer Organisation). */
+    public const MICROSOFT_CONSUMER_TENANT = '9188040d-6c67-4c5b-b112-36a304b66dad';
+
     /** Anzeigenamen der Anbieter. */
     public const PROVIDERS = ['microsoft' => 'Microsoft', 'edulog' => 'Edulog'];
 

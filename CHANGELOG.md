@@ -19,6 +19,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Beziehungen zwischen Begriffen (#283):** In der Redaktion lassen sich Nachfolger, «siehe auch», Ober- und
   Unterbegriffe erfassen; sie werden mit dem Begriff veröffentlicht. Die Seite eines Begriffs zeigt sie unter
   «Verwandte Begriffe», auch in Gegenrichtung (z. B. Vorgänger). Die API liefert sie in `relations`.
+- **Organisation mit Microsoft-Tenant (#284):** Organisations-Admins können den Microsoft-Tenant ihrer Organisation
+  hinterlegen, sofern sie selbst damit verknüpft sind. Wer sich aus diesem Tenant mit Microsoft anmeldet und noch
+  keiner Organisation angehört, erhält eine Einladung; Rechte entstehen dadurch keine.
+- **Suchen ohne Treffer (#285):** Findet eine Suche auf der Website oder in der API nichts, zählt die Anwendung den
+  Suchtext ohne Personenbezug. Die Redaktion sieht die Liste unter «Ohne Treffer»; Einträge werden 90 Tage nach der
+  letzten gleichen Suche gelöscht.
 
 ### Geändert
 
@@ -31,6 +37,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **API: Werte englisch (#266):** Status eines Begriffs `current`, `historical`, `under_review`; Status eines Vorschlags
   `organization_review`, `submitted`, `query`, `accepted`, `rejected`, `withdrawn`. Feldnamen bleiben; der Filter
   `status` nimmt auch die bisherigen Werte an.
+- **Microsoft-Anmeldung (#277):** Ein verknüpftes Konto wird über Aussteller und Kennung erkannt, unabhängig vom
+  Anbieter; bestehende Verknüpfungen bleiben erhalten.
 
 ## [0.11.0] – 2026-11-12
 

@@ -65,6 +65,9 @@ class OrganizationController extends Controller
             'admin' => $admin,
             'zwei_faktor' => $user->hasTwoFactor(),
             'gegruendet' => $organization->created_at?->toDateString(),
+            // Mandant (X3, #284): Microsoft-Tenant und die Tenants, mit denen der Admin selbst verknüpft ist
+            'tenant' => $organization->entra_tenant_id,
+            'meine_tenants' => $admin ? $this->organizations->tenantsOf($user) : [],
         ];
         if (! $member->isActive()) {
             return Inertia::render('organization/show', $props);
@@ -148,6 +151,16 @@ class OrganizationController extends Controller
         $user = $this->currentUser($request);
 
         return $this->run(fn () => $this->organizations->rename($user, $this->organizationOf($user), (string) $data['name']), 'Name gespeichert.', 'name');
+    }
+
+    public function tenant(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['tenant' => ['nullable', 'string', 'size:36']]);
+        $user = $this->currentUser($request);
+        $tenant = isset($data['tenant']) ? (string) $data['tenant'] : null;
+
+        return $this->run(fn () => $this->organizations->setTenant($user, $this->organizationOf($user), $tenant),
+            $tenant === null ? 'Microsoft-Tenant gelöst.' : 'Microsoft-Tenant gespeichert.', 'tenant');
     }
 
     public function destroy(Request $request): RedirectResponse

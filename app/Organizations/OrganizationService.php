@@ -15,6 +15,7 @@ use App\Models\Role;
 use App\Models\Term;
 use App\Models\TermUserOverride;
 use App\Models\User;
+use App\Models\UserIdentity;
 use App\Proposals\ProposalService;
 use App\Support\MailSetup;
 use Illuminate\Support\Facades\DB;
@@ -100,6 +101,59 @@ final class OrganizationService
             }
         }, ['organization' => $organization->name, 'name' => $name]);
         $organization->forceFill(['name' => $name])->save();
+    }
+
+    /**
+     * Microsoft-Tenant der Organisation setzen oder lösen (X3, #284). Nur ein Tenant, mit dem der Organisations-Admin
+     * selbst mit Microsoft verknüpft ist (Nachweis), nie der Tenant privater Konten; je Tenant eine Organisation.
+     */
+    public function setTenant(User $actor, Organization $organization, ?string $tenant): void
+    {
+        $tenant = $tenant !== null && trim($tenant) !== '' ? mb_strtolower(trim($tenant)) : null;
+        $this->guard($actor, null, 'organization.tenant', function () use ($actor, $organization, $tenant): void {
+            $this->requireAdmin($actor, $organization);
+            if ($tenant === null) {
+                return;
+            }
+            if ($tenant === UserIdentity::MICROSOFT_CONSUMER_TENANT || ! in_array($tenant, $this->tenantsOf($actor), true)) {
+                throw new AccessDenied('Nur ein Tenant, mit dem Sie selbst über Microsoft angemeldet sind (Geschäfts- oder Schulkonto).');
+            }
+            if (Organization::query()->where('entra_tenant_id', $tenant)->whereKeyNot($organization->id)->exists()) {
+                throw new AccessDenied('Dieser Tenant gehört schon zu einer anderen Organisation.');
+            }
+        }, ['organization' => $organization->name, 'tenant' => $tenant]);
+        $organization->forceFill(['entra_tenant_id' => $tenant])->save();
+    }
+
+    /**
+     * Microsoft-Tenants der verknüpften Identitäten (ohne private Konten).
+     *
+     * @return list<string>
+     */
+    public function tenantsOf(User $user): array
+    {
+        return array_values(array_unique(array_map('strval', $user->identities()->where('provider', 'microsoft')->whereNotNull('tenant_id')
+            ->where('tenant_id', '!=', UserIdentity::MICROSOFT_CONSUMER_TENANT)->pluck('tenant_id')->all())));
+    }
+
+    /**
+     * Bei der Microsoft-Anmeldung (X3, #284): Gehört der Tenant zu einer Organisation und ist das Konto in keiner,
+     * entsteht eine Einladung – die Person entscheidet selbst (keine automatische Mitgliedschaft, keine Rechte).
+     */
+    public function inviteByTenant(User $user, ?string $tenant): void
+    {
+        if ($tenant === null || $tenant === UserIdentity::MICROSOFT_CONSUMER_TENANT || $this->membershipOf($user) !== null) {
+            return;
+        }
+        $organization = Organization::query()->where('entra_tenant_id', mb_strtolower($tenant))->first();
+        if ($organization === null) {
+            return;
+        }
+        $invitation = OrganizationInvitation::query()->firstOrNew(['organization_id' => $organization->id, 'email' => mb_strtolower($user->email)]);
+        if (! $invitation->exists || $invitation->expires_at->isPast()) {
+            $invitation->forceFill(['invited_by_id' => null, 'expires_at' => now()->addDays(OrganizationInvitation::DAYS)])->save();
+            Audit::log(null, $user, 'organization.invited_by_tenant', ['organization' => $organization->name]);
+        }
     }
 
     /** Organisation mit Darstellung, Einladungen und Servicekonten löschen; Konten bleiben bestehen. */

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $id
  * @property string $name
  * @property string|null $created_by_id
+ * @property string|null $entra_tenant_id Microsoft-Tenant (X3, #284), eindeutig
  * @property CarbonImmutable|null $created_at
  * @property-read Collection<int, OrganizationMember> $members
  * @property-read Collection<int, OrganizationInvitation> $invitations

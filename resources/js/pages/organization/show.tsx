@@ -16,6 +16,8 @@ type Organisation = {
     admin: boolean;
     zwei_faktor: boolean;
     gegruendet: string | null;
+    tenant: string | null;
+    meine_tenants: string[];
 };
 
 type Mitglied = {
@@ -155,6 +157,8 @@ export default function OrganizationShow(props: Props) {
                         <Verwaltung
                             name={org.name}
                             servicekonten={props.servicekonten}
+                            tenant={org.tenant}
+                            meineTenants={org.meine_tenants}
                         />
                     ) : null}
                     <Austreten />
@@ -754,10 +758,19 @@ function Anpassungen({ anpassungen }: { anpassungen: Anpassung[] }) {
 function Verwaltung({
     name,
     servicekonten,
+    tenant,
+    meineTenants,
 }: {
     name: string;
     servicekonten: number;
+    tenant: string | null;
+    meineTenants: string[];
 }) {
+    const tenantForm = useForm<{ tenant: string | null }>({ tenant: null });
+    const setTenant = (wert: string | null) => {
+        tenantForm.transform(() => ({ tenant: wert }));
+        tenantForm.put('/organisation/tenant', opts);
+    };
     const form = useForm({ name });
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -796,6 +809,56 @@ function Verwaltung({
                 </Button>
             </form>
             <InputError message={form.errors.name} />
+
+            <h3 className="mt-6 text-sm font-semibold">Microsoft-Tenant</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+                Meldet sich jemand aus diesem Tenant mit Microsoft an und gehört
+                noch keiner Organisation an, erhält die Person eine Einladung.
+                Sie entscheidet selbst; Rechte gibt es dadurch keine. Wählbar
+                ist nur ein Tenant, mit dem Sie selbst über Microsoft verknüpft
+                sind.
+            </p>
+            <p className="mt-2 text-sm">
+                {tenant ? (
+                    <>
+                        Aktuell: <code translate="no">{tenant}</code>{' '}
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2"
+                            disabled={tenantForm.processing}
+                            onClick={() => setTenant(null)}
+                        >
+                            Lösen
+                        </Button>
+                    </>
+                ) : (
+                    'Kein Tenant hinterlegt.'
+                )}
+            </p>
+            {meineTenants.filter((t) => t !== tenant).length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                    {meineTenants
+                        .filter((t) => t !== tenant)
+                        .map((t) => (
+                            <Button
+                                key={t}
+                                variant="outline"
+                                size="sm"
+                                disabled={tenantForm.processing}
+                                onClick={() => setTenant(t)}
+                            >
+                                <span translate="no">{t}</span> übernehmen
+                            </Button>
+                        ))}
+                </div>
+            ) : !tenant ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                    Dazu unter «Mein Konto» ein Microsoft-Geschäfts- oder
+                    Schulkonto verknüpfen.
+                </p>
+            ) : null}
+            <InputError message={tenantForm.errors.tenant} />
 
             <h3 className="mt-6 text-sm font-semibold">API-Zugang</h3>
             <p className="mt-1 text-sm text-muted-foreground">

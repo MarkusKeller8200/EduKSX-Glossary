@@ -44,7 +44,7 @@ class AccountController extends Controller
                 'identitaeten' => $user->identities()->orderBy('created_at')->get()->map(fn (UserIdentity $i): array => [
                     'id' => $i->id,
                     'anbieter' => UserIdentity::PROVIDERS[$i->provider] ?? $i->provider,
-                    'art' => $i->tenant_id === '9188040d-6c67-4c5b-b112-36a304b66dad' ? 'privates Konto' : 'Geschäfts- oder Schulkonto',
+                    'art' => $i->tenant_id === UserIdentity::MICROSOFT_CONSUMER_TENANT ? 'privates Konto' : 'Geschäfts- oder Schulkonto',
                     'seit' => $i->created_at?->toDateString(),
                     'zuletzt' => $i->last_used_at?->toDateString(),
                 ])->all(),

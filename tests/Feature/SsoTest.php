@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
 use App\Models\UserIdentity;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery\MockInterface;
 use RuntimeException;
@@ -136,5 +137,22 @@ class SsoTest extends TestCase
 
         $this->get('/anmelden/microsoft/rueckkehr')->assertRedirect('/anmelden')->assertSessionHasErrors('email');
         $this->assertGuest();
+    }
+
+    /** W8 (#277): Schlüssel ist issuer + subject – gleiches subject bei anderem Aussteller ist eine andere Identität. */
+    public function test_gleiches_subject_anderer_aussteller_ergibt_zwei_identitaeten(): void
+    {
+        $anna = User::query()->create(['first_name' => 'Anna', 'last_name' => 'Muster', 'email' => 'anna@schule.example', 'password' => 'ein-langes-Test-Passwort-1']);
+        $anna->identities()->create(['provider' => 'microsoft', 'issuer' => self::ISSUER, 'subject' => 'sub-anna']);
+
+        $other = ['issuer' => 'https://login.microsoftonline.com/99999999-2222-3333-4444-555555555555/v2.0', 'tenant_id' => '99999999-2222-3333-4444-555555555555', 'email' => 'anna@andere.example'] + $this->claims();
+        $this->microsoft($other);
+        $this->get('/anmelden/microsoft/rueckkehr')->assertRedirect('/konto');
+        $this->assertAuthenticatedAs(User::query()->where('email', 'anna@andere.example')->firstOrFail());
+
+        $this->assertSame(2, UserIdentity::query()->where('subject', 'sub-anna')->count());
+        $this->assertSame(2, UserIdentity::query()->where('subject', 'sub-anna')->distinct()->count('user_id'));
+        $this->expectException(UniqueConstraintViolationException::class);
+        UserIdentity::query()->create(['user_id' => User::query()->value('id'), 'provider' => 'edulog', 'issuer' => self::ISSUER, 'subject' => 'sub-anna']);
     }
 }

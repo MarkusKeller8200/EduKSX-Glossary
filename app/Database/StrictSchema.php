@@ -2,7 +2,9 @@
 
 namespace App\Database;
 
+use Closure;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
@@ -50,6 +52,44 @@ final class StrictSchema
         $db->statement(self::strictSql($create, $checks));
         foreach ($indexes as $index) {
             $db->statement($index->sql);
+        }
+    }
+
+    /**
+     * Spalten zu einer bestehenden (STRICT-)Tabelle hinzufügen. SQLite: die von Schema::table erzeugten ALTER-
+     * Anweisungen auf STRICT-Typen abbilden, CHECK-Regeln je Spalte anhängen (SQLite kennt bei ADD COLUMN nur
+     * Spalten-CHECKs); PostgreSQL: Schema::table und benannte Constraints.
+     *
+     * @param  Closure(Blueprint): void  $columns
+     * @param  array<string, array{0: string, 1: string}>  $checks  Spalte → [Name der Regel, SQL-Ausdruck]
+     */
+    public static function addColumns(string $table, Closure $columns, array $checks = []): void
+    {
+        /** @var Connection $db */
+        $db = Schema::getConnection();
+        if ($db->getDriverName() !== 'sqlite') {
+            Schema::table($table, $columns);
+            foreach ($checks as [$name, $expression]) {
+                $db->statement("alter table \"{$table}\" add constraint \"{$name}\" check ({$expression})");
+            }
+
+            return;
+        }
+        $statements = $db->pretend(fn () => Schema::table($table, $columns));
+        $types = implode('|', array_map(fn (string $t): string => preg_quote($t, '/'), array_keys(self::SQLITE_TYPES)));
+        foreach ($statements as $statement) {
+            $sql = (string) $statement['query'];
+            if (preg_match('/^alter table "[^"]+" add column "([^"]+)"/i', $sql, $m) === 1) {
+                $sql = trim((string) preg_replace_callback(
+                    '/("[^"]+" )('.$types.')(?=[ ,)])/i',
+                    fn (array $t): string => $t[1].self::SQLITE_TYPES[strtolower($t[2])],
+                    $sql.' ',
+                ));
+                if (isset($checks[$m[1]])) {
+                    $sql .= " constraint \"{$checks[$m[1]][0]}\" check ({$checks[$m[1]][1]})";
+                }
+            }
+            $db->statement($sql, $statement['bindings']);
         }
     }
 
