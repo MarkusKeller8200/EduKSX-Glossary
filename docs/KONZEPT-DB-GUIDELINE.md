@@ -1,7 +1,7 @@
 # Konzept: DB-Guideline EduKSX-Glossary (#270, #272, #310)
 
-Stand: 13.11.2026 (Version 1.2) · Verantwortlich: Markus Keller · Status: **Entwurf zur Abnahme** (Version 1.0: DEC-031,
-Version 1.1: DEC-032) · arbeitet nach **DB-Standard 1.2** der Plattform
+Stand: 13.11.2026 (Version 1.2) · Verantwortlich: Markus Keller · Status: **abgenommen** am 13.11.2026 (Version 1.0: DEC-031,
+Version 1.1: DEC-032, Version 1.2: DEC-037) · arbeitet nach **DB-Standard 1.2** der Plattform
 
 Diese Guideline wendet den **DB-Standard der EduKSX-Plattform** (Repo EduKSX-Architektur,
 `docs/KONZEPT-DB-GUIDELINE.md`, nicht öffentlich) auf das Glossary an. Allgemeine Regeln – Namen, Normalisierung,
@@ -188,4 +188,4 @@ Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über d
 - 12.11.2026: Version 1.1 abgenommen (DEC-032) – allgemeine Regeln in den Plattform-Standard verschoben, Glossary-Teil mit Geltungsbereichen,
   Datenklassen, Löschregister, zusammengesetztem Fremdschlüssel für `published_revision_id`, Archivfrist (#272).
 - 12.11.2026: offene Punkte W1–W8 entschieden (DEC-033, #274).
-- 13.11.2026: Version 1.2 – Anwendung von DB-Standard 1.2 (Modularität, Datenschutz) (#310).
+- 13.11.2026: Version 1.2 abgenommen (DEC-037) – Anwendung von DB-Standard 1.2 (Modularität, Datenschutz) (#310).
