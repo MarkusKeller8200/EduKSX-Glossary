@@ -10,8 +10,8 @@ return [
     'allowed_methods' => ['GET', 'HEAD', 'OPTIONS'],
     'allowed_origins' => ['*'],
     'allowed_origins_patterns' => [],
-    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'If-None-Match'],
-    'exposed_headers' => ['ETag', 'X-Glossary-Release', 'Retry-After'],
+    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'If-None-Match', 'X-Request-Id'],
+    'exposed_headers' => ['ETag', 'EduKSX-Release', 'X-Glossary-Release', 'Retry-After', 'X-Request-Id'],
     'max_age' => 86400,
     'supports_credentials' => false,
 ];

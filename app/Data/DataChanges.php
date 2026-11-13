@@ -4,6 +4,7 @@ namespace App\Data;
 
 use App\Glossary\Journal;
 use App\Models\User;
+use EduKSX\Core\Http\Middleware\AssignRequestId;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -78,7 +79,7 @@ final class DataChanges
             'actor_label' => Journal::actorLabel($user),
             'source' => self::source(),
             'transaction_id' => self::transaction(),
-            'request_id' => app()->runningInConsole() ? null : (request()->header('X-Request-Id') ?: null),
+            'request_id' => app()->runningInConsole() ? null : AssignRequestId::forRequest(request()),
             'schema_version' => mb_substr((string) config('glossary.version'), 0, 20),
             'occurred_at' => now()->utc()->toDateTimeString(),
         ]);

@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Data\StaleModel;
-use App\Database\StrictSchema;
 use App\Glossary\GlossaryService;
 use App\Models\Category;
 use App\Models\Organization;
 use App\Models\Role;
 use App\Organizations\OrganizationService;
+use EduKSX\Core\Database\StrictSchema;
+use EduKSX\Core\Eloquent\StaleModel;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
