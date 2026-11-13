@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\Locale;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Source;
@@ -57,12 +58,38 @@ final class ExcelFormat
         'ID', 'Kategorien', 'Abkürzung offiziell', 'Aliase offiziell', 'Alternative Schreibweisen', 'Bezeichnung offiziell',
         'Kurzbeschreibung', 'Beschreibung', 'URL', 'Herkunft', 'Status', 'Suchbegriffe', 'Gültig ab', 'Gültig bis',
         'Aktiv', 'Revision', 'Veröffentlicht',
+        // Übersetzungen (#291), Reihenfolge wie translationColumns()
+        'Abkürzung (FR)', 'Bezeichnung (FR)', 'Kurzbeschreibung (FR)', 'Beschreibung (FR)',
+        'Abkürzung (IT)', 'Bezeichnung (IT)', 'Kurzbeschreibung (IT)', 'Beschreibung (IT)',
+        'Abkürzung (EN)', 'Bezeichnung (EN)', 'Kurzbeschreibung (EN)', 'Beschreibung (EN)',
     ];
+
+    /** Übersetzbare Felder (#282, #291) mit Spaltenname ohne Sprache. */
+    public const TRANSLATION_FIELDS = [
+        'abbreviation' => 'Abkürzung', 'name' => 'Bezeichnung', 'short_description' => 'Kurzbeschreibung', 'description' => 'Beschreibung',
+    ];
+
+    /**
+     * Spalten der Übersetzungen (#291), z. B. «Bezeichnung (FR)»: Spaltenname → [Sprache, Feld].
+     *
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function translationColumns(): array
+    {
+        $columns = [];
+        foreach (Locale::translated() as $locale) {
+            foreach (self::TRANSLATION_FIELDS as $field => $label) {
+                $columns[$label.' ('.strtoupper($locale).')'] = [$locale, $field];
+            }
+        }
+
+        return $columns;
+    }
 
     /** @return list<string> */
     public static function header(): array
     {
-        return ['ID', ...array_keys(self::COLUMNS)];
+        return ['ID', ...array_keys(self::COLUMNS), ...array_keys(self::translationColumns())];
     }
 
     /**
@@ -72,7 +99,7 @@ final class ExcelFormat
      */
     public static function row(Term $term): array
     {
-        $term->loadMissing(['categories', 'sources', 'aliases']);
+        $term->loadMissing(['categories', 'sources', 'aliases', 'translations']);
         $list = fn (iterable $items): string => implode('; ', array_map(
             fn (Category|Source $i): string => $i->displayLabel(),
             [...$items],
@@ -95,7 +122,24 @@ final class ExcelFormat
             'Gültig ab' => (string) $term->valid_from?->toDateString(),
             'Gültig bis' => (string) $term->valid_until?->toDateString(),
             'Aktiv' => $term->is_active ? 'ja' : 'nein',
+            ...self::translationValues(fn (string $locale, string $field): string => (string) $term->translations->firstWhere('locale', $locale)?->{$field}),
         ];
+    }
+
+    /**
+     * Werte der Übersetzungsspalten.
+     *
+     * @param  callable(string, string): string  $value  Sprache, Feld → Text
+     * @return array<string, string>
+     */
+    private static function translationValues(callable $value): array
+    {
+        $out = [];
+        foreach (self::translationColumns() as $column => [$locale, $field]) {
+            $out[$column] = $value($locale, $field);
+        }
+
+        return $out;
     }
 
     /**
@@ -131,6 +175,9 @@ final class ExcelFormat
             ($term['is_active'] ?? true) ? 'ja' : 'nein',
             (string) ($term['revision'] ?? ''),
             substr((string) ($term['published_at'] ?? ''), 0, 10),
+            ...array_values(self::translationValues(
+                fn (string $locale, string $field): string => (string) (((array) (((array) ($term['translations'] ?? []))[$locale] ?? []))[$field] ?? ''),
+            )),
         ];
     }
 
@@ -155,6 +202,12 @@ final class ExcelFormat
                 in_array($column, ['Gültig ab', 'Gültig bis'], true) => self::date($value),
                 default => $value,
             };
+        }
+        // Übersetzungen (#291): nur vorhandene Spalten; der Import ergänzt die übrigen aus dem Bestand
+        foreach (self::translationColumns() as $column => [$locale, $field]) {
+            if (array_key_exists($column, $row)) {
+                $data['translation_columns'][$locale][$field] = trim($row[$column]);
+            }
         }
 
         return $data;
@@ -187,6 +240,11 @@ final class ExcelFormat
                 $value = $case !== null ? $case->label() : $value;
             }
             $out[$column] = $value;
+        }
+        foreach (array_keys(self::translationColumns()) as $column) {
+            if (array_key_exists($column, $row)) {
+                $out[$column] = trim($row[$column]);
+            }
         }
 
         return $out;

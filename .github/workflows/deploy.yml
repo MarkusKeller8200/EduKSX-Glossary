@@ -1,6 +1,6 @@
 name: deploy
 
-# Ausrollen auf den Entwicklungsserver dev (Hostinger, glossary.markussx.ch; docs/KONZEPT-DEPLOYMENT.md, DEPLOY.md).
+# Ausrollen auf den Entwicklungsserver dev (Hostinger, glossary-dev.markussx.ch; docs/KONZEPT-DEPLOYMENT.md, DEPLOY.md).
 # Seit #195 wird nichts mehr auf dem Server gebaut: Der Workflow «image» ruft diesen Workflow nach jedem Image auf
 # (Tag main-<commit>); von Hand mit Run workflow und frei wählbarem Tag (z. B. main oder 0.10.0).
 # Auf dem Server führt der Schlüssel nur /usr/local/bin/glossary-deploy aus (erzwungener Befehl, docker/server).
@@ -30,11 +30,11 @@ jobs:
       cancel-in-progress: false
     environment:
       name: dev # Hostinger-Entwicklungsserver (#209); test/prod laufen über MarKusSX-Operation
-      url: https://${{ vars.GLOSSARY_HOST || 'glossary.markussx.ch' }}
+      url: https://${{ vars.GLOSSARY_HOST || 'glossary-dev.markussx.ch' }}
     env:
       HOST: ${{ vars.VPS_HOST }}
       VPS_USER: ${{ vars.VPS_USER || 'deploy' }}
-      GLOSSARY_HOST: ${{ vars.GLOSSARY_HOST || 'glossary.markussx.ch' }}
+      GLOSSARY_HOST: ${{ vars.GLOSSARY_HOST || 'glossary-dev.markussx.ch' }}
       IMAGE: ghcr.io/markuskeller8200/eduksx-glossary:${{ inputs.tag }}
     steps:
       - name: Checkout code

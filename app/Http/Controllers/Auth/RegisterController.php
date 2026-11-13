@@ -7,7 +7,7 @@ use App\Access\RoleManager;
 use App\Http\Controllers\Controller;
 use App\Mail\ConfirmRegistration;
 use App\Models\User;
-use App\Support\MailSetup;
+use App\Support\Registration;
 use App\Support\Turnstile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,7 +34,7 @@ class RegisterController extends Controller
 
     public function create(): Response
     {
-        abort_unless(MailSetup::configured(), 404);
+        abort_unless(Registration::open(), 404);
 
         return Inertia::render('auth/register', [
             'turnstile' => Turnstile::siteKey(),
@@ -44,7 +44,7 @@ class RegisterController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        abort_unless(MailSetup::configured(), 404);
+        abort_unless(Registration::open(), 404);
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:80'],
             'last_name' => ['required', 'string', 'max:80'],

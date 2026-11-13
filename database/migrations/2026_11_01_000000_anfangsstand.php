@@ -298,7 +298,11 @@ return new class extends Migration
             $t->date('valid_until')->nullable();
             $t->unsignedInteger('revision')->default(0);          // letzte Revision (Zähler, Ausnahme A2)
             $t->uuid('published_revision_id')->nullable()->index();
-            $t->foreignUuid('merged_into_id')->nullable()->index()->constrained('terms')->nullOnDelete();
+            $t->foreignUuid('merged_into_id')->nullable()->index();
+            if ($sqlite) {
+                // PostgreSQL: Selbstbezug erst nach dem Primärschlüssel (unten)
+                $t->foreign('merged_into_id')->references('id')->on('terms')->nullOnDelete();
+            }
             $t->timestamp('merged_at')->nullable();
             $t->timestamps();
             if ($sqlite) {
@@ -307,6 +311,9 @@ return new class extends Migration
                     ->references(['term_id', 'id'])->on('term_revisions');
             }
         });
+        if (! $sqlite) {
+            Schema::table('terms', fn (Blueprint $t) => $t->foreign('merged_into_id')->references('id')->on('terms')->nullOnDelete());
+        }
         StrictSchema::harden('terms', [
             'terms_lifecycle_status_check' => TermStatus::check('lifecycle_status'),
             'terms_is_active_check' => '"is_active" in (0, 1)',

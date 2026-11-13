@@ -115,7 +115,7 @@ class GlossaryApiController extends Controller
         if ($term === null) {
             // Zusammengeführt (#16): dauerhaft auf den verbleibenden Begriff weiterleiten
             $merged = Term::query()->whereNotNull('merged_into_id')
-                ->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug))->first();
+                ->idOrSlug($idOrSlug)->first();
             $target = $merged?->mergeTarget();
             if ($target !== null && $this->presenter->find($target->id) !== null) {
                 return response('', 301, ['Location' => url("/api/v1/terms/{$target->id}")]);

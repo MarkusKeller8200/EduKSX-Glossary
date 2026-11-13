@@ -20,7 +20,7 @@ export default function Versions({ releases }: { releases: Release[] }) {
             <p className="mt-2 text-muted-foreground">
                 Laufend: <strong>{versionLabel(appVersion)}</strong>
                 {appVersion.dev
-                    ? ` – geplant als ${appVersion.dev.planned}`
+                    ? ` – Developer-Stand, ${appVersion.dev.commits} Commits seit ${appVersion.dev.base}`
                     : null}
             </p>
             {bug || idea ? (

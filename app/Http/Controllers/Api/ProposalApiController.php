@@ -30,7 +30,7 @@ class ProposalApiController extends Controller
         $term = null;
         if (($data['term'] ?? '') !== '') {
             $term = Term::query()->published()->whereNull('merged_into_id')
-                ->where(fn ($q) => $q->where('id', $data['term'])->orWhere('slug', $data['term']))->with('publishedRevision')->first();
+                ->idOrSlug((string) $data['term'])->with('publishedRevision')->first();
             if ($term === null) {
                 return response()->json(['message' => 'Begriff nicht gefunden oder nicht veröffentlicht.'], 404);
             }

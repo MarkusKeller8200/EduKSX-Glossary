@@ -17,6 +17,12 @@ use Tests\TestCase;
 /** Anmeldung mit Microsoft und sichere Kontoverknüpfung (#45, docs/KONZEPT-BENUTZER.md 6.1, 6.3; Abnahmetest 4). */
 class SsoTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['glossary.registration_open' => true]);   // Registrierung offen (#302)
+    }
+
     private const ISSUER = 'https://login.microsoftonline.com/11111111-2222-3333-4444-555555555555/v2.0';
 
     /** @return array<string, string|null> */
@@ -154,5 +160,14 @@ class SsoTest extends TestCase
         $this->assertSame(2, UserIdentity::query()->where('subject', 'sub-anna')->distinct()->count('user_id'));
         $this->expectException(UniqueConstraintViolationException::class);
         UserIdentity::query()->create(['user_id' => User::query()->value('id'), 'provider' => 'edulog', 'issuer' => self::ISSUER, 'subject' => 'sub-anna']);
+    }
+
+    /** #302: Registrierung geschlossen – kein neues Konto über Microsoft, bestehende Anmeldung geht weiter. */
+    public function test_geschlossene_registrierung_ohne_neues_konto(): void
+    {
+        config(['glossary.registration_open' => false]);
+        $this->microsoft($this->claims());
+        $this->get('/anmelden/microsoft/rueckkehr')->assertRedirect('/anmelden')->assertSessionHasErrors('email');
+        $this->assertSame(0, User::query()->where('email', 'anna@schule.example')->count());
     }
 }

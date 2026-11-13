@@ -1,8 +1,10 @@
 name: image
 
 # Fertiges Docker-Image in der GitHub Container Registry (#175, docs/KONZEPT-DEPLOYMENT.md D1/D2, KONZEPT-UPDATES.md U1/U2).
-# Jeder geprüfte Stand auf main → ghcr.io/<owner>/eduksx-glossary:main und :main-<sha>.
-# Ein Release-Commit (Datei VERSION geändert) → zusätzlich :X.Y.Z, :X.Y und :latest.
+# Jeder geprüfte Stand auf main → ghcr.io/<owner>/eduksx-glossary:main und :main-<sha> → dev (Hostinger).
+# Beta-Commit (VERSION auf X.Y.Z-beta.N geändert) → zusätzlich :X.Y.Z-beta.N und :beta → test (test-01, sofort).
+# Release-Commit (VERSION auf X.Y.Z geändert) → zusätzlich :X.Y.Z, :X.Y, :latest, :stable und :beta
+# → prod (prod-01, Wartungsfenster) und test; test liegt so nie hinter prod (#304, DEC-035).
 # Nur amd64 (12.11.2026): arm64 per Emulation verlängerte ein Release von 4 auf 18 Minuten und wird heute nicht
 # gebraucht. Bei Bedarf: platforms im Schritt «Tags bestimmen» auf "linux/amd64,linux/arm64" und QEMU wieder einschalten.
 # Signiert mit cosign (ohne Schlüssel, über GitHub OIDC) und mit Herkunftsnachweis (attest-build-provenance).
@@ -56,12 +58,26 @@ jobs:
           sha="${GITHUB_SHA::7}"
           version="$(tr -d '[:space:]' < VERSION)"
           tags="$image:main,$image:main-$sha"
+          # Versionsanzeige (#308): Developer = Commits seit dem letzten Release-Tag (Betas zählen nicht als Basis)
+          describe="$(git describe --tags --long --match 'v[0-9]*' --exclude 'v*-*' 2>/dev/null || true)"
           platforms="linux/amd64"
-          # Release: VERSION wurde mit diesem Commit geändert (release.py set X.Y.Z --commit)
-          if git rev-parse -q --verify HEAD^ >/dev/null && ! git diff --quiet HEAD^ HEAD -- VERSION; then
-            minor="${version%.*}"
-            tags="$tags,$image:$version,$image:$minor,$image:latest"
-            echo "release=true" >> "$GITHUB_OUTPUT"
+          # Release bzw. Beta: Zu VERSION gibt es noch keinen Tag (release.py set X.Y.Z --commit). Schlägt der
+          # erste Lauf fehl, übernimmt der nächste grüne Push – wie release.yml, das den Tag erst danach anlegt (#316).
+          if ! git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            # Tag entsteht erst nach diesem Workflow (release.yml): Stand gilt als genau diese Version
+            describe="v$version-0-g$sha"
+            case "$version" in
+              *-*)
+                # Vorabversion (Beta): nur test
+                tags="$tags,$image:$version,$image:beta"
+                echo "beta=true" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                minor="${version%.*}"
+                tags="$tags,$image:$version,$image:$minor,$image:latest,$image:stable,$image:beta"
+                echo "release=true" >> "$GITHUB_OUTPUT"
+                ;;
+            esac
           fi
           {
             echo "image=$image"
@@ -70,7 +86,7 @@ jobs:
             echo "platforms=$platforms"
             echo "version=$version"
             echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo "describe=$(git describe --tags --long --match 'v[0-9]*' 2>/dev/null || true)"
+            echo "describe=$describe"
           } >> "$GITHUB_OUTPUT"
 
       - name: Buildx

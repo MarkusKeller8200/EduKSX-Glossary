@@ -8,14 +8,35 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Umgebungsvariablen (#306):** Übersicht aller Variablen mit Standardwerten, Werten für dev, test und prod sowie
+  den Einstellungen in GitHub (`docs/UMGEBUNGSVARIABLEN.md`).
+
+### Geändert
+
+- **DB-Guideline (#310):** Version 1.2 nach dem DB-Standard 1.2 der Plattform: Schema je Modul, Plattform-IDs für
+  Organisationen und Konten, Auskunft und Datenherausgabe, Zweck je Tabelle, anonymisierte Kopien für dev und test.
+- **Versionsbezeichnung (#308):** Entwicklungsstände heissen jetzt z. B. `0.13.0-dev.5` (geplante Version und Zahl der
+  Änderungen seit dem letzten Release), Betas `0.13.0-beta.1`, Releases `0.13.0`. Test und Produktion zeigen nach einem
+  Release bzw. einer Beta genau diese Version.
+- **Umgebungen (#304):** dev unter `glossary-dev.markussx.ch` (`glossary.markussx.ch` leitet weiter); Beta-Versionen
+  gehen auf test, Releases auf prod (Image-Tags `beta` und `stable`).
+- **Mail-Versand und Registrierung (#300, #302):** Der Betrieb versendet über den Mail-Service von Infomaniak mit
+  Absender aus `eduksx.ch`; neue Server lassen sich direkt in der Administration einrichten. Neue Konten (E-Mail oder
+  Microsoft) gibt es nur, wenn «Registrierung offen» in den Einstellungen an ist (Vorgabe aus).
+
+## [0.12.0] – 2026-11-13
+
+### Neu
+
 - **DB-Entwickler-Guideline (#270, #272):** Regeln für Datenbank, Migrationen und Modelle (`docs/KONZEPT-DB-GUIDELINE.md`), verlinkt aus AGENTS.md und dem Datenbank-Konzept; seit Version 1.1 Anwendung des gemeinsamen DB-Standards der Plattform mit Geltungsbereichen, Datenklassen und Löschregister; offene Punkte entschieden, Löschkonzept 1.1 mit Kontolöschung nach Frist und Papierkorb (#274).
 - **Vollständiger Dump (#268):** Administration › System und `php artisan glossary:dump`: ZIP mit Kopie der Datenbank,
   allen Tabellen als JSON und Manifest; mit Passwort AES-256-verschlüsselt, ohne Passwort nur bis zur Einstellung
   `GLOSSARY_DUMP_REQUIRE_PASSWORD`.
-- **Übersetzungen (#282):** Begriffe, Kategorien und Herkünfte lassen sich auf Französisch, Italienisch und Englisch
+- **Übersetzungen (#282, #291):** Begriffe, Kategorien und Herkünfte lassen sich auf Französisch, Italienisch und Englisch
   erfassen. Übersetzungen von Begriffen gehören zur Revision und werden mit dem Begriff veröffentlicht. Die API liefert
   sie in `translations`; mit `?lang=fr|it|en` ersetzen sie die deutschen Felder, fehlende bleiben deutsch und
-  `language` zeigt je Feld die gelieferte Sprache. Die Website bleibt deutsch.
+  `language` zeigt je Feld die gelieferte Sprache. Die Website bleibt deutsch. Im Excel-Export und -Import stehen sie in
+  Spalten wie «Bezeichnung (FR)»; fehlt eine Spalte in der Datei, bleibt der Wert.
 - **Beziehungen zwischen Begriffen (#283):** In der Redaktion lassen sich Nachfolger, «siehe auch», Ober- und
   Unterbegriffe erfassen; sie werden mit dem Begriff veröffentlicht. Die Seite eines Begriffs zeigt sie unter
   «Verwandte Begriffe», auch in Gegenrichtung (z. B. Vorgänger). Die API liefert sie in `relations`.
@@ -46,6 +67,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   `status` nimmt auch die bisherigen Werte an.
 - **Microsoft-Anmeldung (#277):** Ein verknüpftes Konto wird über Aussteller und Kennung erkannt, unabhängig vom
   Anbieter; bestehende Verknüpfungen bleiben erhalten.
+- **PostgreSQL (#287):** Migrationen und alle Tests laufen in der CI zusätzlich gegen PostgreSQL; Abfragen nach ID oder
+  Slug und die neueste Revision funktionieren auf beiden Datenbanken.
 
 ## [0.11.0] – 2026-11-12
 

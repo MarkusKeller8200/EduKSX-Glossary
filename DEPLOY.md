@@ -100,8 +100,11 @@ Formular ist gesperrt. Alternative für den Betrieb mit Secrets: wie folgt über
 
 Der Versand ist an keinen Anbieter gebunden. Eingestellt wird er in `/docker/glossary/.env` auf dem Server;
 Zugangsdaten nie ins Repository. Danach `docker compose up -d` und in der Administration unter **System** eine
-Testmail senden (Recht «System», d. h. Developer). Ohne echten Versand (`MAIL_MAILER=log`) bleibt die
-Selbstregistrierung ausgeschaltet.
+Testmail senden (Recht «System», d. h. Developer).
+
+**Registrierung (#302):** Selbstregistrierung nur mit dem Schalter «Registrierung offen» (Administration ›
+Einstellungen › Konten, Vorgabe aus, `GLOSSARY_REGISTRATION_OPEN`) und – bei E-Mail und Passwort – eingerichtetem
+Versand. «Passwort vergessen» und Einladungen brauchen nur den Versand.
 
 ```dotenv
 # gemeinsam
@@ -122,7 +125,8 @@ MAIL_PORT=587
 MAIL_USERNAME=…
 MAIL_PASSWORD=…
 
-# Infomaniak bzw. Hostinger (SMTP des Anbieters)
+# Infomaniak bzw. Hostinger (SMTP des Anbieters) – im Betrieb Infomaniak mit noreply@eduksx.ch (#300);
+# bei fremder DNS-Zone (Cloudflare) dort SPF include:spf.infomaniak.ch, DKIM aus dem Infomaniak Manager, DMARC
 MAIL_MAILER=smtp
 MAIL_HOST=mail.infomaniak.com      # bzw. smtp.hostinger.com
 MAIL_PORT=465
@@ -157,10 +161,26 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
   ausser Haus folgt (offener Punkt im Hosting-Konzept).
 - Daten liegen im Volumen `glossary_glossary-storage`; es bleibt bei jedem Deployment erhalten.
 
+## Umgebungen und Freigabe (DEC-035, #304)
+
+| Umgebung | Server               | Adresse                    | Was kommt an                | Wann                                       | Image-Tag    |
+| -------- | -------------------- | -------------------------- | --------------------------- | ------------------------------------------ | ------------ |
+| dev      | Hostinger            | `glossary-dev.markussx.ch` | jeder Merge auf `main`      | sofort (GitHub Actions, unten)             | `main-<sha>` |
+| test     | `test-01` Infomaniak | `glossary-test.eduksx.ch`  | jede Beta und jedes Release | sofort (Komodo im VPN, MarKusSX-Operation) | `beta`       |
+| prod     | `prod-01` Infomaniak | `glossary.eduksx.ch`       | jedes Release               | So 03:05, nur wenn test grün (Komodo)      | `stable`     |
+
+- **Beta freigeben:** `python3 .github/blueprint/release.py set X.Y.Z-beta.N --commit` und pushen → Pre-Release auf
+  GitHub, Image `:X.Y.Z-beta.N` und `:beta` → test. Nur nach ausdrücklicher Freigabe (wie ein Release).
+- **Release freigeben:** `release.py set X.Y.Z --commit` → Release, Image `:X.Y.Z`, `:X.Y`, `:latest`, `:stable` und
+  `:beta` → test sofort, prod im nächsten Wartungsfenster.
+- test und prod: Stacks, Komodo und Ausrollen im Repo MarKusSX-Operation (`stacks/test/glossary`,
+  `stacks/produktion/glossary`).
+- Alle Umgebungsvariablen mit Standardwerten und Werten je Umgebung: [docs/UMGEBUNGSVARIABLEN.md](docs/UMGEBUNGSVARIABLEN.md).
+
 ## dev auf Hostinger mit Benutzer `deploy` (#209)
 
-Hostinger ist der Entwicklungsserver (dev) unter `glossary.markussx.ch`; test und prod laufen später auf `prod-01`
-(docs/KONZEPT-DEPLOYMENT.md). Ausgerollt wird nicht mehr als root, sondern als Benutzer `deploy` mit einem eigenen
+Hostinger ist der Entwicklungsserver (dev) unter `glossary-dev.markussx.ch` (DEC-035); test läuft auf `test-01`, prod auf
+`prod-01` (docs/KONZEPT-DEPLOYMENT.md, Abschnitt «Umgebungen» unten). Ausgerollt wird nicht mehr als root, sondern als Benutzer `deploy` mit einem eigenen
 Schlüssel je App. Gilt gleich für das Intranet auf demselben Server. Auf dev liegen **keine echten Konten** (nur Admin,
 Registrierung aus).
 
@@ -196,24 +216,26 @@ su - deploy -c 'docker ps --format "{{.Names}}"'   # muss die Container aufliste
 ### 4. Adresse und Registrierung im Glossary
 
 ```bash
-sed -i 's/^GLOSSARY_HOST=.*/GLOSSARY_HOST=glossary.markussx.ch/' /docker/glossary/.env
-grep '^MAIL_MAILER' /docker/glossary/.env           # leer oder «log» = Registrierung aus
+sed -i 's/^GLOSSARY_HOST=.*/GLOSSARY_HOST=glossary-dev.markussx.ch/' /docker/glossary/.env
+# frühere Adresse leitet weiter (Zertifikat für beide über Traefik, #304)
+grep -q '^GLOSSARY_REDIRECT_HOST=' /docker/glossary/.env || echo 'GLOSSARY_REDIRECT_HOST=glossary.markussx.ch' >> /docker/glossary/.env
+grep '^MAIL_MAILER' /docker/glossary/.env           # gesetzt = Versand nur über die Umgebung (Administration gesperrt)
 ```
 
 ### 5. DNS (Cloudflare bzw. DNS von markussx.ch)
 
-`A glossary → 76.13.156.138`, **nur DNS** (graue Wolke). `intranet.markussx.ch` zeigt auf dieselbe IP – das ist
+`A glossary-dev → 76.13.156.138` und (für die Weiterleitung) `A glossary → 76.13.156.138`, **nur DNS** (graue Wolke). `intranet.markussx.ch` zeigt auf dieselbe IP – das ist
 gewollt, Traefik verteilt nach Namen.
 
 ### 6. GitHub
 
-| Repo            | Wo                                                                      | Eintrag                                                                                                     |
-| --------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| EduKSX-Glossary | Settings → Environments → **dev** → Secrets                             | Secret `VPS_SSH_KEY` = Inhalt von `/root/glossary-deploy-neu` (`cat …`)                                     |
-| EduKSX-Glossary | Environment **dev** → Variables                                         | `VPS_HOST=76.13.156.138`, `VPS_USER=deploy`, `GLOSSARY_HOST=glossary.markussx.ch`; Secret `VPS_KNOWN_HOSTS` |
-| EduKSX-Glossary | Settings → Secrets and variables → Actions → **Variables** (Repository) | `DEPLOY_ENABLED=true` – muss auf Ebene Repository stehen, weil der Workflow sie vor dem Environment prüft   |
-| sek-intranet    | Settings → Environments → **production**                                | Secret `VPS_SSH_KEY` = Inhalt von `/root/intranet-deploy-neu`                                               |
-| sek-intranet    | Environment **production** → Variables                                  | `VPS_USER=deploy`                                                                                           |
+| Repo            | Wo                                                                      | Eintrag                                                                                                         |
+| --------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| EduKSX-Glossary | Settings → Environments → **dev** → Secrets                             | Secret `VPS_SSH_KEY` = Inhalt von `/root/glossary-deploy-neu` (`cat …`)                                         |
+| EduKSX-Glossary | Environment **dev** → Variables                                         | `VPS_HOST=76.13.156.138`, `VPS_USER=deploy`, `GLOSSARY_HOST=glossary-dev.markussx.ch`; Secret `VPS_KNOWN_HOSTS` |
+| EduKSX-Glossary | Settings → Secrets and variables → Actions → **Variables** (Repository) | `DEPLOY_ENABLED=true` – muss auf Ebene Repository stehen, weil der Workflow sie vor dem Environment prüft       |
+| sek-intranet    | Settings → Environments → **production**                                | Secret `VPS_SSH_KEY` = Inhalt von `/root/intranet-deploy-neu`                                                   |
+| sek-intranet    | Environment **production** → Variables                                  | `VPS_USER=deploy`                                                                                               |
 
 `VPS_KNOWN_HOSTS` und `VPS_HOST` bleiben unverändert.
 
@@ -221,7 +243,7 @@ gewollt, Traefik verteilt nach Namen.
 
 Actions → **deploy** → Run workflow, in beiden Repos. Danach:
 
-- `https://glossary.markussx.ch/up` und `https://intranet.markussx.ch/up` antworten
+- `https://glossary-dev.markussx.ch/up` und `https://intranet.markussx.ch/up` antworten; `https://glossary.markussx.ch` leitet auf glossary-dev weiter
 - im Protokoll des Workflows steht keine Fehlermeldung zu Rechten (`Permission denied`)
 
 ### 8. Aufräumen (erst wenn Schritt 7 in beiden Repos grün ist)
