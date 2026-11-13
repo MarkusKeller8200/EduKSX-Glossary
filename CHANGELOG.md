@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Mail-Versand (#300):** Vorlage «Cloudflare» in der Versand-Einrichtung; der Betrieb versendet bis auf weiteres über
+  Cloudflare Email Service.
+
 ## [0.12.0] – 2026-11-13
 
 ### Neu

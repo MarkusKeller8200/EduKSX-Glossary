@@ -134,7 +134,7 @@ Löst den offenen Punkt «Kriterien und Zeitpunkt für die Prüfung von Infomani
 | ----- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | 1     | **VPS Lite** oder **VPS Cloud**, Rechenzentrum Schweiz    | `prod-01` mit test und prod (Operation E35, E36); VPS Lite zu Beginn, VPS Cloud bei steigender Benutzerzahl |
 | 1     | **Swiss Backup** oder **Object Storage** (S3-kompatibel)  | Sicherungen ausser Haus (D6), verschlüsselt mit restic                                                      |
-| 1     | **Mail** (SMTP, `mail.infomaniak.com`)                    | Versand wie in `DEPLOY.md` beschrieben                                                                      |
+| 1     | **Mail** (SMTP, `mail.infomaniak.com`)                    | Alternative; bis auf weiteres Versand über Cloudflare Email Service (DEC-034, #300)                         |
 | 2     | **Public Cloud** mit **Kubernetes-Dienst**, Load Balancer | Betriebsart D und gemeinsamer Betrieb der Plattform (Ident, weitere Module)                                 |
 | 2     | **Database Service** (verwaltete Datenbank)               | Datenbankserver für D, sofern der Datenbank-Entscheid passt                                                 |
 

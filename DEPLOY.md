@@ -122,6 +122,15 @@ MAIL_PORT=587
 MAIL_USERNAME=…
 MAIL_PASSWORD=…
 
+# Cloudflare Email Service (bis auf weiteres im Betrieb, #300; SMTP noch Beta)
+# Domain bei Cloudflare für Email Sending eingerichtet; Passwort = API-Token mit Recht Email Sending
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mx.cloudflare.net
+MAIL_PORT=465                      # nur implizites TLS, kein STARTTLS/587
+MAIL_SCHEME=smtps
+MAIL_USERNAME=api_token
+MAIL_PASSWORD=…
+
 # Infomaniak bzw. Hostinger (SMTP des Anbieters)
 MAIL_MAILER=smtp
 MAIL_HOST=mail.infomaniak.com      # bzw. smtp.hostinger.com
