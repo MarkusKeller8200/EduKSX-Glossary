@@ -15,6 +15,7 @@ use App\Models\Role;
 use App\Models\Term;
 use App\Models\TermUserOverride;
 use App\Models\User;
+use App\Models\UserIdentity;
 use App\Organizations\OrganizationService;
 use App\Proposals\ProposalService;
 use Illuminate\Support\Facades\Mail;
@@ -385,5 +386,39 @@ class OrganizationTest extends TestCase
         $this->assertSame(0, Organization::query()->count());
         $this->assertNotContains(Role::ORG_ADMIN, $admin->roleKeys());
         $this->assertNotNull($organization->id);
+    }
+
+    /** X3 (#284): Tenant nur mit eigenem Nachweis, eindeutig; Anmeldung aus dem Tenant ergibt eine Einladung. */
+    public function test_microsoft_tenant_als_mandant(): void
+    {
+        $tenant = '11111111-2222-3333-4444-555555555555';
+        [$organization, $admin] = $this->organisation();
+
+        try {
+            $this->organizations->setTenant($admin, $organization, $tenant);
+            $this->fail('Tenant ohne eigene Verknüpfung angenommen');
+        } catch (AccessDenied) {
+            $this->assertNull($organization->fresh()?->entra_tenant_id);
+        }
+        $admin->identities()->create(['provider' => 'microsoft', 'issuer' => "https://login.microsoftonline.com/{$tenant}/v2.0", 'subject' => 'sub-admin', 'tenant_id' => $tenant]);
+        $this->actingAs($admin)->get('/organisation')->assertInertia(fn (Assert $p) => $p->where('organisation.meine_tenants', [$tenant]));
+        $this->actingAs($admin)->put('/organisation/tenant', ['tenant' => $tenant])->assertRedirect();
+        $this->assertSame($tenant, $organization->fresh()?->entra_tenant_id);
+
+        // anderer Admin kann denselben Tenant nicht beanspruchen
+        $other = $this->userWithRoles([Role::USER], 'other@schule.ch');
+        $otherOrg = $this->organizations->create($other, 'Andere');
+        $other->identities()->create(['provider' => 'microsoft', 'issuer' => "https://login.microsoftonline.com/{$tenant}/v2.0", 'subject' => 'sub-other', 'tenant_id' => $tenant]);
+        $this->expectExceptionObject(new AccessDenied('Dieser Tenant gehört schon zu einer anderen Organisation.'));
+        try {
+            $this->organizations->setTenant($other->fresh() ?? $other, $otherOrg, $tenant);
+        } finally {
+            // Person aus dem Tenant ohne Organisation erhält eine Einladung, aber keine Mitgliedschaft
+            $person = $this->userWithRoles([Role::USER], 'lehrer@schule.ch', false);
+            $this->organizations->inviteByTenant($person, $tenant);
+            $this->organizations->inviteByTenant($person, UserIdentity::MICROSOFT_CONSUMER_TENANT);   // private Konten: nie
+            $this->assertSame(1, OrganizationInvitation::query()->where('email', 'lehrer@schule.ch')->where('organization_id', $organization->id)->count());
+            $this->assertNull($this->organizations->membershipOf($person));
+        }
     }
 }

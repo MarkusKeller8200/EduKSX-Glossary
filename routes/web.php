@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SearchMissController as AdminSearchMissController;
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SourceCheckController;
@@ -25,11 +26,14 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\SearchMissController;
 use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
 
 // Öffentlich: nur lesen (PUB-01)
 Route::get('/', [PageController::class, 'home'])->name('home');
+// Suche ohne Treffer melden (X4, #285): ohne Personenbezug, begrenzt
+Route::post('suche/ohne-treffer', [SearchMissController::class, 'store'])->middleware('throttle:20,1')->name('search-miss');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');
 Route::get('hilfe', [PageController::class, 'help'])->name('help');
@@ -70,6 +74,7 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
     Route::get('/', [OrganizationController::class, 'show'])->withoutMiddleware('throttle:30,1')->name('organization');
     Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
     Route::put('/', [OrganizationController::class, 'update'])->name('organization.update');
+    Route::put('tenant', [OrganizationController::class, 'tenant'])->name('organization.tenant');
     Route::post('loeschen', [OrganizationController::class, 'destroy'])->name('organization.destroy');
     Route::post('austreten', [OrganizationController::class, 'leave'])->name('organization.leave');
     Route::post('einladungen', [OrganizationController::class, 'invite'])->middleware('throttle:10,1')->name('organization.invite');
@@ -161,6 +166,10 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('doppelte/zuruecksetzen', [DuplicateController::class, 'reset'])->name('admin.duplicates.reset');
         Route::get('doppelte/zusammenfuehren', [DuplicateController::class, 'create'])->name('admin.duplicates.merge');
         Route::post('doppelte/zusammenfuehren', [DuplicateController::class, 'store'])->name('admin.duplicates.merge.store');
+
+        // Suchen ohne Treffer (X4, #285)
+        Route::get('suchen-ohne-treffer', [AdminSearchMissController::class, 'index'])->name('admin.search-misses');
+        Route::delete('suchen-ohne-treffer/{id}', [AdminSearchMissController::class, 'destroy'])->whereNumber('id')->name('admin.search-misses.destroy');
 
         // Quellenprüfung (#69)
         Route::get('pruefung', [SourceCheckController::class, 'index'])->name('admin.source-check');

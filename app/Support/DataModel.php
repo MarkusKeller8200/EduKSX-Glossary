@@ -29,6 +29,7 @@ final class DataModel
         'term_publication_events' => 'Veröffentlichen, Zurückziehen, Zusammenführen (Change-Feed)',
         'publication_releases' => 'Datenstände mit Nummer und Prüfsumme',
         'term_translations' => 'Übersetzungen eines Begriffs (fr, it, en); Teil der Revision',
+        'search_misses' => 'Suchen ohne Treffer: Suchtext und Zähler, ohne Personenbezug (90 Tage)',
         'term_relations' => 'Beziehungen zwischen Begriffen (Nachfolger, siehe auch, Ober-/Unterbegriff); Teil der Revision',
         'category_translations' => 'Übersetzungen einer Kategorie',
         'source_translations' => 'Übersetzungen einer Herkunft',

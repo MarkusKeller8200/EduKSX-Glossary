@@ -7,6 +7,7 @@ import {
     KeyRound,
     LayoutDashboard,
     MessageSquarePlus,
+    SearchX,
     Server,
     Settings,
     Tags,
@@ -38,6 +39,12 @@ export const ADMIN_NAV: {
         label: 'Doppelte',
         recht: 'edit-terms',
         icon: Copy,
+    },
+    {
+        href: '/admin/suchen-ohne-treffer',
+        label: 'Ohne Treffer',
+        recht: 'edit-terms',
+        icon: SearchX,
     },
     {
         href: '/admin/pruefung',

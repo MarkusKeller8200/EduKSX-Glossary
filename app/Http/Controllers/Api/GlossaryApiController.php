@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Term;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
+use App\Search\SearchMisses;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -80,6 +81,10 @@ class GlossaryApiController extends Controller
         }));
 
         $total = count($terms);
+        // Suchen ohne Treffer (X4, #285): nur der Suchtext allein, erste Seite, ohne Filter
+        if ($total === 0 && $q !== '' && $category === '' && $status === '' && $page === 1) {
+            SearchMisses::record($q);
+        }
         $lastPage = max(1, (int) ceil($total / $perPage));
         $data = array_slice($terms, ($page - 1) * $perPage, $perPage);
         $release = $this->presenter->release();

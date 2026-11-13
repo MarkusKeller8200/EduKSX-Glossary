@@ -10,6 +10,7 @@ use App\Models\Proposal;
 use App\Models\Role;
 use App\Models\User;
 use App\Proposals\ProposalService;
+use App\Search\SearchMisses;
 use App\Support\MailSetup;
 use App\Support\Settings;
 use DateTimeInterface;
@@ -81,10 +82,15 @@ class ApplyRetention extends Command
         $importQuery = ImportBatch::query()->where('created_at', '<', now()->subMonths(ImportBatch::RETENTION_MONTHS));
         $imports = $dry ? $importQuery->count() : $importQuery->delete();
 
+        // 6. Suchen ohne Treffer (X4, #285): 90 Tage nach dem letzten Auftreten
+        $misses = $dry
+            ? DB::table('search_misses')->where('last_seen_at', '<', now()->subDays(SearchMisses::RETENTION_DAYS))->count()
+            : SearchMisses::prune();
+
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
             ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt, "
-            ."{$proposals} Vorschläge ohne Personenbezug.");
+            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer.");
 
         return self::SUCCESS;
     }

@@ -8,6 +8,7 @@ use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserIdentity;
+use App\Organizations\OrganizationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,11 @@ class SsoController extends Controller
     /** Wie lange nach der Passwortbestätigung eine Verknüpfung gestartet werden darf. */
     private const LINK_MINUTES = 10;
 
-    public function __construct(private readonly MicrosoftLogin $microsoft, private readonly RoleManager $roles) {}
+    public function __construct(
+        private readonly MicrosoftLogin $microsoft,
+        private readonly RoleManager $roles,
+        private readonly OrganizationService $organizations,
+    ) {}
 
     public function redirect(Request $request): SymfonyRedirect|RedirectResponse
     {
@@ -64,8 +69,8 @@ class SsoController extends Controller
                 ->withErrors([$linking ? 'identitaet' : 'email' => 'Die Anmeldung mit Microsoft hat nicht geklappt. Bitte nochmals versuchen.']);
         }
 
-        $identity = UserIdentity::query()->where('provider', 'microsoft')
-            ->where('issuer', $claims['issuer'])->where('subject', $claims['subject'])->first();
+        // Schlüssel ist issuer + subject (W8, #277); der Aussteller ist bei Microsoft je Tenant eigen
+        $identity = UserIdentity::query()->where('issuer', $claims['issuer'])->where('subject', $claims['subject'])->first();
 
         if ($linking) {
             return $this->link($user, $identity, $claims);
@@ -128,6 +133,7 @@ class SsoController extends Controller
             return redirect('/anmelden')->withErrors(['email' => 'Anmeldung nicht möglich. Bitte an die Administration wenden.']);
         }
         $identity->forceFill(['last_used_at' => now()])->save();
+        $this->organizations->inviteByTenant($user, $identity->tenant_id);
 
         // zweiter Faktor wie bei der Anmeldung mit Passwort (#37)
         if ($user->hasTwoFactor()) {
@@ -163,6 +169,7 @@ class SsoController extends Controller
             $user->identities()->create($this->identityData($claims) + ['last_used_at' => now()]);
             Audit::log($user, $user, 'account.registered', ['provider' => 'microsoft']);
             $this->roles->assignDefault($user, 'Registrierung (Microsoft)');
+            $this->organizations->inviteByTenant($user, $claims['tenant_id']);
 
             return $user;
         });
