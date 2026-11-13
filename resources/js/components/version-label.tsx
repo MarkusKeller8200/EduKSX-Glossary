@@ -1,13 +1,14 @@
 import type { AppVersion } from '@/types';
 
-/** «0.1.0» bzw. «0.1.0 · Developer Release (+5)» wie im Intranet (docs/KONZEPT-VERSIONIERUNG.md). */
+/**
+ * Release «0.13.0», Beta «0.13.0-beta.1», Developer «0.13.0-dev.5» (geplante Version, Commits seit dem letzten
+ * Release; docs/KONZEPT-VERSIONIERUNG.md, #308).
+ */
 export function versionLabel(v: AppVersion): string {
-    return v.dev
-        ? `${v.dev.base} · Developer Release (+${v.dev.commits})`
-        : v.version;
+    return v.dev ? v.dev.label : v.version;
 }
 
-/** Kurzform für das Handy (#233): «0.1.0» bzw. «0.1.0+5». */
+/** Kurzform für das Handy (#233): dieselbe Bezeichnung, sie ist bereits kurz. */
 export function versionLabelShort(v: AppVersion): string {
-    return v.dev ? `${v.dev.base}+${v.dev.commits}` : v.version;
+    return versionLabel(v);
 }
