@@ -5,6 +5,8 @@ namespace App\Organizations;
 use App\Access\AccessDenied;
 use App\Access\Audit;
 use App\Access\RoleManager;
+use App\Enums\MemberRole;
+use App\Enums\MemberStatus;
 use App\Mail\OrganizationInvitationMail;
 use App\Models\Organization;
 use App\Models\OrganizationInvitation;
@@ -12,9 +14,11 @@ use App\Models\OrganizationMember;
 use App\Models\OrganizationTermOverride;
 use App\Models\Proposal;
 use App\Models\Role;
+use App\Models\ServiceAccount;
 use App\Models\Term;
 use App\Models\TermUserOverride;
 use App\Models\User;
+use App\Models\UserIdentity;
 use App\Proposals\ProposalService;
 use App\Support\MailSetup;
 use Illuminate\Support\Facades\DB;
@@ -82,7 +86,7 @@ final class OrganizationService
         }, ['name' => $name]);
 
         return DB::transaction(function () use ($actor, $name): Organization {
-            $organization = Organization::query()->create(['name' => $name, 'created_by' => $actor->id]);
+            $organization = Organization::query()->create(['name' => $name, 'created_by_id' => $actor->id]);
             $member = $organization->members()->create(['user_id' => $actor->id, 'role' => OrganizationMember::ADMIN, 'status' => 'active']);
             $this->grantRole($member);
 
@@ -100,6 +104,59 @@ final class OrganizationService
             }
         }, ['organization' => $organization->name, 'name' => $name]);
         $organization->forceFill(['name' => $name])->save();
+    }
+
+    /**
+     * Microsoft-Tenant der Organisation setzen oder lösen (X3, #284). Nur ein Tenant, mit dem der Organisations-Admin
+     * selbst mit Microsoft verknüpft ist (Nachweis), nie der Tenant privater Konten; je Tenant eine Organisation.
+     */
+    public function setTenant(User $actor, Organization $organization, ?string $tenant): void
+    {
+        $tenant = $tenant !== null && trim($tenant) !== '' ? mb_strtolower(trim($tenant)) : null;
+        $this->guard($actor, null, 'organization.tenant', function () use ($actor, $organization, $tenant): void {
+            $this->requireAdmin($actor, $organization);
+            if ($tenant === null) {
+                return;
+            }
+            if ($tenant === UserIdentity::MICROSOFT_CONSUMER_TENANT || ! in_array($tenant, $this->tenantsOf($actor), true)) {
+                throw new AccessDenied('Nur ein Tenant, mit dem Sie selbst über Microsoft angemeldet sind (Geschäfts- oder Schulkonto).');
+            }
+            if (Organization::query()->where('entra_tenant_id', $tenant)->whereKeyNot($organization->id)->exists()) {
+                throw new AccessDenied('Dieser Tenant gehört schon zu einer anderen Organisation.');
+            }
+        }, ['organization' => $organization->name, 'tenant' => $tenant]);
+        $organization->forceFill(['entra_tenant_id' => $tenant])->save();
+    }
+
+    /**
+     * Microsoft-Tenants der verknüpften Identitäten (ohne private Konten).
+     *
+     * @return list<string>
+     */
+    public function tenantsOf(User $user): array
+    {
+        return array_values(array_unique(array_map('strval', $user->identities()->where('provider', 'microsoft')->whereNotNull('tenant_id')
+            ->where('tenant_id', '!=', UserIdentity::MICROSOFT_CONSUMER_TENANT)->pluck('tenant_id')->all())));
+    }
+
+    /**
+     * Bei der Microsoft-Anmeldung (X3, #284): Gehört der Tenant zu einer Organisation und ist das Konto in keiner,
+     * entsteht eine Einladung – die Person entscheidet selbst (keine automatische Mitgliedschaft, keine Rechte).
+     */
+    public function inviteByTenant(User $user, ?string $tenant): void
+    {
+        if ($tenant === null || $tenant === UserIdentity::MICROSOFT_CONSUMER_TENANT || $this->membershipOf($user) !== null) {
+            return;
+        }
+        $organization = Organization::query()->where('entra_tenant_id', mb_strtolower($tenant))->first();
+        if ($organization === null) {
+            return;
+        }
+        $invitation = OrganizationInvitation::query()->firstOrNew(['organization_id' => $organization->id, 'email' => mb_strtolower($user->email)]);
+        if (! $invitation->exists || $invitation->expires_at->isPast()) {
+            $invitation->forceFill(['invited_by_id' => null, 'expires_at' => now()->addDays(OrganizationInvitation::DAYS)])->save();
+            Audit::log(null, $user, 'organization.invited_by_tenant', ['organization' => $organization->name]);
+        }
     }
 
     /** Organisation mit Darstellung, Einladungen und Servicekonten löschen; Konten bleiben bestehen. */
@@ -140,7 +197,7 @@ final class OrganizationService
             $expires = now()->addDays(OrganizationInvitation::DAYS);
             OrganizationInvitation::query()->updateOrCreate(
                 ['organization_id' => $organization->id, 'email' => $email],
-                ['invited_by' => $actor->id, 'expires_at' => $expires],
+                ['invited_by_id' => $actor->id, 'expires_at' => $expires],
             );
             if (MailSetup::configured()) {
                 Mail::to($email)->send(new OrganizationInvitationMail($organization->name, $actor->name, $expires->format('d.m.Y')));
@@ -291,7 +348,7 @@ final class OrganizationService
             ?? new OrganizationTermOverride;
         $override->organization_id = $organization->id;
         $override->term_id = $term->id;
-        $override->updated_by = $actor->id;
+        $override->updated_by_id = $actor->id;
         $override->fill($values);
         if ($override->isEmpty()) {
             if ($override->exists) {
@@ -377,7 +434,7 @@ final class OrganizationService
 
             return;
         }
-        $override->forceFill(['approved_organization_id' => $organization?->id, 'approved_by' => $actor->id, 'approved_at' => now()])->save();
+        $override->forceFill(['approved_organization_id' => $organization?->id, 'approved_by_id' => $actor->id, 'approved_at' => now()])->save();
     }
 
     // ---------- intern ----------
@@ -408,7 +465,45 @@ final class OrganizationService
                 }
             }
             $this->forwardProposals($organization->id, null, 'Organisation gelöscht');
+            // Papierkorb (#286): Mitgliedschaften, Einladungen und Servicekonten enden sofort (Konten sind frei, Token
+            // ungültig); Name und Darstellung der Organisation bleiben bis zur endgültigen Löschung wiederherstellbar.
+            foreach ($organization->members()->get() as $member) {
+                $member->delete();
+            }
+            foreach ($organization->invitations()->get() as $invitation) {
+                $invitation->delete();
+            }
+            foreach (ServiceAccount::query()->where('organization_id', $organization->id)->get() as $account) {
+                $account->delete();
+            }
+            $organization->forceFill(['entra_tenant_id' => null])->save();
             $organization->delete();
+        });
+    }
+
+    /**
+     * Aus dem Papierkorb wiederherstellen (#286, nur Developer): mit Darstellung, ohne Mitglieder; wer gelöscht hat,
+     * wird wieder Organisations-Admin, sofern er keiner anderen Organisation angehört.
+     */
+    public function restore(User $actor, Organization $organization): void
+    {
+        $this->guard($actor, null, 'organization.restored', function () use ($actor, $organization): void {
+            if (! $actor->isDeveloper()) {
+                throw new AccessDenied('Wiederherstellen dürfen nur Developer.');
+            }
+            if (Organization::query()->whereRaw('lower(name) = ?', [mb_strtolower($organization->name)])->exists()) {
+                throw new AccessDenied('Eine andere Organisation trägt inzwischen diesen Namen.');
+            }
+        }, ['organization' => $organization->name]);
+        DB::transaction(function () use ($organization): void {
+            $by = $organization->deleted_by_id !== null ? User::query()->find($organization->deleted_by_id) : null;
+            $organization->restoreFromTrash();
+            if ($by !== null && $this->membershipOf($by) === null) {
+                $member = OrganizationMember::query()->create([
+                    'organization_id' => $organization->id, 'user_id' => $by->id, 'role' => MemberRole::Admin->value, 'status' => MemberStatus::Active->value,
+                ]);
+                $this->grantRole($member);
+            }
         });
     }
 
@@ -420,17 +515,17 @@ final class OrganizationService
             return;
         }
         $this->roles->assign(null, $user, Role::byKey(Role::ORG_ADMIN), self::LABEL);
-        $member->forceFill(['granted_role' => true])->save();
+        $member->forceFill(['is_role_granted' => true])->save();
     }
 
     /** Globale Rolle nur entziehen, wenn die Organisation sie vergeben hat. */
     private function revokeRole(OrganizationMember $member): void
     {
-        if (! $member->granted_role) {
+        if (! $member->is_role_granted) {
             return;
         }
         $this->roles->revoke(null, $member->user, Role::byKey(Role::ORG_ADMIN), self::LABEL);
-        $member->forceFill(['granted_role' => false])->save();
+        $member->forceFill(['is_role_granted' => false])->save();
     }
 
     private function otherAdminRemains(OrganizationMember $member): bool
@@ -468,8 +563,8 @@ final class OrganizationService
         if ($name === '' || mb_strlen($name) > 120) {
             throw new AccessDenied('Name mit 1 bis 120 Zeichen angeben.');
         }
-        if (Organization::query()->whereRaw('lower(name) = ?', [mb_strtolower($name)])->exists()) {
-            throw new AccessDenied('Diesen Namen verwendet schon eine Organisation.');
+        if (Organization::query()->withTrashed()->whereRaw('lower(name) = ?', [mb_strtolower($name)])->exists()) {
+            throw new AccessDenied('Diesen Namen verwendet schon eine Organisation (auch im Papierkorb).');
         }
     }
 

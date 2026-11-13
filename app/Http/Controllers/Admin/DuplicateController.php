@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TermStatus;
 use App\Glossary\Duplicates;
 use App\Glossary\GlossaryService;
 use App\Glossary\OfficialFieldLocked;
@@ -152,7 +153,7 @@ class DuplicateController extends Controller
             $value = $term->{$field};
             $values[$field] = match (true) {
                 $value instanceof DateTimeInterface => $value->format('Y-m-d'),
-                $field === 'lifecycle_status' => Term::STATUS[(string) $value] ?? (string) $value,
+                $field === 'lifecycle_status' => Term::STATUS[TermStatus::normalize((string) $value)],
                 default => (string) $value,
             };
         }

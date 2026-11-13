@@ -2,13 +2,16 @@
 
 namespace App\Glossary;
 
+use App\Enums\Locale;
+use App\Enums\RelationType;
+use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\PublicationRelease;
 use App\Models\Source;
 use App\Models\Term;
-use App\Models\TermLegacyValue;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
+use App\Models\TermTranslation;
 use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Support\Settings;
@@ -26,7 +29,7 @@ use InvalidArgumentException;
  * - Offizielle Felder nur mit Recht «edit-official» (leer → Wert setzen ist erlaubt, wie im Intranet).
  * - Jede Veröffentlichung bzw. jeder Rückzug erzeugt einen neuen Datenstand (PublicationRelease).
  * - Nur gemeinsame Fachdaten (DEC-020): keine eigenen Bezeichnungen und kein «Intern genutzt in»; persönliche
- *   Darstellung in TermUserOverride, Altwerte in TermLegacyValue. Jede Revision mit feldgenauem Journal.
+ *   Darstellung in TermUserOverride. Jede Revision mit feldgenauem Journal.
  */
 final class GlossaryService
 {
@@ -69,6 +72,9 @@ final class GlossaryService
         $creating = $term === null;
         $term ??= new Term;
         $values = $this->normalize($data, $creating);
+        if (array_key_exists('relations', $data)) {
+            $values['relations'] = $this->normalizeRelations($data['relations'], $term->id);
+        }
 
         if (! $creating && ! $canEditOfficial) {
             $this->guardOfficial($term, $values);
@@ -102,6 +108,12 @@ final class GlossaryService
             }
             if (array_key_exists('sources', $values)) {
                 $term->sources()->sync($values['sources']);
+            }
+            if (array_key_exists('translations', $values)) {
+                $this->syncTranslations($term, $values['translations']);
+            }
+            if (array_key_exists('relations', $values)) {
+                $this->syncRelations($term, $values['relations']);
             }
 
             $term->unsetRelations();
@@ -212,7 +224,7 @@ final class GlossaryService
         }
 
         $latest->published_at = now()->toImmutable();
-        $latest->approved_by = $approver?->id;
+        $latest->approved_by_id = $approver?->id;
         $latest->save();
 
         $term->published_revision_id = $latest->id;
@@ -233,7 +245,6 @@ final class GlossaryService
      *   anderen erscheinen im Change-Feed als «merged» mit Verweis auf $target.
      * - Persönliche Darstellungen gehen auf $target über; hat dieselbe Person dort schon eine, werden nur leere
      *   Felder ergänzt und bei Widerspruch bleibt die Anpassung am alten Begriff (nichts wird still überschrieben).
-     *   Altwerte gehen auf $target über.
      *
      * @param  list<Term>  $others
      * @param  array<string, string>  $choices
@@ -266,9 +277,9 @@ final class GlossaryService
             $data[$field] = $value instanceof DateTimeInterface ? $value->format('Y-m-d') : $value;
         }
 
-        $categories = $sources = $official = $alternative = $search = [];
+        $categories = $sources = $official = $alternative = $search = $relations = [];
         foreach ($all as $term) {
-            $term->loadMissing(['categories', 'sources', 'aliases']);
+            $term->loadMissing(['categories', 'sources', 'aliases', 'termRelations']);
             foreach ($term->categories as $category) {
                 $categories[] = (string) $category->key;
             }
@@ -278,6 +289,12 @@ final class GlossaryService
             $official = [...$official, ...$term->aliases->where('alias_type', 'official')->pluck('alias')->all()];
             $alternative = [...$alternative, ...$term->aliases->where('alias_type', 'alternative')->pluck('alias')->all()];
             $search = [...$search, ...(preg_split('/[;,]/', (string) $term->search_terms) ?: [])];
+            // Beziehungen aller Begriffe (X2, #283); solche innerhalb der Auswahl entfallen
+            foreach ($term->termRelations as $relation) {
+                if (! isset($all[$relation->related_term_id])) {
+                    $relations[] = ['type' => $relation->relation_type, 'term_id' => $relation->related_term_id];
+                }
+            }
         }
         // Namen der anderen bleiben auffindbar
         $kept = array_map(fn ($v): string => mb_strtolower(trim((string) $v)), [
@@ -307,6 +324,15 @@ final class GlossaryService
             'search_terms' => implode('; ', $searchTerms),
             'is_active' => array_filter($all, fn (Term $t): bool => $t->is_active) !== [],
         ];
+        // mehrere Nachfolger: der des Zielbegriffs, sonst der erste
+        $successors = array_filter($relations, fn (array $r): bool => $r['type'] === RelationType::Successor->value);
+        if (count(array_unique(array_column($successors, 'term_id'))) > 1) {
+            $first = reset($successors);
+            $own = $target->termRelations->firstWhere('relation_type', RelationType::Successor->value);
+            $keep = $own !== null ? $own->related_term_id : ($first !== false ? $first['term_id'] : null);
+            $relations = array_values(array_filter($relations, fn (array $r): bool => $r['type'] !== RelationType::Successor->value || $r['term_id'] === $keep));
+        }
+        $data['relations'] = $relations;
 
         $context = ['merged_from' => array_map(fn (Term $t): string => $t->id, $others), 'choices' => $choices];
 
@@ -325,10 +351,9 @@ final class GlossaryService
                 // Frühere Weiterleitungen auf diesen Begriff zeigen jetzt direkt auf $target
                 Term::query()->where('merged_into_id', $other->id)->update(['merged_into_id' => $target->id]);
                 $conflicts += $this->moveOverrides($other, $target);
-                $this->moveLegacyValues($other, $target);
                 if ($wasPublished) {
                     $events[] = TermPublicationEvent::query()->create([
-                        'term_id' => $other->id, 'action' => 'merged', 'merged_into' => $target->id,
+                        'term_id' => $other->id, 'action' => 'merged', 'merged_into_id' => $target->id,
                     ] + Journal::eventActor($user));
                 }
             }
@@ -374,7 +399,7 @@ final class GlossaryService
             }
             // ergänzte Werte ohne gleiche Freigabe brauchen eine neue Freigabe (#148)
             if ($existing->isDirty(TermUserOverride::FIELDS) && $existing->approved_organization_id !== $override->approved_organization_id) {
-                $existing->forceFill(['approved_organization_id' => null, 'approved_by' => null, 'approved_at' => null]);
+                $existing->forceFill(['approved_organization_id' => null, 'approved_by_id' => null, 'approved_at' => null]);
             }
             $existing->save();
             if ($conflict) {
@@ -385,20 +410,6 @@ final class GlossaryService
         }
 
         return $conflicts;
-    }
-
-    /** Altwerte von $from auf $to übertragen (gleiche Werte nur einmal). */
-    private function moveLegacyValues(Term $from, Term $to): void
-    {
-        foreach (TermLegacyValue::query()->where('term_id', $from->id)->get() as $value) {
-            $exists = TermLegacyValue::query()->where('term_id', $to->id)->where('field', $value->field)->where('value', $value->value)->exists();
-            if ($exists) {
-                $value->delete();
-            } else {
-                $value->term_id = $to->id;
-                $value->save();
-            }
-        }
     }
 
     /**
@@ -425,10 +436,12 @@ final class GlossaryService
             'alternative_aliases' => (array) ($s['alternative_aliases'] ?? []),
             'categories' => (array) ($s['categories'] ?? []),
             'sources' => (array) ($s['sources'] ?? []),
-            'lifecycle_status' => (string) ($s['lifecycle_status'] ?? 'aktuell'),
+            'lifecycle_status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
             'is_active' => (bool) ($s['is_active'] ?? true),
             'valid_from' => $s['valid_from'] ?? null,
             'valid_until' => $s['valid_until'] ?? null,
+            'translations' => (array) ($s['translations'] ?? []),
+            'relations' => (array) ($s['relations'] ?? []),
         ];
 
         return DB::transaction(function () use ($term, $data, $user, $canEditOfficial, $publish, $revision): Term {
@@ -463,7 +476,7 @@ final class GlossaryService
      */
     public function snapshot(Term $term): array
     {
-        $term->loadMissing(['categories', 'sources', 'aliases']);
+        $term->loadMissing(['categories', 'sources', 'aliases', 'translations', 'termRelations']);
         $aliases = function (string $type) use ($term): array {
             $list = $term->aliases->where('alias_type', $type)->pluck('alias')->map(fn ($a): string => (string) $a)->values()->all();
             sort($list);
@@ -502,7 +515,97 @@ final class GlossaryService
             'is_active' => $term->is_active,
             'valid_from' => $term->valid_from?->toDateString(),
             'valid_until' => $term->valid_until?->toDateString(),
+            'translations' => $this->translationsOf($term),
+            'relations' => $this->relationsOf($term),
         ];
+    }
+
+    /**
+     * Beziehungen fürs Abbild (X2, #283): Art und Ziel, sortiert.
+     *
+     * @return list<array{type: string, term_id: string}>
+     */
+    private function relationsOf(Term $term): array
+    {
+        $out = [];
+        foreach ($term->termRelations as $relation) {
+            $out[] = ['type' => $relation->relation_type, 'term_id' => $relation->related_term_id];
+        }
+        usort($out, fn (array $a, array $b): int => [$a['type'], $a['term_id']] <=> [$b['type'], $b['term_id']]);
+
+        return $out;
+    }
+
+    /** @param  list<array{type: string, term_id: string}>  $relations */
+    private function syncRelations(Term $term, array $relations): void
+    {
+        $term->termRelations()->delete();
+        foreach ($relations as $relation) {
+            $term->termRelations()->create(['related_term_id' => $relation['term_id'], 'relation_type' => $relation['type']]);
+        }
+    }
+
+    /**
+     * Beziehungen prüfen (X2, #283): bekannte Art, bestehender Begriff (zusammengeführt → dessen Ziel), nicht der
+     * Begriff selbst, höchstens ein Nachfolger; doppelte entfallen.
+     *
+     * @return list<array{type: string, term_id: string}>
+     */
+    private function normalizeRelations(mixed $data, ?string $self): array
+    {
+        $out = [];
+        foreach ((array) $data as $row) {
+            $row = (array) $row;
+            $type = RelationType::fromAny((string) ($row['type'] ?? ''));
+            if ($type === null) {
+                throw new InvalidArgumentException('Beziehung «'.($row['type'] ?? '').'» ist unbekannt.');
+            }
+            $target = Term::query()->find((string) ($row['term_id'] ?? ''));
+            if ($target !== null && $target->merged_into_id !== null) {
+                $target = $target->mergeTarget();
+            }
+            if ($target === null) {
+                throw new InvalidArgumentException('Begriff für die Beziehung «'.$type->label().'» gibt es nicht.');
+            }
+            if ($target->id === $self) {
+                throw new InvalidArgumentException('Ein Begriff kann nicht mit sich selbst verbunden werden.');
+            }
+            $out[$type->value.'|'.$target->id] = ['type' => $type->value, 'term_id' => (string) $target->id];
+        }
+        $out = array_values($out);
+        if (count(array_filter($out, fn (array $r): bool => $r['type'] === RelationType::Successor->value)) > 1) {
+            throw new InvalidArgumentException('Höchstens ein Nachfolger.');
+        }
+        usort($out, fn (array $a, array $b): int => [$a['type'], $a['term_id']] <=> [$b['type'], $b['term_id']]);
+
+        return $out;
+    }
+
+    /**
+     * Übersetzungen fürs Abbild (X1, #282): Sprache → Felder, nur Sprachen mit Inhalt, feste Reihenfolge.
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    private function translationsOf(Term $term): array
+    {
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            $row = $term->translations->firstWhere('locale', $locale);
+            if ($row instanceof TermTranslation) {
+                $out[$locale] = array_combine(TermTranslation::FIELDS, array_map(fn (string $f): ?string => $row->{$f}, TermTranslation::FIELDS));
+            }
+        }
+
+        return $out;
+    }
+
+    /** @param  array<string, array<string, string|null>>  $translations */
+    private function syncTranslations(Term $term, array $translations): void
+    {
+        $term->translations()->whereNotIn('locale', array_keys($translations))->delete();
+        foreach ($translations as $locale => $fields) {
+            $term->translations()->updateOrCreate(['locale' => $locale], $fields);
+        }
     }
 
     /** Prüfsumme über alle veröffentlichten Revisionen (gleiche Daten → gleiche Prüfsumme). */
@@ -538,12 +641,11 @@ final class GlossaryService
             throw new InvalidArgumentException('URL muss mit http:// oder https:// beginnen.');
         }
         if (array_key_exists('lifecycle_status', $data)) {
-            $status = (string) $data['lifecycle_status'];
-            $status = array_search($status, Term::STATUS, true) ?: $status;   // «zu prüfen» → zu_pruefen
-            if (! array_key_exists($status, Term::STATUS)) {
-                throw new InvalidArgumentException("Status «{$status}» ist unbekannt.");
+            $status = TermStatus::fromAny((string) $data['lifecycle_status']);   // Wert, bisheriger Wert oder Label
+            if ($status === null) {
+                throw new InvalidArgumentException('Status «'.$data['lifecycle_status'].'» ist unbekannt.');
             }
-            $values['lifecycle_status'] = $status;
+            $values['lifecycle_status'] = $status->value;
         }
         if (array_key_exists('is_active', $data)) {
             $values['is_active'] = (bool) $data['is_active'];
@@ -574,6 +676,10 @@ final class GlossaryService
             $values['sources'] = $this->resolve(Source::class, $this->list($data['sources']), 'Herkunft');
         }
 
+        if (array_key_exists('translations', $data)) {
+            $values['translations'] = $this->normalizeTranslations($data['translations']);
+        }
+
         if ($creating) {
             $names = array_filter([$values['official_abbreviation'] ?? null, $values['official_name'] ?? null]);
             if ($names === []) {
@@ -582,6 +688,35 @@ final class GlossaryService
         }
 
         return $values;
+    }
+
+    /**
+     * Übersetzungen prüfen (X1, #282): nur fr/it/en, leere Felder → null, Sprachen ganz ohne Inhalt entfallen.
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    private function normalizeTranslations(mixed $data): array
+    {
+        $out = [];
+        foreach ((array) $data as $locale => $fields) {
+            if (! in_array($locale, Locale::translated(), true)) {
+                throw new InvalidArgumentException("Sprache «{$locale}» wird nicht übersetzt (erlaubt: ".implode(', ', Locale::translated()).').');
+            }
+            $row = [];
+            foreach (TermTranslation::FIELDS as $field) {
+                $value = trim((string) (((array) $fields)[$field] ?? ''));
+                $row[$field] = $value === '' ? null : $value;
+            }
+            if (isset($row['short_description']) && mb_strlen($row['short_description']) > 160) {
+                throw new InvalidArgumentException('Kurzbeschreibung ('.$locale.') höchstens 160 Zeichen.');
+            }
+            if (array_filter($row) !== []) {
+                $out[$locale] = $row;
+            }
+        }
+        ksort($out);
+
+        return $out;
     }
 
     /**
@@ -608,7 +743,7 @@ final class GlossaryService
     }
 
     /**
-     * Aliase neu schreiben: offizielle, alternative Schreibweisen und Suchbegriffe (aus search_terms, «;» oder «,»).
+     * Aliase neu schreiben: offizielle, alternative Schreibweisen und Suchbegriffe (Text search_terms, «;» oder «,»).
      *
      * @param  array<string, mixed>  $values
      */
@@ -625,7 +760,11 @@ final class GlossaryService
         foreach (array_unique((array) $alternative) as $alias) {
             $term->aliases()->create(['alias' => $alias, 'alias_type' => 'alternative', 'language' => 'de']);
         }
-        foreach ($this->list(preg_split('/[;,]/', (string) $term->search_terms) ?: []) as $alias) {
+        // Suchbegriffe nur als Aliase (E1, #266): Text aus dem Formular bzw. Excel, sonst die bisherigen
+        $search = array_key_exists('search_terms', $values)
+            ? $this->list(preg_split('/[;,]/', (string) $values['search_terms']) ?: [])
+            : $current->where('alias_type', 'search')->pluck('alias')->all();
+        foreach (array_unique($search) as $alias) {
             $term->aliases()->create(['alias' => $alias, 'alias_type' => 'search', 'language' => 'de']);
         }
     }
@@ -642,7 +781,7 @@ final class GlossaryService
             'action' => $action,
             'checksum' => $this->checksum(),
             'term_count' => Term::query()->published()->count(),
-            'published_by' => $user?->id,
+            'published_by_id' => $user?->id,
         ]);
         TermPublicationEvent::query()->whereKey(array_map(fn (TermPublicationEvent $e): int => $e->id, $events))
             ->update(['release_id' => $release->id]);

@@ -7,7 +7,6 @@ use App\Glossary\GlossaryService;
 use App\Glossary\Journal;
 use App\Models\Role;
 use App\Models\Term;
-use App\Models\TermLegacyValue;
 use App\Models\TermRevision;
 use App\Models\TermUserOverride;
 use App\Models\User;
@@ -15,8 +14,6 @@ use App\Organizations\OrganizationService;
 use App\Support\SpreadsheetWriter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -88,7 +85,7 @@ class DataModelTest extends TestCase
         $revision = TermRevision::query()->where('term_id', $term->id)->firstOrFail();
         $this->assertSame(Journal::DELETED_LABEL, $revision->author_label);
         $this->assertNull($revision->author_id);
-        $this->assertNull($revision->approved_by);
+        $this->assertNull($revision->approved_by_id);
         $this->assertSame(0, TermUserOverride::query()->count());
         $this->assertSame(1, Term::query()->count());
         $this->assertSame(Journal::DELETED_LABEL, DB::table('term_publication_events')->value('actor_label'));
@@ -183,42 +180,18 @@ class DataModelTest extends TestCase
         $this->assertSame(1, $this->glossary->lastMergeConflicts);
     }
 
-    // ---------- Excel und Altwerte (C) ----------
+    // ---------- Excel (C) ----------
 
-    public function test_altes_intranet_format_wird_gemeldet_und_gesichert(): void
+    public function test_altes_intranet_format_wird_abgelehnt(): void
     {
+        // Altwerte werden seit 0.12.0 nicht mehr unterstützt (DEC-030): Datei mit Spalten des alten Formats ablehnen
         $this->actingAs($this->admin());
-        $header = [...ExcelFormat::header(), 'Abkürzung eigene', 'Bezeichnung eigene', 'Alias eigene', 'Intern genutzt in'];
-        $row = ['ID' => '', 'Abkürzung offiziell' => 'SL', 'Bezeichnung offiziell' => 'Schulleitung', 'Status' => 'aktuell', 'Aktiv' => 'ja',
-            'Abkürzung eigene' => 'SLe', 'Bezeichnung eigene' => 'Schulleitung eigen', 'Alias eigene' => 'S-L', 'Intern genutzt in' => 'personal; kalender'];
+        $header = [...ExcelFormat::header(), 'Abkürzung eigene', 'Intern genutzt in'];
+        $row = ['Abkürzung offiziell' => 'SL', 'Bezeichnung offiziell' => 'Schulleitung', 'Abkürzung eigene' => 'SLe'];
         $file = UploadedFile::fake()->createWithContent('intranet.xlsx', SpreadsheetWriter::xlsx($header, [array_map(fn (string $c): string => $row[$c] ?? '', $header)]));
 
-        $preview = $this->post('/admin/import', ['datei' => $file])->assertOk()
-            ->assertInertia(fn (Assert $p) => $p->where('altesFormat', true)->where('neu', 1)->where('altwerte', 5)
-                ->where('plan.0.meldungen', fn ($m): bool => count($m) === 4 && str_contains((string) $m[0], 'nicht zentral übernommen')));
-        $this->assertSame(0, TermLegacyValue::query()->count());
-
-        $token = (string) $preview->viewData('page')['props']['token'];
-        $this->post("/admin/import/{$token}")->assertRedirect('/admin/begriffe');
-
-        $term = Term::query()->sole();
-        $this->assertNull($term->aliases()->where('alias', 'S-L')->first());
-        $this->assertEqualsCanonicalizing(
-            ['own_abbreviation:SLe', 'own_name:Schulleitung eigen', 'own_alias:S-L', 'used_in:personal', 'used_in:kalender'],
-            TermLegacyValue::query()->get()->map(fn (TermLegacyValue $v): string => "{$v->field}:{$v->value}")->all(),
-        );
-        $this->assertArrayNotHasKey('own_abbreviation', $term->revisions()->firstOrFail()->snapshot);
-    }
-
-    public function test_neue_zeile_nur_mit_eigener_bezeichnung_ist_fehler(): void
-    {
-        $this->actingAs($this->admin());
-        $header = [...ExcelFormat::header(), 'Abkürzung eigene'];
-        $row = ['Abkürzung eigene' => 'SLe', 'Status' => 'aktuell'];
-        $file = UploadedFile::fake()->createWithContent('intranet.xlsx', SpreadsheetWriter::xlsx($header, [array_map(fn (string $c): string => $row[$c] ?? '', $header)]));
-
-        $this->post('/admin/import', ['datei' => $file])->assertOk()
-            ->assertInertia(fn (Assert $p) => $p->where('fehler', 1)->where('altwerte', 0));
+        $this->post('/admin/import', ['datei' => $file])->assertSessionHasErrors('datei');
+        $this->assertSame(0, Term::query()->count());
     }
 
     public function test_excel_v2_roundtrip_alternative_schreibweisen(): void
@@ -231,62 +204,6 @@ class DataModelTest extends TestCase
         $this->assertArrayNotHasKey('Intern genutzt in', $row);
         $this->assertSame(['KL', 'Klassen-LP'], ExcelFormat::data($row)['alternative_aliases']);
     }
-
-    public function test_altwerte_zuordnen(): void
-    {
-        $this->actingAs($this->admin());
-        $term = $this->glossary->save(null, ['official_name' => 'Schulleitung'], null, true);
-        TermLegacyValue::remember($term->id, 'own_abbreviation', 'SL', 'migration');
-        TermLegacyValue::remember($term->id, 'own_alias', 'S-L', 'migration');
-        TermLegacyValue::remember($term->id, 'own_name', 'Schulleitung eigen', 'migration');
-        TermLegacyValue::remember($term->id, 'used_in', 'personal', 'migration');
-        $id = fn (string $field): int => (int) TermLegacyValue::query()->where('field', $field)->value('id');
-
-        $this->get('/admin/altwerte')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/legacy-values')->where('offen', 4));
-
-        $this->post('/admin/altwerte', ['ids' => [$id('own_abbreviation')], 'zuordnung' => 'official'])->assertRedirect();
-        $this->assertSame('SL', $term->refresh()->official_abbreviation);
-
-        $this->post('/admin/altwerte', ['ids' => [$id('own_alias')], 'zuordnung' => 'alternative'])->assertRedirect();
-        $this->assertSame(['S-L'], $term->aliases()->where('alias_type', 'alternative')->pluck('alias')->all());
-
-        // offizielle Bezeichnung schon anders gesetzt → nicht überschrieben
-        $this->post('/admin/altwerte', ['ids' => [$id('own_name')], 'zuordnung' => 'official'])->assertRedirect();
-        $this->assertSame('Schulleitung', $term->refresh()->official_name);
-        $this->assertNull(TermLegacyValue::query()->whereKey($id('own_name'))->value('resolution'));
-
-        // «Intern genutzt in» nur verwerfen
-        $this->post('/admin/altwerte', ['ids' => [$id('used_in')], 'zuordnung' => 'search'])->assertRedirect();
-        $this->assertNull(TermLegacyValue::query()->whereKey($id('used_in'))->value('resolution'));
-        $this->post('/admin/altwerte', ['ids' => [$id('used_in')], 'zuordnung' => 'discarded'])->assertRedirect();
-        $this->assertSame('discarded', TermLegacyValue::query()->whereKey($id('used_in'))->value('resolution'));
-        $this->assertStringContainsString('personal', $this->get('/admin/altwerte/intern-genutzt-in.csv')->assertOk()->streamedContent());
-
-        $revision = $term->revisions()->get()->last();
-        $this->assertInstanceOf(TermRevision::class, $revision);
-        $this->assertSame(['via' => 'altwerte'], $revision->context);
-    }
-
-    public function test_altwerte_nur_mit_recht(): void
-    {
-        $this->actingAs($this->community('x@example.org'))->get('/admin/altwerte')->assertForbidden();
-        $this->post('/admin/altwerte', ['ids' => [1], 'zuordnung' => 'discarded'])->assertForbidden();
-    }
-
-    public function test_bestand_befehl(): void
-    {
-        $term = $this->glossary->save(null, ['official_name' => 'Schulleitung'], null, true);
-        TermLegacyValue::remember($term->id, 'own_abbreviation', 'SL', 'migration');
-        $csv = storage_path('framework/testing/bestand-'.Str::random(6).'.csv');
-        @mkdir(dirname($csv), 0777, true);
-
-        $this->artisan('glossary:bestand-eigene', ['--csv' => $csv])->assertSuccessful()
-            ->expectsOutputToContain('Begriffe ohne gemeinsame Abkürzung, aber mit offener eigener Abkürzung: 1');
-        $this->assertStringContainsString(';SL;migration;', (string) file_get_contents($csv));
-        @unlink($csv);
-    }
-
-    // ---------- API und Anzeige (D) ----------
 
     public function test_berechnete_werte_und_keine_own_felder(): void
     {
@@ -334,32 +251,4 @@ class DataModelTest extends TestCase
 
     // ---------- Migration (A) ----------
 
-    public function test_migration_sichert_altwerte_und_ist_umkehrbar(): void
-    {
-        $term = $this->glossary->save(null, ['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung'], null, true);
-        $migration = require database_path('migrations/2026_11_07_001200_shared_and_personal_data.php');
-
-        $migration->down();
-        DB::table('terms')->where('id', $term->id)->update([
-            'own_abbreviation' => 'SLe', 'own_name' => 'Schulleitung eigen', 'used_in' => json_encode(['personal', 'kalender']),
-        ]);
-        DB::table('term_aliases')->insert(['term_id' => $term->id, 'alias' => 'S-L', 'alias_type' => 'own', 'language' => 'de']);
-        DB::table('term_aliases')->insert(['term_id' => $term->id, 'alias' => 'S.L.', 'alias_type' => 'own', 'language' => 'de']);
-
-        $migration->up();
-
-        $values = TermLegacyValue::query()->orderBy('id')->get()->map(fn (TermLegacyValue $v): string => "{$v->field}:{$v->value}")->all();
-        $this->assertEqualsCanonicalizing([
-            'own_abbreviation:SLe', 'own_name:Schulleitung eigen', 'used_in:personal', 'used_in:kalender', 'own_alias:S-L', 'own_alias:S.L.',
-        ], $values);
-        $this->assertSame(0, DB::table('term_aliases')->where('alias_type', 'own')->count());
-        $this->assertFalse(Schema::hasColumn('terms', 'own_abbreviation'));
-
-        $migration->down();
-        $row = DB::table('terms')->where('id', $term->id)->first();
-        $this->assertSame('SLe', $row->own_abbreviation);
-        $this->assertSame(['personal', 'kalender'], json_decode((string) $row->used_in, true));
-        $this->assertSame(2, DB::table('term_aliases')->where('alias_type', 'own')->count());
-        $migration->up();
-    }
 }

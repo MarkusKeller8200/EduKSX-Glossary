@@ -8,23 +8,87 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Umgebungsvariablen (#306):** Übersicht aller Variablen mit Standardwerten, Werten für dev, test und prod sowie
+  den Einstellungen in GitHub (`docs/UMGEBUNGSVARIABLEN.md`).
+
+### Geändert
+
+- **DB-Guideline (#310):** Version 1.2 nach dem DB-Standard 1.2 der Plattform: Schema je Modul, Plattform-IDs für
+  Organisationen und Konten, Auskunft und Datenherausgabe, Zweck je Tabelle, anonymisierte Kopien für dev und test.
+- **Versionsbezeichnung (#308):** Entwicklungsstände heissen jetzt z. B. `0.13.0-dev.5` (geplante Version und Zahl der
+  Änderungen seit dem letzten Release), Betas `0.13.0-beta.1`, Releases `0.13.0`. Test und Produktion zeigen nach einem
+  Release bzw. einer Beta genau diese Version.
+- **Umgebungen (#304):** dev unter `glossary-dev.markussx.ch` (`glossary.markussx.ch` leitet weiter); Beta-Versionen
+  gehen auf test, Releases auf prod (Image-Tags `beta` und `stable`).
+- **Mail-Versand und Registrierung (#300, #302):** Der Betrieb versendet über den Mail-Service von Infomaniak mit
+  Absender aus `eduksx.ch`; neue Server lassen sich direkt in der Administration einrichten. Neue Konten (E-Mail oder
+  Microsoft) gibt es nur, wenn «Registrierung offen» in den Einstellungen an ist (Vorgabe aus).
+
+## [0.12.0] – 2026-11-13
+
+### Neu
+
+- **DB-Entwickler-Guideline (#270, #272):** Regeln für Datenbank, Migrationen und Modelle (`docs/KONZEPT-DB-GUIDELINE.md`), verlinkt aus AGENTS.md und dem Datenbank-Konzept; seit Version 1.1 Anwendung des gemeinsamen DB-Standards der Plattform mit Geltungsbereichen, Datenklassen und Löschregister; offene Punkte entschieden, Löschkonzept 1.1 mit Kontolöschung nach Frist und Papierkorb (#274).
+- **Vollständiger Dump (#268):** Administration › System und `php artisan glossary:dump`: ZIP mit Kopie der Datenbank,
+  allen Tabellen als JSON und Manifest; mit Passwort AES-256-verschlüsselt, ohne Passwort nur bis zur Einstellung
+  `GLOSSARY_DUMP_REQUIRE_PASSWORD`.
+- **Übersetzungen (#282, #291):** Begriffe, Kategorien und Herkünfte lassen sich auf Französisch, Italienisch und Englisch
+  erfassen. Übersetzungen von Begriffen gehören zur Revision und werden mit dem Begriff veröffentlicht. Die API liefert
+  sie in `translations`; mit `?lang=fr|it|en` ersetzen sie die deutschen Felder, fehlende bleiben deutsch und
+  `language` zeigt je Feld die gelieferte Sprache. Die Website bleibt deutsch. Im Excel-Export und -Import stehen sie in
+  Spalten wie «Bezeichnung (FR)»; fehlt eine Spalte in der Datei, bleibt der Wert.
+- **Beziehungen zwischen Begriffen (#283):** In der Redaktion lassen sich Nachfolger, «siehe auch», Ober- und
+  Unterbegriffe erfassen; sie werden mit dem Begriff veröffentlicht. Die Seite eines Begriffs zeigt sie unter
+  «Verwandte Begriffe», auch in Gegenrichtung (z. B. Vorgänger). Die API liefert sie in `relations`.
+- **Organisation mit Microsoft-Tenant (#284):** Organisations-Admins können den Microsoft-Tenant ihrer Organisation
+  hinterlegen, sofern sie selbst damit verknüpft sind. Wer sich aus diesem Tenant mit Microsoft anmeldet und noch
+  keiner Organisation angehört, erhält eine Einladung; Rechte entstehen dadurch keine.
+- **Suchen ohne Treffer (#285):** Findet eine Suche auf der Website oder in der API nichts, zählt die Anwendung den
+  Suchtext ohne Personenbezug. Die Redaktion sieht die Liste unter «Ohne Treffer»; Einträge werden 90 Tage nach der
+  letzten gleichen Suche gelöscht.
+- **Papierkorb (#286):** Gelöschte Kategorien, Herkünfte und Organisationen kommen zuerst in den Papierkorb und werden
+  nach 30 Tagen endgültig gelöscht. Developer können sie unter «Papierkorb» wiederherstellen.
+- **Änderungsprotokoll (#276, #286):** Änderungen an Listen, Organisationen, Konten, Rollen und Servicekonten werden mit
+  Zeitpunkt und handelnder Person festgehalten; personenbezogene und geheime Werte nur als «geändert». Jede Spalte hat
+  eine Datenklasse, die Übersicht steht in `docs/DATENKLASSEN.md`.
+- **Gleichzeitiges Bearbeiten (#286):** Haben zwei Personen denselben Begriff oder Listeneintrag offen, überschreibt das
+  spätere Speichern nichts mehr; es erscheint ein Hinweis, die Seite neu zu laden.
+
+### Geändert
+
+- **Datenbank bereinigt (#266, #275):** Neuer Anfangsstand mit strikten Tabellen, Prüfregeln für alle Status und Arten,
+  Fremdschlüsseln und Indizes; Namen nach dem DB-Standard. Bestehende Daten werden beim Update überführt und gezählt.
+  Suchbegriffe nur noch als Aliase. Altwerte und der Import des alten Excel-Formats des Intranets entfallen; die Werte
+  sind verschlüsselt archiviert.
+- **Rollen-Schlüssel englisch (#288):** Die Rollen Gast und Benutzer heissen intern `guest` und `user`. Die Anzeige bleibt
+  gleich, und bestehende Zuordnungen bleiben erhalten.
+- **API: Werte englisch (#266):** Status eines Begriffs `current`, `historical`, `under_review`; Status eines Vorschlags
+  `organization_review`, `submitted`, `query`, `accepted`, `rejected`, `withdrawn`. Feldnamen bleiben; der Filter
+  `status` nimmt auch die bisherigen Werte an.
+- **Microsoft-Anmeldung (#277):** Ein verknüpftes Konto wird über Aussteller und Kennung erkannt, unabhängig vom
+  Anbieter; bestehende Verknüpfungen bleiben erhalten.
+- **PostgreSQL (#287):** Migrationen und alle Tests laufen in der CI zusätzlich gegen PostgreSQL; Abfragen nach ID oder
+  Slug und die neueste Revision funktionieren auf beiden Datenbanken.
+
+## [0.11.0] – 2026-11-12
+
+### Neu
+
 - **WebApp und Icon (#239, #240, #251):** Glossary-Symbol aus dem CI für Browser-Tab, Home-Bildschirm und vor dem
   Titel; das Glossar lässt sich als App installieren, auf dem Handy mit Hinweis «App installieren» (iPhone mit
   Anleitung).
-
 - **Hinweis nach einem Update (#255):** «Aktualisiert auf Version …» mit Link zu den Neuerungen, bis er weggeklickt
   wird.
 - **Scroll-Leiste A–Z (#254):** Auf dem Handy rechts, zeigt beim Scrollen den aktuellen Buchstaben und springt beim
   Antippen.
-
-- **Labels mit Erklärung (258):** Antippen eines Labels zeigt Bezeichnung, Beschreibung und Link.
-- **Flyout-Menü auf dem Handy (259):** links mit Person, Ab-/Anmelden, Wechsel Website/Administration, Menüpunkten mit
-  Icons und Farbschema.
+- **Labels mit Erklärung (#258):** Antippen eines Labels zeigt Bezeichnung, Beschreibung und Link.
+- **Flyout-Menü auf dem Handy (#259, #263):** links mit Person, Ab-/Anmelden, Wechsel Website/Administration,
+  Menüpunkten mit Icons, «App installieren» und Farbschema.
 
 ### Geändert
 
 - **Handy-Ansicht (#225, #226, #227, #233, #235, #236, #237, #241):** Kacheln passen auf den Bildschirm; Kopfzeile auf
-  einer Zeile mit Titel, Person, Ab-/Anmelde-Icon und Ausklapp-Button für Farbschema und Wechsel (ohne Ansichtsbreite);
+  einer Zeile mit Titel, Person und Ab-/Anmelde-Icon (Farbschema und Wechsel im Flyout-Menü, ohne Ansichtsbreite);
   Fusszeile eingeklappt mit Version und Ausklapp-Button; Suchfeld ohne Autofokus; Index A–Z und Filter einklappbar;
   PDF-Dialog passt auf den Bildschirm.
 - **Kacheln (#229):** Kopf zweizeilig – Abkürzung mit Herkunft und Status, Bezeichnung mit Kategorien (auf dem Handy
@@ -33,8 +97,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Export (#234, #247):** Icons in den Farben der Formate.
 - **Kacheln öffnen die Details (#249, #250):** Symbol unten links und Tippen auf die Kachel; Detailansicht mit
   «Schliessen».
-- **Handy-Startseite (#244, #245, #246, #248, #253):** Auch quer (zwei Kacheln nebeneinander). Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer Kacheln,
-  Text in Kacheln nicht markierbar.
+- **Handy-Startseite (#244, #245, #246, #248, #253):** Suchfeld mit Leiste (Filter, Anzahl, Export) fixiert, immer
+  Kacheln, Text in Kacheln nicht markierbar; auch quer, dort zwei Kacheln nebeneinander.
 
 ## [0.10.0] – 2026-11-12
 

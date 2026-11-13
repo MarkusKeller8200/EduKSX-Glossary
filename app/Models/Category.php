@@ -2,9 +2,14 @@
 
 namespace App\Models;
 
+use App\Data\OptimisticLocking;
+use App\Data\RecordsDataChanges;
+use App\Data\Trashable;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Kategorie (erweiterbare Liste, mehrere je Begriff) – Felder wie die Listen im Intranet-Glossar.
@@ -19,10 +24,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $note
  * @property string|null $color
  * @property int $sort_order
+ * @property int $lock_version
+ * @property CarbonImmutable|null $deleted_at
+ * @property string|null $deleted_by_id
  */
 class Category extends Model
 {
     use HasUuids;
+    use OptimisticLocking, RecordsDataChanges, Trashable;
 
     protected $table = 'categories';
 
@@ -39,5 +48,11 @@ class Category extends Model
     public function displayLabel(): string
     {
         return (string) ($this->label ?: ($this->abbreviation ?: $this->key));
+    }
+
+    /** @return HasMany<CategoryTranslation, $this> Übersetzungen fr/it/en (X1, #282) */
+    public function translations(): HasMany
+    {
+        return $this->hasMany(CategoryTranslation::class);
     }
 }

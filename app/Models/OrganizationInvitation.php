@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,19 +14,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property string $organization_id
  * @property string $email
- * @property string|null $invited_by
+ * @property string|null $invited_by_id
  * @property CarbonImmutable $expires_at
  * @property CarbonImmutable|null $created_at
  * @property-read Organization $organization
  */
 class OrganizationInvitation extends Model
 {
+    use RecordsDataChanges;
+
     public const UPDATED_AT = null;
 
     public const DAYS = 14;
 
     /** @var list<string> */
-    protected $fillable = ['organization_id', 'email', 'invited_by', 'expires_at'];
+    protected $fillable = ['organization_id', 'email', 'invited_by_id', 'expires_at'];
 
     /**
      * @return array<string, string>

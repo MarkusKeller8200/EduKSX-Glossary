@@ -1,7 +1,7 @@
 # Konzept: MCP-Server
 
 **Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8b) und MCP_READINESS. Entscheide DEC-008 und DEC-011.
-**Ergänzt** am 12.11.2026 um die Umsetzung (DEC-029, **Vorschlag** – Abschnitt «Umsetzung» unten, #261).
+**Ergänzt** am 12.11.2026 um die Umsetzung (DEC-029, abgenommen am 13.11.2026 – Abschnitt «Umsetzung» unten, #261). Die offenen Entscheide O1–O6 sind **OFFEN** und werden vor der Umsetzung geklärt.
 
 ## Beschlossen
 
@@ -31,7 +31,7 @@ zusichern.
 
 Der spätere MCP-Adapter erhält eine eigenständige technische Identität mit minimalen Scopes. Ein weitergereichter Benutzerkontext darf nur nach gesicherter, nachvollziehbarer Prüfung übernommen werden. Schreibwerkzeuge erzeugen Vorschläge über die regulären Glossary-Services und durchlaufen die Moderation; Veröffentlichung durch KI erfordert einen erneuten ausdrücklichen Projektentscheid. Private Benutzer- und Moderationsdaten werden nicht als allgemeine Suchergebnisse an Rovo ausgegeben.
 
-## Umsetzung (Vorschlag DEC-029, 12.11.2026)
+## Umsetzung (DEC-029, abgenommen 13.11.2026)
 
 Baut auf DEC-008, DEC-011, DEC-017 und DEC-018 auf. Ziel erweitert: nicht nur Rovo, sondern jeder MCP-fähige
 Assistent (Claude, ChatGPT, Copilot, Rovo) kann geprüfte Glossar-Einträge abfragen, z. B. «Was heisst KLP?» oder

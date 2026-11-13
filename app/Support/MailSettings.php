@@ -189,7 +189,7 @@ final class MailSettings
         DB::table('settings')->updateOrInsert(['key' => self::KEY], [
             // nach jeder Änderung erst wieder nach einer erfolgreichen Testmail als eingerichtet
             'value' => json_encode($new + ['password' => $encrypted, 'verified_at' => null], JSON_THROW_ON_ERROR),
-            'updated_by' => $actor->id,
+            'updated_by_id' => $actor->id,
             'updated_at' => now(),
         ]);
 

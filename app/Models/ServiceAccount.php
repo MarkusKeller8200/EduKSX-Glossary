@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -28,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ServiceAccount extends Model
 {
     use HasUuids;
+    use RecordsDataChanges;
 
     /** @var list<string> */
     protected $fillable = ['name', 'purpose', 'responsible_user_id', 'status', 'scopes', 'organization_id'];

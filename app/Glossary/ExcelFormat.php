@@ -2,6 +2,8 @@
 
 namespace App\Glossary;
 
+use App\Enums\Locale;
+use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
@@ -12,9 +14,8 @@ use Carbon\CarbonImmutable;
  * dort): gleiche Spaltennamen, Mehrfachwerte mit «;», Kategorien/Herkunft als Label, Aktiv als ja/nein, Status als
  * Text. Neu «Alternative Schreibweisen» (gemeinsam freigegeben).
  *
- * Version 1 (Intranet) wird beim Import weiterhin erkannt: «Abkürzung eigene», «Alias eigene», «Bezeichnung eigene»
- * und «Intern genutzt in» sind keine gemeinsamen Daten mehr. Sie werden nicht übernommen, sondern als Altwerte
- * gesichert und in der Vorschau gemeldet (LEGACY_COLUMNS).
+ * Version 1 (Intranet mit «Abkürzung eigene», «Alias eigene», «Bezeichnung eigene», «Intern genutzt in») wird seit
+ * 0.12.0 nicht mehr unterstützt (DEC-030): der Import erkennt sie an OLD_COLUMNS und lehnt die Datei ab.
  */
 final class ExcelFormat
 {
@@ -40,19 +41,11 @@ final class ExcelFormat
     /** Version des Formats (Version 1 = Intranet mit eigenen Feldern). */
     public const VERSION = 2;
 
-    /** Spalten des alten Formats → Feld der Altwerte (TermLegacyValue). */
-    public const LEGACY_COLUMNS = [
-        'Abkürzung eigene' => 'own_abbreviation',
-        'Alias eigene' => 'own_alias',
-        'Bezeichnung eigene' => 'own_name',
-        'Intern genutzt in' => 'used_in',
-    ];
+    /** Spalten des alten Formats (Version 1), nur zum Erkennen. */
+    public const OLD_COLUMNS = ['Abkürzung eigene', 'Alias eigene', 'Bezeichnung eigene', 'Intern genutzt in'];
 
     /** Spalten mit Mehrfachwerten («;»). */
     public const MULTI = ['Kategorien', 'Aliase offiziell', 'Alternative Schreibweisen', 'Herkunft'];
-
-    /** Mehrfachwerte im alten Format. */
-    public const LEGACY_MULTI = ['Intern genutzt in'];
 
     /** Offizielle Spalten (Recht «edit-official»). */
     public const OFFICIAL = ['Abkürzung offiziell', 'Aliase offiziell', 'Bezeichnung offiziell'];
@@ -65,12 +58,38 @@ final class ExcelFormat
         'ID', 'Kategorien', 'Abkürzung offiziell', 'Aliase offiziell', 'Alternative Schreibweisen', 'Bezeichnung offiziell',
         'Kurzbeschreibung', 'Beschreibung', 'URL', 'Herkunft', 'Status', 'Suchbegriffe', 'Gültig ab', 'Gültig bis',
         'Aktiv', 'Revision', 'Veröffentlicht',
+        // Übersetzungen (#291), Reihenfolge wie translationColumns()
+        'Abkürzung (FR)', 'Bezeichnung (FR)', 'Kurzbeschreibung (FR)', 'Beschreibung (FR)',
+        'Abkürzung (IT)', 'Bezeichnung (IT)', 'Kurzbeschreibung (IT)', 'Beschreibung (IT)',
+        'Abkürzung (EN)', 'Bezeichnung (EN)', 'Kurzbeschreibung (EN)', 'Beschreibung (EN)',
     ];
+
+    /** Übersetzbare Felder (#282, #291) mit Spaltenname ohne Sprache. */
+    public const TRANSLATION_FIELDS = [
+        'abbreviation' => 'Abkürzung', 'name' => 'Bezeichnung', 'short_description' => 'Kurzbeschreibung', 'description' => 'Beschreibung',
+    ];
+
+    /**
+     * Spalten der Übersetzungen (#291), z. B. «Bezeichnung (FR)»: Spaltenname → [Sprache, Feld].
+     *
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function translationColumns(): array
+    {
+        $columns = [];
+        foreach (Locale::translated() as $locale) {
+            foreach (self::TRANSLATION_FIELDS as $field => $label) {
+                $columns[$label.' ('.strtoupper($locale).')'] = [$locale, $field];
+            }
+        }
+
+        return $columns;
+    }
 
     /** @return list<string> */
     public static function header(): array
     {
-        return ['ID', ...array_keys(self::COLUMNS)];
+        return ['ID', ...array_keys(self::COLUMNS), ...array_keys(self::translationColumns())];
     }
 
     /**
@@ -80,7 +99,7 @@ final class ExcelFormat
      */
     public static function row(Term $term): array
     {
-        $term->loadMissing(['categories', 'sources', 'aliases']);
+        $term->loadMissing(['categories', 'sources', 'aliases', 'translations']);
         $list = fn (iterable $items): string => implode('; ', array_map(
             fn (Category|Source $i): string => $i->displayLabel(),
             [...$items],
@@ -103,7 +122,24 @@ final class ExcelFormat
             'Gültig ab' => (string) $term->valid_from?->toDateString(),
             'Gültig bis' => (string) $term->valid_until?->toDateString(),
             'Aktiv' => $term->is_active ? 'ja' : 'nein',
+            ...self::translationValues(fn (string $locale, string $field): string => (string) $term->translations->firstWhere('locale', $locale)?->{$field}),
         ];
+    }
+
+    /**
+     * Werte der Übersetzungsspalten.
+     *
+     * @param  callable(string, string): string  $value  Sprache, Feld → Text
+     * @return array<string, string>
+     */
+    private static function translationValues(callable $value): array
+    {
+        $out = [];
+        foreach (self::translationColumns() as $column => [$locale, $field]) {
+            $out[$column] = $value($locale, $field);
+        }
+
+        return $out;
     }
 
     /**
@@ -139,6 +175,9 @@ final class ExcelFormat
             ($term['is_active'] ?? true) ? 'ja' : 'nein',
             (string) ($term['revision'] ?? ''),
             substr((string) ($term['published_at'] ?? ''), 0, 10),
+            ...array_values(self::translationValues(
+                fn (string $locale, string $field): string => (string) (((array) (((array) ($term['translations'] ?? []))[$locale] ?? []))[$field] ?? ''),
+            )),
         ];
     }
 
@@ -159,43 +198,19 @@ final class ExcelFormat
             $data[$field] = match (true) {
                 in_array($column, self::MULTI, true) => self::list($value),
                 $column === 'Aktiv' => ! in_array(mb_strtolower($value), ['nein', 'n', 'no', '0', 'false', 'falsch'], true),
-                $column === 'Status' => $value === '' ? 'aktuell' : $value,
+                $column === 'Status' => $value === '' ? TermStatus::Current->value : (TermStatus::fromAny($value) !== null ? TermStatus::normalize($value) : $value),
                 in_array($column, ['Gültig ab', 'Gültig bis'], true) => self::date($value),
                 default => $value,
             };
         }
-
-        return $data;
-    }
-
-    /**
-     * Werte der alten Spalten einer Zeile: Feld der Altwerte → Liste der Werte (nur nicht leere).
-     *
-     * @param  array<string, string>  $row
-     * @return array<string, list<string>>
-     */
-    public static function legacy(array $row): array
-    {
-        $out = [];
-        foreach (self::LEGACY_COLUMNS as $column => $field) {
-            $value = trim((string) ($row[$column] ?? ''));
-            if ($value === '') {
-                continue;
+        // Übersetzungen (#291): nur vorhandene Spalten; der Import ergänzt die übrigen aus dem Bestand
+        foreach (self::translationColumns() as $column => [$locale, $field]) {
+            if (array_key_exists($column, $row)) {
+                $data['translation_columns'][$locale][$field] = trim($row[$column]);
             }
-            $out[$field] = in_array($column, self::LEGACY_MULTI, true) ? self::list($value) : [$value];
         }
 
-        return $out;
-    }
-
-    /**
-     * Version einer Datei an ihren Spalten: 1, wenn eine Spalte des alten Formats vorkommt.
-     *
-     * @param  list<string>  $header
-     */
-    public static function versionOf(array $header): int
-    {
-        return array_intersect($header, array_keys(self::LEGACY_COLUMNS)) !== [] ? 1 : self::VERSION;
+        return $data;
     }
 
     /**
@@ -220,10 +235,16 @@ final class ExcelFormat
                 $value = self::data([$column => $value])['is_active'] ? 'ja' : 'nein';
             } elseif (in_array($column, ['Gültig ab', 'Gültig bis'], true)) {
                 $value = self::date($value);
-            } elseif ($column === 'Status' && $value === '') {
-                $value = 'aktuell';
+            } elseif ($column === 'Status') {
+                $case = $value === '' ? TermStatus::Current : TermStatus::fromAny($value);
+                $value = $case !== null ? $case->label() : $value;
             }
             $out[$column] = $value;
+        }
+        foreach (array_keys(self::translationColumns()) as $column) {
+            if (array_key_exists($column, $row)) {
+                $out[$column] = trim($row[$column]);
+            }
         }
 
         return $out;

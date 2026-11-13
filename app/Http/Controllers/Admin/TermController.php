@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\Locale;
+use App\Enums\RelationType;
+use App\Enums\TermStatus;
 use App\Glossary\FourEyesRequired;
 use App\Glossary\GlossaryService;
 use App\Glossary\OfficialFieldLocked;
@@ -83,7 +86,12 @@ class TermController extends Controller
     }
 
     /** Weitere Felder im Journal, die nicht im Formular stehen. */
-    public const JOURNAL_LABELS = ['slug' => 'Adresse (Slug)', 'search_aliases' => 'Suchbegriffe (Aliase)'];
+    public const JOURNAL_LABELS = ['slug' => 'Adresse (Slug)', 'search_aliases' => 'Suchbegriffe (Aliase)', 'translations' => 'Übersetzungen'];
+
+    /** Übersetzbare Felder (X1, #282) mit Bezeichnung. */
+    public const TRANSLATION_LABELS = [
+        'abbreviation' => 'Abkürzung', 'name' => 'Bezeichnung', 'short_description' => 'Kurzbeschreibung', 'description' => 'Beschreibung',
+    ];
 
     /** Detail: Arbeitsstand, veröffentlichter Stand, Verlauf (Journal) mit altem und neuem Wert je Feld. */
     public function show(Term $term): Response
@@ -118,7 +126,6 @@ class TermController extends Controller
                 'zusammengefuehrt_in' => ($target = $term->mergeTarget()) !== null
                     ? ['id' => $target->id, 'titel' => $target->title()]
                     : null,
-                'altwerte' => $term->legacyValues()->open()->count(),
                 // Quellenprüfung (#69): redaktionell, ohne Revision
                 'herkunft_pruefung' => $term->sources()->orderBy('sort_order')->get()->map(function (Source $src): array {
                     $pivot = $src->getRelationValue('pivot');
@@ -128,7 +135,7 @@ class TermController extends Controller
                         'source_id' => $src->id,
                         'label' => $src->displayLabel(),
                         'name' => $src->name,
-                        'retrieved_at' => substr($get('retrieved_at'), 0, 10),
+                        'retrieved_on' => substr($get('retrieved_on'), 0, 10),
                         'evidence' => $get('evidence'),
                         'note' => $get('note'),
                     ];
@@ -285,7 +292,18 @@ class TermController extends Controller
             'valid_from' => ['nullable', 'date_format:Y-m-d'],
             'valid_until' => ['nullable', 'date_format:Y-m-d'],
             'is_active' => ['boolean'],
+            'translations' => ['array'],
+            'translations.*' => ['array'],
+            'translations.*.abbreviation' => ['nullable', 'string', 'max:60'],
+            'translations.*.name' => ['nullable', 'string', 'max:255'],
+            'translations.*.short_description' => ['nullable', 'string', 'max:160'],
+            'translations.*.description' => ['nullable', 'string', 'max:20000'],
+            'relations' => ['array', 'max:50'],
+            'relations.*.type' => ['required', 'string'],
+            'relations.*.term_id' => ['required', 'string'],
         ]);
+        $data['relations'] ??= [];
+        $term?->assertLockVersion($request->input('lock_version'));   // optimistisches Sperren (#286)
         $data['categories'] ??= [];
         $data['sources'] ??= [];
         $data['is_active'] = $request->boolean('is_active');
@@ -310,8 +328,11 @@ class TermController extends Controller
             return [
                 'official_abbreviation' => '', 'official_aliases' => '', 'alternative_aliases' => '', 'official_name' => '',
                 'short_description' => '', 'description' => '', 'url' => '', 'note' => '', 'categories' => [],
-                'sources' => [], 'lifecycle_status' => 'aktuell',
+                'sources' => [], 'lifecycle_status' => TermStatus::Current->value,
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
+                'translations' => $this->translationForm([]),
+                'relations' => [],
+                'lock_version' => 0,
             ];
         }
         $s = $this->glossary->snapshot($term);
@@ -327,12 +348,34 @@ class TermController extends Controller
             'note' => (string) $s['note'],
             'categories' => (array) $s['categories'],
             'sources' => (array) $s['sources'],
-            'lifecycle_status' => (string) $s['lifecycle_status'],
+            'lifecycle_status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
             'search_terms' => (string) $s['search_terms'],
             'valid_from' => (string) $s['valid_from'],
             'valid_until' => (string) $s['valid_until'],
             'is_active' => (bool) $s['is_active'],
+            'translations' => $this->translationForm((array) $s['translations']),
+            'relations' => array_values((array) $s['relations']),
+            'lock_version' => $term->lock_version,
         ];
+    }
+
+    /**
+     * Übersetzungen fürs Formular: alle Sprachen und Felder, leer als ''.
+     *
+     * @param  array<mixed>  $translations
+     * @return array<string, array<string, string>>
+     */
+    private function translationForm(array $translations): array
+    {
+        $out = [];
+        foreach (Locale::translated() as $locale) {
+            foreach (array_keys(self::TRANSLATION_LABELS) as $field) {
+                $value = ((array) ($translations[$locale] ?? []))[$field] ?? null;
+                $out[$locale][$field] = is_scalar($value) ? (string) $value : '';
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -353,6 +396,34 @@ class TermController extends Controller
         };
         $out = [];
         foreach ($revision->change_set ?? [] as $field => $change) {
+            if ($field === 'translations') {
+                // je Sprache und Feld eine Zeile statt eines verschachtelten Werts (X1, #282)
+                $old = (array) ($change['old'] ?? []);
+                $new = (array) ($change['new'] ?? []);
+                foreach (Locale::translated() as $locale) {
+                    foreach (self::TRANSLATION_LABELS as $key => $label) {
+                        $a = ((array) ($old[$locale] ?? []))[$key] ?? null;
+                        $b = ((array) ($new[$locale] ?? []))[$key] ?? null;
+                        if ($a !== $b) {
+                            $out[] = ['feld' => $label.' ('.strtoupper($locale).')', 'alt' => $text($a), 'neu' => $text($b)];
+                        }
+                    }
+                }
+
+                continue;
+            }
+            if ($field === 'relations') {
+                // Beziehungen (X2, #283) lesbar: «Nachfolger: SL – Schulleitung»
+                $relText = fn (mixed $list): string => implode('; ', array_map(function (mixed $r): string {
+                    $r = (array) $r;
+                    $type = RelationType::tryFrom((string) ($r['type'] ?? ''));
+
+                    return ($type?->label() ?? (string) ($r['type'] ?? '')).': '.(Term::query()->find((string) ($r['term_id'] ?? ''))?->title() ?? '?');
+                }, (array) $list));
+                $out[] = ['feld' => 'Beziehungen', 'alt' => $relText($change['old'] ?? []), 'neu' => $relText($change['new'] ?? [])];
+
+                continue;
+            }
             $out[] = ['feld' => $labels[$field] ?? $field, 'alt' => $text($change['old'] ?? null), 'neu' => $text($change['new'] ?? null)];
         }
 
@@ -370,7 +441,7 @@ class TermController extends Controller
             return [];
         }
         $fields = [];
-        foreach (self::LABELS as $key => $label) {
+        foreach (self::LABELS + ['translations' => 'Übersetzungen', 'relations' => 'Beziehungen'] as $key => $label) {
             if (($previous->snapshot[$key] ?? null) != ($current->snapshot[$key] ?? null)) {
                 $fields[] = $label;
             }
@@ -382,7 +453,7 @@ class TermController extends Controller
     /**
      * Auswahllisten für das Formular.
      *
-     * @return array{kategorien: list<array{key: string, label: string}>, herkunft: list<array{key: string, label: string}>, status: array<string, string>}
+     * @return array{kategorien: list<array{key: string, label: string}>, herkunft: list<array{key: string, label: string}>, status: array<string, string>, beziehungsarten: array<string, string>, begriffe: list<array{id: string, label: string}>}
      */
     private function lists(): array
     {
@@ -390,6 +461,10 @@ class TermController extends Controller
             'kategorien' => $this->options(Category::query()->orderBy('sort_order')->orderBy('name')->get()),
             'herkunft' => $this->options(Source::query()->orderBy('sort_order')->orderBy('name')->get()),
             'status' => Term::STATUS,
+            // Beziehungen (X2, #283): Arten und mögliche Ziele (nicht zusammengeführt)
+            'beziehungsarten' => RelationType::labels(),
+            'begriffe' => array_values(Term::query()->current()->orderByRaw('coalesce(official_abbreviation, official_name)')->get()
+                ->map(fn (Term $t): array => ['id' => $t->id, 'label' => $t->title()])->all()),
         ];
     }
 

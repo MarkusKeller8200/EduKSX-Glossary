@@ -131,7 +131,7 @@ class GlossaryModelTest extends TestCase
     {
         $term = $this->draft(['lifecycle_status' => 'zu prüfen']);
 
-        $this->assertSame('zu_pruefen', $term->lifecycle_status);
+        $this->assertSame('under_review', $term->lifecycle_status);
     }
 
     public function test_zurueckziehen(): void

@@ -8,6 +8,8 @@ use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserIdentity;
+use App\Organizations\OrganizationService;
+use App\Support\Registration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +35,11 @@ class SsoController extends Controller
     /** Wie lange nach der Passwortbestätigung eine Verknüpfung gestartet werden darf. */
     private const LINK_MINUTES = 10;
 
-    public function __construct(private readonly MicrosoftLogin $microsoft, private readonly RoleManager $roles) {}
+    public function __construct(
+        private readonly MicrosoftLogin $microsoft,
+        private readonly RoleManager $roles,
+        private readonly OrganizationService $organizations,
+    ) {}
 
     public function redirect(Request $request): SymfonyRedirect|RedirectResponse
     {
@@ -64,8 +70,8 @@ class SsoController extends Controller
                 ->withErrors([$linking ? 'identitaet' : 'email' => 'Die Anmeldung mit Microsoft hat nicht geklappt. Bitte nochmals versuchen.']);
         }
 
-        $identity = UserIdentity::query()->where('provider', 'microsoft')
-            ->where('issuer', $claims['issuer'])->where('subject', $claims['subject'])->first();
+        // Schlüssel ist issuer + subject (W8, #277); der Aussteller ist bei Microsoft je Tenant eigen
+        $identity = UserIdentity::query()->where('issuer', $claims['issuer'])->where('subject', $claims['subject'])->first();
 
         if ($linking) {
             return $this->link($user, $identity, $claims);
@@ -79,7 +85,7 @@ class SsoController extends Controller
     {
         abort_unless($this->microsoft->enabled(), 404);
         $user = $this->currentUser($request);
-        if (! $user->password_set) {
+        if (! $user->has_password) {
             throw ValidationException::withMessages(['identitaet' => 'Zum Verknüpfen zuerst ein eigenes Passwort setzen («Passwort vergessen»).']);
         }
         $this->confirm($request, $user, 'identitaet');
@@ -93,7 +99,7 @@ class SsoController extends Controller
     {
         $user = $this->currentUser($request);
         abort_unless($identity->user_id === $user->id, 404);
-        if (! $user->password_set) {
+        if (! $user->has_password) {
             throw ValidationException::withMessages(['identitaet' => 'Das ist die letzte Anmeldemethode. Zuerst ein Passwort setzen («Passwort vergessen»).']);
         }
         $this->confirm($request, $user, 'identitaet');
@@ -105,7 +111,7 @@ class SsoController extends Controller
 
     // ---------- intern ----------
 
-    /** @param  array{issuer: string, subject: string, tenant_id: string|null, object_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims */
+    /** @param  array{issuer: string, subject: string, tenant_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims */
     private function link(User $user, ?UserIdentity $identity, array $claims): RedirectResponse
     {
         if ($identity !== null && $identity->user_id !== $user->id) {
@@ -128,6 +134,7 @@ class SsoController extends Controller
             return redirect('/anmelden')->withErrors(['email' => 'Anmeldung nicht möglich. Bitte an die Administration wenden.']);
         }
         $identity->forceFill(['last_used_at' => now()])->save();
+        $this->organizations->inviteByTenant($user, $identity->tenant_id);
 
         // zweiter Faktor wie bei der Anmeldung mit Passwort (#37)
         if ($user->hasTwoFactor()) {
@@ -143,12 +150,16 @@ class SsoController extends Controller
         return $user->needsTwoFactor() ? redirect()->intended('/admin') : redirect('/');
     }
 
-    /** @param  array{issuer: string, subject: string, tenant_id: string|null, object_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims */
+    /** @param  array{issuer: string, subject: string, tenant_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims */
     private function register(Request $request, array $claims): RedirectResponse
     {
         $email = $claims['email'] !== null ? Str::lower($claims['email']) : null;
         if ($email === null || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return redirect('/anmelden')->withErrors(['email' => 'Microsoft hat keine E-Mail-Adresse geliefert. Bitte ein Konto mit E-Mail und Passwort anlegen.']);
+        }
+        // Registrierung geschlossen (#302): keine neuen Konten, auch nicht über Microsoft
+        if (! Registration::allowed()) {
+            return redirect('/anmelden')->withErrors(['email' => 'Neue Konten sind zurzeit nicht möglich. Bitte an die Administration wenden.']);
         }
         // gleiche E-Mail ≠ gleiche Person: nie automatisch verknüpfen (Abnahmetest 4)
         if (User::query()->where('email', $email)->exists()) {
@@ -159,10 +170,11 @@ class SsoController extends Controller
         $user = DB::transaction(function () use ($claims, $email, $first, $last): User {
             $user = new User(['first_name' => $first, 'last_name' => $last, 'email' => $email]);
             // kein eigenes Passwort: zufälliger, unbekannter Wert; setzen über «Passwort vergessen»
-            $user->forceFill(['password' => Str::password(48), 'password_set' => false, 'status' => 'active'])->save();
+            $user->forceFill(['password' => Str::password(48), 'has_password' => false, 'status' => 'active'])->save();
             $user->identities()->create($this->identityData($claims) + ['last_used_at' => now()]);
             Audit::log($user, $user, 'account.registered', ['provider' => 'microsoft']);
             $this->roles->assignDefault($user, 'Registrierung (Microsoft)');
+            $this->organizations->inviteByTenant($user, $claims['tenant_id']);
 
             return $user;
         });
@@ -176,8 +188,8 @@ class SsoController extends Controller
     }
 
     /**
-     * @param  array{issuer: string, subject: string, tenant_id: string|null, object_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims
-     * @return array{provider: string, issuer: string, subject: string, tenant_id: string|null, object_id: string|null}
+     * @param  array{issuer: string, subject: string, tenant_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims
+     * @return array{provider: string, issuer: string, subject: string, tenant_id: string|null}
      */
     private function identityData(array $claims): array
     {
@@ -186,7 +198,6 @@ class SsoController extends Controller
             'issuer' => $claims['issuer'],
             'subject' => $claims['subject'],
             'tenant_id' => $claims['tenant_id'],
-            'object_id' => $claims['object_id'],
         ];
     }
 
@@ -213,7 +224,7 @@ class SsoController extends Controller
     /** Erneute Anmeldung mit der bisherigen, vertrauenswürdigen Methode: dem eigenen Passwort. */
     private function confirm(Request $request, User $user, string $field): void
     {
-        if (! $user->password_set || ! Hash::check((string) $request->input('password', ''), $user->password)) {
+        if (! $user->has_password || ! Hash::check((string) $request->input('password', ''), $user->password)) {
             throw ValidationException::withMessages([$field => 'Das Passwort stimmt nicht.']);
         }
     }

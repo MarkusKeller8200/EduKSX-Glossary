@@ -1,9 +1,11 @@
 <?php
 
+use App\Data\StaleModel;
 use App\Http\Middleware\AuthenticateServiceToken;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectFormerHost;
 use App\Http\Middleware\RequirePrivacyAcknowledgement;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -34,6 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Schutz-Kopfzeilen für alle Antworten (wie im Intranet, #147 dort)
         $middleware->append(SecurityHeaders::class);
 
+        // Frühere Adresse weiterleiten (#304), vor allem anderen
+        $middleware->prepend(RedirectFormerHost::class);
+
         $middleware->web(append: [
             EnsureAccountActive::class,
             RequirePrivacyAcknowledgement::class,
@@ -60,6 +65,15 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return null;
+        });
+
+        // Optimistisches Sperren (#286): inzwischen geändert – nichts überschrieben; Web zurück mit Meldung, sonst 409
+        $exceptions->render(function (StaleModel $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['title' => 'Konflikt', 'status' => 409, 'detail' => $e->getMessage()], 409);
+            }
+
+            return back()->withErrors(['form' => $e->getMessage()])->withInput();
         });
 
         // API: Fehler als application/problem+json (RFC 9457, docs/KONZEPT-API.md)

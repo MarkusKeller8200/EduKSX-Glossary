@@ -1,6 +1,6 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Filter, LayoutGrid, List, Table2 } from 'lucide-react';
-import { useMemo, useRef, useState, lazy, Suspense } from 'react';
+import { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import AlphabetLeiste from '@/components/alphabet-leiste';
 import DataGrid from '@/components/data-grid';
 import ExportMenu from '@/components/export-menu';
@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useHandy } from '@/hooks/use-handy';
+import { isCurrentStatus } from '@/lib/colors';
+import { meldeSucheOhneTreffer } from '@/lib/search-miss';
 import { cn } from '@/lib/utils';
 import { ListBadges, StatusBadge } from '@/components/tags';
 
@@ -134,6 +136,17 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             (herkunft.length === 0 ||
                 b.herkunft.some((h) => herkunft.includes(h))),
     );
+
+    // Suche ohne Treffer (#285): nur wenn der Suchtext allein nichts findet, nach einer Pause beim Tippen
+    const ohneTreffer =
+        q.length >= 2 && !begriffe.some((b) => b.suche.includes(q));
+    useEffect(() => {
+        if (!ohneTreffer) {
+            return;
+        }
+        const timer = window.setTimeout(() => meldeSucheOhneTreffer(q), 1500);
+        return () => window.clearTimeout(timer);
+    }, [ohneTreffer, q]);
 
     const anzahl = (
         <p className="text-sm text-muted-foreground" aria-live="polite">
@@ -342,7 +355,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                         list="kategorien"
                                         labels={b.kategorien}
                                     />
-                                    {b.status !== 'aktuell' ? (
+                                    {!isCurrentStatus(b.status) ? (
                                         <StatusBadge status={b.status} />
                                     ) : null}
                                 </span>

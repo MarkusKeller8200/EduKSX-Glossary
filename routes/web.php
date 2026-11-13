@@ -4,15 +4,16 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
-use App\Http\Controllers\Admin\LegacyValueController;
 use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SearchMissController as AdminSearchMissController;
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SourceCheckController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -26,11 +27,14 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\SearchMissController;
 use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
 
 // Öffentlich: nur lesen (PUB-01)
 Route::get('/', [PageController::class, 'home'])->name('home');
+// Suche ohne Treffer melden (X4, #285): ohne Personenbezug, begrenzt
+Route::post('suche/ohne-treffer', [SearchMissController::class, 'store'])->middleware('throttle:20,1')->name('search-miss');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');
 Route::get('hilfe', [PageController::class, 'help'])->name('help');
@@ -71,6 +75,7 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
     Route::get('/', [OrganizationController::class, 'show'])->withoutMiddleware('throttle:30,1')->name('organization');
     Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
     Route::put('/', [OrganizationController::class, 'update'])->name('organization.update');
+    Route::put('tenant', [OrganizationController::class, 'tenant'])->name('organization.tenant');
     Route::post('loeschen', [OrganizationController::class, 'destroy'])->name('organization.destroy');
     Route::post('austreten', [OrganizationController::class, 'leave'])->name('organization.leave');
     Route::post('einladungen', [OrganizationController::class, 'invite'])->middleware('throttle:10,1')->name('organization.invite');
@@ -163,14 +168,13 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::get('doppelte/zusammenfuehren', [DuplicateController::class, 'create'])->name('admin.duplicates.merge');
         Route::post('doppelte/zusammenfuehren', [DuplicateController::class, 'store'])->name('admin.duplicates.merge.store');
 
+        // Suchen ohne Treffer (X4, #285)
+        Route::get('suchen-ohne-treffer', [AdminSearchMissController::class, 'index'])->name('admin.search-misses');
+        Route::delete('suchen-ohne-treffer/{id}', [AdminSearchMissController::class, 'destroy'])->whereNumber('id')->name('admin.search-misses.destroy');
+
         // Quellenprüfung (#69)
         Route::get('pruefung', [SourceCheckController::class, 'index'])->name('admin.source-check');
         Route::put('begriffe/{term}/herkunft', [SourceCheckController::class, 'update'])->whereUuid('term')->name('admin.terms.sources');
-
-        // Altwerte aus dem Intranet-Format zuordnen (DEC-020)
-        Route::get('altwerte', [LegacyValueController::class, 'index'])->name('admin.legacy');
-        Route::post('altwerte', [LegacyValueController::class, 'resolve'])->name('admin.legacy.resolve');
-        Route::get('altwerte/intern-genutzt-in.csv', [LegacyValueController::class, 'exportUsedIn'])->name('admin.legacy.used-in');
     });
 
     // Listen: Kategorien und Herkunft
@@ -227,10 +231,14 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     // System (#40): nur Developer (Recht «system»)
     Route::middleware('can:system')->group(function () {
         Route::get('system', [SystemController::class, 'index'])->name('admin.system');
+        // Papierkorb (#286): wiederherstellen nur Developer
+        Route::get('papierkorb', [TrashController::class, 'index'])->name('admin.trash');
+        Route::post('papierkorb/{kind}/{id}/wiederherstellen', [TrashController::class, 'restore'])->whereIn('kind', ['kategorien', 'herkunft', 'organisationen'])->name('admin.trash.restore');
         Route::post('system/testmail', [SystemController::class, 'testMail'])->middleware('throttle:5,1')->name('admin.system.testmail');
         Route::post('system/mail', [SystemController::class, 'saveMail'])->middleware('throttle:10,1')->name('admin.system.mail');
         Route::post('system/mail/entfernen', [SystemController::class, 'removeMail'])->name('admin.system.mail.remove');
         Route::post('system/update', [SystemController::class, 'requestUpdate'])->middleware('throttle:5,1')->name('admin.system.update');
+        Route::post('system/dump', [SystemController::class, 'dump'])->middleware('throttle:3,10')->name('admin.system.dump');
     });
 
     // Excel (#13, #15, #111): Export des Arbeitsstands (Redaktion) getrennt vom Import mit Vorschau

@@ -2,7 +2,8 @@
 
 **Abgenommen** am 07.11.2026 (#5; DEC-009, DEC-010, DEC-014). Ziel: am sek-intranet ausrichten, damit
 Bausteine, Werkzeuge und Arbeitsweise gleich bleiben. Anpassung 07.11.2026: **kein PostgreSQL** – für die
-Datenmenge reicht SQLite vollauf.
+Datenmenge reicht SQLite vollauf. **Abgelöst 12.11.2026 (DEC-028, DEC-033):** SQLite zu Beginn, PostgreSQL für den
+zentralen Betrieb; Tests und Migrationen laufen in der CI gegen beide.
 
 ## Stack
 

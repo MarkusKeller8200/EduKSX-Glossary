@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
 use App\Models\UserIdentity;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Mockery\MockInterface;
 use RuntimeException;
@@ -16,6 +17,12 @@ use Tests\TestCase;
 /** Anmeldung mit Microsoft und sichere Kontoverknüpfung (#45, docs/KONZEPT-BENUTZER.md 6.1, 6.3; Abnahmetest 4). */
 class SsoTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['glossary.registration_open' => true]);   // Registrierung offen (#302)
+    }
+
     private const ISSUER = 'https://login.microsoftonline.com/11111111-2222-3333-4444-555555555555/v2.0';
 
     /** @return array<string, string|null> */
@@ -23,7 +30,7 @@ class SsoTest extends TestCase
     {
         return [
             'issuer' => self::ISSUER, 'subject' => $sub, 'tenant_id' => '11111111-2222-3333-4444-555555555555',
-            'object_id' => 'oid-1', 'email' => $email, 'given_name' => 'Anna', 'family_name' => 'Muster', 'name' => 'Anna Muster',
+            'email' => $email, 'given_name' => 'Anna', 'family_name' => 'Muster', 'name' => 'Anna Muster',
         ];
     }
 
@@ -56,7 +63,7 @@ class SsoTest extends TestCase
         $user = User::query()->where('email', 'anna@schule.example')->firstOrFail();
         $this->assertAuthenticatedAs($user);
         $this->assertSame('Anna Muster', $user->name);
-        $this->assertFalse($user->password_set);
+        $this->assertFalse($user->has_password);
         $this->assertSame([Role::USER], $user->roleKeys());
         $this->assertSame(Permission::BASIC, $user->permissions());
         $this->assertSame(1, UserIdentity::query()->where('issuer', self::ISSUER)->where('subject', 'sub-anna')->count());
@@ -136,5 +143,31 @@ class SsoTest extends TestCase
 
         $this->get('/anmelden/microsoft/rueckkehr')->assertRedirect('/anmelden')->assertSessionHasErrors('email');
         $this->assertGuest();
+    }
+
+    /** W8 (#277): Schlüssel ist issuer + subject – gleiches subject bei anderem Aussteller ist eine andere Identität. */
+    public function test_gleiches_subject_anderer_aussteller_ergibt_zwei_identitaeten(): void
+    {
+        $anna = User::query()->create(['first_name' => 'Anna', 'last_name' => 'Muster', 'email' => 'anna@schule.example', 'password' => 'ein-langes-Test-Passwort-1']);
+        $anna->identities()->create(['provider' => 'microsoft', 'issuer' => self::ISSUER, 'subject' => 'sub-anna']);
+
+        $other = ['issuer' => 'https://login.microsoftonline.com/99999999-2222-3333-4444-555555555555/v2.0', 'tenant_id' => '99999999-2222-3333-4444-555555555555', 'email' => 'anna@andere.example'] + $this->claims();
+        $this->microsoft($other);
+        $this->get('/anmelden/microsoft/rueckkehr')->assertRedirect('/konto');
+        $this->assertAuthenticatedAs(User::query()->where('email', 'anna@andere.example')->firstOrFail());
+
+        $this->assertSame(2, UserIdentity::query()->where('subject', 'sub-anna')->count());
+        $this->assertSame(2, UserIdentity::query()->where('subject', 'sub-anna')->distinct()->count('user_id'));
+        $this->expectException(UniqueConstraintViolationException::class);
+        UserIdentity::query()->create(['user_id' => User::query()->value('id'), 'provider' => 'edulog', 'issuer' => self::ISSUER, 'subject' => 'sub-anna']);
+    }
+
+    /** #302: Registrierung geschlossen – kein neues Konto über Microsoft, bestehende Anmeldung geht weiter. */
+    public function test_geschlossene_registrierung_ohne_neues_konto(): void
+    {
+        config(['glossary.registration_open' => false]);
+        $this->microsoft($this->claims());
+        $this->get('/anmelden/microsoft/rueckkehr')->assertRedirect('/anmelden')->assertSessionHasErrors('email');
+        $this->assertSame(0, User::query()->where('email', 'anna@schule.example')->count());
     }
 }

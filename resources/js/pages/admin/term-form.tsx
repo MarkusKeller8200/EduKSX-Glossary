@@ -1,4 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -25,7 +26,27 @@ type Werte = {
     valid_from: string;
     valid_until: string;
     is_active: boolean;
+    translations: Record<Sprache, Uebersetzung>;
+    relations: Beziehung[];
+    lock_version: number;
 };
+
+type Beziehung = { type: string; term_id: string };
+
+type Sprache = 'fr' | 'it' | 'en';
+type Uebersetzung = {
+    abbreviation: string;
+    name: string;
+    short_description: string;
+    description: string;
+};
+
+/** Übersetzungssprachen (#282); Deutsch steht in den Feldern oben. */
+const SPRACHEN: [Sprache, string][] = [
+    ['fr', 'Französisch'],
+    ['it', 'Italienisch'],
+    ['en', 'Englisch'],
+];
 
 type Option = { key: string; label: string };
 
@@ -42,6 +63,8 @@ export default function TermForm({
         kategorien: Option[];
         herkunft: Option[];
         status: Record<string, string>;
+        beziehungsarten: Record<string, string>;
+        begriffe: { id: string; label: string }[];
     };
     offiziellErlaubt: boolean;
 }) {
@@ -67,7 +90,10 @@ export default function TermForm({
                 : form.data[field].filter((k) => k !== key),
         );
     const text = (
-        field: keyof Werte,
+        field: Exclude<
+            keyof Werte,
+            'translations' | 'relations' | 'lock_version'
+        >,
         label: string,
         hint?: string,
         props: { disabled?: boolean; maxLength?: number; type?: string } = {},
@@ -83,6 +109,15 @@ export default function TermForm({
         </Feld>
     );
     const gesperrt = !offiziellErlaubt;
+    const setUebersetzung = (
+        sprache: Sprache,
+        feld: keyof Uebersetzung,
+        wert: string,
+    ) =>
+        form.setData('translations', {
+            ...form.data.translations,
+            [sprache]: { ...form.data.translations[sprache], [feld]: wert },
+        });
 
     return (
         <>
@@ -205,6 +240,22 @@ export default function TermForm({
                         />
                     </Feld>
                 </fieldset>
+
+                <Uebersetzungen
+                    werte={form.data.translations}
+                    fehler={errors}
+                    onChange={setUebersetzung}
+                />
+
+                <Beziehungen
+                    werte={form.data.relations}
+                    arten={listen.beziehungsarten}
+                    begriffe={listen.begriffe.filter(
+                        (t) => t.id !== begriff?.id,
+                    )}
+                    fehler={errors}
+                    onChange={(v) => form.setData('relations', v)}
+                />
 
                 <fieldset className="grid gap-4 sm:grid-cols-2">
                     <legend className="mb-2 font-semibold">Einordnung</legend>
@@ -361,5 +412,250 @@ function Auswahl({
             )}
             <InputError message={error} />
         </div>
+    );
+}
+
+/**
+ * Übersetzungen (#282): je Sprache Abkürzung, Bezeichnung und Texte. Leere Felder liefert die API auf Deutsch.
+ * Gespeichert wird mit dem Begriff (Revision), öffentlich erst mit «Veröffentlichen».
+ */
+function Uebersetzungen({
+    werte,
+    fehler,
+    onChange,
+}: {
+    werte: Record<Sprache, Uebersetzung>;
+    fehler: Record<string, string | undefined>;
+    onChange: (
+        sprache: Sprache,
+        feld: keyof Uebersetzung,
+        wert: string,
+    ) => void;
+}) {
+    const [aktiv, setAktiv] = useState<Sprache>('fr');
+    const w = werte[aktiv];
+    const id = (feld: string) => `translations-${aktiv}-${feld}`;
+    const err = (feld: string) => fehler[`translations.${aktiv}.${feld}`];
+    const gefuellt = (s: Sprache) =>
+        Object.values(werte[s]).some((v) => v.trim() !== '');
+
+    return (
+        <fieldset className="grid gap-4">
+            <legend className="mb-2 font-semibold">Übersetzungen</legend>
+            <p className="-mt-2 text-xs text-muted-foreground">
+                Optional. Leere Felder liefert die API auf Deutsch.
+            </p>
+            <div
+                role="tablist"
+                aria-label="Sprache der Übersetzung"
+                className="flex flex-wrap gap-1"
+            >
+                {SPRACHEN.map(([s, label]) => (
+                    <Button
+                        key={s}
+                        type="button"
+                        role="tab"
+                        aria-selected={aktiv === s}
+                        variant={aktiv === s ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setAktiv(s)}
+                    >
+                        {label}
+                        {gefuellt(s) ? ' •' : ''}
+                    </Button>
+                ))}
+            </div>
+            <div role="tabpanel" className="grid gap-4 sm:grid-cols-2">
+                <Feld
+                    id={id('abbreviation')}
+                    label="Abkürzung"
+                    error={err('abbreviation')}
+                >
+                    <Input
+                        id={id('abbreviation')}
+                        lang={aktiv}
+                        maxLength={60}
+                        value={w.abbreviation}
+                        onChange={(e) =>
+                            onChange(aktiv, 'abbreviation', e.target.value)
+                        }
+                    />
+                </Feld>
+                <Feld id={id('name')} label="Bezeichnung" error={err('name')}>
+                    <Input
+                        id={id('name')}
+                        lang={aktiv}
+                        value={w.name}
+                        onChange={(e) =>
+                            onChange(aktiv, 'name', e.target.value)
+                        }
+                    />
+                </Feld>
+                <div className="sm:col-span-2">
+                    <Feld
+                        id={id('short_description')}
+                        label="Kurzbeschreibung"
+                        hint={`Höchstens 160 Zeichen (${w.short_description.length}/160)`}
+                        error={err('short_description')}
+                    >
+                        <Input
+                            id={id('short_description')}
+                            lang={aktiv}
+                            maxLength={160}
+                            value={w.short_description}
+                            onChange={(e) =>
+                                onChange(
+                                    aktiv,
+                                    'short_description',
+                                    e.target.value,
+                                )
+                            }
+                        />
+                    </Feld>
+                </div>
+                <div className="sm:col-span-2">
+                    <Feld
+                        id={id('description')}
+                        label="Beschreibung"
+                        error={err('description')}
+                    >
+                        <Textarea
+                            id={id('description')}
+                            lang={aktiv}
+                            rows={4}
+                            value={w.description}
+                            onChange={(e) =>
+                                onChange(aktiv, 'description', e.target.value)
+                            }
+                        />
+                    </Feld>
+                </div>
+            </div>
+        </fieldset>
+    );
+}
+
+/**
+ * Beziehungen zu anderen Begriffen (#283): Art wählen, Begriff über die Suche (Abkürzung oder Bezeichnung) wählen.
+ * Teil der Revision, öffentlich erst mit «Veröffentlichen».
+ */
+function Beziehungen({
+    werte,
+    arten,
+    begriffe,
+    fehler,
+    onChange,
+}: {
+    werte: Beziehung[];
+    arten: Record<string, string>;
+    begriffe: { id: string; label: string }[];
+    fehler: Record<string, string | undefined>;
+    onChange: (werte: Beziehung[]) => void;
+}) {
+    const [art, setArt] = useState(Object.keys(arten)[0] ?? '');
+    const [suche, setSuche] = useState('');
+    const label = (id: string) =>
+        begriffe.find((t) => t.id === id)?.label ?? 'unbekannter Begriff';
+    const treffer = begriffe.find((t) => t.label === suche);
+    const hinzufuegen = () => {
+        if (!treffer) {
+            return;
+        }
+        if (!werte.some((w) => w.type === art && w.term_id === treffer.id)) {
+            onChange([...werte, { type: art, term_id: treffer.id }]);
+        }
+        setSuche('');
+    };
+    const feldFehler = Object.entries(fehler).find(([k]) =>
+        k.startsWith('relations'),
+    )?.[1];
+
+    return (
+        <fieldset className="grid gap-3">
+            <legend className="mb-2 font-semibold">Beziehungen</legend>
+            <p className="-mt-2 text-xs text-muted-foreground">
+                Optional. Zum Beispiel der Nachfolger eines historischen
+                Begriffs. Die Gegenrichtung (Vorgänger) zeigt die Website
+                automatisch.
+            </p>
+            {werte.length > 0 ? (
+                <ul className="space-y-1 text-sm">
+                    {werte.map((w) => (
+                        <li
+                            key={`${w.type}-${w.term_id}`}
+                            className="flex items-center gap-2"
+                        >
+                            <span className="text-muted-foreground">
+                                {arten[w.type] ?? w.type}:
+                            </span>
+                            <span>{label(w.term_id)}</span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={`Beziehung ${arten[w.type] ?? w.type} ${label(w.term_id)} entfernen`}
+                                onClick={() =>
+                                    onChange(
+                                        werte.filter(
+                                            (x) =>
+                                                !(
+                                                    x.type === w.type &&
+                                                    x.term_id === w.term_id
+                                                ),
+                                        ),
+                                    )
+                                }
+                            >
+                                Entfernen
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+            <div className="grid gap-2 sm:grid-cols-[12rem_1fr_auto] sm:items-end">
+                <Feld id="relation-type" label="Art">
+                    <NativeSelect
+                        id="relation-type"
+                        value={art}
+                        onChange={(e) => setArt(e.target.value)}
+                    >
+                        {Object.entries(arten).map(([k, v]) => (
+                            <option key={k} value={k}>
+                                {v}
+                            </option>
+                        ))}
+                    </NativeSelect>
+                </Feld>
+                <Feld id="relation-term" label="Begriff">
+                    <Input
+                        id="relation-term"
+                        list="relation-terms"
+                        value={suche}
+                        placeholder="Abkürzung oder Bezeichnung tippen"
+                        onChange={(e) => setSuche(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                hinzufuegen();
+                            }
+                        }}
+                    />
+                    <datalist id="relation-terms">
+                        {begriffe.map((t) => (
+                            <option key={t.id} value={t.label} />
+                        ))}
+                    </datalist>
+                </Feld>
+                <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!treffer}
+                    onClick={hinzufuegen}
+                >
+                    Hinzufügen
+                </Button>
+            </div>
+            <InputError message={feldFehler} />
+        </fieldset>
     );
 }

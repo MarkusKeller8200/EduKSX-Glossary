@@ -13,7 +13,9 @@ import {
     isColorName,
     palette,
     stateClasses,
+    TERM_STATUS,
     termStatusClasses,
+    termStatusValue,
 } from '@/lib/colors';
 import { cn } from '@/lib/utils';
 
@@ -132,7 +134,7 @@ export function StatusBadge({
             variant="outline"
             className={cn(termStatusClasses(status), className)}
         >
-            {status === 'zu_pruefen' ? 'zu prüfen' : status}
+            {TERM_STATUS[termStatusValue(status)] ?? status}
         </Badge>
     );
 }

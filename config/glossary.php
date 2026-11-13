@@ -27,6 +27,15 @@ return [
     'api_stability' => env('GLOSSARY_API_STABILITY', 'preview'),
 
     // Datenschutzerklärung: Version, deren Kenntnisnahme bei Registrierung bzw. Änderung gespeichert wird (#41, #42)
+    // Frühere Adresse, die auf APP_URL weiterleitet (#304), z. B. glossary.markussx.ch nach dem Wechsel auf glossary-dev
+    'redirect_host' => (string) env('GLOSSARY_REDIRECT_HOST', ''),
+
+    // Selbstregistrierung (#302): Vorgabe des Schalters in den Einstellungen; wirkt nur mit eingerichtetem Versand
+    'registration_open' => (bool) env('GLOSSARY_REGISTRATION_OPEN', false),
+
+    // Papierkorb (#286): Tage bis zur endgültigen Löschung; einstellen nur im Betrieb (Super-Admin)
+    'trash_days' => (int) env('GLOSSARY_TRASH_DAYS', 30),
+
     'privacy_version' => env('GLOSSARY_PRIVACY_VERSION', '1.0-entwurf'),
 
     // Datenschutzerklärung noch Entwurf (Hinweis auf /datenschutz), bis der Freigabecheck erledigt ist (#42)
@@ -56,4 +65,7 @@ return [
     'update_repo' => env('GLOSSARY_UPDATE_REPO', 'MarkusKeller8200/EduKSX-Glossary'),
     // Zusätzlicher Schlüssel für «Jetzt aktualisieren» (#177); leer = nur Recht «system» mit zweitem Faktor
     'update_key' => env('GLOSSARY_UPDATE_KEY', ''),
+    // Vollständiger Dump (#268): Passwort vorschreiben (Vorgabe aus, später an); Passwort für den Befehl ohne Eingabe
+    'dump_require_password' => (bool) env('GLOSSARY_DUMP_REQUIRE_PASSWORD', false),
+    'dump_password' => env('GLOSSARY_DUMP_PASSWORD', ''),
 ];

@@ -104,9 +104,9 @@
             "schema": {
               "type": "string",
               "enum": [
-                "aktuell",
-                "historisch",
-                "zu_pruefen"
+                "current",
+                "historical",
+                "under_review"
               ]
             }
           },
@@ -128,6 +128,21 @@
               "maximum": 200,
               "default": 50
             }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
           },
           {
             "name": "If-None-Match",
@@ -193,6 +208,21 @@
               "type": "string"
             },
             "example": "klassenlehrperson"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
           },
           {
             "name": "If-None-Match",
@@ -283,7 +313,7 @@
                         "color": null
                       }
                     ],
-                    "status": "aktuell",
+                    "status": "current",
                     "is_active": true,
                     "valid_from": null,
                     "valid_until": null,
@@ -446,6 +476,21 @@
         "operationId": "listCategories",
         "parameters": [
           {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
+          {
             "name": "If-None-Match",
             "in": "header",
             "required": false,
@@ -505,6 +550,21 @@
         "summary": "Herkunft (Quelleninstitutionen)",
         "operationId": "listSources",
         "parameters": [
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
           {
             "name": "If-None-Match",
             "in": "header",
@@ -645,6 +705,21 @@
             }
           },
           {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
+          },
+          {
             "name": "If-None-Match",
             "in": "header",
             "required": false,
@@ -706,6 +781,21 @@
               ],
               "default": "json"
             }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "de",
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "example": "fr"
           },
           {
             "name": "If-None-Match",
@@ -1135,6 +1225,40 @@
             "examples": [
               "blue"
             ]
+          },
+          "translations": {
+            "type": "object",
+            "description": "Übersetzungen je Sprache (fr, it, en): name, label, description.",
+            "propertyNames": {
+              "enum": [
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "label": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            }
           }
         }
       },
@@ -1306,9 +1430,9 @@
           "status": {
             "type": "string",
             "enum": [
-              "aktuell",
-              "historisch",
-              "zu_pruefen"
+              "current",
+              "historical",
+              "under_review"
             ]
           },
           "is_active": {
@@ -1327,6 +1451,100 @@
               "null"
             ],
             "format": "date"
+          },
+          "translations": {
+            "type": "object",
+            "description": "Übersetzungen der veröffentlichten Revision je Sprache (fr, it, en); nur Sprachen mit Inhalt, fehlende Felder null.",
+            "propertyNames": {
+              "enum": [
+                "fr",
+                "it",
+                "en"
+              ]
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "abbreviation": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "short_description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "examples": [
+              {
+                "fr": {
+                  "abbreviation": "MCL",
+                  "name": "Maître de classe",
+                  "short_description": null,
+                  "description": null
+                }
+              }
+            ]
+          },
+          "relations": {
+            "type": "array",
+            "description": "Beziehungen zu anderen öffentlichen Begriffen: successor (Nachfolger), see_also (siehe auch), broader (Oberbegriff), narrower (Unterbegriff). Nur Ziele, die öffentlich sind; zusammengeführte zeigen auf den verbleibenden Begriff. Nicht im Change-Feed.",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "id",
+                "slug",
+                "display_label"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "successor",
+                    "see_also",
+                    "broader",
+                    "narrower"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "display_label": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": [
+              [
+                {
+                  "type": "successor",
+                  "id": "01a1a2ae-f37a-7524-9056-8e32b281e28b",
+                  "slug": "schulleitung",
+                  "display_label": "SL"
+                }
+              ]
+            ]
           },
           "revision": {
             "type": "integer",
@@ -1356,6 +1574,44 @@
             "format": "uri",
             "description": "Kurze, unveränderliche Adresse des Begriffs (/g/{code}); leitet auf die Seite des Begriffs",
             "example": "https://glossary.eduksx.ch/g/7KQ2MX"
+          },
+          "language": {
+            "type": "object",
+            "description": "Nur mit ?lang=: verlangte Sprache und je übersetzbarem Feld die tatsächlich gelieferte Sprache (de, wenn die Übersetzung fehlt).",
+            "properties": {
+              "requested": {
+                "type": "string",
+                "enum": [
+                  "de",
+                  "fr",
+                  "it",
+                  "en"
+                ]
+              },
+              "fields": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string",
+                  "enum": [
+                    "de",
+                    "fr",
+                    "it",
+                    "en"
+                  ]
+                }
+              }
+            },
+            "examples": [
+              {
+                "requested": "fr",
+                "fields": {
+                  "abbreviation": "fr",
+                  "name": "fr",
+                  "short_description": "de",
+                  "description": "de"
+                }
+              }
+            ]
           }
         },
         "example": {
@@ -1406,7 +1662,7 @@
               "color": null
             }
           ],
-          "status": "aktuell",
+          "status": "current",
           "is_active": true,
           "valid_from": null,
           "valid_until": null,
@@ -1782,11 +2038,12 @@
           "status": {
             "type": "string",
             "enum": [
-              "eingereicht",
-              "rueckfrage",
-              "angenommen",
-              "abgelehnt",
-              "zurueckgezogen"
+              "organization_review",
+              "submitted",
+              "query",
+              "accepted",
+              "rejected",
+              "withdrawn"
             ]
           },
           "created_at": {

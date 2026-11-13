@@ -8,7 +8,9 @@ namespace App\Support;
  *
  * Nummer aus der Datei VERSION, Build (Commit) und Zeitpunkt aus dem Deployment (GLOSSARY_BUILD,
  * GLOSSARY_BUILD_DATE), Änderungen aus CHANGELOG.md. Developer Release: ausgerollter Stand mit Commits nach dem Tag
- * v<VERSION>; das Deployment übergibt dazu `git describe --tags --long` (GLOSSARY_BUILD_DESCRIBE).
+ * v<VERSION>; das Deployment übergibt dazu `git describe --tags --long` gegen den letzten Release-Tag
+ * (GLOSSARY_BUILD_DESCRIBE). Bezeichnung: Release `X.Y.Z`, Beta `X.Y.Z-beta.N`, Developer `X.Y.Z-dev.N` mit der
+ * geplanten nächsten Version und der Zahl der Commits seit dem letzten Release (#308).
  */
 final class AppVersion
 {
@@ -17,7 +19,7 @@ final class AppVersion
     public const UNRELEASED = '## [Unveröffentlicht]';
 
     /**
-     * @return array{version: string, build: string|null, build_date: string|null, prototype: bool, dev: array{commits: int, base: string, planned: string}|null}
+     * @return array{version: string, build: string|null, build_date: string|null, prototype: bool, dev: array{commits: int, base: string, planned: string, label: string}|null}
      */
     public static function info(): array
     {
@@ -37,9 +39,10 @@ final class AppVersion
 
     /**
      * Aus `git describe --tags --long --match 'v[0-9]*'` (z. B. v0.1.0-5-gabc1234): Commits nach dem Tag und die
-     * geplante nächste Version. Null = genau ein Release oder unbekannt.
+     * geplante nächste Version, dazu die Bezeichnung `<geplant>-dev.<Commits>`. Null = genau ein Release bzw. eine
+     * Beta oder unbekannt.
      *
-     * @return array{commits: int, base: string, planned: string}|null
+     * @return array{commits: int, base: string, planned: string, label: string}|null
      */
     public static function developerRelease(string $version, ?string $describe): ?array
     {
@@ -51,8 +54,9 @@ final class AppVersion
             return null;
         }
         $changelog = (string) @file_get_contents(base_path('CHANGELOG.md'));
+        $planned = self::planned($version, $changelog);
 
-        return ['commits' => $commits, 'base' => $m[1], 'planned' => self::planned($version, $changelog)];
+        return ['commits' => $commits, 'base' => $m[1], 'planned' => $planned, 'label' => "{$planned}-dev.{$commits}"];
     }
 
     /** Nächste Version: Patch, wenn unter «Unveröffentlicht» nur «Behoben» steht, sonst Minor. */

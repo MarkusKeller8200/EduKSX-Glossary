@@ -3,7 +3,12 @@ export type AppVersion = {
     build: string | null;
     build_date: string | null;
     prototype: boolean;
-    dev: { commits: number; base: string; planned: string } | null;
+    dev: {
+        commits: number;
+        base: string;
+        planned: string;
+        label: string;
+    } | null;
 };
 
 export type AuthUser = {

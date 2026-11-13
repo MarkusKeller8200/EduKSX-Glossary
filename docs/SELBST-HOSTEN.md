@@ -78,6 +78,12 @@ Ohne Proxy-Baustein lauscht die App nur auf `127.0.0.1:8080` – dann leitet ein
   verschlüsselt ausser Haus, bewahrt sie 30 Tage auf und testet am 1. des Monats die Wiederherstellung. Den Stand zeigt
   System → Konfiguration.
 - Sofort sichern und testen: `docker compose run --rm -e SICHERUNG_TEST=jetzt backup jetzt`.
+- **Vollständiger Dump** (#268): Administration › System › «Vollständige Sicherung (Dump)» oder
+  `docker compose exec app php artisan glossary:dump --passwort`. ZIP mit exakter Kopie der Datenbank
+  (`datenbank/glossary.sqlite`), allen Tabellen als JSON Lines (`tabellen/*.jsonl`, für einen Umzug auf eine andere
+  Datenbank) und `manifest.json` (Zeilen je Tabelle, Prüfsummen). Mit Passwort AES-256-verschlüsselt;
+  `GLOSSARY_DUMP_REQUIRE_PASSWORD=true` erlaubt nur noch verschlüsselte Dumps. Wiederherstellen wie unten mit
+  `datenbank/glossary.sqlite`.
 - **Wiederherstellen:**
 
 ```bash

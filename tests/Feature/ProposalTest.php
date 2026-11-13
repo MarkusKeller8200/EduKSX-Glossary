@@ -58,7 +58,7 @@ class ProposalTest extends TestCase
             'begruendung' => 'Gemäss Volksschulgesetz',
         ])->assertRedirect();
         $proposal = Proposal::query()->firstOrFail();
-        $this->assertSame('change', $proposal->kind);
+        $this->assertSame('change', $proposal->proposal_type);
         $this->assertSame(['short_description' => 'Führt die Schule'], $proposal->changes);
         $this->assertSame(1, $proposal->base_revision);
         $this->assertSame('Anna', $proposal->author_label);
@@ -103,7 +103,7 @@ class ProposalTest extends TestCase
         $this->assertSame(2, $term->revision);
         $this->assertSame(1, $term->publishedRevision?->revision);   // Entwurf, nicht veröffentlicht
         $this->assertSame(['via' => 'vorschlag', 'proposal_id' => $proposal->id, 'proposed_by' => 'Anna'], $term->revisions()->where('revision', 2)->firstOrFail()->context);
-        $this->assertSame('angenommen', $proposal->refresh()->status);
+        $this->assertSame('accepted', $proposal->refresh()->status);
         $this->assertSame(2, $proposal->result_revision);
         $this->assertStringNotContainsString('Führt die Schule', (string) $this->getJson("/api/v1/terms/{$term->id}")->getContent());
     }
@@ -126,7 +126,7 @@ class ProposalTest extends TestCase
         $term->refresh();
         $this->assertSame('Redaktion', $term->short_description);
         $this->assertSame('Neue Beschreibung', $term->description);
-        $event = ProposalEvent::query()->where('type', 'angenommen')->firstOrFail();
+        $event = ProposalEvent::query()->where('event_type', 'accepted')->firstOrFail();
         $this->assertSame(['short_description'], $event->details['skipped'] ?? null);
     }
 
@@ -140,18 +140,18 @@ class ProposalTest extends TestCase
         $this->actingAs($this->userWithRoles([Role::MODERATOR], 'm@example.org'));
         $this->post("/admin/vorschlaege/{$proposal->id}/rueckfrage", ['frage' => 'Welche Seite genau?'])->assertRedirect();
         $this->post("/admin/vorschlaege/{$proposal->id}/ablehnen", ['begruendung' => ''])->assertSessionHasErrors('begruendung');
-        $this->assertSame('rueckfrage', $proposal->refresh()->status);
+        $this->assertSame('query', $proposal->refresh()->status);
 
         $this->actingAs($user);
         $this->get("/vorschlaege/{$proposal->id}")->assertInertia(fn (Assert $p) => $p
-            ->where('vorschlag.status', 'rueckfrage')->where('vorschlag.ereignisse.1.text', 'Welche Seite genau?')
+            ->where('vorschlag.status', 'query')->where('vorschlag.ereignisse.1.text', 'Welche Seite genau?')
             ->where('vorschlag.ereignisse.1.von', 'Redaktion'));
         $this->post("/vorschlaege/{$proposal->id}/antwort", ['antwort' => 'Die Startseite'])->assertRedirect();
-        $this->assertSame('eingereicht', $proposal->refresh()->status);
+        $this->assertSame('submitted', $proposal->refresh()->status);
 
         $this->actingAs($this->userWithRoles([Role::MODERATOR], 'm2@example.org'));
         $this->post("/admin/vorschlaege/{$proposal->id}/ablehnen", ['begruendung' => 'Keine amtliche Quelle'])->assertRedirect('/admin/vorschlaege');
-        $this->assertSame('abgelehnt', $proposal->refresh()->status);
+        $this->assertSame('rejected', $proposal->refresh()->status);
         $this->assertNotNull($proposal->resolved_at);
 
         // zurückziehen nur offen und nur eigene
@@ -161,7 +161,7 @@ class ProposalTest extends TestCase
         $this->post("/vorschlaege/{$second->id}/zurueckziehen")->assertSessionHasErrors('vorschlag');
         $this->actingAs($user);
         $this->post("/vorschlaege/{$second->id}/zurueckziehen")->assertRedirect();
-        $this->assertSame('zurueckgezogen', $second->refresh()->status);
+        $this->assertSame('withdrawn', $second->refresh()->status);
     }
 
     public function test_offizielles_feld_braucht_recht(): void
@@ -194,7 +194,7 @@ class ProposalTest extends TestCase
 
         $response = $this->postJson('/api/v1/proposals', [
             'term' => $term->slug, 'changes' => ['short_description' => 'Aus dem Intranet'], 'reason' => 'Rückmeldung',
-        ], ['Authorization' => "Bearer {$plain}"])->assertCreated()->assertJsonPath('status', 'eingereicht');
+        ], ['Authorization' => "Bearer {$plain}"])->assertCreated()->assertJsonPath('status', 'submitted');
         $id = (int) $response->json('id');
 
         $proposal = Proposal::query()->findOrFail($id);

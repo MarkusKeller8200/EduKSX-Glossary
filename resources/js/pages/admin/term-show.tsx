@@ -21,15 +21,29 @@ type Begriff = Record<string, unknown> & {
     is_active: boolean;
     lifecycle_status: string;
     zusammengefuehrt_in: { id: string; titel: string } | null;
-    altwerte: number;
     herkunft_pruefung: Pruefung[];
+    translations: Record<string, Record<string, string>>;
+    relations: { type: string; term_id: string }[];
 };
+
+/** Übersetzungen im Arbeitsstand (#282). */
+const SPRACHEN: Record<string, string> = {
+    fr: 'Französisch',
+    it: 'Italienisch',
+    en: 'Englisch',
+};
+const UEBERSETZT: [string, string][] = [
+    ['abbreviation', 'Abkürzung'],
+    ['name', 'Bezeichnung'],
+    ['short_description', 'Kurzbeschreibung'],
+    ['description', 'Beschreibung'],
+];
 
 type Pruefung = {
     source_id: string;
     label: string;
     name: string;
-    retrieved_at: string;
+    retrieved_on: string;
     evidence: string;
     note: string;
 };
@@ -112,6 +126,8 @@ export default function TermShow({
         kategorien: Option[];
         herkunft: Option[];
         status: Record<string, string>;
+        beziehungsarten: Record<string, string>;
+        begriffe: { id: string; label: string }[];
     };
     belegstatus: Record<string, string>;
 }) {
@@ -309,25 +325,6 @@ export default function TermShow({
                 </Alert>
             ) : null}
 
-            {b.altwerte > 0 ? (
-                <Alert className="mt-6" role="note">
-                    <AlertDescription>
-                        {b.altwerte === 1
-                            ? '1 Altwert'
-                            : `${b.altwerte} Altwerte`}{' '}
-                        aus dem Intranet-Format (eigene Form, «Intern genutzt
-                        in») noch nicht zugeordnet –{' '}
-                        <Link
-                            href="/admin/altwerte"
-                            className="text-link underline-offset-4 hover:underline"
-                        >
-                            Altwerte
-                        </Link>
-                        .
-                    </AlertDescription>
-                </Alert>
-            ) : null}
-
             <h2 className="mt-8 text-lg font-semibold">
                 Arbeitsstand (Revision {b.revision})
             </h2>
@@ -346,6 +343,63 @@ export default function TermShow({
                     );
                 })}
             </dl>
+
+            {b.relations.length > 0 ? (
+                <>
+                    <h3 className="mt-6 font-semibold">Beziehungen</h3>
+                    <ul className="mt-2 space-y-1 text-sm">
+                        {b.relations.map((r) => (
+                            <li key={`${r.type}-${r.term_id}`}>
+                                <span className="text-muted-foreground">
+                                    {listen.beziehungsarten[r.type] ?? r.type}:
+                                </span>{' '}
+                                <Link
+                                    href={`/admin/begriffe/${r.term_id}`}
+                                    className="text-link underline-offset-4 hover:underline"
+                                >
+                                    {listen.begriffe.find(
+                                        (t) => t.id === r.term_id,
+                                    )?.label ?? r.term_id}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            ) : null}
+
+            {Object.entries(b.translations).some(([, t]) =>
+                Object.values(t).some((v) => v !== ''),
+            ) ? (
+                <>
+                    <h3 className="mt-6 font-semibold">Übersetzungen</h3>
+                    {Object.entries(b.translations).map(([sprache, t]) =>
+                        Object.values(t).every((v) => v === '') ? null : (
+                            <dl
+                                key={sprache}
+                                lang={sprache}
+                                className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[14rem_1fr]"
+                            >
+                                {UEBERSETZT.map(([feld, label]) =>
+                                    t[feld] ? (
+                                        <div key={feld} className="contents">
+                                            <dt className="text-muted-foreground">
+                                                {label} (
+                                                {SPRACHEN[sprache] ?? sprache})
+                                            </dt>
+                                            <dd
+                                                className="whitespace-pre-line"
+                                                translate="no"
+                                            >
+                                                {t[feld]}
+                                            </dd>
+                                        </div>
+                                    ) : null,
+                                )}
+                            </dl>
+                        ),
+                    )}
+                </>
+            ) : null}
 
             {b.herkunft_pruefung.length > 0 && darfBearbeiten ? (
                 <HerkunftPruefen
@@ -505,9 +559,9 @@ function HerkunftPruefen({
                         <Input
                             type="date"
                             aria-label={`${z.label}: geprüft am`}
-                            value={z.retrieved_at}
+                            value={z.retrieved_on}
                             onChange={(e) =>
-                                setze(i, 'retrieved_at', e.target.value)
+                                setze(i, 'retrieved_on', e.target.value)
                             }
                         />
                         <NativeSelect

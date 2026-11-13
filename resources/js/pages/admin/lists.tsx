@@ -25,7 +25,21 @@ type Eintrag = {
     color: string | null;
     sort_order: number;
     begriffe: number;
+    translations: Record<Sprache, ListUebersetzung>;
+    lock_version: number;
 };
+
+type Sprache = 'fr' | 'it' | 'en';
+type ListUebersetzung = { name: string; label: string; description: string };
+
+/** Übersetzungssprachen (#282). */
+const SPRACHEN: [Sprache, string][] = [
+    ['fr', 'Französisch'],
+    ['it', 'Italienisch'],
+    ['en', 'Englisch'],
+];
+
+const LEER: ListUebersetzung = { name: '', label: '', description: '' };
 
 type Werte = {
     key: string;
@@ -36,6 +50,8 @@ type Werte = {
     url: string;
     color: string;
     sort_order: string;
+    translations: Record<Sprache, ListUebersetzung>;
+    lock_version: number;
 };
 
 const TITEL = { kategorien: 'Kategorien', herkunft: 'Herkunft' } as const;
@@ -290,7 +306,23 @@ function Formular({
         url: eintrag?.url ?? '',
         color: eintrag?.color ?? '',
         sort_order: String(eintrag?.sort_order ?? ''),
+        translations: eintrag?.translations ?? {
+            fr: LEER,
+            it: LEER,
+            en: LEER,
+        },
+        lock_version: eintrag?.lock_version ?? 0,
     });
+    const errors = form.errors as Record<string, string | undefined>;
+    const setUebersetzung = (
+        sprache: Sprache,
+        feld: keyof ListUebersetzung,
+        wert: string,
+    ) =>
+        form.setData('translations', {
+            ...form.data.translations,
+            [sprache]: { ...form.data.translations[sprache], [feld]: wert },
+        });
     const submit = (ev: FormEvent) => {
         ev.preventDefault();
         const options = {
@@ -308,7 +340,11 @@ function Formular({
             form.post(`/admin/listen/${liste}`, options);
         }
     };
-    const feld = (name: keyof Werte, label: string, disabled = false) => (
+    const feld = (
+        name: Exclude<keyof Werte, 'translations' | 'lock_version'>,
+        label: string,
+        disabled = false,
+    ) => (
         <div className="space-y-1">
             <Label htmlFor={`${liste}-${eintrag?.id ?? 'neu'}-${name}`}>
                 {label}
@@ -387,6 +423,57 @@ function Formular({
                 />
                 <InputError message={form.errors.description} />
             </div>
+            <details className="sm:col-span-3">
+                <summary className="cursor-pointer text-sm font-medium">
+                    Übersetzungen (optional; leer = deutsch)
+                </summary>
+                <div className="mt-2 grid gap-3">
+                    {SPRACHEN.map(([s, sprachname]) => (
+                        <fieldset
+                            key={s}
+                            lang={s}
+                            className="grid gap-3 sm:grid-cols-3"
+                        >
+                            <legend className="mb-1 text-sm text-muted-foreground">
+                                {sprachname}
+                            </legend>
+                            {(
+                                [
+                                    ['name', 'Bezeichnung'],
+                                    ['label', 'Label (kurz)'],
+                                    ['description', 'Beschreibung'],
+                                ] as [keyof ListUebersetzung, string][]
+                            ).map(([f, label]) => {
+                                const id = `${liste}-${eintrag?.id ?? 'neu'}-${s}-${f}`;
+                                return (
+                                    <div key={f} className="space-y-1">
+                                        <Label htmlFor={id}>{label}</Label>
+                                        <Input
+                                            id={id}
+                                            value={form.data.translations[s][f]}
+                                            onChange={(e) =>
+                                                setUebersetzung(
+                                                    s,
+                                                    f,
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                        <InputError
+                                            message={
+                                                errors[`translations.${s}.${f}`]
+                                            }
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </fieldset>
+                    ))}
+                </div>
+            </details>
+            {errors.form ? (
+                <InputError className="sm:col-span-3" message={errors.form} />
+            ) : null}
             <div className="flex gap-2 sm:col-span-3">
                 <Button type="submit" size="sm" disabled={form.processing}>
                     Speichern

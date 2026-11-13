@@ -8,7 +8,6 @@ use App\Glossary\GlossaryService;
 use App\Glossary\PublicGlossary;
 use App\Models\Category;
 use App\Models\Term;
-use App\Models\TermLegacyValue;
 use App\Models\TermUserOverride;
 use Tests\TestCase;
 
@@ -41,7 +40,6 @@ class PublicBoundaryTest extends TestCase
             'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'short_description' => 'Leitet die Schule.',
             'note' => 'GEHEIM-NOTIZ', 'categories' => ['per'],
         ], $admin, true);
-        TermLegacyValue::remember($term->id, 'used_in', 'GEHEIM-INTERN', 'import');
         $term = $glossary->publish($term, $admin);
         $override = new TermUserOverride(['name_override' => 'GEHEIM-PERSOENLICH']);
         $override->term_id = $term->id;

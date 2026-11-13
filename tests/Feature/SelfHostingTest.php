@@ -37,6 +37,7 @@ class SelfHostingTest extends TestCase
 
     public function test_taegliche_kopie_ist_eine_sqlite_datei(): void
     {
+        $this->onlySqlite();
         // eigene Datei statt der Testdatenbank im Speicher
         $source = tempnam(sys_get_temp_dir(), 'glossary').'.sqlite';
         (new \PDO('sqlite:'.$source))->exec('CREATE TABLE t (x INTEGER); INSERT INTO t VALUES (1);');

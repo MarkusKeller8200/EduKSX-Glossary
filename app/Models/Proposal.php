@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Vorschlag (#113): neuer Begriff oder Korrektur. Nie öffentlich; ändern nur über App\Proposals\ProposalService.
  *
  * @property int $id
- * @property string $kind
+ * @property string $proposal_type new | change
  * @property string|null $term_id
  * @property int|null $base_revision
  * @property array<string, mixed> $changes
@@ -32,28 +32,28 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Proposal extends Model
 {
     /** Offen (zurückziehen möglich), auch während der Prüfung durch die Organisation. */
-    public const OPEN = ['org_pruefung', 'eingereicht', 'rueckfrage'];
+    public const OPEN = ['organization_review', 'submitted', 'query'];
 
     /** In der Moderation der Redaktion (annehmen, ablehnen, Rückfrage). */
-    public const MODERATION = ['eingereicht', 'rueckfrage'];
+    public const MODERATION = ['submitted', 'query'];
 
     /** Wartet auf die Bestätigung durch einen Organisations-Admin (#148). */
-    public const ORG_REVIEW = 'org_pruefung';
+    public const ORG_REVIEW = 'organization_review';
 
     public const STATUS = [
-        'org_pruefung' => 'Prüfung durch Organisation',
-        'eingereicht' => 'eingereicht',
-        'rueckfrage' => 'Rückfrage',
-        'angenommen' => 'angenommen',
-        'abgelehnt' => 'abgelehnt',
-        'zurueckgezogen' => 'zurückgezogen',
+        'organization_review' => 'Prüfung durch Organisation',
+        'submitted' => 'eingereicht',
+        'query' => 'Rückfrage',
+        'accepted' => 'angenommen',
+        'rejected' => 'abgelehnt',
+        'withdrawn' => 'zurückgezogen',
     ];
 
     /** Bezeichnung nach Ablauf der Frist bzw. nach Kontolöschung (DEC-024, LOESCHKONZEPT). */
     public const ANONYMOUS = 'Community';
 
     /** @var list<string> */
-    protected $fillable = ['kind', 'term_id', 'base_revision', 'changes', 'reason', 'status', 'user_id', 'service_account_id', 'author_label', 'organization_id'];
+    protected $fillable = ['proposal_type', 'term_id', 'base_revision', 'changes', 'reason', 'status', 'user_id', 'service_account_id', 'author_label', 'organization_id'];
 
     /**
      * @return array<string, string>

@@ -4,12 +4,13 @@ import {
     ClipboardCheck,
     Copy,
     FileUp,
-    History,
     KeyRound,
     LayoutDashboard,
     MessageSquarePlus,
+    SearchX,
     Server,
     Settings,
+    Trash2,
     Tags,
     Users,
 } from 'lucide-react';
@@ -41,10 +42,10 @@ export const ADMIN_NAV: {
         icon: Copy,
     },
     {
-        href: '/admin/altwerte',
-        label: 'Altwerte',
+        href: '/admin/suchen-ohne-treffer',
+        label: 'Ohne Treffer',
         recht: 'edit-terms',
-        icon: History,
+        icon: SearchX,
     },
     {
         href: '/admin/pruefung',
@@ -76,6 +77,12 @@ export const ADMIN_NAV: {
         label: 'Einstellungen',
         recht: 'settings',
         icon: Settings,
+    },
+    {
+        href: '/admin/papierkorb',
+        label: 'Papierkorb',
+        recht: 'system',
+        icon: Trash2,
     },
     { href: '/admin/system', label: 'System', recht: 'system', icon: Server },
 ];

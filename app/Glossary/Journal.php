@@ -4,7 +4,6 @@ namespace App\Glossary;
 
 use App\Models\ImportBatch;
 use App\Models\Role;
-use App\Models\TermLegacyValue;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 use App\Models\TermUserOverride;
@@ -101,12 +100,11 @@ final class Journal
         TermRevision::query()->where('author_id', $user->id)->whereIn('author_label', $labels)->toBase()
             ->update(['author_label' => self::DELETED_LABEL]);
         TermRevision::query()->where('author_id', $user->id)->toBase()->update(['author_id' => null]);
-        TermRevision::query()->where('approved_by', $user->id)->toBase()->update(['approved_by' => null]);
+        TermRevision::query()->where('approved_by_id', $user->id)->toBase()->update(['approved_by_id' => null]);
 
         TermPublicationEvent::query()->where('actor_id', $user->id)->whereIn('actor_label', $labels)->toBase()
             ->update(['actor_label' => self::DELETED_LABEL]);
         TermPublicationEvent::query()->where('actor_id', $user->id)->toBase()->update(['actor_id' => null]);
-        TermLegacyValue::query()->where('resolved_by', $user->id)->toBase()->update(['resolved_by' => null]);
         ImportBatch::query()->where('user_id', $user->id)->toBase()->update(['user_label' => self::DELETED_LABEL, 'user_id' => null]);
     }
 

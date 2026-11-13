@@ -6,7 +6,8 @@ services:
         ports: !reset []
         labels:
             - traefik.enable=true
-            - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.rule=Host(`${GLOSSARY_HOST}`)
+            # frühere Adresse (GLOSSARY_REDIRECT_HOST, #304) im selben Router: Zertifikat für beide, die App leitet weiter
+            - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.rule=Host(`${GLOSSARY_HOST}`) || Host(`${GLOSSARY_REDIRECT_HOST:-${GLOSSARY_HOST}}`)
             - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.entrypoints=websecure
             - traefik.http.routers.${GLOSSARY_INSTANZ:-glossary}.tls.certresolver=letsencrypt
             - traefik.http.services.${GLOSSARY_INSTANZ:-glossary}.loadbalancer.server.port=80

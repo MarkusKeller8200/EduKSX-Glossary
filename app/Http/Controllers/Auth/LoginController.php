@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Support\MailSetup;
+use App\Support\Registration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +25,7 @@ class LoginController extends Controller
     public function create(): Response
     {
         return Inertia::render('auth/login', [
-            'registrierung' => MailSetup::configured(),
+            'registrierung' => Registration::open(),
             'microsoft' => app(MicrosoftLogin::class)->enabled(),
         ]);
     }

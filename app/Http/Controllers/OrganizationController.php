@@ -65,6 +65,9 @@ class OrganizationController extends Controller
             'admin' => $admin,
             'zwei_faktor' => $user->hasTwoFactor(),
             'gegruendet' => $organization->created_at?->toDateString(),
+            // Mandant (X3, #284): Microsoft-Tenant und die Tenants, mit denen der Admin selbst verknüpft ist
+            'tenant' => $organization->entra_tenant_id,
+            'meine_tenants' => $admin ? $this->organizations->tenantsOf($user) : [],
         ];
         if (! $member->isActive()) {
             return Inertia::render('organization/show', $props);
@@ -90,21 +93,21 @@ class OrganizationController extends Controller
                 'geaendert' => $o->updated_at?->toDateString(),
             ])->sortBy('slug')->values()->all();
         if ($admin) {
-            $names = User::query()->whereIn('id', $organization->invitations()->whereNotNull('invited_by')->select('invited_by'))->pluck('name', 'id');
+            $names = User::query()->whereIn('id', $organization->invitations()->whereNotNull('invited_by_id')->select('invited_by_id'))->pluck('name', 'id');
             $props['einladungen'] = $organization->invitations()->where('expires_at', '>', now())->orderBy('email')->get()
                 ->map(fn (OrganizationInvitation $i): array => [
                     'id' => $i->id,
                     'email' => $i->email,
                     'gueltig_bis' => $i->expires_at->toDateString(),
-                    'von' => $i->invited_by !== null ? ($names[$i->invited_by] ?? null) : null,
+                    'von' => $i->invited_by_id !== null ? ($names[$i->invited_by_id] ?? null) : null,
                 ])->all();
             $props['servicekonten'] = ServiceAccount::query()->where('organization_id', $organization->id)->count();
             // Vorschläge der Mitglieder, die auf die Bestätigung warten (#148)
             $props['vorschlaege'] = Proposal::query()->where('organization_id', $organization->id)->where('status', Proposal::ORG_REVIEW)
                 ->with('term')->orderBy('id')->get()->map(fn (Proposal $p): array => [
                     'id' => $p->id,
-                    'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
-                    'titel' => $p->kind === 'new' ? Term::titleFrom($p->changes) : ($p->term?->title() ?? '(Begriff gelöscht)'),
+                    'art' => $p->proposal_type === 'new' ? 'Neuer Begriff' : 'Korrektur',
+                    'titel' => $p->proposal_type === 'new' ? Term::titleFrom($p->changes) : ($p->term?->title() ?? '(Begriff gelöscht)'),
                     'slug' => $p->term?->slug,
                     'von' => $p->author_label,
                     'begruendung' => $p->reason,
@@ -148,6 +151,16 @@ class OrganizationController extends Controller
         $user = $this->currentUser($request);
 
         return $this->run(fn () => $this->organizations->rename($user, $this->organizationOf($user), (string) $data['name']), 'Name gespeichert.', 'name');
+    }
+
+    public function tenant(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['tenant' => ['nullable', 'string', 'size:36']]);
+        $user = $this->currentUser($request);
+        $tenant = isset($data['tenant']) ? (string) $data['tenant'] : null;
+
+        return $this->run(fn () => $this->organizations->setTenant($user, $this->organizationOf($user), $tenant),
+            $tenant === null ? 'Microsoft-Tenant gelöst.' : 'Microsoft-Tenant gespeichert.', 'tenant');
     }
 
     public function destroy(Request $request): RedirectResponse

@@ -108,7 +108,7 @@ export default function ProposalShow({
                 ))}
             </ol>
 
-            {v.status === 'rueckfrage' ? (
+            {v.status === 'query' ? (
                 <form onSubmit={submit} className="mt-6 grid max-w-2xl gap-2">
                     <Label htmlFor="antwort">Antwort an die Redaktion</Label>
                     <Textarea

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $action
  * @property int|null $revision
  * @property int|null $release_id
- * @property string|null $merged_into
+ * @property string|null $merged_into_id
  * @property string|null $actor_type
  * @property string|null $actor_label
  * @property string|null $actor_id
@@ -26,7 +26,7 @@ class TermPublicationEvent extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'term_id', 'action', 'revision', 'release_id', 'merged_into', 'actor_type', 'actor_label', 'actor_id',
+        'term_id', 'action', 'revision', 'release_id', 'merged_into_id', 'actor_type', 'actor_label', 'actor_id',
     ];
 
     /**

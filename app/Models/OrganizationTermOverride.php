@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $id
  * @property string $term_id
  * @property string $organization_id
- * @property string|null $updated_by
+ * @property string|null $updated_by_id
  * @property string|null $abbreviation_override
  * @property string|null $name_override
  * @property string|null $short_description_override
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrganizationTermOverride extends Model
 {
     use HasUuids;
+    use RecordsDataChanges;
 
     /** Felder wie bei der persönlichen Darstellung. */
     public const FIELDS = TermUserOverride::FIELDS;

@@ -28,12 +28,12 @@ class ProposalController extends Controller
         // Vorschläge in der Prüfung durch eine Organisation (#148) erscheinen erst nach deren Bestätigung
         $list = Proposal::query()->with('term')->where('status', '!=', Proposal::ORG_REVIEW)
             ->when($filter === 'offen', fn ($q) => $q->whereIn('status', Proposal::MODERATION))
-            ->orderByRaw("case when status = 'eingereicht' then 0 when status = 'rueckfrage' then 1 else 2 end")
+            ->orderByRaw("case when status = 'submitted' then 0 when status = 'query' then 1 else 2 end")
             ->latest('id')->limit(500)->get()
             ->map(fn (Proposal $p): array => [
                 'id' => $p->id,
-                'art' => $p->kind === 'new' ? 'Neuer Begriff' : 'Korrektur',
-                'titel' => $p->kind === 'new'
+                'art' => $p->proposal_type === 'new' ? 'Neuer Begriff' : 'Korrektur',
+                'titel' => $p->proposal_type === 'new'
                     ? Term::titleFrom($p->changes)
                     : ($p->term?->title() ?? '(Begriff gelöscht)'),
                 'felder' => array_map(fn (string $f): string => ProposalService::FIELDS[$f] ?? $f, array_keys($p->changes)),
@@ -54,7 +54,7 @@ class ProposalController extends Controller
         return Inertia::render('admin/proposal-show', [
             'vorschlag' => [
                 'id' => $proposal->id,
-                'art' => $proposal->kind,
+                'art' => $proposal->proposal_type,
                 'begriff' => $proposal->term === null ? null : ['id' => $proposal->term->id, 'titel' => $proposal->term->title(), 'revision' => $proposal->term->revision],
                 'basis' => $proposal->base_revision,
                 'von' => $proposal->author_label,
@@ -69,7 +69,7 @@ class ProposalController extends Controller
             'vergleich' => $this->proposals->compare($proposal),
             'kategorien' => $categories,
             'ereignisse' => $proposal->events->map(fn (ProposalEvent $e): array => [
-                'typ' => $e->type,
+                'typ' => $e->event_type,
                 'am' => $e->created_at->toIso8601String(),
                 'von' => $e->actor_label,
                 'text' => $e->message,

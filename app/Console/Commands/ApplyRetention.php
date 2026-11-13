@@ -5,11 +5,15 @@ namespace App\Console\Commands;
 use App\Access\Audit;
 use App\Access\Permission;
 use App\Mail\InactivityNotice;
+use App\Models\Category;
 use App\Models\ImportBatch;
+use App\Models\Organization;
 use App\Models\Proposal;
 use App\Models\Role;
+use App\Models\Source;
 use App\Models\User;
 use App\Proposals\ProposalService;
+use App\Search\SearchMisses;
 use App\Support\MailSetup;
 use App\Support\Settings;
 use DateTimeInterface;
@@ -70,6 +74,9 @@ class ApplyRetention extends Command
         // 3. Audit-Protokoll (Abfrage statt Model: Einträge sind sonst unveränderlich)
         $auditQuery = DB::table('user_audit')->where('created_at', '<', now()->subYears($auditYears));
         $audit = $dry ? $auditQuery->count() : $auditQuery->delete();
+        // Änderungsprotokoll (#286): gleiche Frist wie das Audit-Protokoll
+        $changesQuery = DB::table('data_changes')->where('occurred_at', '<', now()->subYears($auditYears));
+        $audit += $dry ? $changesQuery->count() : $changesQuery->delete();
 
         // 4. Vorschläge (#113, DEC-024): 24 Monate nach Abschluss ohne Personenbezug
         $proposals = $dry
@@ -81,10 +88,27 @@ class ApplyRetention extends Command
         $importQuery = ImportBatch::query()->where('created_at', '<', now()->subMonths(ImportBatch::RETENTION_MONTHS));
         $imports = $dry ? $importQuery->count() : $importQuery->delete();
 
+        // 6. Suchen ohne Treffer (X4, #285): 90 Tage nach dem letzten Auftreten
+        $misses = $dry
+            ? DB::table('search_misses')->where('last_seen_at', '<', now()->subDays(SearchMisses::RETENTION_DAYS))->count()
+            : SearchMisses::prune();
+
+        // 7. Papierkorb (#286): nach der Frist endgültig löschen
+        $trashed = 0;
+        foreach ([Category::class, Source::class, Organization::class] as $model) {
+            $old = $model::onlyTrashed()->where('deleted_at', '<', now()->subDays($model::trashDays()))->get();
+            $trashed += $old->count();
+            if (! $dry) {
+                foreach ($old as $item) {
+                    $item->forceDelete();
+                }
+            }
+        }
+
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
             ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt, "
-            ."{$proposals} Vorschläge ohne Personenbezug.");
+            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$trashed} Einträge aus dem Papierkorb.");
 
         return self::SUCCESS;
     }

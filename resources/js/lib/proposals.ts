@@ -3,15 +3,15 @@ import { palette } from '@/lib/colors';
 /** Farbe des Vorschlagsstatus (#113): offen blau, Rückfrage orange, angenommen grün, sonst grau bzw. rot. */
 export function proposalStatusClass(status: string): string {
     switch (status) {
-        case 'org_pruefung':
+        case 'organization_review':
             return palette.violet.badge;
-        case 'eingereicht':
+        case 'submitted':
             return palette.sky.badge;
-        case 'rueckfrage':
+        case 'query':
             return palette.amber.badge;
-        case 'angenommen':
+        case 'accepted':
             return palette.emerald.badge;
-        case 'abgelehnt':
+        case 'rejected':
             return palette.rose.badge;
         default:
             return palette.slate.badge;
@@ -20,15 +20,15 @@ export function proposalStatusClass(status: string): string {
 
 /** Ereignistypen → Text. */
 export const EREIGNIS: Record<string, string> = {
-    eingereicht: 'Eingereicht',
-    rueckfrage: 'Rückfrage',
-    antwort: 'Antwort',
-    angenommen: 'Angenommen',
-    abgelehnt: 'Abgelehnt',
-    zurueckgezogen: 'Zurückgezogen',
-    org_bestaetigt: 'Von der Organisation bestätigt',
-    org_abgelehnt: 'Von der Organisation abgelehnt',
-    org_weitergeleitet: 'An die Redaktion weitergeleitet',
+    submitted: 'Eingereicht',
+    query: 'Rückfrage',
+    reply: 'Antwort',
+    accepted: 'Angenommen',
+    rejected: 'Abgelehnt',
+    withdrawn: 'Zurückgezogen',
+    confirmed_by_organization: 'Von der Organisation bestätigt',
+    rejected_by_organization: 'Von der Organisation abgelehnt',
+    forwarded_by_organization: 'An die Redaktion weitergeleitet',
 };
 
 /** Wert eines Feldes zur Anzeige (Listen mit Strichpunkt, leer als «–»). */

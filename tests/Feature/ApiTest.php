@@ -74,14 +74,14 @@ class ApiTest extends TestCase
     public function test_term_schema_entspricht_der_positivliste(): void
     {
         $spec = json_decode((string) file_get_contents(base_path('openapi/glossary-v1.json')), true);
-        $this->assertSame(ApiPresenter::PUBLIC_TERM_FIELDS, array_keys($spec['components']['schemas']['Term']['properties']));
+        $this->assertSame([...ApiPresenter::PUBLIC_TERM_FIELDS, ...ApiPresenter::LOCALIZED_FIELDS], array_keys($spec['components']['schemas']['Term']['properties']));
 
         $check = function (mixed $node) use (&$check): void {
             if (! is_array($node)) {
                 return;
             }
             if (isset($node['slug'], $node['revision'], $node['categories'])) {
-                $this->assertSame([], array_diff(array_keys($node), ApiPresenter::PUBLIC_TERM_FIELDS), 'Beispiel mit Feldern ausserhalb der Positivliste');
+                $this->assertSame([], array_diff(array_keys($node), [...ApiPresenter::PUBLIC_TERM_FIELDS, ...ApiPresenter::LOCALIZED_FIELDS]), 'Beispiel mit Feldern ausserhalb der Positivliste');
             }
             foreach ($node as $child) {
                 $check($child);

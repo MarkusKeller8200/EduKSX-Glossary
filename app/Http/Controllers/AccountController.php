@@ -40,16 +40,16 @@ class AccountController extends Controller
                 'institution_name' => (string) $user->institution_name,
                 'zweiter_faktor' => $user->hasTwoFactor(),
                 'zweiter_faktor_pflicht' => $user->needsTwoFactor(),
-                'passwort_gesetzt' => $user->password_set,
+                'passwort_gesetzt' => $user->has_password,
                 'identitaeten' => $user->identities()->orderBy('created_at')->get()->map(fn (UserIdentity $i): array => [
                     'id' => $i->id,
                     'anbieter' => UserIdentity::PROVIDERS[$i->provider] ?? $i->provider,
-                    'art' => $i->tenant_id === '9188040d-6c67-4c5b-b112-36a304b66dad' ? 'privates Konto' : 'Geschäfts- oder Schulkonto',
+                    'art' => $i->tenant_id === UserIdentity::MICROSOFT_CONSUMER_TENANT ? 'privates Konto' : 'Geschäfts- oder Schulkonto',
                     'seit' => $i->created_at?->toDateString(),
                     'zuletzt' => $i->last_used_at?->toDateString(),
                 ])->all(),
                 'rollen' => $user->roleKeys(),
-                'news' => $user->news_opt_in,
+                'news' => $user->has_news_opt_in,
                 'news_seit' => $user->news_answered_at?->toDateString(),
             ],
             'einrichtungen' => User::INSTITUTION_TYPES,
@@ -122,9 +122,9 @@ class AccountController extends Controller
         $user = $this->currentUser($request);
         $data = $request->validate(['password' => ['required', 'string']]);
         // ohne eigenes Passwort (nur Anmeldedienst, #45): Eingabe «LÖSCHEN» als Bestätigung
-        $ok = $user->password_set ? Hash::check((string) $data['password'], $user->password) : $data['password'] === 'LÖSCHEN';
+        $ok = $user->has_password ? Hash::check((string) $data['password'], $user->password) : $data['password'] === 'LÖSCHEN';
         if (! $ok) {
-            throw ValidationException::withMessages(['password' => $user->password_set ? 'Das Passwort stimmt nicht.' : 'Bitte «LÖSCHEN» eingeben.']);
+            throw ValidationException::withMessages(['password' => $user->has_password ? 'Das Passwort stimmt nicht.' : 'Bitte «LÖSCHEN» eingeben.']);
         }
         try {
             $accounts->delete($user, $user);
