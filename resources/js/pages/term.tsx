@@ -42,6 +42,7 @@ type Begriff = {
     revision: number;
     veroeffentlicht: string | null;
     andere: { slug: string; bezeichnung: string }[];
+    beziehungen: { art: string; slug: string; titel: string }[];
     mehrdeutig: boolean;
     verlauf: { revision: number; am: string | null }[];
     permalink: string;
@@ -255,6 +256,32 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                         </Feld>
                     ) : null}
                 </dl>
+
+                {b.beziehungen.length > 0 ? (
+                    <section className="mt-8">
+                        <h2 className="font-semibold">Verwandte Begriffe</h2>
+                        <dl className="mt-2 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-[10rem_1fr]">
+                            {b.beziehungen.map((r) => (
+                                <div
+                                    key={`${r.art}-${r.slug}`}
+                                    className="contents"
+                                >
+                                    <dt className="text-muted-foreground">
+                                        {r.art}
+                                    </dt>
+                                    <dd>
+                                        <Link
+                                            href={`/begriffe/${r.slug}`}
+                                            className="text-link underline underline-offset-4"
+                                        >
+                                            {r.titel}
+                                        </Link>
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </section>
+                ) : null}
 
                 {b.andere.length > 0 ? (
                     <section className="mt-8">

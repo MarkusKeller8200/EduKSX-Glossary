@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\Locale;
+use App\Enums\RelationType;
 use App\Enums\TermStatus;
 use App\Glossary\FourEyesRequired;
 use App\Glossary\GlossaryService;
@@ -297,7 +298,11 @@ class TermController extends Controller
             'translations.*.name' => ['nullable', 'string', 'max:255'],
             'translations.*.short_description' => ['nullable', 'string', 'max:160'],
             'translations.*.description' => ['nullable', 'string', 'max:20000'],
+            'relations' => ['array', 'max:50'],
+            'relations.*.type' => ['required', 'string'],
+            'relations.*.term_id' => ['required', 'string'],
         ]);
+        $data['relations'] ??= [];
         $data['categories'] ??= [];
         $data['sources'] ??= [];
         $data['is_active'] = $request->boolean('is_active');
@@ -325,6 +330,7 @@ class TermController extends Controller
                 'sources' => [], 'lifecycle_status' => TermStatus::Current->value,
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
                 'translations' => $this->translationForm([]),
+                'relations' => [],
             ];
         }
         $s = $this->glossary->snapshot($term);
@@ -346,6 +352,7 @@ class TermController extends Controller
             'valid_until' => (string) $s['valid_until'],
             'is_active' => (bool) $s['is_active'],
             'translations' => $this->translationForm((array) $s['translations']),
+            'relations' => array_values((array) $s['relations']),
         ];
     }
 
@@ -402,6 +409,18 @@ class TermController extends Controller
 
                 continue;
             }
+            if ($field === 'relations') {
+                // Beziehungen (X2, #283) lesbar: «Nachfolger: SL – Schulleitung»
+                $relText = fn (mixed $list): string => implode('; ', array_map(function (mixed $r): string {
+                    $r = (array) $r;
+                    $type = RelationType::tryFrom((string) ($r['type'] ?? ''));
+
+                    return ($type?->label() ?? (string) ($r['type'] ?? '')).': '.(Term::query()->find((string) ($r['term_id'] ?? ''))?->title() ?? '?');
+                }, (array) $list));
+                $out[] = ['feld' => 'Beziehungen', 'alt' => $relText($change['old'] ?? []), 'neu' => $relText($change['new'] ?? [])];
+
+                continue;
+            }
             $out[] = ['feld' => $labels[$field] ?? $field, 'alt' => $text($change['old'] ?? null), 'neu' => $text($change['new'] ?? null)];
         }
 
@@ -419,7 +438,7 @@ class TermController extends Controller
             return [];
         }
         $fields = [];
-        foreach (self::LABELS + ['translations' => 'Übersetzungen'] as $key => $label) {
+        foreach (self::LABELS + ['translations' => 'Übersetzungen', 'relations' => 'Beziehungen'] as $key => $label) {
             if (($previous->snapshot[$key] ?? null) != ($current->snapshot[$key] ?? null)) {
                 $fields[] = $label;
             }
@@ -431,7 +450,7 @@ class TermController extends Controller
     /**
      * Auswahllisten für das Formular.
      *
-     * @return array{kategorien: list<array{key: string, label: string}>, herkunft: list<array{key: string, label: string}>, status: array<string, string>}
+     * @return array{kategorien: list<array{key: string, label: string}>, herkunft: list<array{key: string, label: string}>, status: array<string, string>, beziehungsarten: array<string, string>, begriffe: list<array{id: string, label: string}>}
      */
     private function lists(): array
     {
@@ -439,6 +458,10 @@ class TermController extends Controller
             'kategorien' => $this->options(Category::query()->orderBy('sort_order')->orderBy('name')->get()),
             'herkunft' => $this->options(Source::query()->orderBy('sort_order')->orderBy('name')->get()),
             'status' => Term::STATUS,
+            // Beziehungen (X2, #283): Arten und mögliche Ziele (nicht zusammengeführt)
+            'beziehungsarten' => RelationType::labels(),
+            'begriffe' => array_values(Term::query()->current()->orderByRaw('coalesce(official_abbreviation, official_name)')->get()
+                ->map(fn (Term $t): array => ['id' => $t->id, 'label' => $t->title()])->all()),
         ];
     }
 

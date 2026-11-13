@@ -27,7 +27,10 @@ type Werte = {
     valid_until: string;
     is_active: boolean;
     translations: Record<Sprache, Uebersetzung>;
+    relations: Beziehung[];
 };
+
+type Beziehung = { type: string; term_id: string };
 
 type Sprache = 'fr' | 'it' | 'en';
 type Uebersetzung = {
@@ -59,6 +62,8 @@ export default function TermForm({
         kategorien: Option[];
         herkunft: Option[];
         status: Record<string, string>;
+        beziehungsarten: Record<string, string>;
+        begriffe: { id: string; label: string }[];
     };
     offiziellErlaubt: boolean;
 }) {
@@ -84,7 +89,7 @@ export default function TermForm({
                 : form.data[field].filter((k) => k !== key),
         );
     const text = (
-        field: Exclude<keyof Werte, 'translations'>,
+        field: Exclude<keyof Werte, 'translations' | 'relations'>,
         label: string,
         hint?: string,
         props: { disabled?: boolean; maxLength?: number; type?: string } = {},
@@ -236,6 +241,16 @@ export default function TermForm({
                     werte={form.data.translations}
                     fehler={errors}
                     onChange={setUebersetzung}
+                />
+
+                <Beziehungen
+                    werte={form.data.relations}
+                    arten={listen.beziehungsarten}
+                    begriffe={listen.begriffe.filter(
+                        (t) => t.id !== begriff?.id,
+                    )}
+                    fehler={errors}
+                    onChange={(v) => form.setData('relations', v)}
                 />
 
                 <fieldset className="grid gap-4 sm:grid-cols-2">
@@ -512,6 +527,131 @@ function Uebersetzungen({
                     </Feld>
                 </div>
             </div>
+        </fieldset>
+    );
+}
+
+/**
+ * Beziehungen zu anderen Begriffen (#283): Art wählen, Begriff über die Suche (Abkürzung oder Bezeichnung) wählen.
+ * Teil der Revision, öffentlich erst mit «Veröffentlichen».
+ */
+function Beziehungen({
+    werte,
+    arten,
+    begriffe,
+    fehler,
+    onChange,
+}: {
+    werte: Beziehung[];
+    arten: Record<string, string>;
+    begriffe: { id: string; label: string }[];
+    fehler: Record<string, string | undefined>;
+    onChange: (werte: Beziehung[]) => void;
+}) {
+    const [art, setArt] = useState(Object.keys(arten)[0] ?? '');
+    const [suche, setSuche] = useState('');
+    const label = (id: string) =>
+        begriffe.find((t) => t.id === id)?.label ?? 'unbekannter Begriff';
+    const treffer = begriffe.find((t) => t.label === suche);
+    const hinzufuegen = () => {
+        if (!treffer) {
+            return;
+        }
+        if (!werte.some((w) => w.type === art && w.term_id === treffer.id)) {
+            onChange([...werte, { type: art, term_id: treffer.id }]);
+        }
+        setSuche('');
+    };
+    const feldFehler = Object.entries(fehler).find(([k]) =>
+        k.startsWith('relations'),
+    )?.[1];
+
+    return (
+        <fieldset className="grid gap-3">
+            <legend className="mb-2 font-semibold">Beziehungen</legend>
+            <p className="-mt-2 text-xs text-muted-foreground">
+                Optional. Zum Beispiel der Nachfolger eines historischen
+                Begriffs. Die Gegenrichtung (Vorgänger) zeigt die Website
+                automatisch.
+            </p>
+            {werte.length > 0 ? (
+                <ul className="space-y-1 text-sm">
+                    {werte.map((w) => (
+                        <li
+                            key={`${w.type}-${w.term_id}`}
+                            className="flex items-center gap-2"
+                        >
+                            <span className="text-muted-foreground">
+                                {arten[w.type] ?? w.type}:
+                            </span>
+                            <span>{label(w.term_id)}</span>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                aria-label={`Beziehung ${arten[w.type] ?? w.type} ${label(w.term_id)} entfernen`}
+                                onClick={() =>
+                                    onChange(
+                                        werte.filter(
+                                            (x) =>
+                                                !(
+                                                    x.type === w.type &&
+                                                    x.term_id === w.term_id
+                                                ),
+                                        ),
+                                    )
+                                }
+                            >
+                                Entfernen
+                            </Button>
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
+            <div className="grid gap-2 sm:grid-cols-[12rem_1fr_auto] sm:items-end">
+                <Feld id="relation-type" label="Art">
+                    <NativeSelect
+                        id="relation-type"
+                        value={art}
+                        onChange={(e) => setArt(e.target.value)}
+                    >
+                        {Object.entries(arten).map(([k, v]) => (
+                            <option key={k} value={k}>
+                                {v}
+                            </option>
+                        ))}
+                    </NativeSelect>
+                </Feld>
+                <Feld id="relation-term" label="Begriff">
+                    <Input
+                        id="relation-term"
+                        list="relation-terms"
+                        value={suche}
+                        placeholder="Abkürzung oder Bezeichnung tippen"
+                        onChange={(e) => setSuche(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                hinzufuegen();
+                            }
+                        }}
+                    />
+                    <datalist id="relation-terms">
+                        {begriffe.map((t) => (
+                            <option key={t.id} value={t.label} />
+                        ))}
+                    </datalist>
+                </Feld>
+                <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!treffer}
+                    onClick={hinzufuegen}
+                >
+                    Hinzufügen
+                </Button>
+            </div>
+            <InputError message={feldFehler} />
         </fieldset>
     );
 }

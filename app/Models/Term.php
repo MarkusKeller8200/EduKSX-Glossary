@@ -45,6 +45,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Collection<int, Source> $sources
  * @property-read Collection<int, TermAlias> $aliases
  * @property-read Collection<int, TermTranslation> $translations
+ * @property-read Collection<int, TermRelation> $termRelations
  * @property-read Collection<int, TermRevision> $revisions
  * @property-read Collection<int, TermUserOverride> $overrides
  */
@@ -123,6 +124,12 @@ class Term extends Model
     public function translations(): HasMany
     {
         return $this->hasMany(TermTranslation::class);
+    }
+
+    /** @return HasMany<TermRelation, $this> Beziehungen zu anderen Begriffen (X2, #283) */
+    public function termRelations(): HasMany
+    {
+        return $this->hasMany(TermRelation::class);
     }
 
     /** @return HasMany<TermAlias, $this> */

@@ -3,6 +3,7 @@
 namespace App\Glossary;
 
 use App\Enums\Locale;
+use App\Enums\RelationType;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\PublicationRelease;
@@ -71,6 +72,9 @@ final class GlossaryService
         $creating = $term === null;
         $term ??= new Term;
         $values = $this->normalize($data, $creating);
+        if (array_key_exists('relations', $data)) {
+            $values['relations'] = $this->normalizeRelations($data['relations'], $term->id);
+        }
 
         if (! $creating && ! $canEditOfficial) {
             $this->guardOfficial($term, $values);
@@ -107,6 +111,9 @@ final class GlossaryService
             }
             if (array_key_exists('translations', $values)) {
                 $this->syncTranslations($term, $values['translations']);
+            }
+            if (array_key_exists('relations', $values)) {
+                $this->syncRelations($term, $values['relations']);
             }
 
             $term->unsetRelations();
@@ -270,9 +277,9 @@ final class GlossaryService
             $data[$field] = $value instanceof DateTimeInterface ? $value->format('Y-m-d') : $value;
         }
 
-        $categories = $sources = $official = $alternative = $search = [];
+        $categories = $sources = $official = $alternative = $search = $relations = [];
         foreach ($all as $term) {
-            $term->loadMissing(['categories', 'sources', 'aliases', 'translations']);
+            $term->loadMissing(['categories', 'sources', 'aliases', 'termRelations']);
             foreach ($term->categories as $category) {
                 $categories[] = (string) $category->key;
             }
@@ -282,6 +289,12 @@ final class GlossaryService
             $official = [...$official, ...$term->aliases->where('alias_type', 'official')->pluck('alias')->all()];
             $alternative = [...$alternative, ...$term->aliases->where('alias_type', 'alternative')->pluck('alias')->all()];
             $search = [...$search, ...(preg_split('/[;,]/', (string) $term->search_terms) ?: [])];
+            // Beziehungen aller Begriffe (X2, #283); solche innerhalb der Auswahl entfallen
+            foreach ($term->termRelations as $relation) {
+                if (! isset($all[$relation->related_term_id])) {
+                    $relations[] = ['type' => $relation->relation_type, 'term_id' => $relation->related_term_id];
+                }
+            }
         }
         // Namen der anderen bleiben auffindbar
         $kept = array_map(fn ($v): string => mb_strtolower(trim((string) $v)), [
@@ -311,6 +324,15 @@ final class GlossaryService
             'search_terms' => implode('; ', $searchTerms),
             'is_active' => array_filter($all, fn (Term $t): bool => $t->is_active) !== [],
         ];
+        // mehrere Nachfolger: der des Zielbegriffs, sonst der erste
+        $successors = array_filter($relations, fn (array $r): bool => $r['type'] === RelationType::Successor->value);
+        if (count(array_unique(array_column($successors, 'term_id'))) > 1) {
+            $first = reset($successors);
+            $own = $target->termRelations->firstWhere('relation_type', RelationType::Successor->value);
+            $keep = $own !== null ? $own->related_term_id : ($first !== false ? $first['term_id'] : null);
+            $relations = array_values(array_filter($relations, fn (array $r): bool => $r['type'] !== RelationType::Successor->value || $r['term_id'] === $keep));
+        }
+        $data['relations'] = $relations;
 
         $context = ['merged_from' => array_map(fn (Term $t): string => $t->id, $others), 'choices' => $choices];
 
@@ -419,6 +441,7 @@ final class GlossaryService
             'valid_from' => $s['valid_from'] ?? null,
             'valid_until' => $s['valid_until'] ?? null,
             'translations' => (array) ($s['translations'] ?? []),
+            'relations' => (array) ($s['relations'] ?? []),
         ];
 
         return DB::transaction(function () use ($term, $data, $user, $canEditOfficial, $publish, $revision): Term {
@@ -453,7 +476,7 @@ final class GlossaryService
      */
     public function snapshot(Term $term): array
     {
-        $term->loadMissing(['categories', 'sources', 'aliases']);
+        $term->loadMissing(['categories', 'sources', 'aliases', 'translations', 'termRelations']);
         $aliases = function (string $type) use ($term): array {
             $list = $term->aliases->where('alias_type', $type)->pluck('alias')->map(fn ($a): string => (string) $a)->values()->all();
             sort($list);
@@ -493,7 +516,69 @@ final class GlossaryService
             'valid_from' => $term->valid_from?->toDateString(),
             'valid_until' => $term->valid_until?->toDateString(),
             'translations' => $this->translationsOf($term),
+            'relations' => $this->relationsOf($term),
         ];
+    }
+
+    /**
+     * Beziehungen fürs Abbild (X2, #283): Art und Ziel, sortiert.
+     *
+     * @return list<array{type: string, term_id: string}>
+     */
+    private function relationsOf(Term $term): array
+    {
+        $out = [];
+        foreach ($term->termRelations as $relation) {
+            $out[] = ['type' => $relation->relation_type, 'term_id' => $relation->related_term_id];
+        }
+        usort($out, fn (array $a, array $b): int => [$a['type'], $a['term_id']] <=> [$b['type'], $b['term_id']]);
+
+        return $out;
+    }
+
+    /** @param  list<array{type: string, term_id: string}>  $relations */
+    private function syncRelations(Term $term, array $relations): void
+    {
+        $term->termRelations()->delete();
+        foreach ($relations as $relation) {
+            $term->termRelations()->create(['related_term_id' => $relation['term_id'], 'relation_type' => $relation['type']]);
+        }
+    }
+
+    /**
+     * Beziehungen prüfen (X2, #283): bekannte Art, bestehender Begriff (zusammengeführt → dessen Ziel), nicht der
+     * Begriff selbst, höchstens ein Nachfolger; doppelte entfallen.
+     *
+     * @return list<array{type: string, term_id: string}>
+     */
+    private function normalizeRelations(mixed $data, ?string $self): array
+    {
+        $out = [];
+        foreach ((array) $data as $row) {
+            $row = (array) $row;
+            $type = RelationType::fromAny((string) ($row['type'] ?? ''));
+            if ($type === null) {
+                throw new InvalidArgumentException('Beziehung «'.($row['type'] ?? '').'» ist unbekannt.');
+            }
+            $target = Term::query()->find((string) ($row['term_id'] ?? ''));
+            if ($target !== null && $target->merged_into_id !== null) {
+                $target = $target->mergeTarget();
+            }
+            if ($target === null) {
+                throw new InvalidArgumentException('Begriff für die Beziehung «'.$type->label().'» gibt es nicht.');
+            }
+            if ($target->id === $self) {
+                throw new InvalidArgumentException('Ein Begriff kann nicht mit sich selbst verbunden werden.');
+            }
+            $out[$type->value.'|'.$target->id] = ['type' => $type->value, 'term_id' => (string) $target->id];
+        }
+        $out = array_values($out);
+        if (count(array_filter($out, fn (array $r): bool => $r['type'] === RelationType::Successor->value)) > 1) {
+            throw new InvalidArgumentException('Höchstens ein Nachfolger.');
+        }
+        usort($out, fn (array $a, array $b): int => [$a['type'], $a['term_id']] <=> [$b['type'], $b['term_id']]);
+
+        return $out;
     }
 
     /**

@@ -23,6 +23,7 @@ type Begriff = Record<string, unknown> & {
     zusammengefuehrt_in: { id: string; titel: string } | null;
     herkunft_pruefung: Pruefung[];
     translations: Record<string, Record<string, string>>;
+    relations: { type: string; term_id: string }[];
 };
 
 /** Übersetzungen im Arbeitsstand (#282). */
@@ -125,6 +126,8 @@ export default function TermShow({
         kategorien: Option[];
         herkunft: Option[];
         status: Record<string, string>;
+        beziehungsarten: Record<string, string>;
+        begriffe: { id: string; label: string }[];
     };
     belegstatus: Record<string, string>;
 }) {
@@ -340,6 +343,29 @@ export default function TermShow({
                     );
                 })}
             </dl>
+
+            {b.relations.length > 0 ? (
+                <>
+                    <h3 className="mt-6 font-semibold">Beziehungen</h3>
+                    <ul className="mt-2 space-y-1 text-sm">
+                        {b.relations.map((r) => (
+                            <li key={`${r.type}-${r.term_id}`}>
+                                <span className="text-muted-foreground">
+                                    {listen.beziehungsarten[r.type] ?? r.type}:
+                                </span>{' '}
+                                <Link
+                                    href={`/admin/begriffe/${r.term_id}`}
+                                    className="text-link underline-offset-4 hover:underline"
+                                >
+                                    {listen.begriffe.find(
+                                        (t) => t.id === r.term_id,
+                                    )?.label ?? r.term_id}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </>
+            ) : null}
 
             {Object.entries(b.translations).some(([, t]) =>
                 Object.values(t).some((v) => v !== ''),

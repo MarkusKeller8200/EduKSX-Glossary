@@ -16,6 +16,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   erfassen. Übersetzungen von Begriffen gehören zur Revision und werden mit dem Begriff veröffentlicht. Die API liefert
   sie in `translations`; mit `?lang=fr|it|en` ersetzen sie die deutschen Felder, fehlende bleiben deutsch und
   `language` zeigt je Feld die gelieferte Sprache. Die Website bleibt deutsch.
+- **Beziehungen zwischen Begriffen (#283):** In der Redaktion lassen sich Nachfolger, «siehe auch», Ober- und
+  Unterbegriffe erfassen; sie werden mit dem Begriff veröffentlicht. Die Seite eines Begriffs zeigt sie unter
+  «Verwandte Begriffe», auch in Gegenrichtung (z. B. Vorgänger). Die API liefert sie in `relations`.
 
 ### Geändert
 

@@ -29,7 +29,7 @@ final class ApiPresenter
         'id', 'slug', 'code', 'abbreviation', 'name', 'official_abbreviation', 'official_name', 'official_aliases',
         'alternative_aliases', 'aliases', 'search_terms', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
         'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
-        'valid_until', 'translations', 'revision', 'published_at', 'updated_at', 'web_url', 'permalink',
+        'valid_until', 'translations', 'relations', 'revision', 'published_at', 'updated_at', 'web_url', 'permalink',
     ];
 
     /** Nur mit ?lang= (X1, #282): verlangte und je Feld gelieferte Sprache; steht nach den übrigen Feldern. */
@@ -47,7 +47,10 @@ final class ApiPresenter
      * Vom Gesamtstand abhängige Felder: nur in Liste, Einzelbegriff und Vollstand, nicht im Change-Feed (ein altes
      * Ereignis würde sonst Zahlen eines späteren Stands zeigen).
      */
-    public const CONTEXT_FIELDS = ['is_ambiguous', 'meaning_count'];
+    public const CONTEXT_FIELDS = ['is_ambiguous', 'meaning_count', 'relations'];
+
+    /** @var array<string, array{id: string, slug: string, display_label: string}>|null öffentlich sichtbare Begriffe nach ID */
+    private ?array $targets = null;
 
     /** @var array<string, ListItem>|null */
     private ?array $categories = null;
@@ -137,6 +140,7 @@ final class ApiPresenter
     {
         $term['is_ambiguous'] = $display->isAmbiguous($revision->snapshot);
         $term['meaning_count'] = $display->meaningCount($revision->snapshot);
+        $term['relations'] = $this->relations($revision->snapshot['relations'] ?? []);
         $ordered = [];
         foreach (self::PUBLIC_TERM_FIELDS as $field) {
             if (array_key_exists($field, $term)) {
@@ -145,6 +149,36 @@ final class ApiPresenter
         }
 
         return $ordered;
+    }
+
+    /**
+     * Beziehungen (X2, #283) zu öffentlich sichtbaren Begriffen; zusammengeführte zeigen auf den verbleibenden.
+     * Hängt vom Gesamtstand ab (Ziel veröffentlicht?), deshalb nicht im Change-Feed.
+     *
+     * @return list<array{type: string, id: string, slug: string, display_label: string}>
+     */
+    private function relations(mixed $relations): array
+    {
+        if ($this->targets === null) {
+            $this->targets = [];
+            foreach ($this->visible() as $revision) {
+                $s = $revision->snapshot;
+                $this->targets[(string) $s['id']] = ['id' => (string) $s['id'], 'slug' => (string) $s['slug'], 'display_label' => GlossaryDisplay::displayLabel($s)];
+            }
+        }
+        $out = [];
+        foreach ((array) $relations as $relation) {
+            $relation = (array) $relation;
+            $id = (string) ($relation['term_id'] ?? '');
+            if (! isset($this->targets[$id])) {
+                $id = (string) Term::query()->find($id)?->mergeTarget()?->id;
+            }
+            if (isset($this->targets[$id])) {
+                $out[] = ['type' => (string) ($relation['type'] ?? '')] + $this->targets[$id];
+            }
+        }
+
+        return $out;
     }
 
     /**
