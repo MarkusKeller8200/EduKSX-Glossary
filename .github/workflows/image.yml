@@ -1,8 +1,10 @@
 name: image
 
 # Fertiges Docker-Image in der GitHub Container Registry (#175, docs/KONZEPT-DEPLOYMENT.md D1/D2, KONZEPT-UPDATES.md U1/U2).
-# Jeder geprüfte Stand auf main → ghcr.io/<owner>/eduksx-glossary:main und :main-<sha>.
-# Ein Release-Commit (Datei VERSION geändert) → zusätzlich :X.Y.Z, :X.Y und :latest.
+# Jeder geprüfte Stand auf main → ghcr.io/<owner>/eduksx-glossary:main und :main-<sha> → dev (Hostinger).
+# Beta-Commit (VERSION auf X.Y.Z-beta.N geändert) → zusätzlich :X.Y.Z-beta.N und :beta → test (test-01, sofort).
+# Release-Commit (VERSION auf X.Y.Z geändert) → zusätzlich :X.Y.Z, :X.Y, :latest, :stable und :beta
+# → prod (prod-01, Wartungsfenster) und test; test liegt so nie hinter prod (#304, DEC-035).
 # Nur amd64 (12.11.2026): arm64 per Emulation verlängerte ein Release von 4 auf 18 Minuten und wird heute nicht
 # gebraucht. Bei Bedarf: platforms im Schritt «Tags bestimmen» auf "linux/amd64,linux/arm64" und QEMU wieder einschalten.
 # Signiert mit cosign (ohne Schlüssel, über GitHub OIDC) und mit Herkunftsnachweis (attest-build-provenance).
@@ -59,9 +61,18 @@ jobs:
           platforms="linux/amd64"
           # Release: VERSION wurde mit diesem Commit geändert (release.py set X.Y.Z --commit)
           if git rev-parse -q --verify HEAD^ >/dev/null && ! git diff --quiet HEAD^ HEAD -- VERSION; then
-            minor="${version%.*}"
-            tags="$tags,$image:$version,$image:$minor,$image:latest"
-            echo "release=true" >> "$GITHUB_OUTPUT"
+            case "$version" in
+              *-*)
+                # Vorabversion (Beta): nur test
+                tags="$tags,$image:$version,$image:beta"
+                echo "beta=true" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                minor="${version%.*}"
+                tags="$tags,$image:$version,$image:$minor,$image:latest,$image:stable,$image:beta"
+                echo "release=true" >> "$GITHUB_OUTPUT"
+                ;;
+            esac
           fi
           {
             echo "image=$image"

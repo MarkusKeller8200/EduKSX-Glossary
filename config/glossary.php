@@ -27,6 +27,9 @@ return [
     'api_stability' => env('GLOSSARY_API_STABILITY', 'preview'),
 
     // Datenschutzerklärung: Version, deren Kenntnisnahme bei Registrierung bzw. Änderung gespeichert wird (#41, #42)
+    // Frühere Adresse, die auf APP_URL weiterleitet (#304), z. B. glossary.markussx.ch nach dem Wechsel auf glossary-dev
+    'redirect_host' => (string) env('GLOSSARY_REDIRECT_HOST', ''),
+
     // Selbstregistrierung (#302): Vorgabe des Schalters in den Einstellungen; wirkt nur mit eingerichtetem Versand
     'registration_open' => (bool) env('GLOSSARY_REGISTRATION_OPEN', false),
 
