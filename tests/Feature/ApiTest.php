@@ -35,7 +35,8 @@ class ApiTest extends TestCase
         $spec = json_decode((string) file_get_contents(base_path('openapi/glossary-v1.json')), true);
         foreach (app('router')->getRoutes() as $route) {
             $uri = $route->uri();
-            if (! str_starts_with($uri, 'api/v1')) {
+            // Routen von eduksx/core (eduksx.*, z. B. Empfang S4) beschreibt spec/ der Plattform
+            if (! str_starts_with($uri, 'api/v1') || str_starts_with((string) $route->getName(), 'eduksx.')) {
                 continue;
             }
             $path = '/'.substr($uri, strlen('api/'));

@@ -95,6 +95,9 @@ landen nur im Protokoll.
 | `MICROSOFT_REDIRECT_URI`     | `${APP_URL}/anmelden/microsoft/rueckkehr` | je Umgebung in der Entra-App eintragen           |
 | `TURNSTILE_SITE_KEY`         | leer = aus                                | Spam-Schutz bei der Registrierung (Cloudflare)   |
 | 🔒 `TURNSTILE_SECRET_KEY`    | –                                         |                                                  |
+| 🔒 `EDUKSX_EVENTS_KEYS`      | leer = Empfang aus                        | Schlüssel für Ereignisse von Ident (#187); beim Wechsel beide, mit Komma |
+| `EDUKSX_EVENTS_SOURCES`      | leer = alle Absender mit gültiger Signatur | Adresse von Ident, z. B. `https://ident.eduksx.ch` |
+| `EDUKSX_VERSION`             | leer = Datei `VERSION`                    | Version im Steckbrief und in `/health` (#189)    |
 
 ## 7. Glossary
 

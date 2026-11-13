@@ -10,6 +10,61 @@ return [
     'module' => 'glossary',
 
     /*
+    | Version für Steckbrief, /health und Historie: leer = Datei VERSION (wie config('glossary.version')).
+    */
+    'version' => env('EDUKSX_VERSION'),
+
+    /*
+    | Steckbrief GET /.well-known/eduksx-module.json (Plattform S5, #189). Nur, was das Glossary heute wirklich bietet:
+    | Scopes nach Standard folgen mit #323, Rollen für Ident mit #186, Plugin-Abschnitt «ui» mit der Plugin-Probe.
+    */
+    'manifest' => [
+        'name' => 'EduKSX-Glossary',
+        'operation_mode' => 'central',
+        'api_versions' => ['v1'],
+        'scopes_offered' => [],
+        'scopes_required' => [],
+        'roles' => [],
+        'events_emitted' => [],
+        'events_consumed' => ['ident.user.deleted', 'ident.user.disabled'],
+        'classification' => 'internal',
+        'data_license' => 'CC-BY-4.0',
+        'urls' => [
+            'openapi' => '/api/openapi.json',
+            'docs' => '/api/docs',
+            'security_contact' => 'https://github.com/MarkusKeller8200/EduKSX-Glossary/security',
+        ],
+        'ui' => null,
+    ],
+
+    /*
+    | Bereitschaft GET /health (S5): database und migrations kritisch (503), queue und storage → degraded.
+    */
+    'health' => [
+        'checks' => ['database', 'migrations', 'queue', 'storage'],
+        'critical' => ['database', 'migrations'],
+    ],
+
+    'routes' => [
+        'manifest' => true,
+        'health' => true,
+    ],
+
+    /*
+    | Ereignisse von Ident (S4, #187): aktiv, sobald EDUKSX_EVENTS_KEYS gesetzt ist (Schlüssel von Ident, mehrere
+    | durch Komma beim Wechsel). EDUKSX_EVENTS_SOURCES begrenzt auf die Adresse von Ident.
+    */
+    'events' => [
+        'path' => 'api/v1/platform-events',
+        'keys' => array_values(array_filter(explode(',', (string) env('EDUKSX_EVENTS_KEYS', '')))),
+        'sources' => array_values(array_filter(explode(',', (string) env('EDUKSX_EVENTS_SOURCES', '')))),
+        'tolerance' => 300,
+        'max_bytes' => 262144,
+        'rate_limit' => 600,
+        'retention_days' => 30,
+    ],
+
+    /*
     | Basis der Fehlertypen (API-Standard A6). Gemeinsame Typen: {base}/{code}, modul-eigene: {base}/{module}/{code}.
     */
     'problem_base_url' => env('EDUKSX_PROBLEM_BASE_URL', 'https://docs.eduksx.ch/problems'),

@@ -194,6 +194,15 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `published_by_id` | intern |
 | `created_at` | intern |
 
+## `received_events`
+
+| Spalte | Klasse |
+| --- | --- |
+| `event_id` | intern |
+| `type` | intern |
+| `source` | intern |
+| `received_at` | intern |
+
 ## `role_permissions`
 
 | Spalte | Klasse |
