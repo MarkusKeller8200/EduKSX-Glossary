@@ -180,6 +180,9 @@ ohne v2 und ohne Übergangsfrist; der CHANGELOG nennt die Änderung.
 - **Ergänzt (#87):** `search_terms` (Suchbegriffe, nur für die Suche). Kategorien und Herkunft liefern neben
   `key`, `label`, `name`, `url` auch `abbreviation`, `description` und `color` (Name aus der Palette wie im
   Intranet); die redaktionelle Notiz bleibt intern.
+- **Beziehungen (`relations`, #283):** Art (`successor`, `see_also`, `broader`, `narrower`) mit `id`, `slug` und
+  `display_label` des Ziels; nur öffentliche Ziele, zusammengeführte aufgelöst. Hängt vom Gesamtstand ab und fehlt
+  deshalb im Change-Feed (wie `is_ambiguous`).
 - **Sprache (`?lang=`, #282):** `de`, `fr`, `it`, `en` für Begriffe, Kategorien, Herkünfte, Change-Feed und Vollstand.
   Übersetzte Felder (`abbreviation`, `name`, `short_description`, `description`; bei Listen `name`, `label`,
   `description`) ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. `official_*` bleiben deutsch.

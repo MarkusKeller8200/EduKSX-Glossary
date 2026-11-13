@@ -2,6 +2,7 @@
 
 namespace App\Glossary;
 
+use App\Enums\RelationType;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Organization;
@@ -34,7 +35,7 @@ final class PublicGlossary
         'slug', 'code', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase',
         'aliase_offiziell', 'alternative', 'suchbegriffe', 'kurz',
         'beschreibung', 'url', 'kategorien', 'herkunft', 'status', 'gueltig_ab', 'gueltig_bis', 'revision',
-        'veroeffentlicht', 'andere', 'mehrdeutig', 'permalink', 'verlauf',
+        'veroeffentlicht', 'andere', 'beziehungen', 'mehrdeutig', 'permalink', 'verlauf',
     ];
 
     /** Zusätzliche Felder nur für das angemeldete Konto selbst (nie öffentlich). */
@@ -164,6 +165,7 @@ final class PublicGlossary
             'revision' => $revision->revision,
             'veroeffentlicht' => $revision->published_at?->toDateString(),
             'andere' => array_map(fn (array $t): array => ['slug' => $t['slug'], 'bezeichnung' => $t['bezeichnung']], $others),
+            'beziehungen' => $this->relationsFor($s),
             'mehrdeutig' => (new GlossaryDisplay($this->published()))->isAmbiguous($s),
             // kurze, unveränderliche Adresse (#154)
             'permalink' => Permalink::url($term->code),
@@ -310,6 +312,51 @@ final class PublicGlossary
      *
      * @return Collection<int, array<string, mixed>>
      */
+    /**
+     * Beziehungen eines Begriffs für die Detailseite (X2, #283): eigene und – in Gegenrichtung benannt – solche
+     * anderer veröffentlichter Begriffe auf diesen; nur öffentliche Ziele, zusammengeführte aufgelöst.
+     *
+     * @param  array<string, mixed>  $s
+     * @return list<array{art: string, slug: string, titel: string}>
+     */
+    private function relationsFor(array $s): array
+    {
+        $byId = [];
+        foreach ($this->published() as $p) {
+            $byId[(string) $p['id']] = $p;
+        }
+        $resolve = function (string $id) use ($byId): ?array {
+            if (! isset($byId[$id])) {
+                $id = (string) Term::query()->find($id)?->mergeTarget()?->id;
+            }
+
+            return $byId[$id] ?? null;
+        };
+        $title = fn (array $t): string => Term::titleFrom($t);
+        $out = [];
+        foreach ((array) ($s['relations'] ?? []) as $relation) {
+            $type = RelationType::tryFrom((string) (((array) $relation)['type'] ?? ''));
+            $target = $resolve((string) (((array) $relation)['term_id'] ?? ''));
+            if ($type !== null && $target !== null) {
+                $out[$type->label().'|'.$target['slug']] = ['art' => $type->label(), 'slug' => (string) $target['slug'], 'titel' => $title($target)];
+            }
+        }
+        foreach ($byId as $other) {
+            foreach ((array) ($other['relations'] ?? []) as $relation) {
+                $type = RelationType::tryFrom((string) (((array) $relation)['type'] ?? ''));
+                $target = $resolve((string) (((array) $relation)['term_id'] ?? ''));
+                if ($type !== null && $target !== null && $target['id'] === $s['id'] && $other['id'] !== $s['id']) {
+                    $out[$type->inverseLabel().'|'.$other['slug']] = ['art' => $type->inverseLabel(), 'slug' => (string) $other['slug'], 'titel' => $title($other)];
+                }
+            }
+        }
+        $order = array_flip(['Nachfolger', 'Vorgänger', 'Oberbegriff', 'Unterbegriff', 'Siehe auch']);
+        $out = array_values($out);
+        usort($out, fn (array $a, array $b): int => [$order[$a['art']] ?? 9, $a['titel']] <=> [$order[$b['art']] ?? 9, $b['titel']]);
+
+        return $out;
+    }
+
     private function published(): Collection
     {
         // Abbilder je Datenstand zwischengespeichert (#137)

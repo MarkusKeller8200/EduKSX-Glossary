@@ -1502,6 +1502,50 @@
               }
             ]
           },
+          "relations": {
+            "type": "array",
+            "description": "Beziehungen zu anderen öffentlichen Begriffen: successor (Nachfolger), see_also (siehe auch), broader (Oberbegriff), narrower (Unterbegriff). Nur Ziele, die öffentlich sind; zusammengeführte zeigen auf den verbleibenden Begriff. Nicht im Change-Feed.",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "id",
+                "slug",
+                "display_label"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "successor",
+                    "see_also",
+                    "broader",
+                    "narrower"
+                  ]
+                },
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "slug": {
+                  "type": "string"
+                },
+                "display_label": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": [
+              [
+                {
+                  "type": "successor",
+                  "id": "01a1a2ae-f37a-7524-9056-8e32b281e28b",
+                  "slug": "schulleitung",
+                  "display_label": "SL"
+                }
+              ]
+            ]
+          },
           "revision": {
             "type": "integer",
             "description": "Veröffentlichte Revision"
