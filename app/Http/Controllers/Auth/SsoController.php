@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Organizations\OrganizationService;
+use App\Support\Registration;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -155,6 +156,10 @@ class SsoController extends Controller
         $email = $claims['email'] !== null ? Str::lower($claims['email']) : null;
         if ($email === null || ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return redirect('/anmelden')->withErrors(['email' => 'Microsoft hat keine E-Mail-Adresse geliefert. Bitte ein Konto mit E-Mail und Passwort anlegen.']);
+        }
+        // Registrierung geschlossen (#302): keine neuen Konten, auch nicht über Microsoft
+        if (! Registration::allowed()) {
+            return redirect('/anmelden')->withErrors(['email' => 'Neue Konten sind zurzeit nicht möglich. Bitte an die Administration wenden.']);
         }
         // gleiche E-Mail ≠ gleiche Person: nie automatisch verknüpfen (Abnahmetest 4)
         if (User::query()->where('email', $email)->exists()) {

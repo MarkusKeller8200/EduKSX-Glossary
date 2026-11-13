@@ -8,8 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
-- **Mail-Versand (#300):** Der Betrieb versendet über den Mail-Service von Infomaniak mit Absender aus `eduksx.ch`
-  (Vorlage «Infomaniak» in der Versand-Einrichtung).
+- **Mail-Versand und Registrierung (#300, #302):** Der Betrieb versendet über den Mail-Service von Infomaniak mit
+  Absender aus `eduksx.ch`; neue Server lassen sich direkt in der Administration einrichten. Neue Konten (E-Mail oder
+  Microsoft) gibt es nur, wenn «Registrierung offen» in den Einstellungen an ist (Vorgabe aus).
 
 ## [0.12.0] – 2026-11-13
 

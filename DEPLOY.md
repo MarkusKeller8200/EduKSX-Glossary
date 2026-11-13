@@ -100,8 +100,11 @@ Formular ist gesperrt. Alternative für den Betrieb mit Secrets: wie folgt über
 
 Der Versand ist an keinen Anbieter gebunden. Eingestellt wird er in `/docker/glossary/.env` auf dem Server;
 Zugangsdaten nie ins Repository. Danach `docker compose up -d` und in der Administration unter **System** eine
-Testmail senden (Recht «System», d. h. Developer). Ohne echten Versand (`MAIL_MAILER=log`) bleibt die
-Selbstregistrierung ausgeschaltet.
+Testmail senden (Recht «System», d. h. Developer).
+
+**Registrierung (#302):** Selbstregistrierung nur mit dem Schalter «Registrierung offen» (Administration ›
+Einstellungen › Konten, Vorgabe aus, `GLOSSARY_REGISTRATION_OPEN`) und – bei E-Mail und Passwort – eingerichtetem
+Versand. «Passwort vergessen» und Einladungen brauchen nur den Versand.
 
 ```dotenv
 # gemeinsam
@@ -198,7 +201,7 @@ su - deploy -c 'docker ps --format "{{.Names}}"'   # muss die Container aufliste
 
 ```bash
 sed -i 's/^GLOSSARY_HOST=.*/GLOSSARY_HOST=glossary.markussx.ch/' /docker/glossary/.env
-grep '^MAIL_MAILER' /docker/glossary/.env           # leer oder «log» = Registrierung aus
+grep '^MAIL_MAILER' /docker/glossary/.env           # gesetzt = Versand nur über die Umgebung (Administration gesperrt)
 ```
 
 ### 5. DNS (Cloudflare bzw. DNS von markussx.ch)
