@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e0479673b96dbbc7e46ea4adbd4f6b78",
+    "content-hash": "75d6651e0fff11fcb1cda6397d413631",
     "packages": [
         {
             "name": "brick/math",
@@ -443,6 +443,78 @@
                 }
             ],
             "time": "2026-10-19T17:53:57+00:00"
+        },
+        {
+            "name": "eduksx/core",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/MarkusKeller8200/EduKSX-Core",
+                "reference": "1e66c67d8b4541ba7857b1aa8aeaef233d43c509"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/1e66c67d8b4541ba7857b1aa8aeaef233d43c509",
+                "reference": "1e66c67d8b4541ba7857b1aa8aeaef233d43c509",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^13.0",
+                "php": "^8.4"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.20",
+                "orchestra/testbench": "^11.0",
+                "phpunit/phpunit": "^12.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "EduKSX\\Core\\CoreServiceProvider"
+                    ]
+                },
+                "eduksx": {
+                    "module": "core",
+                    "standards": {
+                        "db": "1.2.1",
+                        "api": "1.1.1"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "EduKSX\\Core\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "EduKSX\\Core\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "@php vendor/bin/phpunit"
+                ],
+                "lint": [
+                    "@php vendor/bin/pint --test"
+                ],
+                "ci:check": [
+                    "python3 .github/blueprint/release.py check",
+                    "@lint",
+                    "@test"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Markus Keller"
+                }
+            ],
+            "description": "Gemeinsame Bausteine der EduKSX-Plattform für Laravel-Module (Fehler, Sicherheit, Datenbank, Listen, Prüfungen).",
+            "time": "2026-11-13T19:21:13+00:00"
         },
         {
             "name": "egulias/email-validator",
@@ -9523,5 +9595,5 @@
         "php": "^8.4"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

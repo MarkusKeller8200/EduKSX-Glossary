@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Data\OptimisticLocking;
 use App\Enums\AliasType;
 use App\Enums\TermStatus;
 use App\Glossary\Permalink;
 use Carbon\CarbonImmutable;
+use EduKSX\Core\Eloquent\OptimisticLocking;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;

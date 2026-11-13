@@ -104,7 +104,10 @@ class ApiTest extends TestCase
             ->assertNotFound()
             ->assertHeader('Content-Type', 'application/problem+json')
             ->assertJsonPath('status', 404)
-            ->assertJsonPath('title', 'Not Found');
+            ->assertJsonPath('title', 'Not Found')
+            ->assertJsonPath('code', 'not_found')
+            ->assertJsonPath('type', 'https://docs.eduksx.ch/problems/not_found')
+            ->assertHeader('X-Request-Id');
     }
 
     public function test_cors_fuer_lesezugriffe(): void

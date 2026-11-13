@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Data\OptimisticLocking;
 use App\Data\RecordsDataChanges;
 use App\Data\Trashable;
 use Carbon\CarbonImmutable;
+use EduKSX\Core\Eloquent\OptimisticLocking;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;

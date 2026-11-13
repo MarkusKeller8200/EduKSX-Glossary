@@ -10,8 +10,9 @@ use App\Models\Term;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 use App\Search\SearchMisses;
+use EduKSX\Core\Http\ETag;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -249,21 +250,16 @@ class GlossaryApiController extends Controller
     }
 
     /**
-     * Antwort mit ETag (Prüfsumme des Inhalts); 304, wenn der Abnehmer genau diesen Stand schon hat.
+     * Antwort mit Inhalts-ETag aus eduksx/core (API-Standard B5, #334); 304, wenn der Abnehmer diesen Stand schon hat.
+     * Datenstand als EduKSX-Release, bis 1.0 zusätzlich X-Glossary-Release (Ausnahmeregister API-E7).
      *
      * @param  array<string, mixed>  $body
      */
     private function cached(Request $request, array $body, int $release): Response
     {
-        $json = (string) json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        $etag = '"'.sha1($json).'"';
-        $headers = ['ETag' => $etag, 'Cache-Control' => 'public, max-age=60', 'X-Glossary-Release' => (string) $release];
-
-        $match = array_map('trim', explode(',', (string) $request->header('If-None-Match', '')));
-        if (in_array($etag, $match, true) || in_array('W/'.$etag, $match, true)) {
-            return response('', 304, $headers);
-        }
-
-        return response($json, 200, $headers + ['Content-Type' => 'application/json; charset=utf-8']);
+        return ETag::publicJson($request, $body, 60, [
+            'EduKSX-Release' => (string) $release,
+            'X-Glossary-Release' => (string) $release,
+        ]);
     }
 }
