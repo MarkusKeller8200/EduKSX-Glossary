@@ -175,6 +175,7 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
   `:beta` → test sofort, prod im nächsten Wartungsfenster.
 - test und prod: Stacks, Komodo und Ausrollen im Repo MarKusSX-Operation (`stacks/test/glossary`,
   `stacks/produktion/glossary`).
+- Alle Umgebungsvariablen mit Standardwerten und Werten je Umgebung: [docs/UMGEBUNGSVARIABLEN.md](docs/UMGEBUNGSVARIABLEN.md).
 
 ## dev auf Hostinger mit Benutzer `deploy` (#209)
 

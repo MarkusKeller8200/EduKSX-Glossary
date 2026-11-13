@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Umgebungsvariablen (#306):** Übersicht aller Variablen mit Standardwerten, Werten für dev, test und prod sowie
+  den Einstellungen in GitHub (`docs/UMGEBUNGSVARIABLEN.md`).
+
 ### Geändert
 
 - **Umgebungen (#304):** dev unter `glossary-dev.markussx.ch` (`glossary.markussx.ch` leitet weiter); Beta-Versionen
