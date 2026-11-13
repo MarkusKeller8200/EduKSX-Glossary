@@ -13,6 +13,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Versionsbezeichnung (#308):** Entwicklungsstände heissen jetzt z. B. `0.13.0-dev.5` (geplante Version und Zahl der
+  Änderungen seit dem letzten Release), Betas `0.13.0-beta.1`, Releases `0.13.0`. Test und Produktion zeigen nach einem
+  Release bzw. einer Beta genau diese Version.
 - **Umgebungen (#304):** dev unter `glossary-dev.markussx.ch` (`glossary.markussx.ch` leitet weiter); Beta-Versionen
   gehen auf test, Releases auf prod (Image-Tags `beta` und `stable`).
 - **Mail-Versand und Registrierung (#300, #302):** Der Betrieb versendet über den Mail-Service von Infomaniak mit

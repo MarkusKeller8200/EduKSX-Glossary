@@ -58,9 +58,13 @@ jobs:
           sha="${GITHUB_SHA::7}"
           version="$(tr -d '[:space:]' < VERSION)"
           tags="$image:main,$image:main-$sha"
+          # Versionsanzeige (#308): Developer = Commits seit dem letzten Release-Tag (Betas zählen nicht als Basis)
+          describe="$(git describe --tags --long --match 'v[0-9]*' --exclude 'v*-*' 2>/dev/null || true)"
           platforms="linux/amd64"
           # Release: VERSION wurde mit diesem Commit geändert (release.py set X.Y.Z --commit)
           if git rev-parse -q --verify HEAD^ >/dev/null && ! git diff --quiet HEAD^ HEAD -- VERSION; then
+            # Tag entsteht erst nach diesem Workflow (release.yml): Stand gilt als genau diese Version
+            describe="v$version-0-g$sha"
             case "$version" in
               *-*)
                 # Vorabversion (Beta): nur test
@@ -81,7 +85,7 @@ jobs:
             echo "platforms=$platforms"
             echo "version=$version"
             echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo "describe=$(git describe --tags --long --match 'v[0-9]*' 2>/dev/null || true)"
+            echo "describe=$describe"
           } >> "$GITHUB_OUTPUT"
 
       - name: Buildx
