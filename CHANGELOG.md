@@ -13,6 +13,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **DB-Guideline (#310):** Version 1.2 nach dem DB-Standard 1.2 der Plattform: Schema je Modul, Plattform-IDs für
+  Organisationen und Konten, Auskunft und Datenherausgabe, Zweck je Tabelle, anonymisierte Kopien für dev und test.
 - **Versionsbezeichnung (#308):** Entwicklungsstände heissen jetzt z. B. `0.13.0-dev.5` (geplante Version und Zahl der
   Änderungen seit dem letzten Release), Betas `0.13.0-beta.1`, Releases `0.13.0`. Test und Produktion zeigen nach einem
   Release bzw. einer Beta genau diese Version.
