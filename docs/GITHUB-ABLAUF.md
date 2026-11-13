@@ -62,6 +62,8 @@ eines Issues ist keine Release-Freigabe.
    Abschnitt im CHANGELOG, endet er nach wenigen Sekunden. Sonst wartet er, bis die konfigurierten Workflows für
    diesen Commit grün sind (`release_nach`), und legt Tag `v0.2.0` und das GitHub-Release «Glossar 0.2.0»
    mit dem Text aus dem CHANGELOG an. Vorabversionen werden als Pre-Release markiert.
+   **Glossary (DEC-035):** Eine Vorabversion `X.Y.Z-beta.N` ist die **Beta-Freigabe** und geht sofort auf test
+   (`test-01`); ein Release geht auf test und im Wartungsfenster auf prod. Beides nur nach ausdrücklicher Freigabe.
 4. Ist ein Workflow nicht grün (z. B. Formatfehler), entsteht kein Tag. Der nächste grüne Push auf main – etwa die
    Korrektur – holt das Release nach. Von Hand: Actions → release → Run workflow.
 5. Den Meilenstein schliessen und den nächsten anlegen.

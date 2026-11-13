@@ -5,6 +5,7 @@ use App\Http\Middleware\AuthenticateServiceToken;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RedirectFormerHost;
 use App\Http\Middleware\RequirePrivacyAcknowledgement;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -34,6 +35,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Schutz-Kopfzeilen für alle Antworten (wie im Intranet, #147 dort)
         $middleware->append(SecurityHeaders::class);
+
+        // Frühere Adresse weiterleiten (#304), vor allem anderen
+        $middleware->prepend(RedirectFormerHost::class);
 
         $middleware->web(append: [
             EnsureAccountActive::class,

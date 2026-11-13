@@ -6,7 +6,7 @@ Anpassungen am selben Tag. Betrifft DEC-012
 
 > **Teilweise abgelöst durch DEC-028 (12.11.2026, [KONZEPT-DEPLOYMENT.md](KONZEPT-DEPLOYMENT.md)):** test und prod laufen
 > auf `prod-01` bei Infomaniak (`glossary-test.eduksx.ch`, `glossary.eduksx.ch`) über MarKusSX-Operation; der
-> Hostinger-VPS ist nur noch Entwicklungsserver (dev, `glossary.markussx.ch`).
+> Hostinger-VPS ist nur noch Entwicklungsserver (dev, `glossary-dev.markussx.ch`, DEC-035); test auf `test-01`, prod auf `prod-01`.
 
 ## Entscheid
 

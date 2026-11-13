@@ -8,6 +8,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Umgebungen (#304):** dev unter `glossary-dev.markussx.ch` (`glossary.markussx.ch` leitet weiter); Beta-Versionen
+  gehen auf test, Releases auf prod (Image-Tags `beta` und `stable`).
 - **Mail-Versand und Registrierung (#300, #302):** Der Betrieb versendet über den Mail-Service von Infomaniak mit
   Absender aus `eduksx.ch`; neue Server lassen sich direkt in der Administration einrichten. Neue Konten (E-Mail oder
   Microsoft) gibt es nur, wenn «Registrierung offen» in den Einstellungen an ist (Vorgabe aus).
