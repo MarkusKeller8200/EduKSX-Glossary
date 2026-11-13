@@ -126,6 +126,8 @@ class HistorieSperrenPapierkorbTest extends TestCase
         $this->assertTrue(Schema::hasColumn('categories', 'extra'));
         $this->assertSame(1, DB::table('categories')->count());
 
+        // SQLite: ->constrained() würde die Tabelle neu aufbauen und wird abgewiesen
+        $this->onlySqlite();
         $this->expectException(RuntimeException::class);
         StrictSchema::addColumns('categories', fn (Blueprint $t) => $t->foreignUuid('other_id')->nullable()->constrained('users'));
     }

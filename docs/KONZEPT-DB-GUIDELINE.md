@@ -153,18 +153,18 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
 Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über die genannten Issues.
 
-| Nr. | Thema                      | Entscheid                                                                                                                      | Umsetzung                                    |
-| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| W1  | PostgreSQL                 | DEC-010 abgelöst: SQLite zu Beginn, PostgreSQL für den zentralen Betrieb; CI gegen beide                                       | Konzepte nachgeführt (#274); PostgreSQL #191 |
-| W2  | Umbenennen                 | neuer Anfangsstand mit Dateien vor dem Stichtag des Kompatibilitätstests; Test bleibt unverändert; Übergangs-Migration für dev | 0.12.0                                       |
-| W3  | Migrationen zusammenfassen | jetzt (O4); alte Antwort in KONZEPT-DATENBANK als überholt markiert                                                            | #274                                         |
-| W4  | Enums                      | mit 0.12.0, mit CHECK-Regeln                                                                                                   | #275                                         |
-| W5  | Super-Admin                | Plattformrolle aus Ident, bis dahin Developer (DEC-032)                                                                        | KONZEPT-BENUTZER nachführen                  |
-| W6  | Kontolöschung              | Löschkonzept 1.1 und Datenschutzerklärung nachgeführt; Fristen in Klammern                                                     | #274                                         |
-| W7  | Datenklassen               | je Spalte im Code, Test, erzeugte Übersicht                                                                                    | #276                                         |
-| W8  | Identitäten                | `issuer` + `subject` mit 0.12.0                                                                                                | #277                                         |
-| –   | Löschfristen               | rechtlich prüfen vor dem öffentlichen Betrieb                                                                                  | #278                                         |
-| –   | Row-Level Security         | Prototyp mit PostgreSQL                                                                                                        | EduKSX-Architektur #13                       |
+| Nr. | Thema                      | Entscheid                                                                                                                      | Umsetzung                                                         |
+| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| W1  | PostgreSQL                 | DEC-010 abgelöst: SQLite zu Beginn, PostgreSQL für den zentralen Betrieb; CI gegen beide                                       | Konzepte nachgeführt (#274); PostgreSQL #191; CI gegen beide #287 |
+| W2  | Umbenennen                 | neuer Anfangsstand mit Dateien vor dem Stichtag des Kompatibilitätstests; Test bleibt unverändert; Übergangs-Migration für dev | 0.12.0                                                            |
+| W3  | Migrationen zusammenfassen | jetzt (O4); alte Antwort in KONZEPT-DATENBANK als überholt markiert                                                            | #274                                                              |
+| W4  | Enums                      | mit 0.12.0, mit CHECK-Regeln                                                                                                   | #275                                                              |
+| W5  | Super-Admin                | Plattformrolle aus Ident, bis dahin Developer (DEC-032)                                                                        | KONZEPT-BENUTZER nachführen                                       |
+| W6  | Kontolöschung              | Löschkonzept 1.1 und Datenschutzerklärung nachgeführt; Fristen in Klammern                                                     | #274                                                              |
+| W7  | Datenklassen               | je Spalte im Code, Test, erzeugte Übersicht                                                                                    | #276                                                              |
+| W8  | Identitäten                | `issuer` + `subject` mit 0.12.0                                                                                                | #277                                                              |
+| –   | Löschfristen               | rechtlich prüfen vor dem öffentlichen Betrieb                                                                                  | #278                                                              |
+| –   | Row-Level Security         | Prototyp mit PostgreSQL                                                                                                        | EduKSX-Architektur #13                                            |
 
 ## Verlauf
 

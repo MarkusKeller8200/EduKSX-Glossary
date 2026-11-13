@@ -18,6 +18,7 @@ class AnfangsstandTest extends TestCase
 {
     public function test_tabellen_sind_strict_mit_check_regeln_und_ohne_verletzungen(): void
     {
+        $this->onlySqlite();
         $tables = DB::select("select name, sql from sqlite_master where type = 'table' and name not like 'sqlite_%' and name <> 'migrations'");
         $this->assertNotEmpty($tables);
         foreach ($tables as $table) {
@@ -39,6 +40,7 @@ class AnfangsstandTest extends TestCase
 
     public function test_uebergang_aus_0_11_ohne_datenverlust(): void
     {
+        $this->onlySqlite();
         $file = tempnam(sys_get_temp_dir(), 'glossary-0.11').'.sqlite';
         touch($file);
         $storage = sys_get_temp_dir().'/glossary-storage-'.bin2hex(random_bytes(4));
