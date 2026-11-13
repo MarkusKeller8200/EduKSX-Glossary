@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.12.0] – 2026-11-13
+
 ### Neu
 
 - **DB-Entwickler-Guideline (#270, #272):** Regeln für Datenbank, Migrationen und Modelle (`docs/KONZEPT-DB-GUIDELINE.md`), verlinkt aus AGENTS.md und dem Datenbank-Konzept; seit Version 1.1 Anwendung des gemeinsamen DB-Standards der Plattform mit Geltungsbereichen, Datenklassen und Löschregister; offene Punkte entschieden, Löschkonzept 1.1 mit Kontolöschung nach Frist und Papierkorb (#274).
