@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class DuplicateDecision extends Model
 {
+    use RecordsDataChanges;
+
     public const UPDATED_AT = null;
 
     /** @var list<string> */

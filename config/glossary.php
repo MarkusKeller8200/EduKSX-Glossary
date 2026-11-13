@@ -27,6 +27,9 @@ return [
     'api_stability' => env('GLOSSARY_API_STABILITY', 'preview'),
 
     // Datenschutzerklärung: Version, deren Kenntnisnahme bei Registrierung bzw. Änderung gespeichert wird (#41, #42)
+    // Papierkorb (#286): Tage bis zur endgültigen Löschung; einstellen nur im Betrieb (Super-Admin)
+    'trash_days' => (int) env('GLOSSARY_TRASH_DAYS', 30),
+
     'privacy_version' => env('GLOSSARY_PRIVACY_VERSION', '1.0-entwurf'),
 
     // Datenschutzerklärung noch Entwurf (Hinweis auf /datenschutz), bis der Freigabecheck erledigt ist (#42)

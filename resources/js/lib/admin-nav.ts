@@ -10,6 +10,7 @@ import {
     SearchX,
     Server,
     Settings,
+    Trash2,
     Tags,
     Users,
 } from 'lucide-react';
@@ -76,6 +77,12 @@ export const ADMIN_NAV: {
         label: 'Einstellungen',
         recht: 'settings',
         icon: Settings,
+    },
+    {
+        href: '/admin/papierkorb',
+        label: 'Papierkorb',
+        recht: 'system',
+        icon: Trash2,
     },
     { href: '/admin/system', label: 'System', recht: 'system', icon: Server },
 ];

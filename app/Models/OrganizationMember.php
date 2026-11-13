@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class OrganizationMember extends Model
 {
+    use RecordsDataChanges;
+
     public const ADMIN = 'admin';
 
     public const MEMBER = 'member';

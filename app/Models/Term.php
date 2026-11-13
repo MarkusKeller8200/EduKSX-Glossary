@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\OptimisticLocking;
 use App\Enums\AliasType;
 use App\Enums\TermStatus;
 use App\Glossary\Permalink;
@@ -48,10 +49,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read Collection<int, TermRelation> $termRelations
  * @property-read Collection<int, TermRevision> $revisions
  * @property-read Collection<int, TermUserOverride> $overrides
+ * @property int $lock_version
  */
 class Term extends Model
 {
     use HasUuids;
+    use OptimisticLocking;
 
     /** Status des Begriffs (nicht die Veröffentlichung): Wert → Label, siehe {@see TermStatus}. */
     public const STATUS = ['current' => 'aktuell', 'historical' => 'historisch', 'under_review' => 'zu prüfen'];

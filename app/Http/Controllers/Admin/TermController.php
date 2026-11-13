@@ -303,6 +303,7 @@ class TermController extends Controller
             'relations.*.term_id' => ['required', 'string'],
         ]);
         $data['relations'] ??= [];
+        $term?->assertLockVersion($request->input('lock_version'));   // optimistisches Sperren (#286)
         $data['categories'] ??= [];
         $data['sources'] ??= [];
         $data['is_active'] = $request->boolean('is_active');
@@ -331,6 +332,7 @@ class TermController extends Controller
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
                 'translations' => $this->translationForm([]),
                 'relations' => [],
+                'lock_version' => 0,
             ];
         }
         $s = $this->glossary->snapshot($term);
@@ -353,6 +355,7 @@ class TermController extends Controller
             'is_active' => (bool) $s['is_active'],
             'translations' => $this->translationForm((array) $s['translations']),
             'relations' => array_values((array) $s['relations']),
+            'lock_version' => $term->lock_version,
         ];
     }
 

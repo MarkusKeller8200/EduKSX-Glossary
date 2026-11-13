@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ServiceAccountToken extends Model
 {
     use HasUuids;
+    use RecordsDataChanges;
 
     /** @var list<string> */
     protected $fillable = ['name', 'token_hash', 'prefix', 'expires_at'];

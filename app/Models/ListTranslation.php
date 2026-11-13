@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -15,6 +16,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class ListTranslation extends Model
 {
+    use RecordsDataChanges;
+
     /** Übersetzbare Felder. */
     public const FIELDS = ['name', 'label', 'description'];
 
