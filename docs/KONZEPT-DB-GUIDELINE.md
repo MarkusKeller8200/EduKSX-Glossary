@@ -1,13 +1,15 @@
 # Konzept: DB-Guideline EduKSX-Glossary (#270, #272, #310)
 
 Stand: 13.11.2026 (Version 1.2) · Verantwortlich: Markus Keller · Status: **abgenommen** am 13.11.2026 (Version 1.0: DEC-031,
-Version 1.1: DEC-032, Version 1.2: DEC-037) · arbeitet nach **DB-Standard 1.2** der Plattform
+Version 1.1: DEC-032, Version 1.2: DEC-037) · arbeitet nach **DB-Standard 1.2.1** der Plattform
 
 Diese Guideline wendet den **DB-Standard der EduKSX-Plattform** (Repo EduKSX-Architektur,
 `docs/KONZEPT-DB-GUIDELINE.md`, nicht öffentlich) auf das Glossary an. Allgemeine Regeln – Namen, Normalisierung,
 Typen, Migrationen, Transaktionen, Historie, Mandanten, Datenklassen, Löschregister, Identitäten, Sicherung, Sprachen –
 stehen dort und werden hier nicht wiederholt; die Verweise in Klammern (A1, B3 …) zeigen auf die Abschnitte des
 Standards. Hier steht nur, was für das Glossary gilt: Tabellen, Befehle, Werte, Ausnahmen und offene Punkte.
+Modulschlüssel `glossary` laut Modulregister (`docs/REGISTER-MODULE.md` in EduKSX-Architektur); Entscheide des
+Standards heissen `DB-E<n>`.
 
 Bei Widerspruch gilt: Entscheid im Register [ENTSCHEIDE.md](ENTSCHEIDE.md) > Konzept des Glossary > diese Guideline >
 Plattform-Standard.
@@ -129,7 +131,7 @@ entfällt (Quelle ist `terms.url`, K1).
 
 Litestream nach Swiss Backup (laufend) und Einzelsnapshot vor jedem Update durch `docker/entrypoint.sh` (die letzten 10
 lokal), ausser Haus 30 Tage, verschlüsselt. Dateiname `glossary_<YYYY-MM-DD_HH-MM-SS>_v<version>.sqlite` mit
-Begleitdatei (SHA-256, Zeilen je Tabelle). RPO/RTO für zentrale Dienste: 1 Minute / 4 Stunden (Plattform-Entscheid E4,
+Begleitdatei (SHA-256, Zeilen je Tabelle). RPO/RTO für zentrale Dienste: 1 Minute / 4 Stunden (Entscheid DB-E4,
 12.11.2026).
 
 ## 11. Tests im Glossary (C3)
@@ -156,7 +158,7 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 | E1 Modulschlüssel               | `glossary`                                                                                                                      | –                   |
 | E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191 |
 | E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | #311                |
-| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2»; Konformitätstests aus `eduksx/core`, sobald herausgelöst                      | –                   |
+| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` 0.1                                      | #193                |
 | B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                |
 | B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                |
 | B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                |
@@ -189,3 +191,4 @@ Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über d
   Datenklassen, Löschregister, zusammengesetztem Fremdschlüssel für `published_revision_id`, Archivfrist (#272).
 - 12.11.2026: offene Punkte W1–W8 entschieden (DEC-033, #274).
 - 13.11.2026: Version 1.2 abgenommen (DEC-037) – Anwendung von DB-Standard 1.2 (Modularität, Datenschutz) (#310).
+- 14.11.2026: Nachgeführt auf DB-Standard 1.2.1 (redaktionell: Modulregister, `DB-E<n>`), Entwurf mit DEC-038 (#318).
