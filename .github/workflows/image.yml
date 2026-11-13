@@ -61,8 +61,9 @@ jobs:
           # Versionsanzeige (#308): Developer = Commits seit dem letzten Release-Tag (Betas zählen nicht als Basis)
           describe="$(git describe --tags --long --match 'v[0-9]*' --exclude 'v*-*' 2>/dev/null || true)"
           platforms="linux/amd64"
-          # Release: VERSION wurde mit diesem Commit geändert (release.py set X.Y.Z --commit)
-          if git rev-parse -q --verify HEAD^ >/dev/null && ! git diff --quiet HEAD^ HEAD -- VERSION; then
+          # Release bzw. Beta: Zu VERSION gibt es noch keinen Tag (release.py set X.Y.Z --commit). Schlägt der
+          # erste Lauf fehl, übernimmt der nächste grüne Push – wie release.yml, das den Tag erst danach anlegt (#316).
+          if ! git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
             # Tag entsteht erst nach diesem Workflow (release.yml): Stand gilt als genau diese Version
             describe="v$version-0-g$sha"
             case "$version" in
