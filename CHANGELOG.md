@@ -11,7 +11,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Gemeinsame Bausteine der Plattform (#334):** Fehler der API, Request-ID, Sicherheitskopfzeilen, Abruflimit,
   STRICT-Tabellen, optimistisches Sperren und ETag der Lese-API kommen aus `eduksx/core`. Fehler der API enthalten
   zusätzlich `code` und `request_id`, Antworten die Kopfzeilen `X-Request-Id` und `EduKSX-Release`; ein
-  Konformitätstest der Plattform läuft mit den Tests.
+  Konformitätstest der Plattform läuft mit den Tests; die bisherigen eigenen Umsetzungen sind entfernt.
 
 ## [0.13.0] – 2026-11-13
 

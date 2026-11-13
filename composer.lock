@@ -446,16 +446,16 @@
         },
         {
             "name": "eduksx/core",
-            "version": "v0.1.0",
+            "version": "v0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/MarkusKeller8200/EduKSX-Core",
-                "reference": "1e66c67d8b4541ba7857b1aa8aeaef233d43c509"
+                "reference": "b1ca5d5c7e85b6f4d678c4309bcee88884274902"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/1e66c67d8b4541ba7857b1aa8aeaef233d43c509",
-                "reference": "1e66c67d8b4541ba7857b1aa8aeaef233d43c509",
+                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/b1ca5d5c7e85b6f4d678c4309bcee88884274902",
+                "reference": "b1ca5d5c7e85b6f4d678c4309bcee88884274902",
                 "shasum": ""
             },
             "require": {
@@ -514,7 +514,7 @@
                 }
             ],
             "description": "Gemeinsame Bausteine der EduKSX-Plattform für Laravel-Module (Fehler, Sicherheit, Datenbank, Listen, Prüfungen).",
-            "time": "2026-11-13T19:21:13+00:00"
+            "time": "2026-11-13T20:21:58+00:00"
         },
         {
             "name": "egulias/email-validator",
