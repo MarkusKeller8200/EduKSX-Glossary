@@ -25,6 +25,13 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Suchen ohne Treffer (#285):** Findet eine Suche auf der Website oder in der API nichts, zählt die Anwendung den
   Suchtext ohne Personenbezug. Die Redaktion sieht die Liste unter «Ohne Treffer»; Einträge werden 90 Tage nach der
   letzten gleichen Suche gelöscht.
+- **Papierkorb (#286):** Gelöschte Kategorien, Herkünfte und Organisationen kommen zuerst in den Papierkorb und werden
+  nach 30 Tagen endgültig gelöscht. Developer können sie unter «Papierkorb» wiederherstellen.
+- **Änderungsprotokoll (#276, #286):** Änderungen an Listen, Organisationen, Konten, Rollen und Servicekonten werden mit
+  Zeitpunkt und handelnder Person festgehalten; personenbezogene und geheime Werte nur als «geändert». Jede Spalte hat
+  eine Datenklasse, die Übersicht steht in `docs/DATENKLASSEN.md`.
+- **Gleichzeitiges Bearbeiten (#286):** Haben zwei Personen denselben Begriff oder Listeneintrag offen, überschreibt das
+  spätere Speichern nichts mehr; es erscheint ein Hinweis, die Seite neu zu laden.
 
 ### Geändert
 

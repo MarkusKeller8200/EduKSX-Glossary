@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TermUserOverride extends Model
 {
     use HasUuids;
+    use RecordsDataChanges;
 
     /** Felder der persönlichen Darstellung. */
     public const FIELDS = [

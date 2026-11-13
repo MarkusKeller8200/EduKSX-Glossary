@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Data\OptimisticLocking;
+use App\Data\RecordsDataChanges;
+use App\Data\Trashable;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -20,10 +24,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $note
  * @property string|null $color
  * @property int $sort_order
+ * @property int $lock_version
+ * @property CarbonImmutable|null $deleted_at
+ * @property string|null $deleted_by_id
  */
 class Source extends Model
 {
     use HasUuids;
+    use OptimisticLocking, RecordsDataChanges, Trashable;
 
     protected $table = 'sources';
 

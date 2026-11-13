@@ -5,6 +5,8 @@ namespace App\Organizations;
 use App\Access\AccessDenied;
 use App\Access\Audit;
 use App\Access\RoleManager;
+use App\Enums\MemberRole;
+use App\Enums\MemberStatus;
 use App\Mail\OrganizationInvitationMail;
 use App\Models\Organization;
 use App\Models\OrganizationInvitation;
@@ -12,6 +14,7 @@ use App\Models\OrganizationMember;
 use App\Models\OrganizationTermOverride;
 use App\Models\Proposal;
 use App\Models\Role;
+use App\Models\ServiceAccount;
 use App\Models\Term;
 use App\Models\TermUserOverride;
 use App\Models\User;
@@ -462,7 +465,45 @@ final class OrganizationService
                 }
             }
             $this->forwardProposals($organization->id, null, 'Organisation gelöscht');
+            // Papierkorb (#286): Mitgliedschaften, Einladungen und Servicekonten enden sofort (Konten sind frei, Token
+            // ungültig); Name und Darstellung der Organisation bleiben bis zur endgültigen Löschung wiederherstellbar.
+            foreach ($organization->members()->get() as $member) {
+                $member->delete();
+            }
+            foreach ($organization->invitations()->get() as $invitation) {
+                $invitation->delete();
+            }
+            foreach (ServiceAccount::query()->where('organization_id', $organization->id)->get() as $account) {
+                $account->delete();
+            }
+            $organization->forceFill(['entra_tenant_id' => null])->save();
             $organization->delete();
+        });
+    }
+
+    /**
+     * Aus dem Papierkorb wiederherstellen (#286, nur Developer): mit Darstellung, ohne Mitglieder; wer gelöscht hat,
+     * wird wieder Organisations-Admin, sofern er keiner anderen Organisation angehört.
+     */
+    public function restore(User $actor, Organization $organization): void
+    {
+        $this->guard($actor, null, 'organization.restored', function () use ($actor, $organization): void {
+            if (! $actor->isDeveloper()) {
+                throw new AccessDenied('Wiederherstellen dürfen nur Developer.');
+            }
+            if (Organization::query()->whereRaw('lower(name) = ?', [mb_strtolower($organization->name)])->exists()) {
+                throw new AccessDenied('Eine andere Organisation trägt inzwischen diesen Namen.');
+            }
+        }, ['organization' => $organization->name]);
+        DB::transaction(function () use ($organization): void {
+            $by = $organization->deleted_by_id !== null ? User::query()->find($organization->deleted_by_id) : null;
+            $organization->restoreFromTrash();
+            if ($by !== null && $this->membershipOf($by) === null) {
+                $member = OrganizationMember::query()->create([
+                    'organization_id' => $organization->id, 'user_id' => $by->id, 'role' => MemberRole::Admin->value, 'status' => MemberStatus::Active->value,
+                ]);
+                $this->grantRole($member);
+            }
         });
     }
 
@@ -522,8 +563,8 @@ final class OrganizationService
         if ($name === '' || mb_strlen($name) > 120) {
             throw new AccessDenied('Name mit 1 bis 120 Zeichen angeben.');
         }
-        if (Organization::query()->whereRaw('lower(name) = ?', [mb_strtolower($name)])->exists()) {
-            throw new AccessDenied('Diesen Namen verwendet schon eine Organisation.');
+        if (Organization::query()->withTrashed()->whereRaw('lower(name) = ?', [mb_strtolower($name)])->exists()) {
+            throw new AccessDenied('Diesen Namen verwendet schon eine Organisation (auch im Papierkorb).');
         }
     }
 

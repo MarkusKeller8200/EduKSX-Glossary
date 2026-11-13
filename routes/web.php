@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SourceCheckController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -230,6 +231,9 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     // System (#40): nur Developer (Recht «system»)
     Route::middleware('can:system')->group(function () {
         Route::get('system', [SystemController::class, 'index'])->name('admin.system');
+        // Papierkorb (#286): wiederherstellen nur Developer
+        Route::get('papierkorb', [TrashController::class, 'index'])->name('admin.trash');
+        Route::post('papierkorb/{kind}/{id}/wiederherstellen', [TrashController::class, 'restore'])->whereIn('kind', ['kategorien', 'herkunft', 'organisationen'])->name('admin.trash.restore');
         Route::post('system/testmail', [SystemController::class, 'testMail'])->middleware('throttle:5,1')->name('admin.system.testmail');
         Route::post('system/mail', [SystemController::class, 'saveMail'])->middleware('throttle:10,1')->name('admin.system.mail');
         Route::post('system/mail/entfernen', [SystemController::class, 'removeMail'])->name('admin.system.mail.remove');

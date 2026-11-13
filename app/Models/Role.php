@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Access\Permission;
+use App\Data\RecordsDataChanges;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 class Role extends Model
 {
     use HasUuids;
+    use RecordsDataChanges;
 
     public const DEVELOPER = 'developer';
 

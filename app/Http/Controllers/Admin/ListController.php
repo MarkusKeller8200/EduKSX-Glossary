@@ -92,6 +92,7 @@ class ListController extends Controller
                     'label' => $i->label, 'description' => $i->description, 'url' => $i->url, 'note' => $i->note, 'color' => $i->color,
                     'sort_order' => $i->sort_order, 'begriffe' => (int) $i->getAttribute('terms_count'),
                     'translations' => $this->translationForm($i),
+                    'lock_version' => $i->lock_version,
                 ])->all();
         }
 
@@ -105,7 +106,7 @@ class ListController extends Controller
         if (($data['key'] ?? '') === '') {
             $base = Str::slug((string) (($data['abbreviation'] ?? '') ?: $data['name']), '-', 'de') ?: Str::lower(Str::random(6));
             $key = $base;
-            for ($i = 2; $model::query()->where('key', $key)->exists(); $i++) {
+            for ($i = 2; $model::query()->withTrashed()->where('key', $key)->exists(); $i++) {
                 $key = "{$base}-{$i}";
             }
             $data['key'] = $key;
@@ -121,6 +122,7 @@ class ListController extends Controller
     {
         $model = $this->model($list);
         $item = $model::query()->findOrFail($id);
+        $item->assertLockVersion($request->input('lock_version'));   // optimistisches Sperren (#286)
         $data = $this->validated($request, $model, $item->id);
         unset($data['key']);   // Schlüssel bleibt stabil (API, Excel)
         $translations = $this->pullTranslations($data);
@@ -137,9 +139,9 @@ class ListController extends Controller
         if ((int) $item->getAttribute('terms_count') > 0) {
             return back()->with('status', 'Wird noch von Begriffen verwendet – nicht gelöscht.');
         }
-        $item->delete();
+        $item->delete();   // Papierkorb (#286), endgültig nach der Frist
 
-        return back()->with('status', 'Eintrag gelöscht.');
+        return back()->with('status', 'Eintrag in den Papierkorb verschoben.');
     }
 
     /** @return class-string<Category|Source> */

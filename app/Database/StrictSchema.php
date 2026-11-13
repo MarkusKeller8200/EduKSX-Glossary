@@ -60,10 +60,16 @@ final class StrictSchema
      * Anweisungen auf STRICT-Typen abbilden, CHECK-Regeln je Spalte anhängen (SQLite kennt bei ADD COLUMN nur
      * Spalten-CHECKs); PostgreSQL: Schema::table und benannte Constraints.
      *
+     * Nur ADD COLUMN und Indizes: Fremdschlüssel über $references (SQLite: REFERENCES in der Spalte), nie über
+     * ->constrained() – Laravel baut dafür die SQLite-Tabelle neu auf, was hier nicht geschehen darf.
+     *
      * @param  Closure(Blueprint): void  $columns
      * @param  array<string, array{0: string, 1: string}>  $checks  Spalte → [Name der Regel, SQL-Ausdruck]
+     * @param  array<string, array{0: string, 1: string}>  $references  Spalte → [Tabelle, on delete (z. B. «set null»)]
+     *
+     * @throws RuntimeException bei Anweisungen, die die Tabelle neu aufbauen würden
      */
-    public static function addColumns(string $table, Closure $columns, array $checks = []): void
+    public static function addColumns(string $table, Closure $columns, array $checks = [], array $references = []): void
     {
         /** @var Connection $db */
         $db = Schema::getConnection();
@@ -72,10 +78,18 @@ final class StrictSchema
             foreach ($checks as [$name, $expression]) {
                 $db->statement("alter table \"{$table}\" add constraint \"{$name}\" check ({$expression})");
             }
+            foreach ($references as $column => [$foreign, $onDelete]) {
+                $db->statement("alter table \"{$table}\" add constraint \"{$table}_{$column}_foreign\" foreign key (\"{$column}\") references \"{$foreign}\" (\"id\") on delete {$onDelete}");
+            }
 
             return;
         }
         $statements = $db->pretend(fn () => Schema::table($table, $columns));
+        foreach ($statements as $statement) {
+            if (preg_match('/^(alter table "[^"]+" add column |create (unique )?index )/i', (string) $statement['query']) !== 1) {
+                throw new RuntimeException("addColumns({$table}): nur ADD COLUMN und Indizes erlaubt, nicht: ".$statement['query']);
+            }
+        }
         $types = implode('|', array_map(fn (string $t): string => preg_quote($t, '/'), array_keys(self::SQLITE_TYPES)));
         foreach ($statements as $statement) {
             $sql = (string) $statement['query'];
@@ -87,6 +101,9 @@ final class StrictSchema
                 ));
                 if (isset($checks[$m[1]])) {
                     $sql .= " constraint \"{$checks[$m[1]][0]}\" check ({$checks[$m[1]][1]})";
+                }
+                if (isset($references[$m[1]])) {
+                    $sql .= " references \"{$references[$m[1]][0]}\"(\"id\") on delete {$references[$m[1]][1]}";
                 }
             }
             $db->statement($sql, $statement['bindings']);

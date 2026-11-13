@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Access\Permission;
+use App\Data\DataChanges;
+use App\Data\RecordsDataChanges;
 use App\Glossary\Journal;
 use App\Notifications\ResetPasswordNotification;
 use App\Organizations\OrganizationService;
@@ -49,6 +51,7 @@ use Illuminate\Support\Facades\DB;
 class User extends Authenticatable
 {
     use HasUuids, Notifiable;
+    use RecordsDataChanges;
 
     /** Arten öffentlicher Einrichtungen (docs/KONZEPT-BENUTZER.md 4). */
     public const INSTITUTION_TYPES = [
@@ -108,6 +111,7 @@ class User extends Authenticatable
         // (DEC-020, #113); Organisation mit Nachfolge im Admin (#148)
         static::deleting(function (User $user): void {
             Journal::forget($user);
+            DataChanges::forget($user);
             ProposalService::forget($user);
             OrganizationService::forget($user);
         });

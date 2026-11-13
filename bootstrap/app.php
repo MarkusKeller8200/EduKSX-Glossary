@@ -1,5 +1,6 @@
 <?php
 
+use App\Data\StaleModel;
 use App\Http\Middleware\AuthenticateServiceToken;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
@@ -60,6 +61,15 @@ return Application::configure(basePath: dirname(__DIR__))
             }
 
             return null;
+        });
+
+        // Optimistisches Sperren (#286): inzwischen geändert – nichts überschrieben; Web zurück mit Meldung, sonst 409
+        $exceptions->render(function (StaleModel $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json(['title' => 'Konflikt', 'status' => 409, 'detail' => $e->getMessage()], 409);
+            }
+
+            return back()->withErrors(['form' => $e->getMessage()])->withInput();
         });
 
         // API: Fehler als application/problem+json (RFC 9457, docs/KONZEPT-API.md)

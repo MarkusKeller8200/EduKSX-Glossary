@@ -28,6 +28,7 @@ type Werte = {
     is_active: boolean;
     translations: Record<Sprache, Uebersetzung>;
     relations: Beziehung[];
+    lock_version: number;
 };
 
 type Beziehung = { type: string; term_id: string };
@@ -89,7 +90,10 @@ export default function TermForm({
                 : form.data[field].filter((k) => k !== key),
         );
     const text = (
-        field: Exclude<keyof Werte, 'translations' | 'relations'>,
+        field: Exclude<
+            keyof Werte,
+            'translations' | 'relations' | 'lock_version'
+        >,
         label: string,
         hint?: string,
         props: { disabled?: boolean; maxLength?: number; type?: string } = {},

@@ -26,6 +26,7 @@ type Eintrag = {
     sort_order: number;
     begriffe: number;
     translations: Record<Sprache, ListUebersetzung>;
+    lock_version: number;
 };
 
 type Sprache = 'fr' | 'it' | 'en';
@@ -50,6 +51,7 @@ type Werte = {
     color: string;
     sort_order: string;
     translations: Record<Sprache, ListUebersetzung>;
+    lock_version: number;
 };
 
 const TITEL = { kategorien: 'Kategorien', herkunft: 'Herkunft' } as const;
@@ -309,6 +311,7 @@ function Formular({
             it: LEER,
             en: LEER,
         },
+        lock_version: eintrag?.lock_version ?? 0,
     });
     const errors = form.errors as Record<string, string | undefined>;
     const setUebersetzung = (
@@ -338,7 +341,7 @@ function Formular({
         }
     };
     const feld = (
-        name: Exclude<keyof Werte, 'translations'>,
+        name: Exclude<keyof Werte, 'translations' | 'lock_version'>,
         label: string,
         disabled = false,
     ) => (
@@ -468,6 +471,9 @@ function Formular({
                     ))}
                 </div>
             </details>
+            {errors.form ? (
+                <InputError className="sm:col-span-3" message={errors.form} />
+            ) : null}
             <div className="flex gap-2 sm:col-span-3">
                 <Button type="submit" size="sm" disabled={form.processing}>
                     Speichern
