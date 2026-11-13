@@ -80,3 +80,58 @@ jobs:
             git diff > fmt.diff
             .github/scripts/report-failure.sh fmt.diff 'Formatierung (Korrektur)' 400
           fi
+
+  # Gleiche Tests gegen PostgreSQL (#287, W1): Migrationen, CHECK-Regeln, Fremdschlüssel und Typen auch dort.
+  # Reine SQLite-Tests (STRICT, Übergang aus 0.11, Sicherung als Datei) werden übersprungen.
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: glossary
+          POSTGRES_PASSWORD: glossary
+          POSTGRES_DB: glossary_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U glossary" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: glossary_test
+      DB_USERNAME: glossary
+      DB_PASSWORD: glossary
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql
+          tools: composer:v2
+          coverage: none
+
+      - name: Zwischenspeicher Composer
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
+      - name: Abhängigkeiten
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Migrationen auf PostgreSQL
+        run: php artisan migrate --force
+
+      - name: Tests auf PostgreSQL
+        run: php artisan test

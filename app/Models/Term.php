@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 /**
  * Begriff (Arbeitsstand). Öffentlich ist nur die veröffentlichte Revision (publishedRevision), nie dieser Stand.
@@ -178,6 +179,18 @@ class Term extends Model
     }
 
     /**
+     * Nach UUID oder Slug (API, Permalink-Auflösung).
+     *
+     * @param  Builder<Term>  $query
+     * @return Builder<Term>
+     */
+    public function scopeIdOrSlug(Builder $query, string $value): Builder
+    {
+        // UUID-Spalte nur mit einer UUID vergleichen (PostgreSQL lehnt andere Texte ab, #287)
+        return $query->where(fn (Builder $q) => $q->where('slug', $value)->when(Str::isUuid($value), fn (Builder $q) => $q->orWhere('id', $value)));
+    }
+
+    /**
      * Nicht zusammengeführt (#16): zusammengeführte Begriffe sind nur noch Weiterleitung.
      *
      * @param  Builder<Term>  $query
@@ -236,7 +249,8 @@ class Term extends Model
     /** @return HasOne<TermRevision, $this> Neueste Revision (Arbeitsstand) */
     public function latestRevision(): HasOne
     {
-        return $this->hasOne(TermRevision::class)->latestOfMany('revision');
+        // nicht latestOfMany: das vergleicht zusätzlich MAX(id), was es für UUIDs unter PostgreSQL nicht gibt (#287)
+        return $this->hasOne(TermRevision::class)->orderByDesc('revision');
     }
 
     /**

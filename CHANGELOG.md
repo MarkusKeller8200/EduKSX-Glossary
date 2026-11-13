@@ -47,6 +47,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   `status` nimmt auch die bisherigen Werte an.
 - **Microsoft-Anmeldung (#277):** Ein verknüpftes Konto wird über Aussteller und Kennung erkannt, unabhängig vom
   Anbieter; bestehende Verknüpfungen bleiben erhalten.
+- **PostgreSQL (#287):** Migrationen und alle Tests laufen in der CI zusätzlich gegen PostgreSQL; Abfragen nach ID oder
+  Slug und die neueste Revision funktionieren auf beiden Datenbanken.
 
 ## [0.11.0] – 2026-11-12
 

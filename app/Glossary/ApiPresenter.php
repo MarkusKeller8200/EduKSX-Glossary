@@ -95,7 +95,7 @@ final class ApiPresenter
     {
         // UUID, Slug oder Code des Permalinks (#159)
         $code = Permalink::normalize($idOrSlug);
-        $term = Term::query()->published()->where(fn ($q) => $q->where('id', $idOrSlug)->orWhere('slug', $idOrSlug)
+        $term = Term::query()->published()->where(fn ($q) => $q->idOrSlug($idOrSlug)
             ->when($code !== null, fn ($q) => $q->orWhere('code', $code)))
             ->with('publishedRevision')->first();
         $revision = $term?->publishedRevision;

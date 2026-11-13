@@ -37,6 +37,9 @@ final class StrictSchema
         $db = Schema::getConnection();
         if ($db->getDriverName() !== 'sqlite') {
             foreach ($checks as $name => $expression) {
+                if (self::isBooleanCheck($expression)) {
+                    continue;   // PostgreSQL: boolean ist ein eigener Typ, 0/1-Regel entfällt
+                }
                 $db->statement("alter table \"{$table}\" add constraint \"{$name}\" check ({$expression})");
             }
 
@@ -108,6 +111,12 @@ final class StrictSchema
             }
             $db->statement($sql, $statement['bindings']);
         }
+    }
+
+    /** Regel «Spalte in (0, 1)» für Wahrheitswerte unter SQLite. */
+    public static function isBooleanCheck(string $expression): bool
+    {
+        return preg_match('/^"[^"]+" in \(0, 1\)$/', trim($expression)) === 1;
     }
 
     /** @param  array<string, string>  $checks */
