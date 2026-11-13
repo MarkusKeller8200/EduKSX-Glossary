@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.13.0] – 2026-11-13
+
 ### Neu
 
 - **Umgebungsvariablen (#306):** Übersicht aller Variablen mit Standardwerten, Werten für dev, test und prod sowie
