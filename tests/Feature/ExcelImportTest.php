@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Glossary\ExcelFormat;
+use App\Glossary\GlossaryImporter;
 use App\Glossary\GlossaryService;
 use App\Models\Category;
 use App\Models\ImportBatch;
@@ -134,7 +135,7 @@ class ExcelImportTest extends TestCase
 
         $this->assertSame('ID', ExcelFormat::header()[0]);
         // Format Version 2 (DEC-020): ohne eigene Spalten und «Intern genutzt in», mit «Alternative Schreibweisen»
-        $this->assertCount(16, ExcelFormat::header());
+        $this->assertCount(28, ExcelFormat::header());   // 16 + 12 Übersetzungsspalten (#291)
         $this->assertContains('Alternative Schreibweisen', ExcelFormat::header());
     }
 
@@ -173,5 +174,27 @@ class ExcelImportTest extends TestCase
         auth()->logout();
         $this->get('/admin/import')->assertRedirect('/anmelden');
         $this->get('/admin/export')->assertRedirect('/anmelden');
+    }
+
+    /** Übersetzungen im Excel (#291): Export, Import, fehlende Spalten lassen den Bestand. */
+    public function test_uebersetzungen_im_excel(): void
+    {
+        $glossary = app(GlossaryService::class);
+        $term = $glossary->save(null, ['official_abbreviation' => 'KLP', 'official_name' => 'Klassenlehrperson',
+            'translations' => ['fr' => ['name' => 'Maître de classe'], 'it' => ['name' => 'Docente di classe']]], null, true);
+
+        $row = ExcelFormat::row($term);
+        $this->assertSame('Maître de classe', $row['Bezeichnung (FR)']);
+        $this->assertSame('', $row['Bezeichnung (EN)']);
+
+        $importer = app(GlossaryImporter::class);
+        $result = $importer->run([['ID' => $term->id, 'Bezeichnung offiziell' => 'Klassenlehrperson', 'Bezeichnung (FR)' => 'Maîtresse de classe', 'Abkürzung (EN)' => 'CT']], false, null, true, false);
+        $this->assertSame(1, $result['geaendert']);
+        $this->assertSame(['Bezeichnung (FR)', 'Abkürzung (EN)'], array_keys($result['plan'][0]['aenderungen']));
+
+        $translations = $glossary->snapshot($term->fresh() ?? $term)['translations'];
+        $this->assertSame('Maîtresse de classe', $translations['fr']['name']);
+        $this->assertSame('Docente di classe', $translations['it']['name']);   // keine IT-Spalte → bleibt
+        $this->assertSame('CT', $translations['en']['abbreviation']);
     }
 }
