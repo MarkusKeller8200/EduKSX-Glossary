@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Mail-Versand (#300):** Der Betrieb versendet über den Mail-Service von Infomaniak mit Absender aus `eduksx.ch`
+  (Vorlage «Infomaniak» in der Versand-Einrichtung).
+
 ## [0.12.0] – 2026-11-13
 
 ### Neu

@@ -119,7 +119,7 @@ Eine externe Identität kann erst nach belastbarer Authentifizierung mit einem b
 
 ## 7. E-Mail-Versand
 
-Laravel-Mail-Schicht, providerunabhängig konfiguriert (`MAIL_MAILER`, `MAIL_HOST`, Zugangsdaten nur in der Serverumgebung). Unterstützte Wege: SMTP oder passende Treiber für Microsoft 365, Google Workspace, Infomaniak, Hostinger oder spezialisierte Versanddienste. Versand über eine Warteschlange mit Wiederholung und sicherem Fehlerverhalten; ausgehende Nachrichten geben keine unnötigen persönlichen Informationen preis. Ohne funktionierenden E-Mail-Versand bleibt Selbstregistrierung deaktiviert. Testmail nur mit Systemrecht. Tatsächlicher Anbieter und Datenstandort sind im Datenschutz-/Betriebskonzept zu dokumentieren.
+Laravel-Mail-Schicht, providerunabhängig konfiguriert (`MAIL_MAILER`, `MAIL_HOST`, Zugangsdaten nur in der Serverumgebung). Im Betrieb versendet das Glossary über den Mail-Service von Infomaniak mit Absender aus `eduksx.ch` (SMTPS, Port 465; DEC-034, #300). Unterstützte Wege: SMTP oder passende Treiber für Microsoft 365, Google Workspace, Infomaniak, Hostinger oder spezialisierte Versanddienste. Versand über eine Warteschlange mit Wiederholung und sicherem Fehlerverhalten; ausgehende Nachrichten geben keine unnötigen persönlichen Informationen preis. Ohne funktionierenden E-Mail-Versand bleibt Selbstregistrierung deaktiviert. Testmail nur mit Systemrecht. Tatsächlicher Anbieter und Datenstandort sind im Datenschutz-/Betriebskonzept zu dokumentieren.
 
 ## 8. Datenmodell und technische Umsetzung
 

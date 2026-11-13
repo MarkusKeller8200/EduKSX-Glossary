@@ -122,7 +122,8 @@ MAIL_PORT=587
 MAIL_USERNAME=…
 MAIL_PASSWORD=…
 
-# Infomaniak bzw. Hostinger (SMTP des Anbieters)
+# Infomaniak bzw. Hostinger (SMTP des Anbieters) – im Betrieb Infomaniak mit noreply@eduksx.ch (#300);
+# bei fremder DNS-Zone (Cloudflare) dort SPF include:spf.infomaniak.ch, DKIM aus dem Infomaniak Manager, DMARC
 MAIL_MAILER=smtp
 MAIL_HOST=mail.infomaniak.com      # bzw. smtp.hostinger.com
 MAIL_PORT=465
