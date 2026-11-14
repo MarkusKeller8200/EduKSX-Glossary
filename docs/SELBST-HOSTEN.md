@@ -117,10 +117,11 @@ docker compose exec app php artisan glossary:loeschfristen   # bereits ausgefüh
 
 ## Prüfen und Betrieb
 
-| Aufgabe              | Befehl (im Ordner der Installation)                                         |
-| -------------------- | --------------------------------------------------------------------------- |
-| Konfiguration prüfen | `docker compose exec app php artisan glossary:pruefen`                      |
-| Zustand              | `docker compose ps`                                                         |
-| Protokoll            | `docker compose logs -f app`                                                |
-| Admin, Passwort      | `docker compose exec app php artisan glossary:admin`                        |
-| Developer (Updates)  | `docker compose exec app php artisan glossary:developer E-MAIL --grund="…"` |
+| Aufgabe               | Befehl (im Ordner der Installation)                                                                 |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| Konfiguration prüfen  | `docker compose exec app php artisan glossary:pruefen`                                              |
+| Zustand               | `docker compose ps`                                                                                 |
+| Protokoll             | `docker compose logs -f app`                                                                        |
+| Metriken (Prometheus) | `GLOSSARY_METRICS_TOKEN` setzen, dann `curl -H "Authorization: Bearer …" https://<adresse>/metrics` |
+| Admin, Passwort       | `docker compose exec app php artisan glossary:admin`                                                |
+| Developer (Updates)   | `docker compose exec app php artisan glossary:developer E-MAIL --grund="…"`                         |

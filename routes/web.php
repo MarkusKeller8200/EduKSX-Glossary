@@ -22,6 +22,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDisplayController;
 use App\Http\Controllers\PageController;
@@ -35,6 +36,8 @@ use Illuminate\Support\Facades\Route;
 // Öffentlich: nur lesen (PUB-01)
 Route::get('/', [PageController::class, 'home'])->name('home');
 // Suche ohne Treffer melden (X4, #285): ohne Personenbezug, begrenzt
+// Metriken für Prometheus (#192): nur mit GLOSSARY_METRICS_TOKEN, Bearer-Token
+Route::get('metrics', MetricsController::class)->withoutMiddleware(['web'])->middleware('throttle:60,1')->name('metrics');
 Route::post('suche/ohne-treffer', [SearchMissController::class, 'store'])->middleware('throttle:20,1')->name('search-miss');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');

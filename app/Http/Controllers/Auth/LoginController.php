@@ -6,6 +6,7 @@ use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Registration;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,6 +49,7 @@ class LoginController extends Controller
         $user = User::query()->where('email', $email)->first();
         if ($user === null || ! Hash::check((string) $credentials['password'], $user->password)) {
             RateLimiter::hit($key, 60);
+            event(new Failed('web', $user, ['email' => $email]));   // Metriken (#192); ohne Passwort
 
             throw ValidationException::withMessages(['email' => 'E-Mail oder Passwort stimmt nicht.']);
         }

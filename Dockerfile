@@ -78,6 +78,7 @@ ENV GLOSSARY_BUILD=$GLOSSARY_BUILD \
 ENV APP_ENV=production \
     APP_DEBUG=false \
     LOG_CHANNEL=stderr \
+    LOG_FORMAT=json \
     SESSION_DRIVER=database \
     SESSION_SECURE_COOKIE=true \
     CACHE_STORE=database \
