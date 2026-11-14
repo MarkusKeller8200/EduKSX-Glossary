@@ -260,7 +260,7 @@ final class ProposalService
 
     // ---------- intern ----------
 
-    /** @param  list<string>  $ids */
+    /** @param  array<int, string>  $ids */
     private function anonymize(array $ids): void
     {
         if ($ids === []) {
@@ -349,7 +349,7 @@ final class ProposalService
      * Vorschläge, die auf die Organisation warten, direkt in die Moderation geben (Austritt, Entfernen, Organisation
      * gelöscht).
      *
-     * @param  list<string>  $ids
+     * @param  array<int, string>  $ids
      */
     public static function forwardFromOrganization(array $ids, string $reason): void
     {
