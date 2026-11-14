@@ -65,6 +65,7 @@ final class Metrics
     public static function render(): string
     {
         $out = [];
+        /** @param  list<array{0: array<string, string>, 1: int|float}>  $samples */
         $line = function (string $name, string $help, string $type, array $samples) use (&$out): void {
             $out[] = "# HELP glossary_{$name} {$help}";
             $out[] = "# TYPE glossary_{$name} {$type}";
