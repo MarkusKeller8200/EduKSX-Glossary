@@ -78,7 +78,7 @@ final class PersonalData
     }
 
     /**
-     * @param  list<object>  $rows
+     * @param  array<int, object>  $rows
      * @param  list<string>  $references
      * @return array{purpose: ?string, labels: array<string, string>, rows: list<array<string, mixed>>}
      */
