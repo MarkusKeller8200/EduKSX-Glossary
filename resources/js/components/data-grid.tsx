@@ -293,7 +293,6 @@ export default function DataGrid<T>({
         );
     };
 
-    const total = columns.reduce((n, c) => n + width(c), 0);
     // Spalte für den freien Platz (#123): ausdrücklich gewählt, sonst die breiteste ohne feste Breite und Fixierung
     const growId =
         columns.find((c) => c.grow)?.id ??
@@ -303,6 +302,17 @@ export default function DataGrid<T>({
                 (best, c) => (!best || width(c) > width(best) ? c : best),
                 null,
             )?.id;
+    // Mindestbreite der Tabelle (#370): Die Spalte growId zählt nur mit ihrer Mindestbreite (bzw. einer von Hand
+    // gesetzten Breite), sonst ergäbe die Summe der gemessenen Breiten – gerundet – oft ein paar Pixel mehr als der
+    // Platz und damit einen Scrollbalken ohne sichtbaren Grund.
+    const total = columns.reduce(
+        (n, c) =>
+            n +
+            (c.id === growId && widths[c.id] === undefined
+                ? (c.minWidth ?? 120)
+                : width(c)),
+        0,
+    );
     // Abstand der rechten fixierten Spalten
     const rightOffset = (index: number) =>
         columns
@@ -382,7 +392,8 @@ export default function DataGrid<T>({
     return (
         <div
             ref={wrapper}
-            className="overflow-x-auto rounded-lg border border-border"
+            // nur waagrecht scrollen (#370): senkrecht wächst die Seite, kein zweiter Balken
+            className="overflow-x-auto overflow-y-hidden rounded-lg border border-border"
         >
             <table
                 className="text-sm"
@@ -413,7 +424,11 @@ export default function DataGrid<T>({
                                               c.id === growId
                                                   ? undefined
                                                   : width(c),
-                                          minWidth: width(c),
+                                          minWidth:
+                                              c.id === growId &&
+                                              widths[c.id] === undefined
+                                                  ? (c.minWidth ?? 120)
+                                                  : width(c),
                                       }
                             }
                         />
