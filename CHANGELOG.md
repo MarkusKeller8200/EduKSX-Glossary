@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Datenmodell-Diagramm bedienbar (#371):** Auf der Seite «Für Entwickler» lässt sich das Diagramm einpassen,
+  vergrössern, verkleinern, verschieben (Maus oder Finger) und im Vollbild ansehen; zoomen auch mit Ctrl/⌘ + Mausrad
+  oder zwei Fingern.
 - **Alle Einstellungen auf einer Seite (#366):** Administration › Einstellungen zeigt neben den einstellbaren Werten
   auch die Umgebung (`.env`) zum Ansehen – mit Herkunft je Wert, Geheimnisse nur als «gesetzt». Neu einstellbar:
   Token für die Metriken (erzeugen, erneuern, entfernen), Adresse des Quellcodes und die Passwortpflicht für Dumps.
