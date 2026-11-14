@@ -175,6 +175,37 @@ production ist er gesperrt. Ersetzt werden alle Felder der Klassen personenbezog
 (docs/DATENKLASSEN.md); Schlüssel, Verweise und Mengen bleiben. Anmelden auf der Kopie nur mit neu gesetztem Passwort
 (`glossary:admin`).
 
+## Daten auf eine andere Instanz übernehmen (#353)
+
+Eine vollständige Sicherung (`glossary:dump`, #268) lässt sich mit `php artisan glossary:wiederherstellen <datei.zip>`
+einspielen – als Rückweg nach einem Fehler oder um die Daten auf eine neue Instanz zu bringen (z. B. von dev nach prod,
+Umzug Stufe 1). Quelle und Ziel dürfen verschiedene Datenbanken haben (SQLite → PostgreSQL); im Container mit
+`docker compose exec app php artisan …`.
+
+Der Befehl läuft nur in production und nur mit vollständigen Dumps (DB-Standard B12). Er prüft zuerst Prüfsummen,
+Passwort, Version (gleiche Migrationen) und Schlüssel; `--trocken` hört danach auf. Dann sichert er den aktuellen Stand
+(`storage/app/backups/vor-wiederherstellung-<Zeitpunkt>.zip`), schaltet den Wartungsmodus ein und ersetzt alle Daten in
+einer Transaktion – bricht ein Schritt ab, bleibt alles unverändert. Danach vergleicht er die Zeilen je Tabelle und
+schreibt «system.restore» ins Protokoll. Nicht übernommen werden Sitzungen, Cache, Warteschlange und Links zum
+Zurücksetzen des Passworts: Alle melden sich neu an, und Mails aus der Warteschlange der Quelle werden nicht verschickt.
+
+Stammt der Dump von einer Instanz mit anderem `APP_KEY`, fragt der Befehl nach dem Schlüssel der Quelle (oder
+`--schluessel-quelle=`) und verschlüsselt zweiten Faktor und Mailpasswort mit dem eigenen Schlüssel neu. Der Schlüssel
+der Quelle wird nicht gespeichert.
+
+Ablauf dev → prod:
+
+1. prod frisch installieren, gleiche Version wie dev (sonst zuerst angleichen), `/health` grün.
+2. dev anhalten (`php artisan down`), Dump schreiben: `php artisan glossary:dump --passwort`.
+3. Den ZIP-Dump über das VPN nach `prod-01` in `storage/app/backups/` kopieren.
+4. prod: `php artisan glossary:wiederherstellen storage/app/backups/<datei>.zip --trocken`, danach ohne `--trocken`
+   (Passwort, APP_KEY von dev, Bestätigung «WIEDERHERSTELLEN»).
+5. Prüfen: Zählung, `/health`, Anmeldung mit zweitem Faktor, Stichproben, API mit einem Token eines Servicekontos.
+6. DNS bzw. Weiterleitung auf prod; dev auf Testdaten zurücksetzen (P1); Dump-Dateien mit echten Daten löschen.
+
+Rückweg: Die Sicherung `vor-wiederherstellung-….zip` mit demselben Befehl einspielen. Danach die Löschfristen ansehen
+(`glossary:loeschfristen --trocken`, docs/LOESCHKONZEPT.md «Nach einer Wiederherstellung»).
+
 ## Anbindung an EduKSX-Ident und eduksx/core
 
 Das Glossary bleibt ohne Plattform voll nutzbar. Die Anbindung wird je Installation eingeschaltet; die

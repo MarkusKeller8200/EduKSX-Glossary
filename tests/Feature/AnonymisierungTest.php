@@ -61,7 +61,6 @@ final class AnonymisierungTest extends TestCase
 
     public function test_einspielen_nur_anonymisiert_und_mit_gleichen_zeilen(): void
     {
-        $this->onlySqlite();   // Einspielen nur auf SQLite (dev, test)
         $this->daten();
         $full = $this->dump(false);
         $anon = $this->dump(true);
@@ -77,7 +76,9 @@ final class AnonymisierungTest extends TestCase
         }
         $this->assertSame(0, DB::table('users')->where('email', 'lea.muster@schule.example')->count());
         $this->assertGreaterThan(0, DB::table('users')->where('email', 'like', 'person-%@example.invalid')->count());
-        $this->assertSame([], DB::select('pragma foreign_key_check'));
+        if (DB::getDriverName() === 'sqlite') {
+            $this->assertSame([], DB::select('pragma foreign_key_check'));
+        }
         @unlink($full);
         @unlink($anon);
     }

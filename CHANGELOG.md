@@ -25,6 +25,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Sicherheitsprotokoll). Bearbeitung eines Kontos einschränken (`glossary:einschraenken`). Zweck, Rechtsgrundlage und
   Löschfrist je Tabelle im Code; daraus das Verzeichnis der Bearbeitungen (`docs/DATENSCHUTZ-VERZEICHNIS.md`).
   Kopien für dev und test nur anonymisiert (`glossary:dump --anonymisiert`, `glossary:dump-einspielen`).
+- **Vollständige Sicherung wiederherstellen (#353):** `php artisan glossary:wiederherstellen <datei>` spielt einen Dump
+  aus `glossary:dump` ein – als Rückweg oder um die Daten auf eine neue Instanz zu bringen (z. B. von dev nach prod),
+  auf SQLite oder PostgreSQL. Vorher Prüfung von Prüfsummen, Version und Schlüssel (`--trocken` prüft nur), danach
+  Zählung je Tabelle; der bisherige Stand wird zuerst gesichert, ein Abbruch ändert nichts. Stammt der Dump von einer
+  Instanz mit anderem `APP_KEY`, werden zweiter Faktor und Mailpasswort mit dem Schlüssel der Quelle neu verschlüsselt.
+  Alle melden sich danach neu an. Nur in production; dev und test erhalten weiter nur anonymisierte Dumps.
 
 - **Steckbrief und Bereitschaft (#189, #325):** `/.well-known/eduksx-module.json` mit Modulschlüssel, Version,
   API-Version, Datenlizenz, Verweisen auf OpenAPI und Dokumentation sowie den Ereignissen, die das Glossary von Ident
