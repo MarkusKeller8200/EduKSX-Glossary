@@ -167,6 +167,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `result_revision` | intern |
 | `resolved_at` | intern |
 | `created_at` | intern |
+| `lock_version` | intern |
 | `updated_at` | intern |
 
 ## `publication_releases`
@@ -179,6 +180,18 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `checksum` | öffentlich |
 | `term_count` | öffentlich |
 | `published_by_id` | intern |
+| `created_at` | intern |
+
+## `api_idempotency_keys`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `service_account_id` | intern |
+| `idempotency_key` | intern |
+| `request_hash` | intern |
+| `response_status` | intern |
+| `response_body` | intern |
 | `created_at` | intern |
 
 ## `received_events`

@@ -63,6 +63,18 @@ jobs:
       - name: OpenAPI-Linter mit Regelsatz eduksx (#324, #337)
         run: npx --yes @stoplight/spectral-cli@6.17.1 lint openapi/glossary-v1.json --ruleset vendor/eduksx/core/resources/spectral/eduksx.yaml --fail-severity=warn
 
+      - name: OpenAPI ohne brechende Änderungen gegenüber dem letzten Release (#350)
+        run: |
+          base="$(git tag --list 'v*' --sort=-v:refname | grep -v -- '-' | head -n 1)"
+          if [ -z "$base" ] || ! git cat-file -e "$base:openapi/glossary-v1.json" 2> /dev/null; then
+            echo "Kein Release mit OpenAPI – Vergleich entfällt."; exit 0
+          fi
+          mkdir -p /tmp/oas && git show "$base:openapi/glossary-v1.json" > /tmp/oas/basis.json
+          cp openapi/glossary-v1.json openapi/oasdiff-ausnahmen.txt /tmp/oas/
+          echo "Vergleich mit $base"
+          docker run --rm -v /tmp/oas:/oas tufin/oasdiff@sha256:5c8c74b169cae3af1de9f2293baed9158cec0a8440b4de87782ed2f4131db623 \
+            breaking /oas/basis.json /oas/glossary-v1.json --fail-on ERR --err-ignore /oas/oasdiff-ausnahmen.txt
+
       - name: Script zur Einbindung aktuell (#155)
         run: node scripts/build-embed.mjs --check
 

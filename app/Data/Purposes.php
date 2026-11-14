@@ -83,7 +83,7 @@ final class Purposes
             'recipients' => 'Moderation; Organisations-Admins für Vorschläge ihrer Mitglieder',
             'retention' => '24 Monate nach Abschluss mit Personenbezug, dann ohne; bei Kontolöschung sofort ohne',
             'tables' => ['proposals', 'proposal_events'],
-            'operations' => ['createProposal', 'getProposal'],
+            'operations' => ['createProposal', 'getProposal', 'withdrawProposal'],
         ],
         'integrations' => [
             'purpose' => 'Schnittstellen für Integrationen (Servicekonten und Tokens), Ereignisse der Plattform',
@@ -91,8 +91,8 @@ final class Purposes
             'scope' => 'Organisation bzw. Plattform/intern',
             'subjects' => 'verantwortliche Person des Servicekontos',
             'recipients' => 'Integrationen mit gültigem Token (z. B. Intranet); EduKSX-Ident (Ereignisse)',
-            'retention' => 'Tokens bis Ablauf bzw. Widerruf; Ereignis-IDs 30 Tage',
-            'tables' => ['service_accounts', 'service_account_tokens', 'received_events'],
+            'retention' => 'Tokens bis Ablauf bzw. Widerruf; Ereignis-IDs 30 Tage; Idempotency-Keys 24 Stunden',
+            'tables' => ['service_accounts', 'service_account_tokens', 'received_events', 'api_idempotency_keys'],
             'operations' => ['getServiceWhoami'],
         ],
         'operations' => [

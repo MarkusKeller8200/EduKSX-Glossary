@@ -78,7 +78,11 @@
         ],
         "security": [],
         "x-eduksx-ability": "public",
-        "description": "Einstieg: Version, Datenstand, Endpunkte."
+        "description": "Einstieg: Version, Datenstand, Endpunkte.",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/terms": {
@@ -212,7 +216,11 @@
         },
         "security": [],
         "x-eduksx-ability": "public",
-        "description": "Veröffentlichte Begriffe suchen und blättern."
+        "description": "Veröffentlichte Begriffe suchen und blättern.",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/terms/{id_or_slug}": {
@@ -372,7 +380,11 @@
         },
         "security": [],
         "x-eduksx-ability": "public",
-        "description": "Ein veröffentlichter Begriff."
+        "description": "Ein veröffentlichter Begriff.",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/index": {
@@ -485,7 +497,11 @@
           }
         },
         "security": [],
-        "x-eduksx-ability": "public"
+        "x-eduksx-ability": "public",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/categories": {
@@ -561,7 +577,11 @@
         },
         "security": [],
         "x-eduksx-ability": "public",
-        "description": "Kategorien."
+        "description": "Kategorien.",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/sources": {
@@ -637,7 +657,11 @@
         },
         "security": [],
         "x-eduksx-ability": "public",
-        "description": "Herkunft (Quelleninstitutionen)."
+        "description": "Herkunft (Quelleninstitutionen).",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/releases/latest": {
@@ -691,7 +715,11 @@
           }
         },
         "security": [],
-        "x-eduksx-ability": "public"
+        "x-eduksx-ability": "public",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/changes": {
@@ -781,7 +809,11 @@
           }
         },
         "security": [],
-        "x-eduksx-ability": "public"
+        "x-eduksx-ability": "public",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/exports": {
@@ -861,7 +893,11 @@
         },
         "security": [],
         "x-eduksx-ability": "public",
-        "description": "Vollstand aller öffentlichen Begriffe."
+        "description": "Vollstand aller öffentlichen Begriffe.",
+        "x-eduksx-purpose": "directory",
+        "x-eduksx-data-classes": [
+          "public"
+        ]
       }
     },
     "/v1/service/whoami": {
@@ -924,7 +960,11 @@
             "$ref": "#/components/responses/Unauthorized"
           }
         },
-        "x-eduksx-ability": "service-account"
+        "x-eduksx-ability": "service-account",
+        "x-eduksx-purpose": "integrations",
+        "x-eduksx-data-classes": [
+          "internal"
+        ]
       }
     },
     "/v1/proposals": {
@@ -981,6 +1021,20 @@
                   "$ref": "#/components/schemas/Proposal"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Idempotency-Replayed": {
+                "description": "`true`, wenn die Antwort eine Wiederholung ist",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true"
+                  ]
+                }
+              }
             }
           },
           "401": {
@@ -996,7 +1050,17 @@
             "$ref": "#/components/responses/TooManyRequests"
           }
         },
-        "x-eduksx-ability": "glossary:proposals.create"
+        "x-eduksx-ability": "glossary:proposals.create",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "x-eduksx-purpose": "proposals",
+        "x-eduksx-data-classes": [
+          "public",
+          "internal"
+        ]
       }
     },
     "/v1/proposals/{id}": {
@@ -1033,6 +1097,11 @@
                   "$ref": "#/components/schemas/Proposal"
                 }
               }
+            },
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
             }
           },
           "401": {
@@ -1043,7 +1112,82 @@
           }
         },
         "x-eduksx-ability": "glossary:proposals.read",
-        "description": "Stand eines eigenen Vorschlags."
+        "description": "Stand eines eigenen Vorschlags.",
+        "x-eduksx-purpose": "proposals",
+        "x-eduksx-data-classes": [
+          "public",
+          "internal"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Servicekonten"
+        ],
+        "summary": "Eigenen Vorschlag zurückziehen",
+        "operationId": "withdrawProposal",
+        "security": [
+          {
+            "serviceToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "0193a1b2-7c4d-7e8f-9a0b-000000000101",
+            "description": "UUID des Vorschlags aus der Antwort von POST /v1/proposals"
+          },
+          {
+            "$ref": "#/components/parameters/IfMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Zurückgezogen (Status `withdrawn`)",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "412": {
+            "$ref": "#/components/responses/PreconditionFailed"
+          },
+          "428": {
+            "$ref": "#/components/responses/PreconditionRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        },
+        "x-eduksx-ability": "glossary:proposals.create",
+        "description": "Zieht einen offenen Vorschlag des eigenen Servicekontos zurück. Verlangt `If-Match` mit dem ETag aus GET bzw. POST.",
+        "x-eduksx-purpose": "proposals",
+        "x-eduksx-data-classes": [
+          "public",
+          "internal"
+        ]
       }
     },
     "/v1/org/terms": {
@@ -1126,7 +1270,12 @@
             "$ref": "#/components/responses/TooManyRequests"
           }
         },
-        "x-eduksx-ability": "glossary:terms.read"
+        "x-eduksx-ability": "glossary:terms.read",
+        "x-eduksx-purpose": "organizations",
+        "x-eduksx-data-classes": [
+          "public",
+          "internal"
+        ]
       }
     },
     "/v1/org/terms/{id_or_slug}": {
@@ -1192,7 +1341,12 @@
           }
         },
         "x-eduksx-ability": "glossary:terms.read",
-        "description": "Ein Begriff in der Darstellung der Organisation."
+        "description": "Ein Begriff in der Darstellung der Organisation.",
+        "x-eduksx-purpose": "organizations",
+        "x-eduksx-data-classes": [
+          "public",
+          "internal"
+        ]
       }
     }
   },
@@ -2350,6 +2504,51 @@
             }
           }
         }
+      },
+      "PreconditionFailed": {
+        "description": "Vorschlag inzwischen geändert (ETag veraltet)",
+        "headers": {
+          "ETag": {
+            "$ref": "#/components/headers/ETag"
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "PreconditionRequired": {
+        "description": "If-Match fehlt",
+        "headers": {
+          "ETag": {
+            "$ref": "#/components/headers/ETag"
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Vorschlag abgeschlossen",
+        "headers": {
+          "ETag": {
+            "$ref": "#/components/headers/ETag"
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -2445,6 +2644,38 @@
           "type": "string"
         },
         "example": "\"5f3c9a…\""
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[\\x21-\\x7E]+$"
+        },
+        "example": "intranet-2026-11-15-0001",
+        "description": "Wiederholung derselben Anfrage mit demselben Schlüssel liefert dieselbe Antwort, ohne einen zweiten Vorschlag anzulegen (24 Stunden, B3). Gleicher Schlüssel mit anderem Inhalt: 422 `idempotency_key_reused`."
+      },
+      "IfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "example": "\"0193a1b2-7c4d-7e8f-9a0b-000000000101.0\"",
+        "description": "ETag aus GET bzw. POST. Fehlt: 428; veraltet: 412 mit aktuellem ETag (B2)."
+      }
+    },
+    "headers": {
+      "ETag": {
+        "description": "Starker Objekt-ETag des Vorschlags (`\"<id>.<stand>\"`), für If-Match beim Zurückziehen (B2)",
+        "schema": {
+          "type": "string"
+        },
+        "example": "\"0193a1b2-7c4d-7e8f-9a0b-000000000101.0\""
       }
     }
   }

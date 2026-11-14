@@ -141,6 +141,7 @@ final class DataClasses
             'result_revision' => DataClass::Internal,
             'resolved_at' => DataClass::Internal,
             'created_at' => DataClass::Internal,
+            'lock_version' => DataClass::Internal,
             'updated_at' => DataClass::Internal,
         ],
         'publication_releases' => [
@@ -150,6 +151,15 @@ final class DataClasses
             'checksum' => DataClass::Public,
             'term_count' => DataClass::Public,
             'published_by_id' => DataClass::Internal,
+            'created_at' => DataClass::Internal,
+        ],
+        'api_idempotency_keys' => [
+            'id' => DataClass::Internal,
+            'service_account_id' => DataClass::Internal,
+            'idempotency_key' => DataClass::Internal,
+            'request_hash' => DataClass::Internal,
+            'response_status' => DataClass::Internal,
+            'response_body' => DataClass::Internal,
             'created_at' => DataClass::Internal,
         ],
         'received_events' => [

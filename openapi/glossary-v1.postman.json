@@ -474,6 +474,48 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Eigenen Vorschlag zurückziehen",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/proposals/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "proposals",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "0193a1b2-7c4d-7e8f-9a0b-000000000101",
+                  "description": "UUID des Vorschlags aus der Antwort von POST /v1/proposals"
+                }
+              ]
+            },
+            "description": "Zieht einen offenen Vorschlag des eigenen Servicekontos zurück. Verlangt `If-Match` mit dem ETag aus GET bzw. POST.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },

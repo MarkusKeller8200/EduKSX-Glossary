@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\CarbonImmutable;
+use EduKSX\Core\Eloquent\OptimisticLocking;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,11 +29,14 @@ use Illuminate\Support\Str;
  * @property int|null $result_revision
  * @property CarbonImmutable|null $resolved_at
  * @property CarbonImmutable|null $created_at
+ * @property int $lock_version Stand für den Objekt-ETag (API B2, #347)
  * @property-read Term|null $term
  * @property-read Collection<int, ProposalEvent> $events
  */
 class Proposal extends Model
 {
+    use OptimisticLocking;
+
     /** Öffentliche Kennung (UUID v7) beim Anlegen setzen (#322). */
     protected static function booted(): void
     {

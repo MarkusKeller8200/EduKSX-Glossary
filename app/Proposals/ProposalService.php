@@ -144,6 +144,19 @@ final class ProposalService
         });
     }
 
+    /** Zurückziehen durch das Servicekonto, das den Vorschlag eingereicht hat (API, #347). */
+    public function withdrawByService(Proposal $proposal, ServiceAccount $service): void
+    {
+        if ($proposal->service_account_id !== $service->id) {
+            throw new InvalidArgumentException('Nur das einreichende Servicekonto kann den Vorschlag zurückziehen.');
+        }
+        $this->requireOpen($proposal);
+        DB::transaction(function () use ($proposal, $service): void {
+            $proposal->forceFill(['status' => 'withdrawn', 'resolved_at' => now()])->save();
+            $this->event($proposal, 'withdrawn', null, true, null, ['service_account' => $service->id], 'Servicekonto «'.$service->name.'»');
+        });
+    }
+
     public function reject(Proposal $proposal, User $moderator, string $reason): void
     {
         $this->requireModeration($proposal);

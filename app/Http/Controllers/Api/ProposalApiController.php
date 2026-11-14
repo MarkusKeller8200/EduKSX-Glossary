@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Idempotency;
 use App\Models\Proposal;
 use App\Models\ServiceAccountToken;
 use App\Models\Term;
@@ -24,6 +25,13 @@ class ProposalApiController extends Controller
     public function store(Request $request): JsonResponse
     {
         $token = $this->token($request);
+
+        // Idempotency-Key (B3, #348): Wiederholung liefert dieselbe Antwort ohne zweiten Vorschlag
+        return Idempotency::handle($request, $token->account, fn (): JsonResponse => $this->create($request, $token));
+    }
+
+    private function create(Request $request, ServiceAccountToken $token): JsonResponse
+    {
         $data = $request->validate([
             'term' => ['nullable', 'string', 'max:200'],
             'changes' => ['required', 'array'],
@@ -43,11 +51,53 @@ class ProposalApiController extends Controller
             throw ProblemException::common(422, 'validation_failed', $e->getMessage(), [], ['changes' => [$e->getMessage()]]);
         }
 
-        return response()->json($this->present($proposal), 201)->header('Cache-Control', 'no-store');
+        return response()->json($this->present($proposal), 201)
+            ->header('Cache-Control', 'no-store')->header('ETag', self::etag($proposal));
     }
 
     /** GET /api/v1/proposals/{id} – nur über die UUID (#322); die frühere Zahl ergibt 404. */
     public function show(Request $request, string $id): JsonResponse
+    {
+        $proposal = $this->own($request, $id);
+
+        return response()->json($this->present($proposal))
+            ->header('Cache-Control', 'no-store')->header('ETag', self::etag($proposal));
+    }
+
+    /**
+     * DELETE /api/v1/proposals/{id} – offenen Vorschlag zurückziehen (#347). Verlangt If-Match mit dem ETag aus GET
+     * bzw. POST: fehlt er 428, ist er veraltet 412 mit dem aktuellen ETag (API-Standard B2).
+     */
+    public function destroy(Request $request, string $id): JsonResponse
+    {
+        $token = $this->token($request);
+        $proposal = $this->own($request, $id);
+        $current = self::etag($proposal);
+        $header = trim((string) $request->headers->get('If-Match', ''));
+        if ($header === '') {
+            throw ProblemException::common(428, 'precondition_required', 'If-Match mit dem ETag des Vorschlags fehlt.', ['ETag' => $current]);
+        }
+        $given = array_map('trim', explode(',', $header));
+        if (! in_array('*', $given, true) && ! in_array($current, $given, true)) {
+            throw ProblemException::common(412, 'precondition_failed', 'Der Vorschlag wurde inzwischen geändert.', ['ETag' => $current]);
+        }
+        if (! $proposal->isOpen()) {
+            throw ProblemException::common(409, 'conflict', 'Der Vorschlag ist abgeschlossen und lässt sich nicht mehr zurückziehen.', ['ETag' => $current]);
+        }
+        $this->proposals->withdrawByService($proposal, $token->account);
+        $proposal->refresh();
+
+        return response()->json($this->present($proposal))
+            ->header('Cache-Control', 'no-store')->header('ETag', self::etag($proposal));
+    }
+
+    /** Starker Objekt-ETag: öffentliche Kennung und Stand (B2) */
+    public static function etag(Proposal $proposal): string
+    {
+        return '"'.$proposal->uuid.'.'.(int) $proposal->lock_version.'"';
+    }
+
+    private function own(Request $request, string $id): Proposal
     {
         $token = $this->token($request);
         $proposal = Str::isUuid($id)
@@ -57,7 +107,7 @@ class ProposalApiController extends Controller
             throw ProblemException::common(404, 'not_found', 'Vorschlag nicht gefunden.');
         }
 
-        return response()->json($this->present($proposal))->header('Cache-Control', 'no-store');
+        return $proposal;
     }
 
     /** @return array<string, mixed> */

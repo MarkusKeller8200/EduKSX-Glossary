@@ -1,0 +1,4 @@
+# Ausnahmeregister für brechende Änderungen in /api/v1 (#350, API-Standard D1/D3).
+# Eine Zeile je bewusst erlaubtem Bruch, Format von «oasdiff breaking --err-ignore»:
+#   GET /v1/terms api-path-removed-without-deprecation
+# Jede Ausnahme braucht einen Eintrag im Ausnahmeregister von docs/KONZEPT-API.md und gilt nur bis zum nächsten Release.
