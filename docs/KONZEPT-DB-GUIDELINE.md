@@ -191,4 +191,4 @@ Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über d
   Datenklassen, Löschregister, zusammengesetztem Fremdschlüssel für `published_revision_id`, Archivfrist (#272).
 - 12.11.2026: offene Punkte W1–W8 entschieden (DEC-033, #274).
 - 13.11.2026: Version 1.2 abgenommen (DEC-037) – Anwendung von DB-Standard 1.2 (Modularität, Datenschutz) (#310).
-- 14.11.2026: Nachgeführt auf DB-Standard 1.2.1 (redaktionell: Modulregister, `DB-E<n>`), Entwurf mit DEC-038 (#318).
+- 14.11.2026: Nachgeführt auf DB-Standard 1.2.1 (redaktionell: Modulregister, `DB-E<n>`), abgenommen mit DEC-038 (#318).

@@ -2,7 +2,7 @@
 
 **Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8) und dem Sync-Vertrag. Entscheide DEC-004 und DEC-005.
 Arbeitet nach **API-Standard 1.1.1** der EduKSX-Plattform (Repo EduKSX-Architektur, `docs/KONZEPT-API-GUIDELINE.md`);
-Anwendung im Glossary im Abschnitt [Anwendung des API-Standards](#anwendung-des-api-standards-111-dec-038-entwurf).
+Anwendung im Glossary im Abschnitt [Anwendung des API-Standards](#anwendung-des-api-standards-111-dec-038).
 Bei Widerspruch gilt: Entscheid im Register > dieses Konzept > Plattform-Standard.
 
 ## Grundsatz (beschlossen)
@@ -214,7 +214,7 @@ einer Organisation (Scope `read-org`). Je Begriff `term` (gemeinsame Werte wie `
   OpenAPI-Beschreibung (`scripts/postman.py`, Prüfung in der CI). Nach jeder Änderung an `openapi/glossary-v1.json`:
   `python3 scripts/postman.py`.
 
-## Anwendung des API-Standards 1.1.1 (DEC-038, Entwurf)
+## Anwendung des API-Standards 1.1.1 (DEC-038)
 
 Der Standard gilt in **Stufen** (G1): Stufe 1 «Kern» ab sofort, Stufe 2 «Betrieb» vor dem ersten produktiven Release
 (1.0), Stufe 3 nur für Funktionen, die das Glossary anbietet. Gemeinsame Bausteine kommen aus `eduksx/core` (G3);
