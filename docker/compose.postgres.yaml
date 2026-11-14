@@ -1,0 +1,74 @@
+# Zusatz zu compose.yaml: PostgreSQL im Stack (#357, docs/KONZEPT-DEPLOYMENT.md «PostgreSQL im Stack»).
+#   COMPOSE_FILE=compose.yaml:compose.postgres.yaml[:compose.proxy.yaml …]   (in .env; install.sh richtet es ein)
+#
+# PostgreSQL ist nur im internen Netz des Stacks erreichbar (kein Port nach aussen). Passwörter als Dateien:
+#   ./secrets/db_password        Zugang der App «glossary» (nur Schema «glossary», DB-Standard B5)
+#   ./secrets/db_admin_password  Verwaltung «glossary_admin» (nur für Wartung)
+# Eine bestehende SQLite-Datenbank übernimmt der Dienst «app» beim ersten Start automatisch (glossary:postgres-uebernahme).
+# Sicherung: Dump vor jedem Update (storage/app/backups/vor-update-*.zip) und täglich (taeglich.zip, glossary:sicherung).
+# Version: GLOSSARY_POSTGRES_IMAGE (Vorgabe postgres:18). Eine neue Hauptversion braucht Dump und Wiederherstellung.
+
+x-db: &db
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: '5432'
+    DB_DATABASE: glossary
+    DB_USERNAME: glossary
+    DB_PASSWORD_FILE: /run/secrets/db_password
+    DB_SSLMODE: disable
+
+services:
+    postgres:
+        image: ${GLOSSARY_POSTGRES_IMAGE:-postgres:18}
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: glossary
+            POSTGRES_USER: glossary_admin
+            POSTGRES_PASSWORD_FILE: /run/secrets/db_admin_password
+            TZ: ${TZ:-Europe/Zurich}
+        secrets:
+            - db_password
+            - db_admin_password
+        volumes:
+            - glossary-postgres:/var/lib/postgresql
+            - ./postgres/init.sh:/docker-entrypoint-initdb.d/10-glossary.sh:ro
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U glossary_admin -d glossary']
+            interval: 5s
+            timeout: 5s
+            retries: 24
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+                max-file: '3'
+
+    app:
+        depends_on:
+            postgres:
+                condition: service_healthy
+        environment:
+            <<: *db
+        secrets:
+            - db_password
+
+    worker:
+        environment:
+            <<: *db
+        secrets:
+            - db_password
+
+    scheduler:
+        environment:
+            <<: *db
+        secrets:
+            - db_password
+
+secrets:
+    db_password:
+        file: ./secrets/db_password
+    db_admin_password:
+        file: ./secrets/db_admin_password
+
+volumes:
+    glossary-postgres:

@@ -2,12 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Support\DatabaseDump;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use PDO;
 use Throwable;
 
 /**
- * Tägliche, konsistente Kopie der Datenbank (#197) nach storage/app/backups/taeglich.sqlite. Der Dienst «backup»
+ * Tägliche, konsistente Kopie der Datenbank (#197) nach storage/app/backups/taeglich.sqlite, auf PostgreSQL als Dump
+ * nach taeglich.zip (#357). Der Dienst «backup»
  * (docker/compose.backup.yaml) sichert sie verschlüsselt ausser Haus; hier wird nur die lokale Kopie erzeugt.
  */
 class DailyBackup extends Command
@@ -18,14 +21,17 @@ class DailyBackup extends Command
 
     public function handle(): int
     {
-        if (config('database.default') !== 'sqlite') {
-            $this->line('Nur für SQLite; andere Datenbanken sichert der Betrieb mit einem Dump.');
-
-            return self::SUCCESS;
-        }
         $dir = storage_path('app/backups');
         if (! is_dir($dir)) {
             mkdir($dir, 0775, true);
+        }
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            return $this->dump($dir);
+        }
+        if (config('database.default') !== 'sqlite') {
+            $this->line('Nur für SQLite und PostgreSQL.');
+
+            return self::SUCCESS;
         }
         $source = (string) config('database.connections.sqlite.database');
         if ($source === '' || $source === ':memory:' || ! is_file($source)) {
@@ -49,6 +55,29 @@ class DailyBackup extends Command
             return self::FAILURE;
         }
         $this->info('Kopie erstellt: storage/app/backups/taeglich.sqlite');
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * PostgreSQL (#357): Dump im Format von glossary:dump nach taeglich.zip (mit GLOSSARY_DUMP_PASSWORD verschlüsselt);
+     * einspielen mit glossary:wiederherstellen.
+     */
+    private function dump(string $dir): int
+    {
+        $target = $dir.'/taeglich.zip';
+        $tmp = $dir.'/taeglich.zip.tmp';
+        @unlink($tmp);
+        try {
+            $manifest = DatabaseDump::create($tmp, (string) config('glossary.dump_password', ''));
+            rename($tmp, $target);
+        } catch (Throwable $e) {
+            @unlink($tmp);
+            $this->error('Sicherung fehlgeschlagen: '.$e->getMessage());
+
+            return self::FAILURE;
+        }
+        $this->info('Dump erstellt: storage/app/backups/taeglich.zip ('.array_sum($manifest['tables']).' Zeilen'.($manifest['encrypted'] ? ', verschlüsselt' : '').')');
 
         return self::SUCCESS;
     }

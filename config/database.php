@@ -35,8 +35,11 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
-            // Eine Datei im Docker-Volumen (storage), siehe docs/KONZEPT-DATENMODELL.md
-            'database' => env('DB_DATABASE', storage_path('app/database/glossary.sqlite')),
+            // Eine Datei im Docker-Volumen (storage), siehe docs/KONZEPT-DATENMODELL.md. Läuft die App auf PostgreSQL,
+            // ist DB_DATABASE der Name dort; die SQLite-Datei (Übernahme #357) steht dann in DB_SQLITE_DATABASE.
+            'database' => env('DB_CONNECTION', 'sqlite') === 'sqlite'
+                ? env('DB_DATABASE', storage_path('app/database/glossary.sqlite'))
+                : env('DB_SQLITE_DATABASE', storage_path('app/database/glossary.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
             'busy_timeout' => env('DB_BUSY_TIMEOUT', 5000),

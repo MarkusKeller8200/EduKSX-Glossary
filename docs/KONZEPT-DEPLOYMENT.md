@@ -153,7 +153,20 @@ Auf PostgreSQL liegen alle Tabellen des Glossary im Schema **`glossary`** (DB-St
 `glossary`). Fehlt das Schema, legt die Anwendung es beim ersten Verbindungsaufbau an; ein Zugang mit Rechten nur auf
 dieses Schema (B5) braucht es vorher angelegt (`create schema glossary authorization <zugang>`).
 
-Umzug einer bestehenden SQLite-Datenbank (ohne Datenverlust, Zählung je Tabelle):
+**PostgreSQL im Stack (#357, Entscheid 14.11.2026):** Zusatz `docker/compose.postgres.yaml` mit eigenem Dienst
+`postgres` (aktuellste stabile Hauptversion, heute `postgres:18`), nur im internen Netz, Volumen
+`glossary-postgres`. Beim ersten Start legt `docker/postgres/init.sh` den Zugang `glossary` mit Rechten nur auf das
+Schema `glossary` an (B5); die Verwaltung hat einen eigenen Zugang. Passwörter als Dateien in `secrets/`. Gesichert
+wird durch den Container: Dump vor jedem Update (`vor-update-*.zip`) und täglich (`taeglich.zip`), ausser Haus mit
+`compose.backup.yaml` wie bei SQLite. Auch auf `prod-01` liegt PostgreSQL im Stack des Glossary (nicht in
+MarKusSX-Operation); der Stack dort braucht dafür `compose.postgres.yaml`, `postgres/init.sh` und `secrets/`.
+
+**Automatische Übernahme:** Läuft die App auf PostgreSQL, ist PostgreSQL noch ohne Konten und liegt die SQLite-Datei
+im Volumen, übernimmt der Dienst `app` sie beim Start einmalig (`glossary:postgres-uebernahme`: Kopie der Datei,
+SQLite nachmigrieren, `glossary:umzug-postgres --leeren`, Vermerk). Schlägt die Übernahme fehl, startet der Container
+nicht. `install.sh` bietet die Umstellung bei einem zweiten Lauf an.
+
+Umzug einer bestehenden SQLite-Datenbank von Hand (ohne Datenverlust, Zählung je Tabelle):
 
 1. Sicherung (`php artisan glossary:sicherung`) und Anwendung anhalten.
 2. Verbindung `pgsql` in der `.env` eintragen (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`),

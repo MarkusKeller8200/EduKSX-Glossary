@@ -34,11 +34,12 @@ RUN composer dump-autoload --no-dev --optimize --classmap-authoritative \
 # ---------- Laufzeit ----------
 FROM php:8.4-apache AS app
 
-# zip: Excel-Dateien (.xlsx) für Import/Export; sqlite3: Sicherung der Datenbank (.backup)
+# zip: Excel-Dateien (.xlsx) für Import/Export; sqlite3: Sicherung der Datenbank (.backup); libpq/pdo_pgsql:
+# PostgreSQL (#191, #357)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libzip-dev sqlite3 \
+    && apt-get install -y --no-install-recommends libzip-dev libpq-dev sqlite3 \
     && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install opcache zip \
+    && docker-php-ext-install opcache zip pdo_pgsql \
     && a2enmod rewrite headers \
     && sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
     && printf '%s\n' \
