@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.14.0] – 2026-11-14
+
 ### Neu
 
 - **API nach Plattform-Standard (#320, #321, #322, #323, #324, #326, #327, #337):** Fehler mit `type`, `code`,
