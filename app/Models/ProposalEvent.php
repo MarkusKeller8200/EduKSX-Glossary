@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id
  * @property string $event_id UUID v7 für die Zusammenführung über Module (#332)
- * @property int $proposal_id
+ * @property string $proposal_id UUID des Vorschlags (#344)
  * @property string $event_type
  * @property string|null $actor_id
  * @property string|null $actor_label

@@ -49,7 +49,7 @@ final class ApiStufe2Test extends TestCase
             ->assertOk()->assertJsonPath('status', 'withdrawn');
         $neu = (string) $response->headers->get('ETag');
         $this->assertSame('"'.$id.'.1"', $neu);
-        $this->assertSame('withdrawn', Proposal::query()->where('uuid', $id)->value('status'));
+        $this->assertSame('withdrawn', Proposal::query()->where('id', $id)->value('status'));
 
         // abgeschlossen: 409, auch mit passendem ETag
         $this->deleteJson("/api/v1/proposals/{$id}", [], $headers + ['If-Match' => $neu])->assertStatus(409);

@@ -103,7 +103,7 @@ class ProposalTest extends TestCase
         $this->assertSame('Führt die Schule', $term->short_description);
         $this->assertSame(2, $term->revision);
         $this->assertSame(1, $term->publishedRevision?->revision);   // Entwurf, nicht veröffentlicht
-        $this->assertSame(['via' => 'vorschlag', 'proposal_id' => $proposal->id, 'proposed_by' => 'Anna'], $term->revisions()->where('revision', 2)->firstOrFail()->context);
+        $this->assertSame(['via' => 'vorschlag', 'proposal_id' => $proposal->id, 'proposal_number' => $proposal->number, 'proposed_by' => 'Anna'], $term->revisions()->where('revision', 2)->firstOrFail()->context);
         $this->assertSame('accepted', $proposal->refresh()->status);
         $this->assertSame(2, $proposal->result_revision);
         $this->assertStringNotContainsString('Führt die Schule', (string) $this->getJson("/api/v1/terms/{$term->id}")->getContent());
@@ -199,11 +199,11 @@ class ProposalTest extends TestCase
         $id = (string) $response->json('id');
         $this->assertTrue(Str::isUuid($id), 'Vorschlag über UUID (#322)');
 
-        $proposal = Proposal::query()->where('uuid', $id)->firstOrFail();
+        $proposal = Proposal::query()->where('id', $id)->firstOrFail();
         $this->assertSame($account->id, $proposal->service_account_id);
         $this->assertSame('Servicekonto «Intranet»', $proposal->author_label);
         $this->getJson("/api/v1/proposals/{$id}", ['Authorization' => "Bearer {$plain}"])->assertOk()->assertJsonPath('id', $id);
-        $this->getJson("/api/v1/proposals/{$proposal->id}", ['Authorization' => "Bearer {$plain}"])->assertNotFound()
+        $this->getJson("/api/v1/proposals/{$proposal->number}", ['Authorization' => "Bearer {$plain}"])->assertNotFound()
             ->assertHeader('Content-Type', 'application/problem+json');
         $this->assertSame('Leitet die Schule', $term->refresh()->short_description);   // nicht direkt geändert
         $this->assertStringNotContainsString('Aus dem Intranet', (string) $this->getJson("/api/v1/terms/{$term->id}")->getContent());

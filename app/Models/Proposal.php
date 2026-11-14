@@ -13,8 +13,8 @@ use Illuminate\Support\Str;
 /**
  * Vorschlag (#113): neuer Begriff oder Korrektur. Nie öffentlich; ändern nur über App\Proposals\ProposalService.
  *
- * @property int $id
- * @property string $uuid öffentliche Kennung in der API (UUID v7, #322)
+ * @property string $id UUID v7 (#322, #344)
+ * @property int $number Anzeige «Vorschlag Nr. …», fortlaufend (#344)
  * @property string $proposal_type new | change
  * @property string|null $term_id
  * @property int|null $base_revision
@@ -37,11 +37,17 @@ class Proposal extends Model
 {
     use OptimisticLocking;
 
-    /** Öffentliche Kennung (UUID v7) beim Anlegen setzen (#322). */
+    /** Primärschlüssel UUID v7 (DB-Standard A3, #344). */
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    /** UUID und fortlaufende Anzeige-Nummer beim Anlegen setzen (#344). */
     protected static function booted(): void
     {
         static::creating(function (self $proposal): void {
-            $proposal->uuid ??= (string) Str::uuid7();
+            $proposal->id ??= (string) Str::uuid7();
+            $proposal->number ??= (int) static::query()->max('number') + 1;
         });
     }
 

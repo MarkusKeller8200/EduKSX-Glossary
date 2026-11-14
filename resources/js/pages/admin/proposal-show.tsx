@@ -11,7 +11,8 @@ import { EREIGNIS, proposalStatusClass, wertText } from '@/lib/proposals';
 import { cn } from '@/lib/utils';
 
 type Vorschlag = {
-    id: number;
+    id: string;
+    nummer: number;
     art: 'new' | 'change';
     begriff: { id: string; titel: string; revision: number } | null;
     basis: number | null;
@@ -64,7 +65,7 @@ export default function ProposalShow({
 
     return (
         <>
-            <Head title={`Vorschlag Nr. ${v.id}`} />
+            <Head title={`Vorschlag Nr. ${v.nummer}`} />
             <p className="text-sm">
                 <Link
                     href="/admin/vorschlaege"
@@ -74,7 +75,7 @@ export default function ProposalShow({
                 </Link>
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-                Vorschlag Nr. {v.id}{' '}
+                Vorschlag Nr. {v.nummer}{' '}
                 <Badge
                     variant="outline"
                     className={proposalStatusClass(v.status)}
@@ -332,7 +333,7 @@ function Vergleich({
     );
 }
 
-function Rueckfrage({ id }: { id: number }) {
+function Rueckfrage({ id }: { id: string }) {
     const form = useForm({ frage: '' });
     const errors = form.errors as Record<string, string | undefined>;
     const submit = (e: FormEvent) => {
@@ -371,7 +372,7 @@ function Rueckfrage({ id }: { id: number }) {
     );
 }
 
-function Ablehnen({ id }: { id: number }) {
+function Ablehnen({ id }: { id: string }) {
     const form = useForm({ begruendung: '' });
     const errors = form.errors as Record<string, string | undefined>;
     const submit = (e: FormEvent) => {

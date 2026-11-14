@@ -60,9 +60,9 @@ Route::middleware(['auth', 'can:propose'])->prefix('vorschlaege')->group(functio
     Route::get('/', [ProposalController::class, 'index'])->name('proposals');
     Route::get('neu', [ProposalController::class, 'create'])->name('proposals.create');
     Route::post('/', [ProposalController::class, 'store'])->middleware('throttle:10,1')->name('proposals.store');
-    Route::get('{proposal}', [ProposalController::class, 'show'])->whereNumber('proposal')->name('proposals.show');
-    Route::post('{proposal}/antwort', [ProposalController::class, 'answer'])->whereNumber('proposal')->middleware('throttle:20,1')->name('proposals.answer');
-    Route::post('{proposal}/zurueckziehen', [ProposalController::class, 'withdraw'])->whereNumber('proposal')->name('proposals.withdraw');
+    Route::get('{proposal}', [ProposalController::class, 'show'])->whereUuid('proposal')->name('proposals.show');
+    Route::post('{proposal}/antwort', [ProposalController::class, 'answer'])->whereUuid('proposal')->middleware('throttle:20,1')->name('proposals.answer');
+    Route::post('{proposal}/zurueckziehen', [ProposalController::class, 'withdraw'])->whereUuid('proposal')->name('proposals.withdraw');
 });
 
 // Export veröffentlichter Daten (#111): ab Benutzer, ausserhalb der Administration
@@ -91,10 +91,10 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
     Route::post('mitglieder/{member}/entsperren', [OrganizationController::class, 'unblock'])->whereNumber('member')->name('organization.member.unblock');
     Route::put('mitglieder/{member}/rolle', [OrganizationController::class, 'role'])->whereNumber('member')->name('organization.member.role');
     Route::delete('mitglieder/{member}', [OrganizationController::class, 'remove'])->whereNumber('member')->name('organization.member.destroy');
-    Route::post('vorschlaege/{proposal}/bestaetigen', [OrganizationController::class, 'confirmProposal'])->whereNumber('proposal')->name('organization.proposal.confirm');
+    Route::post('vorschlaege/{proposal}/bestaetigen', [OrganizationController::class, 'confirmProposal'])->whereUuid('proposal')->name('organization.proposal.confirm');
     Route::post('darstellungen/{override}/freigeben', [OrganizationController::class, 'approvePersonal'])->whereUuid('override')->name('organization.personal.approve');
     Route::post('darstellungen/{override}/ablehnen', [OrganizationController::class, 'rejectPersonal'])->whereUuid('override')->name('organization.personal.reject');
-    Route::post('vorschlaege/{proposal}/ablehnen', [OrganizationController::class, 'rejectProposal'])->whereNumber('proposal')->name('organization.proposal.reject');
+    Route::post('vorschlaege/{proposal}/ablehnen', [OrganizationController::class, 'rejectProposal'])->whereUuid('proposal')->name('organization.proposal.reject');
 });
 Route::middleware(['auth', 'throttle:30,1'])->group(function () {
     Route::put('begriffe/{slug}/organisation-darstellung', [OrganizationDisplayController::class, 'update'])->where('slug', '[a-z0-9-]+')->name('term.organization');
@@ -216,10 +216,10 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     // Moderation der Vorschläge (#113)
     Route::middleware('can:moderate')->group(function () {
         Route::get('vorschlaege', [AdminProposalController::class, 'index'])->name('admin.proposals');
-        Route::get('vorschlaege/{proposal}', [AdminProposalController::class, 'show'])->whereNumber('proposal')->name('admin.proposals.show');
-        Route::post('vorschlaege/{proposal}/annehmen', [AdminProposalController::class, 'accept'])->whereNumber('proposal')->name('admin.proposals.accept');
-        Route::post('vorschlaege/{proposal}/ablehnen', [AdminProposalController::class, 'reject'])->whereNumber('proposal')->name('admin.proposals.reject');
-        Route::post('vorschlaege/{proposal}/rueckfrage', [AdminProposalController::class, 'ask'])->whereNumber('proposal')->name('admin.proposals.ask');
+        Route::get('vorschlaege/{proposal}', [AdminProposalController::class, 'show'])->whereUuid('proposal')->name('admin.proposals.show');
+        Route::post('vorschlaege/{proposal}/annehmen', [AdminProposalController::class, 'accept'])->whereUuid('proposal')->name('admin.proposals.accept');
+        Route::post('vorschlaege/{proposal}/ablehnen', [AdminProposalController::class, 'reject'])->whereUuid('proposal')->name('admin.proposals.reject');
+        Route::post('vorschlaege/{proposal}/rueckfrage', [AdminProposalController::class, 'ask'])->whereUuid('proposal')->name('admin.proposals.ask');
     });
 
     // Servicekonten mit Token (#47): ab Organisations-Admin

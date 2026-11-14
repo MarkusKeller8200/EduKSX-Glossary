@@ -452,7 +452,7 @@ final class OrganizationService
     private function forwardProposals(string $organizationId, ?string $userId, string $reason): void
     {
         $ids = Proposal::query()->where('organization_id', $organizationId)->where('status', Proposal::ORG_REVIEW)
-            ->when($userId !== null, fn ($q) => $q->where('author_id', $userId))->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
+            ->when($userId !== null, fn ($q) => $q->where('author_id', $userId))->pluck('id')->map(fn ($id): string => (string) $id)->values()->all();
         ProposalService::forwardFromOrganization($ids, $reason);
     }
 

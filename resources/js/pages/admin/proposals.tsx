@@ -7,7 +7,8 @@ import IconAction from '@/components/icon-action';
 import { Eye } from 'lucide-react';
 
 type Vorschlag = {
-    id: number;
+    id: string;
+    nummer: number;
     art: string;
     titel: string;
     felder: string[];
@@ -67,13 +68,13 @@ export default function Proposals({
                                 width: 70,
                                 sticky: 'left',
                                 className: 'tabular-nums',
-                                sortValue: (v) => v.id,
+                                sortValue: (v) => v.nummer,
                                 cell: (v) => (
                                     <Link
                                         href={`/admin/vorschlaege/${v.id}`}
                                         className="font-medium text-link underline-offset-4 hover:underline"
                                     >
-                                        {v.id}
+                                        {v.nummer}
                                     </Link>
                                 ),
                             },
@@ -147,7 +148,7 @@ export default function Proposals({
                                 cell: (v) => (
                                     <IconAction
                                         icon={Eye}
-                                        label={`Vorschlag Nr. ${v.id} prüfen`}
+                                        label={`Vorschlag Nr. ${v.nummer} prüfen`}
                                         href={`/admin/vorschlaege/${v.id}`}
                                     />
                                 ),

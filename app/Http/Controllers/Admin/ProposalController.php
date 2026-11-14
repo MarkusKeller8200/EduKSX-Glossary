@@ -32,6 +32,7 @@ class ProposalController extends Controller
             ->latest('id')->limit(500)->get()
             ->map(fn (Proposal $p): array => [
                 'id' => $p->id,
+                'nummer' => $p->number,
                 'art' => $p->proposal_type === 'new' ? 'Neuer Begriff' : 'Korrektur',
                 'titel' => $p->proposal_type === 'new'
                     ? Term::titleFrom($p->changes)
@@ -54,6 +55,7 @@ class ProposalController extends Controller
         return Inertia::render('admin/proposal-show', [
             'vorschlag' => [
                 'id' => $proposal->id,
+                'nummer' => $proposal->number,
                 'art' => $proposal->proposal_type,
                 'begriff' => $proposal->term === null ? null : ['id' => $proposal->term->id, 'titel' => $proposal->term->title(), 'revision' => $proposal->term->revision],
                 'basis' => $proposal->base_revision,
@@ -91,7 +93,7 @@ class ProposalController extends Controller
             throw ValidationException::withMessages(['felder' => $e->getMessage()]);
         }
 
-        return redirect("/admin/begriffe/{$term->id}")->with('status', "Vorschlag Nr. {$proposal->id} angenommen – Revision {$term->revision} ist ein Entwurf; veröffentlichen nach Prüfung.");
+        return redirect("/admin/begriffe/{$term->id}")->with('status', "Vorschlag Nr. {$proposal->number} angenommen – Revision {$term->revision} ist ein Entwurf; veröffentlichen nach Prüfung.");
     }
 
     public function reject(Request $request, Proposal $proposal): RedirectResponse
@@ -99,7 +101,7 @@ class ProposalController extends Controller
         $data = $request->validate(['begruendung' => ['required', 'string', 'max:2000']]);
         $this->guard(fn () => $this->proposals->reject($proposal, $this->currentUser($request), (string) $data['begruendung']), 'begruendung');
 
-        return redirect('/admin/vorschlaege')->with('status', "Vorschlag Nr. {$proposal->id} abgelehnt.");
+        return redirect('/admin/vorschlaege')->with('status', "Vorschlag Nr. {$proposal->number} abgelehnt.");
     }
 
     public function ask(Request $request, Proposal $proposal): RedirectResponse

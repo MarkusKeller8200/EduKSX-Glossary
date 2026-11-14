@@ -106,6 +106,7 @@ class OrganizationController extends Controller
             $props['vorschlaege'] = Proposal::query()->where('organization_id', $organization->id)->where('status', Proposal::ORG_REVIEW)
                 ->with('term')->orderBy('id')->get()->map(fn (Proposal $p): array => [
                     'id' => $p->id,
+                    'nummer' => $p->number,
                     'art' => $p->proposal_type === 'new' ? 'Neuer Begriff' : 'Korrektur',
                     'titel' => $p->proposal_type === 'new' ? Term::titleFrom($p->changes) : ($p->term?->title() ?? '(Begriff gelöscht)'),
                     'slug' => $p->term?->slug,
@@ -233,7 +234,7 @@ class OrganizationController extends Controller
     public function confirmProposal(Request $request, Proposal $proposal): RedirectResponse
     {
         return $this->run(fn () => $this->organizations->decideProposal($this->currentUser($request), $proposal, true),
-            "Vorschlag Nr. {$proposal->id} bestätigt – er geht jetzt in die Moderation.");
+            "Vorschlag Nr. {$proposal->number} bestätigt – er geht jetzt in die Moderation.");
     }
 
     public function rejectProposal(Request $request, Proposal $proposal): RedirectResponse
@@ -241,7 +242,7 @@ class OrganizationController extends Controller
         $data = $request->validate(['grund' => ['required', 'string', 'max:2000']]);
 
         return $this->run(fn () => $this->organizations->decideProposal($this->currentUser($request), $proposal, false, (string) $data['grund']),
-            "Vorschlag Nr. {$proposal->id} abgelehnt.");
+            "Vorschlag Nr. {$proposal->number} abgelehnt.");
     }
 
     public function approvePersonal(Request $request, TermUserOverride $override): RedirectResponse
