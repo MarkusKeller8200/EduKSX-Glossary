@@ -1,5 +1,13 @@
 import { usePage } from '@inertiajs/react';
-import { Download, Maximize, Minimize, Minus, Plus, Scan } from 'lucide-react';
+import {
+    Download,
+    FileText,
+    Maximize,
+    Minimize,
+    Minus,
+    Plus,
+    Scan,
+} from 'lucide-react';
 import {
     type PointerEvent as ReactPointerEvent,
     useCallback,
@@ -24,7 +32,8 @@ const begrenzt = (scale: number) => Math.min(MAX, Math.max(MIN, scale));
  *
  * Bedienung (#371): Einpassen und zentrieren, vergrössern, verkleinern, verschieben mit Maus bzw. Finger, Zoom mit
  * Ctrl/⌘ + Mausrad bzw. Zwei-Finger-Geste (im Vollbild auch mit dem Mausrad allein), Vollbild (Esc beendet es).
- * Herunterladen als SVG (#376): in Originalgrösse und immer hell, unabhängig von Zoom und Farbschema.
+ * Herunterladen als SVG (#376): in Originalgrösse und immer hell, unabhängig von Zoom und Farbschema. PDF (#378):
+ * Druckansicht mit dem ganzen Diagramm auf einer Seite passender Grösse (Vektor), dort «Als PDF speichern».
  */
 export default function ErDiagram({ code }: { code: string }) {
     const rahmen = useRef<HTMLDivElement>(null);
@@ -46,23 +55,28 @@ export default function ErDiagram({ code }: { code: string }) {
     const [vollbild, setVollbild] = useState(false);
     const version = usePage<SharedData>().props.appVersion?.version ?? '';
 
-    const herunterladen = async () => {
+    /** Diagramm hell rendern (für SVG und PDF), danach wieder das aktuelle Farbschema für die Anzeige. */
+    const hellesSvg = async (): Promise<string> => {
         const { default: mermaid } = await import('mermaid');
         const dunkel = document.documentElement.classList.contains('dark');
-        mermaid.initialize({
-            startOnLoad: false,
-            securityLevel: 'strict',
-            theme: 'neutral',
-            er: { useMaxWidth: false },
-        });
-        const { svg } = await mermaid.render('datenmodell-er-svg', code);
-        // für die Anzeige wieder das aktuelle Farbschema
-        mermaid.initialize({
-            startOnLoad: false,
-            securityLevel: 'strict',
-            theme: dunkel ? 'dark' : 'neutral',
-            er: { useMaxWidth: false },
-        });
+        const einstellen = (theme: 'dark' | 'neutral') =>
+            mermaid.initialize({
+                startOnLoad: false,
+                securityLevel: 'strict',
+                theme,
+                er: { useMaxWidth: false },
+            });
+        einstellen('neutral');
+        try {
+            return (await mermaid.render('datenmodell-er-export', code)).svg;
+        } finally {
+            einstellen(dunkel ? 'dark' : 'neutral');
+        }
+    };
+    const dateiname = `glossary-datenmodell${version ? `-${version}` : ''}`;
+
+    const herunterladen = async () => {
+        const svg = await hellesSvg();
         const datei = new Blob(
             ['<?xml version="1.0" encoding="UTF-8"?>\n', svg],
             { type: 'image/svg+xml' },
@@ -70,7 +84,7 @@ export default function ErDiagram({ code }: { code: string }) {
         const url = URL.createObjectURL(datei);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `glossary-datenmodell${version ? `-${version}` : ''}.svg`;
+        a.download = `${dateiname}.svg`;
         document.body.append(a);
         a.click();
         a.remove();
@@ -239,6 +253,33 @@ export default function ErDiagram({ code }: { code: string }) {
         }
     };
 
+    /** Druckansicht in neuem Fenster (synchron geöffnet, sonst blockiert der Browser das Fenster). */
+    const pdf = async () => {
+        const fenster = window.open('', '_blank');
+        if (!fenster) {
+            return;
+        }
+        fenster.document.title = dateiname;
+        const svg = await hellesSvg();
+        const g = groesse.current ?? { w: 1000, h: 1000 };
+        // eine Seite im Seitenverhältnis des Diagramms, längere Seite 1189 mm (A0), mit 10 mm Rand
+        const lang = 1189;
+        const w = g.w >= g.h ? lang : Math.round((lang * g.w) / g.h);
+        const h = g.w >= g.h ? Math.round((lang * g.h) / g.w) : lang;
+        fenster.document.open();
+        fenster.document
+            .write(`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>${dateiname}</title>
+<style>@page{size:${w + 20}mm ${h + 20}mm;margin:10mm}html,body{margin:0;background:#fff}
+svg{display:block;width:${w}mm!important;height:${h}mm!important;max-width:none!important}</style></head>
+<body>${svg}</body></html>`);
+        fenster.document.close();
+        // Inhalt ist eingebettet; kurz warten, bis die Schrift gesetzt ist
+        setTimeout(() => {
+            fenster.focus();
+            fenster.print();
+        }, 300);
+    };
+
     const vollbildUmschalten = () => {
         if (document.fullscreenElement) {
             void document.exitFullscreen();
@@ -309,6 +350,16 @@ export default function ErDiagram({ code }: { code: string }) {
                 >
                     <Download aria-hidden="true" />
                     SVG
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void pdf()}
+                    disabled={!geladen}
+                >
+                    <FileText aria-hidden="true" />
+                    PDF …
                 </Button>
                 <Button
                     type="button"
