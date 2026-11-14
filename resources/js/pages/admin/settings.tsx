@@ -101,7 +101,7 @@ export default function Settings({
                     : ''}
             </p>
 
-            <form onSubmit={submit} className="mt-6 grid max-w-3xl gap-8">
+            <form onSubmit={submit} className="mt-6 grid gap-8">
                 {gruppen.map((g) => (
                     <fieldset key={g} className="grid gap-4">
                         <legend className="mb-2 text-lg font-semibold">
@@ -145,7 +145,7 @@ export default function Settings({
                     Noch keine Änderungen – es gelten die Vorgaben.
                 </p>
             ) : (
-                <ul className="mt-2 grid max-w-3xl gap-1 text-sm">
+                <ul className="mt-2 grid gap-1 text-sm">
                     {protokoll.map((p, i) => (
                         <li key={i}>
                             <span className="text-muted-foreground">
@@ -175,7 +175,7 @@ function UmgebungListe({
     const gruppen = [...new Set(umgebung.map((u) => u.gruppe))];
 
     return (
-        <section className="mt-12 max-w-4xl">
+        <section className="mt-12">
             <h2 className="text-lg font-semibold">
                 Umgebung (<code>.env</code>) – nur ansehen
             </h2>

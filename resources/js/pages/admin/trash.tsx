@@ -33,7 +33,7 @@ export default function Trash({
             <h1 className="text-3xl font-semibold tracking-tight">
                 Papierkorb
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-1 max-w-prose text-sm text-muted-foreground">
                 Gelöschte Kategorien, Herkünfte und Organisationen bleiben{' '}
                 {tage} Tage wiederherstellbar und werden danach endgültig
                 gelöscht. Eine Organisation kommt mit Name und Darstellung
@@ -47,7 +47,7 @@ export default function Trash({
                     Der Papierkorb ist leer.
                 </p>
             ) : (
-                <table className="mt-6 w-full max-w-5xl text-sm">
+                <table className="mt-6 w-full text-sm">
                     <thead>
                         <tr className="border-b border-border text-left">
                             <th className="py-2 pr-4 font-medium">Art</th>

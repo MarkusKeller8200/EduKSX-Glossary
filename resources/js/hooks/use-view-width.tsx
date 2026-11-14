@@ -56,14 +56,12 @@ const OPTIMIZED = [
     'term',
     'account/',
     'organization/',
-    'developers',
     'auth/',
     'proposals/create',
     'proposals/show',
     'admin/term-form',
     'admin/user-show',
     'admin/service-account-show',
-    'admin/settings',
     'admin/import',
 ];
 

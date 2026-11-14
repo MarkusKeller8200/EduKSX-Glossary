@@ -90,7 +90,7 @@ export default function System({
             <Head title="System" />
             <h1 className="text-3xl font-semibold tracking-tight">System</h1>
 
-            <section className="mt-6 max-w-3xl">
+            <section className="mt-6">
                 <h2 className="text-lg font-semibold">Konfiguration</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                     Prüfung der Einstellungen dieser Installation, ohne Werte
@@ -139,7 +139,7 @@ export default function System({
                 </table>
             </section>
 
-            <section className="mt-6 max-w-2xl">
+            <section className="mt-6">
                 <h2 className="flex items-center gap-2 text-lg font-semibold">
                     E-Mail-Versand
                     {mail.configured ? (
