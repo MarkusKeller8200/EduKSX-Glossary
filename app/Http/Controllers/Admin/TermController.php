@@ -148,11 +148,20 @@ class TermController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        // Vorausfüllen aus «Einsammeln» (Konzept Einsammeln, Prototyp): nur Abkürzung, Bezeichnung und Notiz
+        $werte = $this->formData(null);
+        foreach (['official_abbreviation' => 50, 'official_name' => 200, 'note' => 500] as $field => $max) {
+            $value = $request->query($field);
+            if (is_string($value) && trim($value) !== '') {
+                $werte[$field] = mb_substr(trim($value), 0, $max);
+            }
+        }
+
         return Inertia::render('admin/term-form', [
             'begriff' => null,
-            'werte' => $this->formData(null),
+            'werte' => $werte,
             'listen' => $this->lists(),
             'offiziellErlaubt' => true,
         ]);

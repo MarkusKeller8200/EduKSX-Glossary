@@ -10,8 +10,9 @@ import {
     SearchX,
     Server,
     Settings,
-    Trash2,
+    Sparkles,
     Tags,
+    Trash2,
     Users,
 } from 'lucide-react';
 
@@ -40,6 +41,12 @@ export const ADMIN_NAV: {
         label: 'Doppelte',
         recht: 'edit-terms',
         icon: Copy,
+    },
+    {
+        href: '/admin/einsammeln',
+        label: 'Einsammeln',
+        recht: 'edit-terms',
+        icon: Sparkles,
     },
     {
         href: '/admin/suchen-ohne-treffer',
