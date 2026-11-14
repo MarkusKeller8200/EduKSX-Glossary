@@ -72,13 +72,15 @@ englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `lifecyc
 
 ## 5. Ausnahmen von der Normalisierung (A2)
 
-| Wo                                                  | Was ist doppelt                                      | Grund                                        | Wie aktuell gehalten                                                                                               |
-| --------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `term_revisions.snapshot`                           | Abbild des Begriffs (nur öffentliche/interne Felder) | Revisionen unveränderlich (DEC-022)          | bewusst eingefroren                                                                                                |
-| `terms.published_revision_id`                       | Zeiger auf die veröffentlichte Revision              | schneller Zugriff auf den öffentlichen Stand | in derselben Transaktion wie das Veröffentlichen; Zugehörigkeit per zusammengesetztem Fremdschlüssel (Abschnitt 6) |
-| `author_label`, `actor_label`                       | Name als Text neben der ID                           | lesbar nach Kontolöschung                    | ersetzt durch «Gelöschtes Konto»                                                                                   |
-| `term_revisions.change_set`, `data_changes.changes` | alte und neue Werte                                  | Historie                                     | unveränderlich; Personendaten nach B2 nicht enthalten                                                              |
-| `publication_releases`                              | Datenstand mit Prüfsumme                             | Abgleich der Konsumenten                     | je Veröffentlichung neu                                                                                            |
+| Wo                                                                                     | Was ist doppelt                                      | Grund                                                                                                                                | Wie aktuell gehalten                                                                                               |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `term_revisions.snapshot`                                                              | Abbild des Begriffs (nur öffentliche/interne Felder) | Revisionen unveränderlich (DEC-022)                                                                                                  | bewusst eingefroren                                                                                                |
+| `terms.published_revision_id`                                                          | Zeiger auf die veröffentlichte Revision              | schneller Zugriff auf den öffentlichen Stand                                                                                         | in derselben Transaktion wie das Veröffentlichen; Zugehörigkeit per zusammengesetztem Fremdschlüssel (Abschnitt 6) |
+| `author_label`, `actor_label`                                                          | Name als Text neben der ID                           | lesbar nach Kontolöschung                                                                                                            | ersetzt durch «Gelöschtes Konto»                                                                                   |
+| `term_revisions.change_set`, `data_changes.changes`                                    | alte und neue Werte                                  | Historie                                                                                                                             | unveränderlich; Personendaten nach B2 nicht enthalten                                                              |
+| `publication_releases`                                                                 | Datenstand mit Prüfsumme                             | Abgleich der Konsumenten                                                                                                             | je Veröffentlichung neu                                                                                            |
+| `duplicate_decisions.term_ids`                                                         | Liste von Begriffs-IDs (JSON)                        | Entscheid gilt für genau diese Gruppe; die Liste ist die Signatur des Entscheids und wird nie einzeln abgefragt oder geändert (#331) | unveränderlich; neue Gruppe = neuer Entscheid; gelöschte Begriffe bleiben als ID stehen                            |
+| `term_user_overrides.aliases_override`, `organization_term_overrides.aliases_override` | Liste abweichender Suchbegriffe (JSON)               | gehört zur Darstellung einer Person bzw. Organisation, wird nur als Ganzes gelesen und ersetzt, nie gesucht oder verknüpft (#331)    | beim Speichern der Darstellung vollständig ersetzt                                                                 |
 
 Bereinigt mit 0.12.0: `terms.search_terms` entfällt (nur noch `term_aliases`, Typ `search`, E1); `term_sources.url`
 entfällt (Quelle ist `terms.url`, K1).
@@ -87,6 +89,13 @@ entfällt (Quelle ist `terms.url`, K1).
 
 - UUID v7 für `terms`, `proposals`, `organizations`, `users`, `service_accounts`; fortlaufende Zahl für Protokolle und
   Ereignisse.
+- **Ereignis-ID (#332):** `term_publication_events`, `proposal_events`, `user_audit`, `service_account_audit` und
+  `data_changes` tragen zusätzlich eine UUID v7 `event_id` für das Zusammenführen über Module (Leitstand,
+  Löschregister); die fortlaufende Zahl bleibt Cursor des Änderungs-Feeds.
+- **`settings` ohne `id` (#332, Ausnahme zu A3):** Schlüssel-Wert-Tabelle mit festen englischen Schlüsseln als
+  Primärschlüssel; keine Verweise auf sie, kein Zusammenführen – eine zusätzliche `id` brächte nichts.
+- **Vorschläge (#322):** öffentliche Kennung `proposals.uuid` (UUID v7); Primärschlüssel wird sie mit Schritt 2
+  (#344).
 - Permalink-Code `/g/{code}` (6 Zeichen, unveränderlich, DEC-026): eindeutig über **alle** Zeilen, auch gelöschte; wird
   nie neu vergeben.
 - **`terms.published_revision_id` gehört zum selben Begriff:** `term_revisions` erhält UNIQUE `(term_id, id)`;
@@ -153,19 +162,19 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
 ## 12. DB-Standard 1.2 im Glossary (Teil E, B7–B14)
 
-| Regel                           | Im Glossary                                                                                                                     | Umsetzung           |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| E1 Modulschlüssel               | `glossary`                                                                                                                      | –                   |
-| E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191 |
-| E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | #311                |
-| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                |
-| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                |
-| B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                |
-| B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                |
-| B11 Lesezugriffe                | entfällt (keine Daten der Klasse besonders schützenswert)                                                                       | –                   |
-| B12 Anonymisierte Kopien        | Dump (#268) für dev und test nur anonymisiert                                                                                   | #313                |
-| B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | #312                |
-| B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                   |
+| Regel                           | Im Glossary                                                                                                                     | Umsetzung                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| E1 Modulschlüssel               | `glossary`                                                                                                                      | –                                                       |
+| E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191                                     |
+| E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | umgesetzt 0.14.0 (#311), Befehl `glossary:plattform-id` |
+| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                                                    |
+| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                                                    |
+| B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                                                    |
+| B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                                                    |
+| B11 Lesezugriffe                | entfällt (keine Daten der Klasse besonders schützenswert)                                                                       | –                                                       |
+| B12 Anonymisierte Kopien        | Dump (#268) für dev und test nur anonymisiert                                                                                   | #313                                                    |
+| B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | #312                                                    |
+| B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                                                       |
 
 ## 13. Offene Punkte
 

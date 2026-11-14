@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\HasEventId;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
@@ -11,6 +12,7 @@ use LogicException;
  * ausführende Identität, Ziel, Zeit, alter und neuer Wert, Ergebnis. Nur anfügen, nie ändern.
  *
  * @property int $id
+ * @property string $event_id UUID v7 für die Zusammenführung über Module (#332)
  * @property string|null $actor_id
  * @property string|null $actor_label
  * @property string|null $target_user_id
@@ -23,6 +25,8 @@ use LogicException;
  */
 class UserAudit extends Model
 {
+    use HasEventId;
+
     public const UPDATED_AT = null;
 
     protected $table = 'user_audit';

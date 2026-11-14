@@ -138,6 +138,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `platform_id` | intern |
 | `name` | intern |
 | `created_by_id` | intern |
 | `created_at` | intern |
@@ -152,6 +153,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `proposal_id` | intern |
 | `event_type` | intern |
 | `actor_id` | intern |
@@ -239,6 +241,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `service_account_id` | intern |
 | `token_id` | intern |
 | `actor_id` | intern |
@@ -341,6 +344,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `term_id` | intern |
 | `action` | öffentlich |
 | `revision` | öffentlich |
@@ -452,6 +456,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `actor_id` | intern |
 | `actor_label` | personenbezogen |
 | `target_user_id` | intern |
@@ -488,6 +493,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `platform_id` | intern |
 | `name` | personenbezogen |
 | `first_name` | personenbezogen |
 | `last_name` | personenbezogen |

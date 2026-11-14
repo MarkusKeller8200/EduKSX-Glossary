@@ -115,6 +115,7 @@ final class DataClasses
         ],
         'organizations' => [
             'id' => DataClass::Internal,
+            'platform_id' => DataClass::Internal,
             'name' => DataClass::Internal,
             'created_by_id' => DataClass::Internal,
             'created_at' => DataClass::Internal,
@@ -126,6 +127,7 @@ final class DataClasses
         ],
         'proposal_events' => [
             'id' => DataClass::Internal,
+            'event_id' => DataClass::Internal,
             'proposal_id' => DataClass::Internal,
             'event_type' => DataClass::Internal,
             'actor_id' => DataClass::Internal,
@@ -192,6 +194,7 @@ final class DataClasses
         ],
         'service_account_audit' => [
             'id' => DataClass::Internal,
+            'event_id' => DataClass::Internal,
             'service_account_id' => DataClass::Internal,
             'token_id' => DataClass::Internal,
             'actor_id' => DataClass::Internal,
@@ -270,6 +273,7 @@ final class DataClasses
         ],
         'term_publication_events' => [
             'id' => DataClass::Internal,
+            'event_id' => DataClass::Internal,
             'term_id' => DataClass::Internal,
             'action' => DataClass::Public,
             'revision' => DataClass::Public,
@@ -360,6 +364,7 @@ final class DataClasses
         ],
         'user_audit' => [
             'id' => DataClass::Internal,
+            'event_id' => DataClass::Internal,
             'actor_id' => DataClass::Internal,
             'actor_label' => DataClass::Personal,
             'target_user_id' => DataClass::Internal,
@@ -387,6 +392,7 @@ final class DataClasses
         ],
         'users' => [
             'id' => DataClass::Internal,
+            'platform_id' => DataClass::Internal,
             'name' => DataClass::Personal,
             'first_name' => DataClass::Personal,
             'last_name' => DataClass::Personal,

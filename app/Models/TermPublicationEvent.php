@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\HasEventId;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * Akteur (actor_*) nur intern, nie im Change-Feed.
  *
  * @property int $id
+ * @property string $event_id UUID v7 für die Zusammenführung über Module (#332)
  * @property string $term_id
  * @property string $action
  * @property int|null $revision
@@ -22,6 +24,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TermPublicationEvent extends Model
 {
+    use HasEventId;
+
     public const UPDATED_AT = null;
 
     /** @var list<string> */
