@@ -147,6 +147,25 @@ Löst den offenen Punkt «Kriterien und Zeitpunkt für die Prüfung von Infomani
   Vergleich zu Hostinger, Messung von Antwortzeit und Ausrollzeit auf einer Testinstanz.
 - **Cloudflare bleibt** für DNS und Schutz; Zertifikat am Server wie bisher (Let's Encrypt).
 
+## Umzug nach PostgreSQL (#191, #333)
+
+Auf PostgreSQL liegen alle Tabellen des Glossary im Schema **`glossary`** (DB-Standard E2; `DB_SCHEMA`, Vorgabe
+`glossary`). Fehlt das Schema, legt die Anwendung es beim ersten Verbindungsaufbau an; ein Zugang mit Rechten nur auf
+dieses Schema (B5) braucht es vorher angelegt (`create schema glossary authorization <zugang>`).
+
+Umzug einer bestehenden SQLite-Datenbank (ohne Datenverlust, Zählung je Tabelle):
+
+1. Sicherung (`php artisan glossary:sicherung`) und Anwendung anhalten.
+2. Verbindung `pgsql` in der `.env` eintragen (`DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`),
+   `DB_CONNECTION` noch auf `sqlite` lassen.
+3. `php artisan migrate --database=pgsql --force` – Ziel auf denselben Stand bringen.
+4. Probelauf: `php artisan glossary:umzug-postgres --trocken`, danach
+   `php artisan glossary:umzug-postgres --leeren` (`--leeren` entfernt die Grunddaten der Migrationen im Ziel).
+   Der Befehl vergleicht die Zeilen je Tabelle und bricht bei Abweichung ab.
+5. `DB_CONNECTION=pgsql` setzen, Anwendung starten, Anmeldung und API prüfen. Die SQLite-Datei bleibt als Rückfall.
+
+Getestet im CI-Job PostgreSQL (`tests/Feature/UmzugPostgresTest.php`).
+
 ## Anbindung an EduKSX-Ident und eduksx/core
 
 Das Glossary bleibt ohne Plattform voll nutzbar. Die Anbindung wird je Installation eingeschaltet; die

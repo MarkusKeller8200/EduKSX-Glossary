@@ -51,6 +51,7 @@ Zeichen in den Tabellen: ★ = Pflicht oder wichtig · 🔒 = Geheimnis.
 | -------------------------------------------------------- | -------------------------------------- | ------------------------------------ |
 | `DB_CONNECTION`                                          | `sqlite`                               | `sqlite` oder `pgsql`                |
 | `DB_DATABASE`                                            | `storage/app/database/glossary.sqlite` | Pfad (SQLite) bzw. Name (PostgreSQL) |
+| `DB_SCHEMA`                                              | `glossary`                             | Schema auf PostgreSQL (#333)         |
 | `DB_BUSY_TIMEOUT`                                        | `5000`                                 | SQLite: Wartezeit in ms              |
 | `DB_JOURNAL_MODE`                                        | `wal`                                  | SQLite: Journal                      |
 | `DB_FOREIGN_KEYS`                                        | `true`                                 | SQLite: Fremdschlüssel prüfen        |

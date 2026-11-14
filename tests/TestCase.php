@@ -25,7 +25,7 @@ abstract class TestCase extends BaseTestCase
         // PostgreSQL (#287): Zähler laufen über zurückgerollte Transaktionen hinweg weiter – je Test von vorn,
         // damit Tests mit fortlaufenden Nummern (Datenstand, Cursor) gleich laufen wie unter SQLite
         if (DB::getDriverName() === 'pgsql') {
-            foreach (DB::select("select sequencename from pg_sequences where schemaname = 'public'") as $sequence) {
+            foreach (DB::select('select sequencename from pg_sequences where schemaname = current_schema()') as $sequence) {
                 DB::statement("select setval('\"".((array) $sequence)['sequencename']."\"', 1, false)");
             }
         }

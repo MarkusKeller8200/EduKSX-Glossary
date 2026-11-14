@@ -49,11 +49,12 @@ final class UmbenennungTest extends TestCase
 
         /** @var Migration $rename */
         $rename = require database_path('migrations/'.self::MIGRATION.'.php');
+        $default = DB::getDefaultConnection();
         DB::setDefaultConnection('umbenennung');
         try {
             $rename->up();
         } finally {
-            DB::setDefaultConnection(config('database.default'));
+            DB::setDefaultConnection($default);
         }
 
         $after = array_map(fn (string $t): int => $db->table(str_replace('organization_term_overrides', 'term_organization_overrides', $t))->count(), $tables);

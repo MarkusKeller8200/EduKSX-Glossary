@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Access\IdentEvents;
 use App\Access\Permission;
+use App\Database\PostgresSchema;
 use App\Glossary\PublicCache;
 use App\Models\User;
 use App\Organizations\OrganizationService;
@@ -11,6 +12,7 @@ use App\Support\MailSettings;
 use App\Support\Turnstile;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -48,6 +50,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Ereignisse von EduKSX-Ident (#187): Empfang und Signatur über eduksx/core, Wirkung hier
         IdentEvents::register();
+
+        // PostgreSQL: Schema «glossary» anlegen, falls es fehlt (#333, DB-Standard E2) – einmal je Verbindung
+        Event::listen(function (ConnectionEstablished $event): void {
+            PostgresSchema::ensureFor($event->connection);
+        });
 
         // Anmeldung mit Microsoft (#45): Provider von SocialiteProviders bei Socialite anmelden
         Event::listen(function (SocialiteWasCalled $event): void {
