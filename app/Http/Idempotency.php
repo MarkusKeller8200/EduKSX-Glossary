@@ -73,22 +73,34 @@ final class Idempotency
         return DB::table('api_idempotency_keys')->where('created_at', '<', now()->subHours(self::HOURS))->delete();
     }
 
-    private static function find(ServiceAccount $account, string $key): ?object
+    /** @return array{request_hash: string, response_status: int, response_body: string}|null */
+    private static function find(ServiceAccount $account, string $key): ?array
     {
-        return DB::table('api_idempotency_keys')
+        $row = DB::table('api_idempotency_keys')
             ->where('service_account_id', $account->id)
             ->where('idempotency_key', $key)
             ->where('created_at', '>=', now()->subHours(self::HOURS))
-            ->first();
+            ->first(['request_hash', 'response_status', 'response_body']);
+        if ($row === null) {
+            return null;
+        }
+        $row = (array) $row;
+
+        return [
+            'request_hash' => (string) ($row['request_hash'] ?? ''),
+            'response_status' => (int) ($row['response_status'] ?? 200),
+            'response_body' => (string) ($row['response_body'] ?? ''),
+        ];
     }
 
-    private static function replay(object $stored, string $hash): JsonResponse
+    /** @param  array{request_hash: string, response_status: int, response_body: string}  $stored */
+    private static function replay(array $stored, string $hash): JsonResponse
     {
-        if (! hash_equals((string) $stored->request_hash, $hash)) {
+        if (! hash_equals($stored['request_hash'], $hash)) {
             throw ProblemException::common(422, 'idempotency_key_reused', 'Dieser Idempotency-Key wurde schon für eine andere Anfrage verwendet.');
         }
 
-        return JsonResponse::fromJsonString((string) $stored->response_body, (int) $stored->response_status, [
+        return JsonResponse::fromJsonString($stored['response_body'], $stored['response_status'], [
             'Idempotency-Replayed' => 'true',
             'Cache-Control' => 'no-store',
         ]);
