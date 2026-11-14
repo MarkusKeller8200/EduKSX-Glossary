@@ -11,6 +11,7 @@ use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
 use App\Proposals\ProposalService;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -195,12 +196,15 @@ class ProposalTest extends TestCase
         $response = $this->postJson('/api/v1/proposals', [
             'term' => $term->slug, 'changes' => ['short_description' => 'Aus dem Intranet'], 'reason' => 'Rückmeldung',
         ], ['Authorization' => "Bearer {$plain}"])->assertCreated()->assertJsonPath('status', 'submitted');
-        $id = (int) $response->json('id');
+        $id = (string) $response->json('id');
+        $this->assertTrue(Str::isUuid($id), 'Vorschlag über UUID (#322)');
 
-        $proposal = Proposal::query()->findOrFail($id);
+        $proposal = Proposal::query()->where('uuid', $id)->firstOrFail();
         $this->assertSame($account->id, $proposal->service_account_id);
         $this->assertSame('Servicekonto «Intranet»', $proposal->author_label);
         $this->getJson("/api/v1/proposals/{$id}", ['Authorization' => "Bearer {$plain}"])->assertOk()->assertJsonPath('id', $id);
+        $this->getJson("/api/v1/proposals/{$proposal->id}", ['Authorization' => "Bearer {$plain}"])->assertNotFound()
+            ->assertHeader('Content-Type', 'application/problem+json');
         $this->assertSame('Leitet die Schule', $term->refresh()->short_description);   // nicht direkt geändert
         $this->assertStringNotContainsString('Aus dem Intranet', (string) $this->getJson("/api/v1/terms/{$term->id}")->getContent());
 

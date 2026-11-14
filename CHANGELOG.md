@@ -8,6 +8,14 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **API nach Plattform-Standard (#320, #321, #322, #323, #324, #326, #327, #337):** Fehler mit `type`, `code`,
+  `request_id` und Titel in der Sprache der Anfrage, auch 401 und 429. Sprache mit `?locale=` oder `Accept-Language`
+  (`?lang=` gilt weiter), Antwort mit `Content-Language` und `locale` je Objekt. Begriffsliste mit Cursor (`cursor`,
+  `limit`, `meta.next_cursor`, `has_more`), Gesamtzahl nur mit `with_total=1`; `page`/`per_page` übergangsweise.
+  Ungültige und unbekannte Parameter ergeben 422. Vorschläge über UUID. Scopes `glossary:proposals.create`,
+  `glossary:proposals.read`, `glossary:terms.read` und Tokens `glossary_sa_…`; bestehende Servicekonten und
+  `gls_…`-Tokens gelten weiter. OpenAPI ohne Warnungen nach dem Regelsatz der Plattform, geprüft in der CI.
+
 - **Steckbrief und Bereitschaft (#189, #325):** `/.well-known/eduksx-module.json` mit Modulschlüssel, Version,
   API-Version, Datenlizenz, Verweisen auf OpenAPI und Dokumentation sowie den Ereignissen, die das Glossary von Ident
   annimmt; `/health` meldet Datenbank, Migrationen, Warteschlange und Speicher (503, wenn Datenbank oder Migrationen

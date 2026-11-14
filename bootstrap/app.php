@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\AuthenticateServiceToken;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,6 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance']);
+
+        // Sprache der API vor dem Abruflimit, damit auch 429 in der verlangten Sprache kommt (#326)
+        $middleware->prependToPriorityList(ThrottleRequests::class, ApiLocale::class);
 
         // Hinter Traefik (Reverse Proxy): HTTPS und Client-IP aus den Proxy-Headern übernehmen.
         // Der Container ist nur über Traefik erreichbar (kein veröffentlichter Port).

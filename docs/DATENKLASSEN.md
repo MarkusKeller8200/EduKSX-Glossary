@@ -166,6 +166,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `uuid` | intern |
 | `proposal_type` | intern |
 | `term_id` | intern |
 | `base_revision` | intern |

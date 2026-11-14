@@ -63,24 +63,18 @@
                 {
                   "key": "page",
                   "value": "1",
-                  "description": "",
+                  "description": "Übergangsweise Seiten statt Cursor; ungültige Werte ergeben 422.",
                   "disabled": true
                 },
                 {
                   "key": "per_page",
                   "value": "50",
-                  "description": "",
-                  "disabled": true
-                },
-                {
-                  "key": "lang",
-                  "value": "fr",
-                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
+                  "description": "Übergangsweise Seiten statt Cursor; ungültige Werte ergeben 422.",
                   "disabled": true
                 }
               ]
             },
-            "description": "Veröffentlichte Begriffe suchen und blättern",
+            "description": "Veröffentlichte Begriffe suchen und blättern.",
             "auth": {
               "type": "noauth"
             }
@@ -98,32 +92,24 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/v1/terms/:idOrSlug",
+              "raw": "{{baseUrl}}/v1/terms/:id_or_slug",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "v1",
                 "terms",
-                ":idOrSlug"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "fr",
-                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-                  "disabled": true
-                }
+                ":id_or_slug"
               ],
               "variable": [
                 {
-                  "key": "idOrSlug",
+                  "key": "id_or_slug",
                   "value": "klassenlehrperson",
                   "description": "UUID, Slug oder Code des Permalinks"
                 }
               ]
             },
-            "description": "Ein veröffentlichter Begriff",
+            "description": "Ein veröffentlichter Begriff.",
             "auth": {
               "type": "noauth"
             }
@@ -181,17 +167,9 @@
               "path": [
                 "v1",
                 "categories"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "fr",
-                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-                  "disabled": true
-                }
               ]
             },
-            "description": "Kategorien",
+            "description": "Kategorien.",
             "auth": {
               "type": "noauth"
             }
@@ -216,17 +194,9 @@
               "path": [
                 "v1",
                 "sources"
-              ],
-              "query": [
-                {
-                  "key": "lang",
-                  "value": "fr",
-                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-                  "disabled": true
-                }
               ]
             },
-            "description": "Herkunft (Quelleninstitutionen)",
+            "description": "Herkunft (Quelleninstitutionen).",
             "auth": {
               "type": "noauth"
             }
@@ -298,12 +268,6 @@
                   "value": "500",
                   "description": "",
                   "disabled": true
-                },
-                {
-                  "key": "lang",
-                  "value": "fr",
-                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-                  "disabled": true
                 }
               ]
             },
@@ -339,16 +303,10 @@
                   "value": "json",
                   "description": "",
                   "disabled": true
-                },
-                {
-                  "key": "lang",
-                  "value": "fr",
-                  "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-                  "disabled": true
                 }
               ]
             },
-            "description": "Vollstand aller öffentlichen Begriffe",
+            "description": "Vollstand aller öffentlichen Begriffe.",
             "auth": {
               "type": "noauth"
             }
@@ -380,7 +338,7 @@
                 "v1"
               ]
             },
-            "description": "Einstieg: Version, Datenstand, Endpunkte",
+            "description": "Einstieg: Version, Datenstand, Endpunkte.",
             "auth": {
               "type": "noauth"
             }
@@ -498,12 +456,12 @@
               "variable": [
                 {
                   "key": "id",
-                  "value": "1",
-                  "description": ""
+                  "value": "0193a1b2-7c4d-7e8f-9a0b-000000000101",
+                  "description": "UUID des Vorschlags aus der Antwort von POST /v1/proposals"
                 }
               ]
             },
-            "description": "Stand eines eigenen Vorschlags",
+            "description": "Stand eines eigenen Vorschlags.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -546,7 +504,7 @@
               "query": [
                 {
                   "key": "customized",
-                  "value": "false",
+                  "value": "true",
                   "description": "1 = nur Begriffe mit Anpassung der Organisation",
                   "disabled": true
                 }
@@ -577,7 +535,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/v1/org/terms/:idOrSlug",
+              "raw": "{{baseUrl}}/v1/org/terms/:id_or_slug",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -585,17 +543,17 @@
                 "v1",
                 "org",
                 "terms",
-                ":idOrSlug"
+                ":id_or_slug"
               ],
               "variable": [
                 {
-                  "key": "idOrSlug",
+                  "key": "id_or_slug",
                   "value": "klassenlehrperson",
                   "description": "UUID oder Slug"
                 }
               ]
             },
-            "description": "Ein Begriff in der Darstellung der Organisation",
+            "description": "Ein Begriff in der Darstellung der Organisation.",
             "auth": {
               "type": "bearer",
               "bearer": [

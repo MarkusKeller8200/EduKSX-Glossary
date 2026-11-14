@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * Vorschlag (#113): neuer Begriff oder Korrektur. Nie öffentlich; ändern nur über App\Proposals\ProposalService.
  *
  * @property int $id
+ * @property string $uuid öffentliche Kennung in der API (UUID v7, #322)
  * @property string $proposal_type new | change
  * @property string|null $term_id
  * @property int|null $base_revision
@@ -31,6 +33,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Proposal extends Model
 {
+    /** Öffentliche Kennung (UUID v7) beim Anlegen setzen (#322). */
+    protected static function booted(): void
+    {
+        static::creating(function (self $proposal): void {
+            $proposal->uuid ??= (string) Str::uuid7();
+        });
+    }
+
     /** Offen (zurückziehen möglich), auch während der Prüfung durch die Organisation. */
     public const OPEN = ['organization_review', 'submitted', 'query'];
 

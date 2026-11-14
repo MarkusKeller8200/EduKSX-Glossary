@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Access\Service\ServiceAccountManager;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceAccountToken;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,7 @@ class ServiceController extends Controller
         abort_unless($token instanceof ServiceAccountToken, 401);
 
         return response()->json([
-            'service_account' => ['id' => $token->account->id, 'name' => $token->account->name, 'scopes' => $token->account->scopes],
+            'service_account' => ['id' => $token->account->id, 'name' => $token->account->name, 'scopes' => ServiceAccountManager::current($token->account->scopes)],
             'token' => ['name' => $token->name, 'expires_at' => $token->expires_at->toIso8601ZuluString()],
         ])->header('Cache-Control', 'no-store');
     }

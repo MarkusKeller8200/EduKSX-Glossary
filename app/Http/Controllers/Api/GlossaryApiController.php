@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\Locale;
 use App\Enums\TermStatus;
 use App\Glossary\ApiPresenter;
+use App\Glossary\TermListCursor;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ApiLocale;
 use App\Models\Term;
 use App\Models\TermPublicationEvent;
 use App\Models\TermRevision;
 use App\Search\SearchMisses;
+use EduKSX\Core\Http\CursorPagination;
 use EduKSX\Core\Http\ETag;
+use EduKSX\Core\Http\ProblemException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -38,57 +40,79 @@ class GlossaryApiController extends Controller
         ], $release['release']);
     }
 
-    /** GET /api/v1/terms – Suche, Filter, Pagination. */
+    /** Parameter von GET /api/v1/terms; andere ergeben 422 (#321). */
+    private const TERMS_PARAMETERS = ['q', 'category', 'status', 'cursor', 'limit', 'with_total', 'page', 'per_page', 'locale', 'lang'];
+
+    /**
+     * GET /api/v1/terms – Suche und Filter mit Cursor (API-Standard A5, #321): `cursor`, `limit` (50, höchstens 200),
+     * `meta.next_cursor`/`has_more`, Gesamtzahl nur mit `with_total=1`. Übergangsweise Seiten mit `page`/`per_page`.
+     */
     public function terms(Request $request): Response
     {
+        self::onlyParameters($request, self::TERMS_PARAMETERS);
         $q = mb_strtolower(trim((string) $request->query('q', '')));
         $category = trim((string) $request->query('category', ''));
         $status = trim((string) $request->query('status', ''));
-        $page = max(1, (int) $request->query('page', '1'));
-        $perPage = min(self::MAX_PER_PAGE, max(1, (int) $request->query('per_page', '50')));
+        $withTotal = self::flag($request, 'with_total');
+        $paged = $request->query->has('page') || $request->query->has('per_page');
         if ($status !== '') {
             $status = TermStatus::fromAny($status) !== null ? TermStatus::normalize($status) : $status;   // auch Werte bis 0.11.0 (aktuell, zu_pruefen)
         }
         if ($status !== '' && ! array_key_exists($status, Term::STATUS)) {
-            throw new BadRequestHttpException('Unbekannter Status «'.$status.'». Erlaubt: '.implode(', ', array_keys(Term::STATUS)).'.');
+            throw self::invalid('status', 'Unbekannter Status «'.$status.'». Erlaubt: '.implode(', ', array_keys(Term::STATUS)).'.');
         }
 
         $lang = $this->language($request);
-        $all = $lang === null ? $this->presenter->terms() : array_map(fn (array $t): array => ApiPresenter::localizeTerm($t, $lang), $this->presenter->terms());
-        $terms = array_values(array_filter($all, function (array $t) use ($q, $category, $status): bool {
-            if ($status !== '' && $t['status'] !== $status) {
-                return false;
+        // Filtern auf der (übersetzten) Ausgabe, Reihenfolge und Cursor auf den deutschen Grunddaten
+        $matches = [];
+        foreach ($this->presenter->terms() as $base) {
+            $t = $lang === null ? $base : ApiPresenter::localizeTerm($base, $lang);
+            if ($this->matches($t, $q, $category, $status)) {
+                $matches[] = [$base, $t];
             }
-            if ($category !== '') {
-                $refs = [];
-                foreach ($t['categories'] as $c) {
-                    $refs[] = $c['key'];
-                    $refs[] = $c['label'];
-                }
-                if (! in_array($category, $refs, true)) {
-                    return false;
-                }
-            }
-            if ($q === '') {
-                return true;
-            }
-            $haystack = mb_strtolower(implode(' ', array_filter([
-                $t['abbreviation'], $t['name'], $t['official_abbreviation'], $t['official_name'], $t['short_description'],
-                $t['display_label'],
-                implode(' ', $t['aliases']),
-            ])));
+        }
 
-            return str_contains($haystack, $q);
-        }));
-
-        $total = count($terms);
+        $total = count($matches);
+        $release = $this->presenter->release();
+        if ($paged) {
+            return $this->pagedTerms($request, $matches, $q, $category, $status, $release['release']);
+        }
         // Suchen ohne Treffer (X4, #285): nur der Suchtext allein, erste Seite, ohne Filter
+        if ($total === 0 && $q !== '' && $category === '' && $status === '' && ! $request->query->has('cursor')) {
+            SearchMisses::record($q);
+        }
+
+        $limit = CursorPagination::limit($request);
+        $output = [];
+        foreach ($matches as [$base, $t]) {
+            $output[$base['id']] = $t;
+        }
+        [$page, $next] = TermListCursor::page($request, array_column($matches, 0), $limit);
+
+        return $this->cached($request, [
+            'data' => array_map(fn (array $base): array => $output[$base['id']], $page),
+            'meta' => ['limit' => $limit, 'next_cursor' => $next, 'has_more' => $next !== null]
+                + ($withTotal ? ['total' => $total] : [])
+                + ['release' => $release['release']],
+            'links' => ['next' => $next !== null ? $request->fullUrlWithQuery(['cursor' => $next]) : null],
+        ], $release['release']);
+    }
+
+    /**
+     * Seiten mit page/per_page (übergangsweise, Vorschau): ungültige Werte jetzt 422 statt stiller Korrektur.
+     *
+     * @param  list<array{0: array<string, mixed>, 1: array<string, mixed>}>  $matches
+     */
+    private function pagedTerms(Request $request, array $matches, string $q, string $category, string $status, int $release): Response
+    {
+        $page = self::positiveInt($request, 'page', 1, PHP_INT_MAX);
+        $perPage = self::positiveInt($request, 'per_page', 50, self::MAX_PER_PAGE);
+        $total = count($matches);
         if ($total === 0 && $q !== '' && $category === '' && $status === '' && $page === 1) {
             SearchMisses::record($q);
         }
         $lastPage = max(1, (int) ceil($total / $perPage));
-        $data = array_slice($terms, ($page - 1) * $perPage, $perPage);
-        $release = $this->presenter->release();
+        $data = array_column(array_slice($matches, ($page - 1) * $perPage, $perPage), 1);
         $link = fn (int $p): string => $request->fullUrlWithQuery(['page' => $p, 'per_page' => $perPage]);
 
         return $this->cached($request, [
@@ -98,7 +122,7 @@ class GlossaryApiController extends Controller
                 'per_page' => $perPage,
                 'total' => $total,
                 'last_page' => $lastPage,
-                'release' => $release['release'],
+                'release' => $release,
             ],
             'links' => [
                 'first' => $link(1),
@@ -106,7 +130,83 @@ class GlossaryApiController extends Controller
                 'next' => $page < $lastPage ? $link($page + 1) : null,
                 'last' => $link($lastPage),
             ],
-        ], $release['release']);
+        ], $release);
+    }
+
+    /** @param  array<string, mixed>  $t */
+    private function matches(array $t, string $q, string $category, string $status): bool
+    {
+        if ($status !== '' && $t['status'] !== $status) {
+            return false;
+        }
+        if ($category !== '') {
+            $refs = [];
+            foreach ($t['categories'] as $c) {
+                $refs[] = $c['key'];
+                $refs[] = $c['label'];
+            }
+            if (! in_array($category, $refs, true)) {
+                return false;
+            }
+        }
+        if ($q === '') {
+            return true;
+        }
+        $haystack = mb_strtolower(implode(' ', array_filter([
+            $t['abbreviation'], $t['name'], $t['official_abbreviation'], $t['official_name'], $t['short_description'],
+            $t['display_label'],
+            implode(' ', $t['aliases']),
+        ])));
+
+        return str_contains($haystack, $q);
+    }
+
+    /**
+     * Nur bekannte Parameter (API-Standard A7, #321); sonst 422 mit dem Parameter in `errors`.
+     *
+     * @param  list<string>  $allowed
+     */
+    private static function onlyParameters(Request $request, array $allowed): void
+    {
+        $unknown = array_diff(array_keys($request->query()), $allowed);
+        if ($unknown !== []) {
+            $errors = [];
+            foreach ($unknown as $name) {
+                $errors[(string) $name] = ['Unbekannter Parameter. Erlaubt: '.implode(', ', $allowed).'.'];
+            }
+            throw new ProblemException(422, 'unknown_parameter', 'Unbekannter Parameter: '.implode(', ', $unknown).'.', [], false, $errors);
+        }
+    }
+
+    private static function invalid(string $parameter, string $message): ProblemException
+    {
+        return ProblemException::common(422, 'validation_failed', $message, [], [$parameter => [$message]]);
+    }
+
+    private static function positiveInt(Request $request, string $name, int $default, int $max): int
+    {
+        $raw = $request->query($name);
+        if ($raw === null || $raw === '') {
+            return $default;
+        }
+        if (! is_string($raw) || preg_match('/^\d+$/', $raw) !== 1 || (int) $raw < 1 || (int) $raw > $max) {
+            throw self::invalid($name, "{$name} muss eine ganze Zahl von 1 bis {$max} sein.");
+        }
+
+        return (int) $raw;
+    }
+
+    private static function flag(Request $request, string $name): bool
+    {
+        $raw = $request->query($name);
+        if ($raw === null) {
+            return false;
+        }
+        if (! in_array($raw, ['0', '1', 'true', 'false'], true)) {
+            throw self::invalid($name, "{$name} erwartet 1 oder 0.");
+        }
+
+        return $raw === '1' || $raw === 'true';
     }
 
     /** GET /api/v1/terms/{idOrSlug} */
@@ -201,7 +301,7 @@ class GlossaryApiController extends Controller
     {
         $format = (string) $request->query('format', 'json');
         if ($format !== 'json') {
-            throw new BadRequestHttpException('Nur format=json wird unterstützt.');
+            throw self::invalid('format', 'Nur format=json wird unterstützt.');
         }
         // Cursor vor den Begriffen lesen: Ereignisse danach holt der Abnehmer über den Change-Feed (wiederholbar).
         $release = $this->presenter->release();
@@ -220,22 +320,12 @@ class GlossaryApiController extends Controller
         ], $release['release']);
     }
 
-    /**
-     * Verlangte Sprache (?lang=de|fr|it|en, X1, #282); ohne Angabe null (Ausgabe wie bisher, deutsch).
-     *
-     * @throws BadRequestHttpException bei unbekannter Sprache
-     */
+    /** Verlangte Übersetzungssprache aus ApiLocale (?locale=, ?lang=, Accept-Language); null = Deutsch wie bisher. */
     private function language(Request $request): ?string
     {
-        $lang = strtolower(trim((string) $request->query('lang', '')));
-        if ($lang === '') {
-            return null;
-        }
-        if (Locale::tryFrom($lang) === null) {
-            throw new BadRequestHttpException('Unbekannte Sprache «'.$lang.'». Erlaubt: '.implode(', ', Locale::values()).'.');
-        }
+        $locale = $request->attributes->get(ApiLocale::ATTRIBUTE);
 
-        return $lang;
+        return is_string($locale) ? $locale : null;
     }
 
     /**

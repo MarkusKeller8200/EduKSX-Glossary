@@ -524,7 +524,7 @@ function OrganisationDarstellung({
             pfad={`/begriffe/${slug}/organisation-darstellung`}
             werte={organisation.werte}
             gesetzt={organisation.gesetzt}
-            hinweis="Sichtbar für alle aktiven Mitglieder der Organisation; die persönliche Darstellung geht vor. Leere Felder zeigen die gemeinsame Form. Nicht öffentlich; über die API nur mit einem Token der Organisation (Scope «read-org»)."
+            hinweis="Sichtbar für alle aktiven Mitglieder der Organisation; die persönliche Darstellung geht vor. Leere Felder zeigen die gemeinsame Form. Nicht öffentlich; über die API nur mit einem Token der Organisation (Scope «glossary:terms.read»)."
         />
     );
 }

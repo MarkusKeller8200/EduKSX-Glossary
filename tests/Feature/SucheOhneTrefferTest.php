@@ -31,9 +31,9 @@ class SucheOhneTrefferTest extends TestCase
         $glossary = app(GlossaryService::class);
         $glossary->publish($glossary->save(null, ['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung'], null, true), null);
 
-        $this->getJson('/api/v1/terms?q=schulleitung')->assertJsonPath('meta.total', 1);
-        $this->getJson('/api/v1/terms?q=xyz-fehlt')->assertJsonPath('meta.total', 0);
-        $this->getJson('/api/v1/terms?q=abc-fehlt&status=historical')->assertJsonPath('meta.total', 0);
+        $this->getJson('/api/v1/terms?q=schulleitung&with_total=1')->assertJsonPath('meta.total', 1);
+        $this->getJson('/api/v1/terms?q=xyz-fehlt&with_total=1')->assertJsonPath('meta.total', 0);
+        $this->getJson('/api/v1/terms?q=abc-fehlt&status=historical&with_total=1')->assertJsonPath('meta.total', 0);
 
         $this->assertSame(['xyz-fehlt'], DB::table('search_misses')->pluck('query')->all());
     }

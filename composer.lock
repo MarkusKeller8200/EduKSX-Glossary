@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5fe99f8e2b489988a785899cd1a8305",
+    "content-hash": "3a8b2e07222a3a15031b18bb9c6b0ee9",
     "packages": [
         {
             "name": "brick/math",
@@ -446,16 +446,16 @@
         },
         {
             "name": "eduksx/core",
-            "version": "v0.2.0",
+            "version": "v0.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/MarkusKeller8200/EduKSX-Core",
-                "reference": "06bd26317e421d277b805deaafdefa0d7854ab71"
+                "reference": "1c0c314553c0c98dccb2c17f57b17badf18412d2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/06bd26317e421d277b805deaafdefa0d7854ab71",
-                "reference": "06bd26317e421d277b805deaafdefa0d7854ab71",
+                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/1c0c314553c0c98dccb2c17f57b17badf18412d2",
+                "reference": "1c0c314553c0c98dccb2c17f57b17badf18412d2",
                 "shasum": ""
             },
             "require": {
@@ -519,7 +519,7 @@
                 }
             ],
             "description": "Gemeinsame Bausteine der EduKSX-Plattform für Laravel-Module (Fehler, Sicherheit, Datenbank, Listen, Prüfungen, Steckbrief, Ereignisse, Historie).",
-            "time": "2026-11-13T23:36:25+00:00"
+            "time": "2026-11-14T00:06:59+00:00"
         },
         {
             "name": "egulias/email-validator",

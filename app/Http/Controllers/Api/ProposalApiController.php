@@ -7,8 +7,10 @@ use App\Models\Proposal;
 use App\Models\ServiceAccountToken;
 use App\Models\Term;
 use App\Proposals\ProposalService;
+use EduKSX\Core\Http\ProblemException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 
 /**
@@ -32,24 +34,27 @@ class ProposalApiController extends Controller
             $term = Term::query()->published()->whereNull('merged_into_id')
                 ->idOrSlug((string) $data['term'])->with('publishedRevision')->first();
             if ($term === null) {
-                return response()->json(['message' => 'Begriff nicht gefunden oder nicht veröffentlicht.'], 404);
+                throw ProblemException::common(404, 'not_found', 'Begriff nicht gefunden oder nicht veröffentlicht.');
             }
         }
         try {
             $proposal = $this->proposals->submit($term, (array) $data['changes'], $data['reason'] ?? null, null, $token->account);
         } catch (InvalidArgumentException $e) {
-            return response()->json(['message' => $e->getMessage(), 'errors' => ['changes' => [$e->getMessage()]]], 422);
+            throw ProblemException::common(422, 'validation_failed', $e->getMessage(), [], ['changes' => [$e->getMessage()]]);
         }
 
         return response()->json($this->present($proposal), 201)->header('Cache-Control', 'no-store');
     }
 
-    public function show(Request $request, int $id): JsonResponse
+    /** GET /api/v1/proposals/{id} – nur über die UUID (#322); die frühere Zahl ergibt 404. */
+    public function show(Request $request, string $id): JsonResponse
     {
         $token = $this->token($request);
-        $proposal = Proposal::query()->whereKey($id)->where('service_account_id', $token->account->id)->first();
+        $proposal = Str::isUuid($id)
+            ? Proposal::query()->where('uuid', strtolower($id))->where('service_account_id', $token->account->id)->first()
+            : null;
         if ($proposal === null) {
-            return response()->json(['message' => 'Vorschlag nicht gefunden.'], 404);
+            throw ProblemException::common(404, 'not_found', 'Vorschlag nicht gefunden.');
         }
 
         return response()->json($this->present($proposal))->header('Cache-Control', 'no-store');
@@ -59,7 +64,7 @@ class ProposalApiController extends Controller
     private function present(Proposal $proposal): array
     {
         return [
-            'id' => $proposal->id,
+            'id' => $proposal->uuid,
             'kind' => $proposal->proposal_type,
             'term_id' => $proposal->term_id,
             'base_revision' => $proposal->base_revision,
