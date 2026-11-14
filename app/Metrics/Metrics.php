@@ -2,6 +2,7 @@
 
 namespace App\Metrics;
 
+use App\Support\Settings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -19,7 +20,7 @@ final class Metrics
 
     public static function enabled(): bool
     {
-        return (string) config('glossary.metrics_token', '') !== '';
+        return Settings::string('metrics.token') !== '';
     }
 
     /** Eine Anfrage zählen: Gruppe (web, api, admin), Statusklasse und Dauer. */

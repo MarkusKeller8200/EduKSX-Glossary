@@ -236,6 +236,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::middleware('can:settings')->group(function () {
         Route::get('einstellungen', [SettingsController::class, 'index'])->name('admin.settings');
         Route::put('einstellungen', [SettingsController::class, 'update'])->name('admin.settings.update');
+        Route::post('einstellungen/geheim/{key}', [SettingsController::class, 'secret'])->where('key', '[a-z_.]+')->middleware('throttle:10,1')->name('admin.settings.secret');
     });
 
     // System (#40): nur Developer (Recht «system»)

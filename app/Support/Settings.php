@@ -4,7 +4,9 @@ namespace App\Support;
 
 use App\Access\Audit;
 use App\Models\User;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -19,7 +21,10 @@ final class Settings
     /**
      * Schlüssel → Definition (Gruppe, Bezeichnung, Hinweis, Typ, Grenzen).
      *
-     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice', min?: int, max?: int, einheit?: string, optionen?: array<string, string>}>
+     * `env`: Variable der Umgebung mit Vorrang – ist sie gesetzt, ist die Einstellung in der Administration gesperrt (#366).
+     * Typ `secret`: verschlüsselt gespeichert (APP_KEY), nie angezeigt; setzen nur über setSecret().
+     *
+     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice'|'secret', min?: int, max?: int, einheit?: string, optionen?: array<string, string>, env?: string}>
      */
     public const DEFINITIONS = [
         'retention.inactive_months' => ['gruppe' => 'Löschfristen', 'label' => 'Inaktive Community-Konten löschen nach', 'hinweis' => 'Ohne Anmeldung; vorher kommt ein Hinweis per Mail.', 'typ' => 'int', 'min' => 6, 'max' => 60, 'einheit' => 'Monaten'],
@@ -34,6 +39,9 @@ final class Settings
         'updates.check' => ['gruppe' => 'Updates', 'label' => 'Auf neue Versionen prüfen', 'hinweis' => 'Fragt höchstens täglich die öffentlichen Releases auf GitHub ab (nur die Versionsnummer, keine Daten dieser Installation) und zeigt einen Hinweis in der Administration.', 'typ' => 'bool'],
         'updates.policy' => ['gruppe' => 'Updates', 'label' => 'Automatische Updates', 'hinweis' => 'Nur mit eingerichtetem Update-Dienst. «Nur Korrekturen» spielt X.Y.Z mit gleicher Haupt- und Nebenversion ein; neue Funktionen nie automatisch über eine Hauptversion.', 'typ' => 'choice', 'optionen' => ['aus' => 'aus', 'korrektur' => 'nur Korrekturen', 'funktion' => 'Korrekturen und neue Funktionen']],
         'updates.window' => ['gruppe' => 'Updates', 'label' => 'Zeitfenster für automatische Updates', 'hinweis' => 'Stunde, ab der automatische Updates laufen dürfen (Ortszeit), z. B. 3 für 03:00–04:00.', 'typ' => 'int', 'min' => 0, 'max' => 23, 'einheit' => 'Uhr'],
+        'links.source_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Quellcode der laufenden Version', 'hinweis' => 'Link «Quellcode (AGPL-3.0)» in der Fusszeile; wer den Code ändert, verweist auf das eigene Repository. Mit https://.', 'typ' => 'url', 'env' => 'GLOSSARY_SOURCE_URL'],
+        'dump.require_password' => ['gruppe' => 'Betrieb', 'label' => 'Vollständige Dumps nur mit Passwort', 'hinweis' => 'Administration › System und glossary:dump verlangen ein Passwort (AES-256).', 'typ' => 'bool', 'env' => 'GLOSSARY_DUMP_REQUIRE_PASSWORD'],
+        'metrics.token' => ['gruppe' => 'Betrieb', 'label' => 'Token für die Metriken (/metrics)', 'hinweis' => 'Prometheus ruft /metrics mit «Authorization: Bearer <Token>» ab. Ohne Token sind die Metriken aus.', 'typ' => 'secret', 'env' => 'GLOSSARY_METRICS_TOKEN'],
         'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
     ];
 
@@ -57,15 +65,80 @@ final class Settings
             'updates.check' => (bool) config('glossary.update_check', true),
             'updates.policy' => 'korrektur',
             'updates.window' => 3,
+            'links.source_url' => (string) config('glossary.source_url', ''),
+            'dump.require_password' => (bool) config('glossary.dump_require_password', false),
+            'metrics.token' => (string) config('glossary.metrics_token', ''),
             default => throw new InvalidArgumentException("Unbekannte Einstellung «{$key}»."),
         };
     }
 
     public static function get(string $key): mixed
     {
+        if (self::locked($key) !== null) {
+            return self::default($key);   // Umgebung hat Vorrang
+        }
         $stored = self::stored();
+        if (! array_key_exists($key, $stored)) {
+            return self::default($key);
+        }
+        if ((self::DEFINITIONS[$key]['typ'] ?? null) === 'secret') {
+            try {
+                return Crypt::decryptString((string) $stored[$key]);
+            } catch (DecryptException) {
+                return '';   // anderer APP_KEY: neu setzen
+            }
+        }
 
-        return array_key_exists($key, $stored) ? $stored[$key] : self::default($key);
+        return $stored[$key];
+    }
+
+    /** Name der Umgebungsvariable, wenn sie gesetzt ist und die Einstellung sperrt; sonst null (#366). */
+    public static function locked(string $key): ?string
+    {
+        $env = self::DEFINITIONS[$key]['env'] ?? null;
+        if ($env === null) {
+            return null;
+        }
+        $value = getenv($env);
+
+        return $value !== false && $value !== '' ? $env : null;
+    }
+
+    /** Herkunft des geltenden Werts: Umgebung, Administration oder Vorgabe (#366). */
+    public static function source(string $key): string
+    {
+        if (self::locked($key) !== null) {
+            return 'Umgebung';
+        }
+
+        return array_key_exists($key, self::stored()) ? 'Administration' : 'Vorgabe';
+    }
+
+    /**
+     * Geheimnis setzen oder entfernen (null); verschlüsselt mit APP_KEY, im Protokoll nur «gesetzt» bzw. «entfernt».
+     */
+    public static function setSecret(User $actor, string $key, ?string $value): void
+    {
+        if ((self::DEFINITIONS[$key]['typ'] ?? null) !== 'secret') {
+            throw new InvalidArgumentException("Unbekanntes Geheimnis «{$key}».");
+        }
+        if (self::locked($key) !== null) {
+            throw new InvalidArgumentException('Wird in der Umgebung gesetzt ('.self::locked($key).').');
+        }
+        $had = array_key_exists($key, self::stored());
+        DB::transaction(function () use ($actor, $key, $value, $had): void {
+            if ($value === null || $value === '') {
+                DB::table('settings')->where('key', $key)->delete();
+            } else {
+                DB::table('settings')->updateOrInsert(['key' => $key], [
+                    'value' => json_encode(Crypt::encryptString($value)), 'updated_by_id' => $actor->id, 'updated_at' => now(),
+                ]);
+            }
+            Audit::log($actor, null, 'settings.changed', [
+                'key' => $key, 'old' => $had ? 'gesetzt' : '–', 'new' => $value === null || $value === '' ? 'entfernt' : ($had ? 'erneuert' : 'gesetzt'),
+            ]);
+        });
+        self::flush();
     }
 
     public static function int(string $key): int
@@ -95,6 +168,10 @@ final class Settings
         foreach ($values as $key => $value) {
             if (! isset(self::DEFINITIONS[$key])) {
                 throw new InvalidArgumentException("Unbekannte Einstellung «{$key}».");
+            }
+            // Geheimnisse nur über setSecret(); gesperrte Werte kommen aus der Umgebung
+            if (self::DEFINITIONS[$key]['typ'] === 'secret' || self::locked($key) !== null) {
+                continue;
             }
             $clean[$key] = self::validate($key, $value);
         }
