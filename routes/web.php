@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\CurationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DevBackupController;
 use App\Http\Controllers\Admin\DuplicateController;
@@ -156,6 +157,9 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::get('begriffe', [TermController::class, 'index'])->middleware('can:edit-terms')->name('admin.terms');
     Route::post('begriffe/veroeffentlichen', [TermController::class, 'publish'])->middleware('can:publish')->name('admin.terms.publish');
     Route::get('begriffe/neu', [TermController::class, 'create'])->middleware('can:edit-terms')->name('admin.terms.create');
+    // Einsammeln und Prüfen (Konzept Einsammeln, Prototyp)
+    Route::get('einsammeln', [CurationController::class, 'index'])->middleware('can:edit-terms')->name('admin.curation');
+    Route::post('einsammeln/text', [CurationController::class, 'scan'])->middleware(['can:edit-terms', 'throttle:20,1'])->name('admin.curation.scan');
     Route::post('begriffe', [TermController::class, 'store'])->middleware('can:edit-terms')->name('admin.terms.store');
     Route::get('begriffe/{term}', [TermController::class, 'show'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.show');
     Route::get('begriffe/{term}/bearbeiten', [TermController::class, 'edit'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.edit');
