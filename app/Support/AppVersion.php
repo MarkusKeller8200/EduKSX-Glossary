@@ -19,6 +19,25 @@ final class AppVersion
     public const UNRELEASED = '## [Unveröffentlicht]';
 
     /**
+     * Quellcode genau dieser Version (AGPL-3.0 §13, #336): Release-Tag, bei einem Developer Release der Commit des
+     * Builds, sonst das Repository.
+     */
+    public static function sourceUrl(): string
+    {
+        $base = rtrim((string) config('glossary.source_url', ''), '/');
+        $info = self::info();
+        if ($info['dev'] === null && preg_match(self::SEMVER, $info['version']) === 1) {
+            return $base.'/tree/v'.$info['version'];
+        }
+        $build = (string) ($info['build'] ?? '');
+        if (preg_match('/([0-9a-f]{7,40})$/', $build, $m) === 1) {
+            return $base.'/tree/'.$m[1];
+        }
+
+        return $base;
+    }
+
+    /**
      * @return array{version: string, build: string|null, build_date: string|null, prototype: bool, dev: array{commits: int, base: string, planned: string, label: string}|null}
      */
     public static function info(): array

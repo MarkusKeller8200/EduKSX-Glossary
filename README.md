@@ -58,7 +58,7 @@ Online stellen auf `https://glossary.eduksx.ch` (Hostinger-VPS, Docker, Traefik,
 Die Herkunft verwendeter Frameworks, kopierter Komponenten und weiterer Bibliotheken ist in
 [docs/LEGAL.md](docs/LEGAL.md) dokumentiert. Die öffentliche Übersicht ist unter `/legals` vorgesehen.
 `sek-intranet` und `my-github-blueprint` sind eigene Repositories; geprüft werden die darin
-enthaltenen Fremdanteile und deren Lizenzpflichten. Der eigene Code steht unter der [MIT-Lizenz](LICENSE) (DEC-021), die Daten unter CC BY 4.0; Drittkomponenten behalten ihre Lizenzen. Diese Dokumentation ersetzt keine vollständige Lizenzinventur.
+enthaltenen Fremdanteile und deren Lizenzpflichten. Der eigene Code steht ab Version 0.15.0 unter der [GNU Affero General Public License 3.0 oder später](LICENSE) (AGPL-3.0-or-later, DEC-040; Versionen bis 0.14.0 unter MIT), die Daten unter CC BY 4.0. Wer eine geänderte Fassung im Netz betreibt, stellt deren Quellcode bereit (Link «Quellcode» in der Fusszeile, `GLOSSARY_SOURCE_URL`). Ausnahme: `packages/highlighter` (Einbindungs-Script `public/embed/` und Browser-Erweiterung) bleibt unter MIT ([eigene LICENSE](packages/highlighter/LICENSE)), damit fremde Seiten es ohne Auflagen einbinden können; Drittkomponenten behalten ihre Lizenzen. Diese Dokumentation ersetzt keine vollständige Lizenzinventur.
 
 ## Mitmachen
 

@@ -28,6 +28,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   veraltet: 412). `POST /api/v1/proposals` nimmt `Idempotency-Key` an: Wiederholungen liefern dieselbe Antwort ohne
   zweiten Vorschlag. Die OpenAPI nennt je Operation Zweck und Datenklassen; die CI vergleicht sie mit dem letzten
   Release und schlägt bei brechenden Änderungen fehl.
+### Geändert
+
+- **Lizenz AGPL-3.0 (#336):** Der Code steht ab dieser Version unter der GNU Affero General Public License 3.0 oder
+  später (bisher MIT; frühere Versionen bleiben MIT). Die Daten bleiben unter CC BY 4.0. Die Fusszeile verweist auf
+  den Quellcode der laufenden Version (`GLOSSARY_SOURCE_URL`).
 
 ## [0.14.0] – 2026-11-14
 

@@ -42,6 +42,8 @@ class HandleInertiaRequests extends Middleware
                 // einstellbar (#106); leer = Link ausblenden
                 'githubRepo' => Settings::string('links.github_repo') ?: null,
                 'pages' => Settings::string('links.pages_url') ?: null,
+                // Quellcode der laufenden Version, immer sichtbar (AGPL-3.0 §13, #336)
+                'quellcode' => AppVersion::sourceUrl(),
             ],
             // Farben der Kategorien und Herkunft je Label (#77), für die farbigen Tags
             'farben' => fn (): array => Palette::listColors(),

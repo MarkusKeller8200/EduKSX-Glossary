@@ -74,13 +74,17 @@ export default function Legals() {
                         href="https://github.com/MarkusKeller8200/EduKSX-Glossary/blob/main/LICENSE"
                         className="text-link underline underline-offset-4"
                     >
-                        MIT-Lizenz
+                        GNU Affero General Public License 3.0 oder später
                     </a>{' '}
-                    (Copyright Markus Keller). Er darf frei genutzt, geändert
-                    und weitergegeben werden, solange der Copyright- und
-                    Lizenzhinweis erhalten bleibt. Fremde Bestandteile behalten
-                    ihre eigenen Lizenzen; Marke und Wortmarke MarKusSXCH /
-                    EduKSX sind nicht Teil der Lizenz.
+                    (AGPL-3.0, Copyright Markus Keller; Versionen bis 0.14.0
+                    unter MIT). Er darf genutzt, geändert und weitergegeben
+                    werden; wer eine geänderte Fassung im Netz anbietet, stellt
+                    deren Quellcode bereit – der Quellcode dieser Version ist in
+                    der Fusszeile verlinkt. Das Script zur Einbindung und die
+                    Browser-Erweiterung stehen weiterhin unter der MIT-Lizenz.
+                    Fremde Bestandteile behalten ihre eigenen Lizenzen; Marke
+                    und Wortmarke MarKusSXCH / EduKSX sind nicht Teil der
+                    Lizenz.
                 </p>
                 <p>
                     Für selbst erstellte und entsprechend lizenzierbare
