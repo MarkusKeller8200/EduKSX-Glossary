@@ -119,9 +119,31 @@ final class AccountManager
      *
      * @param  callable(): void  $rules
      */
+    /**
+     * Bearbeitung einschränken bzw. wieder freigeben (#312, DB-Standard B13): Daten bleiben gespeichert, werden aber
+     * nicht angezeigt, weitergegeben oder geändert; Sitzungen enden. Nur Verwaltung bzw. Server.
+     */
+    public function restrictProcessing(?User $actor, User $target, bool $restricted): void
+    {
+        $action = $restricted ? 'account.processing_restricted' : 'account.processing_unrestricted';
+        if ($actor !== null && ! $actor->hasPermission('manage-users')) {
+            Audit::log($actor, $target, $action, ['reason' => 'Dafür fehlt das Recht «Benutzer und Rollen verwalten».'], 'denied');
+
+            throw new AccessDenied('Dafür fehlt das Recht «Benutzer und Rollen verwalten».');
+        }
+        Audit::log($actor, $target, $action);
+        $target->forceFill(['is_processing_restricted' => $restricted])->save();
+        if ($restricted) {
+            $this->endSessions($target);
+        }
+    }
+
     private function authorize(?User $actor, User $target, string $action, callable $rules): void
     {
         try {
+            if ($target->is_processing_restricted) {
+                throw new AccessDenied('Die Bearbeitung dieses Kontos ist eingeschränkt.');
+            }
             if ($actor !== null) {
                 if (! $actor->hasPermission('manage-users')) {
                     throw new AccessDenied('Dafür fehlt das Recht «Benutzer und Rollen verwalten».');

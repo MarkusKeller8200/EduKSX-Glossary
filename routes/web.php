@@ -130,6 +130,7 @@ Route::get('registrieren/bestaetigen/{user}/{hash}', [RegisterController::class,
 Route::middleware('auth')->prefix('konto')->group(function () {
     Route::get('/', [AccountController::class, 'show'])->name('account');
     Route::put('/', [AccountController::class, 'update'])->name('account.update');
+    Route::get('meine-daten', [AccountController::class, 'data'])->middleware('throttle:10,1')->name('account.data');
     Route::post('news', [AccountController::class, 'news'])->middleware('throttle:10,1')->name('account.news');
     Route::put('passwort', [AccountController::class, 'password'])->middleware('throttle:10,1')->name('account.password');
     Route::post('loeschen', [AccountController::class, 'destroy'])->middleware('throttle:5,1')->name('account.destroy');
@@ -193,6 +194,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::get('benutzer', [UserController::class, 'index'])->name('admin.users');
         Route::post('benutzer', [UserController::class, 'store'])->name('admin.users.store');
         Route::get('benutzer/{user}', [UserController::class, 'show'])->whereUuid('user')->name('admin.users.show');
+        Route::get('benutzer/{user}/daten', [UserController::class, 'data'])->whereUuid('user')->middleware('throttle:10,1')->name('admin.users.data');
         Route::put('benutzer/{user}/rollen', [UserController::class, 'updateRoles'])->whereUuid('user')->name('admin.users.roles');
         Route::post('benutzer/{user}/sperren', [UserController::class, 'block'])->whereUuid('user')->name('admin.users.block');
         Route::post('benutzer/{user}/entsperren', [UserController::class, 'unblock'])->whereUuid('user')->name('admin.users.unblock');

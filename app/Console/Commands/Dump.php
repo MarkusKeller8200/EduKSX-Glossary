@@ -14,7 +14,8 @@ class Dump extends Command
 {
     protected $signature = 'glossary:dump
         {ziel? : ZIP-Datei (Vorgabe: storage/app/backups/dump-<Zeitpunkt>.zip)}
-        {--passwort : Passwort abfragen und den Dump verschlüsseln (AES-256)}';
+        {--passwort : Passwort abfragen und den Dump verschlüsseln (AES-256)}
+        {--anonymisiert : Personendaten nach Datenklasse ersetzen – nur so für dev und test (#313)}';
 
     protected $description = 'Vollständigen Dump der Datenbank als ZIP schreiben (mit oder ohne Passwort)';
 
@@ -36,14 +37,14 @@ class Dump extends Command
         }
 
         try {
-            $manifest = DatabaseDump::create($target, $password);
+            $manifest = DatabaseDump::create($target, $password, null, (bool) $this->option('anonymisiert'));
         } catch (Throwable $e) {
             $this->error('Dump fehlgeschlagen: '.$e->getMessage());
 
             return self::FAILURE;
         }
 
-        $this->info('Dump geschrieben: '.$target.($manifest['encrypted'] ? ' (verschlüsselt)' : ' (ohne Passwort)'));
+        $this->info('Dump geschrieben: '.$target.($manifest['encrypted'] ? ' (verschlüsselt)' : ' (ohne Passwort)').($manifest['anonymized'] ? ', anonymisiert' : ''));
         $this->table(['Tabelle', 'Zeilen'], array_map(
             fn (string $t, int $n): array => [$t, $n],
             array_keys($manifest['tables']),

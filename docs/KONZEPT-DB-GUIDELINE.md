@@ -169,19 +169,19 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
 ## 12. DB-Standard 1.2 im Glossary (Teil E, B7–B14)
 
-| Regel                           | Im Glossary                                                                                                                     | Umsetzung                                               |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| E1 Modulschlüssel               | `glossary`                                                                                                                      | –                                                       |
-| E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191                                     |
-| E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | umgesetzt 0.14.0 (#311), Befehl `glossary:plattform-id` |
-| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                                                    |
-| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                                                    |
-| B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                                                    |
-| B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                                                    |
-| B11 Lesezugriffe                | entfällt (keine Daten der Klasse besonders schützenswert)                                                                       | –                                                       |
-| B12 Anonymisierte Kopien        | Dump (#268) für dev und test nur anonymisiert                                                                                   | #313                                                    |
-| B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | #312                                                    |
-| B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                                                       |
+| Regel                           | Im Glossary                                                                                                                     | Umsetzung                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| E1 Modulschlüssel               | `glossary`                                                                                                                      | –                                                                                   |
+| E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191                                                                 |
+| E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | umgesetzt 0.14.0 (#311), Befehl `glossary:plattform-id`                             |
+| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                                                                                |
+| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | umgesetzt 0.14.0 (#312): «Meine Daten», Export in der Verwaltung                    |
+| B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | umgesetzt 0.14.0 (#314): `app/Data/Purposes.php`, `docs/DATENSCHUTZ-VERZEICHNIS.md` |
+| B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                                                                                |
+| B11 Lesezugriffe                | entfällt (keine Daten der Klasse besonders schützenswert)                                                                       | –                                                                                   |
+| B12 Anonymisierte Kopien        | Dump (#268) für dev und test nur anonymisiert                                                                                   | umgesetzt 0.14.0 (#313): `glossary:dump --anonymisiert`, `glossary:dump-einspielen` |
+| B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | umgesetzt 0.14.0 (#312): `glossary:einschraenken`                                   |
+| B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                                                                                   |
 
 ## 13. Offene Punkte
 

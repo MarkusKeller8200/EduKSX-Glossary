@@ -166,6 +166,15 @@ Umzug einer bestehenden SQLite-Datenbank (ohne Datenverlust, Zählung je Tabelle
 
 Getestet im CI-Job PostgreSQL (`tests/Feature/UmzugPostgresTest.php`).
 
+## Daten für dev und test (#313)
+
+Produktive Daten kommen nur **anonymisiert** nach dev oder test (DB-Standard B12): auf prod
+`php artisan glossary:dump --anonymisiert --passwort`, auf dev bzw. test (gleiche Version)
+`php artisan glossary:dump-einspielen <datei.zip> --passwort=…`. Nicht anonymisierte Dumps weist der Befehl ab, in
+production ist er gesperrt. Ersetzt werden alle Felder der Klassen personenbezogen, besonders schützenswert und geheim
+(docs/DATENKLASSEN.md); Schlüssel, Verweise und Mengen bleiben. Anmelden auf der Kopie nur mit neu gesetztem Passwort
+(`glossary:admin`).
+
 ## Anbindung an EduKSX-Ident und eduksx/core
 
 Das Glossary bleibt ohne Plattform voll nutzbar. Die Anbindung wird je Installation eingeschaltet; die

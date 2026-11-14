@@ -494,6 +494,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | --- | --- |
 | `id` | intern |
 | `platform_id` | intern |
+| `is_processing_restricted` | intern |
 | `name` | personenbezogen |
 | `first_name` | personenbezogen |
 | `last_name` | personenbezogen |

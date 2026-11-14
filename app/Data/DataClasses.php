@@ -393,6 +393,7 @@ final class DataClasses
         'users' => [
             'id' => DataClass::Internal,
             'platform_id' => DataClass::Internal,
+            'is_processing_restricted' => DataClass::Internal,
             'name' => DataClass::Personal,
             'first_name' => DataClass::Personal,
             'last_name' => DataClass::Personal,

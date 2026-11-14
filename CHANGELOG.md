@@ -20,6 +20,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Plattform-IDs für Organisationen und Konten (`glossary:plattform-id`); Ereignis-IDs für Feed und Protokolle. Auf
   PostgreSQL liegen alle Tabellen im Schema `glossary`; Umzug einer SQLite-Datenbank mit `glossary:umzug-postgres`.
   Das Update auf 0.14 läuft mit kurzem Unterbruch; ein Rücksprung auf 0.13 geht nur mit der Sicherung.
+- **Datenschutz nach Plattform-Standard (#312, #313, #314):** «Mein Konto» → «Meine Daten» lädt alle Daten des
+  Kontos als JSON herunter, die Verwaltung exportiert sie für eine Anfrage per Brief (jeder Aufruf im
+  Sicherheitsprotokoll). Bearbeitung eines Kontos einschränken (`glossary:einschraenken`). Zweck, Rechtsgrundlage und
+  Löschfrist je Tabelle im Code; daraus das Verzeichnis der Bearbeitungen (`docs/DATENSCHUTZ-VERZEICHNIS.md`).
+  Kopien für dev und test nur anonymisiert (`glossary:dump --anonymisiert`, `glossary:dump-einspielen`).
 
 - **Steckbrief und Bereitschaft (#189, #325):** `/.well-known/eduksx-module.json` mit Modulschlüssel, Version,
   API-Version, Datenlizenz, Verweisen auf OpenAPI und Dokumentation sowie den Ereignissen, die das Glossary von Ident

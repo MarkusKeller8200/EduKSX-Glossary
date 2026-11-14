@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Data\Anonymizer;
+use App\Data\DataClasses;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -32,9 +34,9 @@ final class DatabaseDump
     /**
      * Dump in die ZIP-Datei $target schreiben.
      *
-     * @return array{format: int, app_version: string, build: string|null, created_at: string, driver: string, encrypted: bool, sqlite_file: bool, tables: array<string, int>, skipped: list<string>, files: array<string, string>}
+     * @return array{format: int, app_version: string, build: string|null, created_at: string, driver: string, encrypted: bool, anonymized: bool, sqlite_file: bool, tables: array<string, int>, skipped: list<string>, files: array<string, string>}
      */
-    public static function create(string $target, ?string $password = null, ?string $connection = null): array
+    public static function create(string $target, ?string $password = null, ?string $connection = null, bool $anonymize = false): array
     {
         $password = $password === '' ? null : $password;
         if ($password === null && self::passwordRequired()) {
@@ -54,19 +56,22 @@ final class DatabaseDump
             $tables = [];
             $skipped = [];
 
-            $sqlite = $db->getDriverName() === 'sqlite' && self::sqliteCopy($db, $work.'/glossary.sqlite');
+            // anonymisiert (#313, DB B12): keine exakte Kopie der Datei, nur die ersetzten Tabellen
+            $sqlite = ! $anonymize && $db->getDriverName() === 'sqlite' && self::sqliteCopy($db, $work.'/glossary.sqlite');
             if ($sqlite) {
                 $files['datenbank/glossary.sqlite'] = $work.'/glossary.sqlite';
             }
 
             foreach (self::tableNames($db) as $table) {
-                if (in_array($table, self::VOLATILE, true)) {
+                // anonymisiert: Tabellen des Frameworks ausser migrations weglassen (Warteschlange, Passwort-Links
+                // können Personendaten enthalten, #313)
+                if (in_array($table, self::VOLATILE, true) || ($anonymize && $table !== 'migrations' && in_array($table, DataClasses::FRAMEWORK, true))) {
                     $skipped[] = $table;
 
                     continue;
                 }
                 $path = $work.'/tabellen/'.$table.'.jsonl';
-                $tables[$table] = self::exportTable($db, $table, $path);
+                $tables[$table] = self::exportTable($db, $table, $path, $anonymize);
                 $files['tabellen/'.$table.'.jsonl'] = $path;
             }
 
@@ -77,6 +82,7 @@ final class DatabaseDump
                 'created_at' => now()->toIso8601String(),
                 'driver' => $db->getDriverName(),
                 'encrypted' => $password !== null,
+                'anonymized' => $anonymize,
                 'sqlite_file' => $sqlite,
                 'tables' => $tables,
                 'skipped' => $skipped,
@@ -131,7 +137,7 @@ final class DatabaseDump
     }
 
     /** Tabelle Zeile für Zeile als JSON Lines schreiben; liefert die Anzahl Zeilen. */
-    private static function exportTable(Connection $db, string $table, string $path): int
+    private static function exportTable(Connection $db, string $table, string $path, bool $anonymize = false): int
     {
         $handle = fopen($path, 'wb');
         if ($handle === false) {
@@ -140,9 +146,10 @@ final class DatabaseDump
         $count = 0;
         try {
             foreach ($db->table($table)->cursor() as $row) {
+                $row = $anonymize ? Anonymizer::row($table, (array) $row, $count + 1) : (array) $row;
                 $values = array_map(
                     fn (mixed $v): mixed => is_string($v) && ! mb_check_encoding($v, 'UTF-8') ? ['base64' => base64_encode($v)] : $v,
-                    (array) $row,
+                    $row,
                 );
                 fwrite($handle, json_encode($values, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)."\n");
                 $count++;
