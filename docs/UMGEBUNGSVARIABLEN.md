@@ -123,6 +123,7 @@ landen nur im Protokoll.
 | `GLOSSARY_DUMP_REQUIRE_PASSWORD`                                     | `false`                            | vollständiger Dump nur mit Passwort                                                                                               |
 | `GLOSSARY_DEV_BACKUPS`                                               | `false`                            | Sicherungen anlegen und wiederherstellen in Administration › System (#355), Konten bleiben; nur auf dev                           |
 | 🔒 `GLOSSARY_DUMP_PASSWORD`                                          | leer                               | Passwort für `php artisan glossary:dump` ohne Eingabe                                                                             |
+| `GLOSSARY_SOURCE_URL`                                                | Repository auf GitHub              | Quellcode der laufenden Version in der Fusszeile (AGPL-3.0 §13, #336); bei eigenen Änderungen auf das eigene Repository setzen    |
 | `GLOSSARY_BUILD` / `GLOSSARY_BUILD_DATE` / `GLOSSARY_BUILD_DESCRIBE` | vom Image                          | Versionsanzeige; nicht von Hand setzen                                                                                            |
 
 ## 8. Server und Docker Compose

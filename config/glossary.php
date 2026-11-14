@@ -10,6 +10,8 @@ return [
 
     // Vom Deployment gesetzt: Commit, Zeitpunkt, `git describe --tags --long` (Developer Release)
     'build' => env('GLOSSARY_BUILD'),
+    // Quellcode der laufenden Version (AGPL-3.0 §13, #336); wer den Code ändert, verweist auf das eigene Repository
+    'source_url' => env('GLOSSARY_SOURCE_URL', 'https://github.com/MarkusKeller8200/EduKSX-Glossary'),
     'build_date' => env('GLOSSARY_BUILD_DATE'),
     'build_describe' => env('GLOSSARY_BUILD_DESCRIBE'),
 

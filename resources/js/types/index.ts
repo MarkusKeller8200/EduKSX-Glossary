@@ -29,7 +29,11 @@ export type SharedData = {
         newsFrage: boolean;
     };
     appVersion: AppVersion;
-    links: { githubRepo: string | null; pages: string | null };
+    links: {
+        githubRepo: string | null;
+        pages: string | null;
+        quellcode: string;
+    };
     flash: { status: string | null };
     /** Farbe (Name der Palette) je Label der Kategorien und Herkunft (#77) */
     farben: {

@@ -85,6 +85,13 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     </Link>
                     {' · '}
                     <a
+                        href={links.quellcode}
+                        className="text-link underline-offset-4 hover:underline"
+                    >
+                        Quellcode (AGPL-3.0)
+                    </a>
+                    {' · '}
+                    <a
                         href="https://creativecommons.org/licenses/by/4.0/deed.de"
                         className="text-link underline-offset-4 hover:underline"
                     >
