@@ -13,12 +13,20 @@ use Illuminate\Http\Request;
  */
 final class TermListCursor
 {
-    /** Sortierschlüssel eines Begriffs – gleich wie die Sortierung in ApiPresenter::buildTerms(). */
+    /**
+     * Sortierschlüssel eines Begriffs – gleich wie die Sortierung in ApiPresenter::buildTerms().
+     *
+     * @param  array<string, mixed>  $term
+     */
     public static function key(array $term): string
     {
         return (string) ($term['abbreviation'] ?: $term['name']);
     }
 
+    /**
+     * @param  array<string, mixed>  $a
+     * @param  array<string, mixed>  $b
+     */
     public static function compare(array $a, array $b): int
     {
         return strcasecmp(self::key($a), self::key($b)) ?: strcmp((string) $a['id'], (string) $b['id']);
