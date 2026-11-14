@@ -41,6 +41,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Vorschläge mit UUID (#344):** Vorschläge haben intern eine UUID als Schlüssel; Adressen wie `/vorschlaege/…` und
+  die API verwenden sie. Die gewohnte «Vorschlag Nr. …» bleibt als Anzeige. Bestehende Vorschläge und ihr Verlauf
+  werden beim Update vollständig übernommen.
 - **Lizenz AGPL-3.0 (#336):** Der Code steht ab dieser Version unter der GNU Affero General Public License 3.0 oder
   später (bisher MIT; frühere Versionen bleiben MIT). Die Daten bleiben unter CC BY 4.0. Die Fusszeile verweist auf
   den Quellcode der laufenden Version (`GLOSSARY_SOURCE_URL`).

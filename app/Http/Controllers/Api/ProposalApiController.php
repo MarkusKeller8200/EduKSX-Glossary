@@ -94,14 +94,14 @@ class ProposalApiController extends Controller
     /** Starker Objekt-ETag: öffentliche Kennung und Stand (B2) */
     public static function etag(Proposal $proposal): string
     {
-        return '"'.$proposal->uuid.'.'.(int) $proposal->lock_version.'"';
+        return '"'.$proposal->id.'.'.(int) $proposal->lock_version.'"';
     }
 
     private function own(Request $request, string $id): Proposal
     {
         $token = $this->token($request);
         $proposal = Str::isUuid($id)
-            ? Proposal::query()->where('uuid', strtolower($id))->where('service_account_id', $token->account->id)->first()
+            ? Proposal::query()->where('id', strtolower($id))->where('service_account_id', $token->account->id)->first()
             : null;
         if ($proposal === null) {
             throw ProblemException::common(404, 'not_found', 'Vorschlag nicht gefunden.');
@@ -114,7 +114,7 @@ class ProposalApiController extends Controller
     private function present(Proposal $proposal): array
     {
         return [
-            'id' => $proposal->uuid,
+            'id' => $proposal->id,
             'kind' => $proposal->proposal_type,
             'term_id' => $proposal->term_id,
             'base_revision' => $proposal->base_revision,

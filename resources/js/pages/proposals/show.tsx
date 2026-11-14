@@ -37,7 +37,7 @@ export default function ProposalShow({
 
     return (
         <>
-            <Head title={`Vorschlag Nr. ${v.id}`} />
+            <Head title={`Vorschlag Nr. ${v.nummer}`} />
             <p className="text-sm">
                 <Link
                     href="/vorschlaege"
@@ -47,7 +47,7 @@ export default function ProposalShow({
                 </Link>
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-                Vorschlag Nr. {v.id}{' '}
+                Vorschlag Nr. {v.nummer}{' '}
                 <Badge
                     variant="outline"
                     className={proposalStatusClass(v.status)}

@@ -101,8 +101,8 @@ entfällt (Quelle ist `terms.url`, K1).
   Löschregister); die fortlaufende Zahl bleibt Cursor des Änderungs-Feeds.
 - **`settings` ohne `id` (#332, Ausnahme zu A3):** Schlüssel-Wert-Tabelle mit festen englischen Schlüsseln als
   Primärschlüssel; keine Verweise auf sie, kein Zusammenführen – eine zusätzliche `id` brächte nichts.
-- **Vorschläge (#322):** öffentliche Kennung `proposals.uuid` (UUID v7); Primärschlüssel wird sie mit Schritt 2
-  (#344).
+- **Vorschläge (#322, #344):** Primärschlüssel `proposals.id` ist die UUID v7 (auch in `proposal_events.proposal_id`);
+  die fortlaufende Zahl bleibt als Anzeige «Vorschlag Nr. …» in `proposals.number` (eindeutig, öffentlicher Kurzcode).
 - Permalink-Code `/g/{code}` (6 Zeichen, unveränderlich, DEC-026): eindeutig über **alle** Zeilen, auch gelöschte; wird
   nie neu vergeben.
 - **`terms.published_revision_id` gehört zum selben Begriff:** `term_revisions` erhält UNIQUE `(term_id, id)`;

@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { proposalStatusClass } from '@/lib/proposals';
 
 export type VorschlagKurz = {
-    id: number;
+    id: string;
+    nummer: number;
     art: string;
     begriff: { slug: string; titel: string } | null;
     titel: string | null;
@@ -49,7 +50,7 @@ export default function ProposalIndex({
                             >
                                 <span>
                                     <span className="text-muted-foreground">
-                                        Nr. {v.id} · {v.art}:
+                                        Nr. {v.nummer} · {v.art}:
                                     </span>{' '}
                                     <span className="font-medium">
                                         {v.begriff?.titel ?? v.titel ?? '–'}

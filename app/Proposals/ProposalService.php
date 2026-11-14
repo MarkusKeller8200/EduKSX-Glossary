@@ -190,7 +190,7 @@ final class ProposalService
         }
 
         return DB::transaction(function () use ($proposal, $moderator, $data, $term, $canEditOfficial, $note, $fields): Term {
-            $context = ['via' => 'vorschlag', 'proposal_id' => $proposal->id, 'proposed_by' => $proposal->author_label];
+            $context = ['via' => 'vorschlag', 'proposal_id' => $proposal->id, 'proposal_number' => $proposal->number, 'proposed_by' => $proposal->author_label];
             $result = $this->glossary->save($term, $data, $moderator, $canEditOfficial, null, 'updated', $context);
             $proposal->forceFill([
                 'status' => 'accepted', 'resolved_at' => now(),
@@ -244,7 +244,7 @@ final class ProposalService
     {
         $ids = Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', $before)
             ->where(fn ($q) => $q->whereNotNull('author_id')->orWhere('author_label', '!=', Proposal::ANONYMOUS))
-            ->whereNull('service_account_id')->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
+            ->whereNull('service_account_id')->pluck('id')->map(fn ($id): string => (string) $id)->values()->all();
         $this->anonymize($ids);
 
         return count($ids);
@@ -253,14 +253,14 @@ final class ProposalService
     /** Kontolöschung: Vorschläge der Person ohne Personenbezug (Journal::forget). */
     public static function forget(User $user): void
     {
-        $ids = Proposal::query()->where('author_id', $user->id)->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
+        $ids = Proposal::query()->where('author_id', $user->id)->pluck('id')->map(fn ($id): string => (string) $id)->values()->all();
         (new self(app(GlossaryService::class)))->anonymize($ids);
         ProposalEvent::query()->where('actor_id', $user->id)->toBase()->update(['actor_id' => null]);
     }
 
     // ---------- intern ----------
 
-    /** @param  array<int, int>  $ids */
+    /** @param  list<string>  $ids */
     private function anonymize(array $ids): void
     {
         if ($ids === []) {
@@ -349,7 +349,7 @@ final class ProposalService
      * Vorschläge, die auf die Organisation warten, direkt in die Moderation geben (Austritt, Entfernen, Organisation
      * gelöscht).
      *
-     * @param  array<int, int>  $ids
+     * @param  list<string>  $ids
      */
     public static function forwardFromOrganization(array $ids, string $reason): void
     {

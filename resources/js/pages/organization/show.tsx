@@ -43,7 +43,8 @@ type MeineEinladung = { id: number; organisation: string; gueltig_bis: string };
 type Anpassung = { slug: string; titel: string; geaendert: string | null };
 
 type Vorschlag = {
-    id: number;
+    id: string;
+    nummer: number;
     art: string;
     titel: string;
     slug: string | null;
@@ -466,7 +467,7 @@ function VorschlagKarte({ v }: { v: Vorschlag }) {
         <li className="rounded-lg border border-border p-3 text-sm">
             <p>
                 <span className="text-muted-foreground">
-                    Nr. {v.id} · {v.art}:
+                    Nr. {v.nummer} · {v.art}:
                 </span>{' '}
                 {v.slug ? (
                     <Link

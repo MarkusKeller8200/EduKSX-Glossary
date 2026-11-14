@@ -71,7 +71,7 @@ class ProposalController extends Controller
             ? 'ein Organisations-Admin Ihrer Organisation bestätigt ihn, danach prüft ihn die Redaktion.'
             : 'die Redaktion prüft ihn.';
 
-        return redirect("/vorschlaege/{$proposal->id}")->with('status', "Danke! Vorschlag Nr. {$proposal->id} ist eingereicht; {$next}");
+        return redirect("/vorschlaege/{$proposal->id}")->with('status', "Danke! Vorschlag Nr. {$proposal->number} ist eingereicht; {$next}");
     }
 
     public function index(Request $request): Response
@@ -127,6 +127,7 @@ class ProposalController extends Controller
     {
         return [
             'id' => $p->id,
+            'nummer' => $p->number,
             'art' => $p->proposal_type === 'new' ? 'Neuer Begriff' : 'Korrektur',
             // nur der veröffentlichte Stand – nie Entwürfe der Redaktion
             'begriff' => $p->term?->publishedRevision === null ? null : [
