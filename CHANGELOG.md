@@ -23,6 +23,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 ### Korrigiert
 
 - `COMPOSE_FILE` aus der `.env` gilt im Container nicht mehr als Datei mit einem Geheimnis (Meldung beim Start).
+- **API Stufe 2 (#347, #348, #349, #350):** Servicekonten können einen eigenen offenen Vorschlag mit
+  `DELETE /api/v1/proposals/{id}` zurückziehen; nötig ist `If-Match` mit dem ETag aus GET bzw. POST (fehlt: 428,
+  veraltet: 412). `POST /api/v1/proposals` nimmt `Idempotency-Key` an: Wiederholungen liefern dieselbe Antwort ohne
+  zweiten Vorschlag. Die OpenAPI nennt je Operation Zweck und Datenklassen; die CI vergleicht sie mit dem letzten
+  Release und schlägt bei brechenden Änderungen fehl.
 
 ## [0.14.0] – 2026-11-14
 

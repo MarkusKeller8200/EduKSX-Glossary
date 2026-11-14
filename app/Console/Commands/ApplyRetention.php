@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Access\Audit;
 use App\Access\Permission;
+use App\Http\Idempotency;
 use App\Mail\InactivityNotice;
 use App\Models\Category;
 use App\Models\ImportBatch;
@@ -93,6 +94,11 @@ class ApplyRetention extends Command
             ? DB::table('search_misses')->where('last_seen_at', '<', now()->subDays(SearchMisses::RETENTION_DAYS))->count()
             : SearchMisses::prune();
 
+        // 6b. Idempotency-Keys der API (#348): 24 Stunden
+        $keys = $dry
+            ? DB::table('api_idempotency_keys')->where('created_at', '<', now()->subHours(Idempotency::HOURS))->count()
+            : Idempotency::prune();
+
         // 7. Papierkorb (#286): nach der Frist endgültig löschen
         $trashed = 0;
         foreach ([Category::class, Source::class, Organization::class] as $model) {
@@ -108,7 +114,7 @@ class ApplyRetention extends Command
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
             ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt, "
-            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$trashed} Einträge aus dem Papierkorb.");
+            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$keys} Idempotency-Keys, {$trashed} Einträge aus dem Papierkorb.");
 
         return self::SUCCESS;
     }
