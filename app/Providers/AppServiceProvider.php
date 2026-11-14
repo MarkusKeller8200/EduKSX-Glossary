@@ -6,11 +6,13 @@ use App\Access\IdentEvents;
 use App\Access\Permission;
 use App\Database\PostgresSchema;
 use App\Glossary\PublicCache;
+use App\Metrics\Metrics;
 use App\Models\User;
 use App\Organizations\OrganizationService;
 use App\Support\MailSettings;
 use App\Support\Turnstile;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Events\ConnectionEstablished;
 use Illuminate\Support\Facades\Date;
@@ -64,6 +66,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
+
+        // Anmeldungen für die Metriken (#192)
+        Event::listen(fn (Login $event) => Metrics::login('ok'));
+        Event::listen(fn (Failed $event) => Metrics::login('failed'));
 
         // Offene Einladungen in eine Organisation bei der Anmeldung melden (#148); annehmen nur aktiv
         Event::listen(function (Login $event): void {

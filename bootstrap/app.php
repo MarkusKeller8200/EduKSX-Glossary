@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\AuthenticateServiceToken;
+use App\Http\Middleware\CountRequests;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -38,6 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Frühere Adresse weiterleiten (#304), vor allem anderen
         $middleware->prepend(RedirectFormerHost::class);
+        // Anfragen und Antwortzeiten für /metrics (#192), nur mit GLOSSARY_METRICS_TOKEN aktiv
+        $middleware->append(CountRequests::class);
 
         $middleware->web(append: [
             EnsureAccountActive::class,

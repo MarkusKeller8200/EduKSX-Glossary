@@ -33,6 +33,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Lizenz AGPL-3.0 (#336):** Der Code steht ab dieser Version unter der GNU Affero General Public License 3.0 oder
   später (bisher MIT; frühere Versionen bleiben MIT). Die Daten bleiben unter CC BY 4.0. Die Fusszeile verweist auf
   den Quellcode der laufenden Version (`GLOSSARY_SOURCE_URL`).
+- **Protokolle und Metriken (#192):** Im Container schreibt die Anwendung ihre Protokolle als JSON, eine Zeile je
+  Eintrag mit Anfrage-ID, Modul und Version (`LOG_FORMAT=json`). Mit `GLOSSARY_METRICS_TOKEN` gibt es unter `/metrics`
+  Metriken für Prometheus: Anfragen und Antwortzeiten je Bereich, Anmeldungen, veröffentlichte Begriffe, offene
+  Vorschläge, Warteschlange – ohne Personendaten, nur mit Token.
 
 ## [0.14.0] – 2026-11-14
 

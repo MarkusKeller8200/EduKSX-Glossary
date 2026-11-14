@@ -1,5 +1,7 @@
 <?php
 
+use App\Logging\ModuleProcessor;
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -109,8 +111,9 @@ return [
             'handler_with' => [
                 'stream' => 'php://stderr',
             ],
-            'formatter' => env('LOG_STDERR_FORMATTER'),
-            'processors' => [PsrLogMessageProcessor::class],
+            // LOG_FORMAT=json (Vorgabe im Image, #192): eine Zeile JSON je Eintrag mit request_id, Modul und Version
+            'formatter' => env('LOG_FORMAT') === 'json' ? JsonFormatter::class : env('LOG_STDERR_FORMATTER'),
+            'processors' => [PsrLogMessageProcessor::class, ModuleProcessor::class],
         ],
 
         'syslog' => [

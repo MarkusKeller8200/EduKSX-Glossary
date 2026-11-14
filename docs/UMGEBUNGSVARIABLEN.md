@@ -62,18 +62,20 @@ Zeichen in den Tabellen: ★ = Pflicht oder wichtig · 🔒 = Geheimnis.
 
 ## 4. Session, Cache, Warteschlange, Protokoll
 
-| Variable                                               | Standard (Image)            | Bedeutung                                                   |
-| ------------------------------------------------------ | --------------------------- | ----------------------------------------------------------- |
-| `SESSION_DRIVER`                                       | `database`                  |                                                             |
-| `SESSION_LIFETIME`                                     | `120`                       | Minuten                                                     |
-| `SESSION_ENCRYPT` / `SESSION_PATH` / `SESSION_DOMAIN`  | `false` / `/` / `null`      |                                                             |
-| `SESSION_SECURE_COOKIE`                                | `true`                      | Cookies nur über HTTPS                                      |
-| `CACHE_STORE`                                          | `database`                  |                                                             |
-| `QUEUE_CONNECTION`                                     | `sync`                      | `database` mit dem Dienst «worker» (Mails mit Wiederholung) |
-| `BROADCAST_CONNECTION` / `FILESYSTEM_DISK`             | `log` / `local`             |                                                             |
-| `LOG_CHANNEL`                                          | `stderr` (Image)            | im Container an Vector bzw. `docker logs`                   |
-| `LOG_STACK` / `LOG_LEVEL` / `LOG_DEPRECATIONS_CHANNEL` | `single` / `debug` / `null` |                                                             |
-| `LOG_DAILY_DAYS`                                       | `14`                        | Aufbewahrung beim Kanal `daily`                             |
+| Variable                                               | Standard (Image)            | Bedeutung                                                                                 |
+| ------------------------------------------------------ | --------------------------- | ----------------------------------------------------------------------------------------- |
+| `SESSION_DRIVER`                                       | `database`                  |                                                                                           |
+| `SESSION_LIFETIME`                                     | `120`                       | Minuten                                                                                   |
+| `SESSION_ENCRYPT` / `SESSION_PATH` / `SESSION_DOMAIN`  | `false` / `/` / `null`      |                                                                                           |
+| `SESSION_SECURE_COOKIE`                                | `true`                      | Cookies nur über HTTPS                                                                    |
+| `CACHE_STORE`                                          | `database`                  |                                                                                           |
+| `QUEUE_CONNECTION`                                     | `sync`                      | `database` mit dem Dienst «worker» (Mails mit Wiederholung)                               |
+| `BROADCAST_CONNECTION` / `FILESYSTEM_DISK`             | `log` / `local`             |                                                                                           |
+| `LOG_CHANNEL`                                          | `stderr` (Image)            | im Container an Vector bzw. `docker logs`                                                 |
+| `LOG_STACK` / `LOG_LEVEL` / `LOG_DEPRECATIONS_CHANNEL` | `single` / `debug` / `null` |                                                                                           |
+| `LOG_FORMAT`                                           | `json` (Image)              | eine Zeile JSON je Eintrag mit `request_id`, Modul und Version (#192); leer = Text        |
+| 🔒 `GLOSSARY_METRICS_TOKEN`                            | leer                        | Metriken für Prometheus unter `/metrics` mit `Authorization: Bearer …` (#192); leer = aus |
+| `LOG_DAILY_DAYS`                                       | `14`                        | Aufbewahrung beim Kanal `daily`                                                           |
 
 ## 5. Mail
 
