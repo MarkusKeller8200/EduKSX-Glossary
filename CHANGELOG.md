@@ -52,6 +52,13 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 - `COMPOSE_FILE` aus der `.env` gilt im Container nicht mehr als Datei mit einem Geheimnis (Meldung beim Start).
 
+### Behoben
+
+- **Tabellen ohne unnötigen Scrollbalken (#370):** Die Spalte, die den freien Platz aufnimmt, zählt für die
+  Mindestbreite der Tabelle nur noch mit ihrer Mindestbreite; ein Scrollbalken erscheint erst, wenn die übrigen
+  Spalten wirklich nicht mehr hineinpassen.
+
+
 ## [0.14.0] – 2026-11-14
 
 ### Neu
