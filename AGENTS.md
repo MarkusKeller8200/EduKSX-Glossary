@@ -18,6 +18,8 @@ Projekt: EduKSX-Glossary.
 - **Datenbank nach Guideline:** Änderungen an Datenbank, Migrationen und Modellen folgen
   `docs/KONZEPT-DB-GUIDELINE.md` (DEC-031, DEC-032) und dem dort verlinkten DB-Standard der Plattform (EduKSX-Architektur);
   dessen PR-Checkliste in die Beschreibung übernehmen.
+- **API nach Standard (DEC-038):** Änderungen an der API folgen `docs/KONZEPT-API.md` und dem dort verlinkten
+  API-Standard der Plattform (EduKSX-Architektur); gemeinsame Bausteine aus `eduksx/core`, nicht neu im Glossary.
 - **CHANGELOG je Thema ein Eintrag:** Folge-Issues im selben Release ergänzen den bestehenden Eintrag (Nummern
   zusammen, z. B. «Fusszeile (#102, #125)») statt einen zweiten anzulegen; keine Leerzeilen zwischen Einträgen.
 

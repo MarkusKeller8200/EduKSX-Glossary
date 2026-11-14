@@ -1,6 +1,9 @@
 # Konzept: REST-API und Synchronisation
 
 **Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8) und dem Sync-Vertrag. Entscheide DEC-004 und DEC-005.
+Arbeitet nach **API-Standard 1.1.1** der EduKSX-Plattform (Repo EduKSX-Architektur, `docs/KONZEPT-API-GUIDELINE.md`);
+Anwendung im Glossary im Abschnitt [Anwendung des API-Standards](#anwendung-des-api-standards-111-dec-038).
+Bei Widerspruch gilt: Entscheid im Register > dieses Konzept > Plattform-Standard.
 
 ## Grundsatz (beschlossen)
 
@@ -37,16 +40,19 @@ Beispiel einer Antwort:
 
 ```json
 {
-    "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
-    "slug": "klassenlehrperson",
-    "abbreviation": "KLP",
-    "name": "Klassenlehrperson",
-    "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
-    "categories": ["Schulorganisation"],
-    "status": "aktuell",
-    "revision": 3,
-    "published_at": "2026-11-07T00:00:00Z",
-    "sources": [{ "name": "Schule", "url": "https://example.org/quelle" }]
+    "data": {
+        "id": "e84fa119-8521-4f55-a8e2-9423c59accee",
+        "slug": "klassenlehrperson",
+        "abbreviation": "KLP",
+        "name": "Klassenlehrperson",
+        "short_description": "Lehrperson mit Verantwortung für eine Klasse.",
+        "categories": ["Schulorganisation"],
+        "status": "current",
+        "status_label": "aktuell",
+        "revision": 3,
+        "published_at": "2026-11-07T00:00:00Z",
+        "sources": [{ "name": "Schule", "url": "https://example.org/quelle" }]
+    }
 }
 ```
 
@@ -207,3 +213,38 @@ einer Organisation (Scope `read-org`). Je Begriff `term` (gemeinsame Werte wie `
 - `/api/swagger`: Swagger UI mit «Try it out»; `/api/postman.json`: Postman-Sammlung (v2.1) aus der
   OpenAPI-Beschreibung (`scripts/postman.py`, Prüfung in der CI). Nach jeder Änderung an `openapi/glossary-v1.json`:
   `python3 scripts/postman.py`.
+
+## Anwendung des API-Standards 1.1.1 (DEC-038)
+
+Der Standard gilt in **Stufen** (G1): Stufe 1 «Kern» ab sofort, Stufe 2 «Betrieb» vor dem ersten produktiven Release
+(1.0), Stufe 3 nur für Funktionen, die das Glossary anbietet. Gemeinsame Bausteine kommen aus `eduksx/core` (G3);
+das Glossary stellt auf Core 0.1 um (#193). Modulschlüssel `glossary` (G2, Modulregister). Umsetzung im Meilenstein
+0.14.0.
+
+| Regel                                                                       | Stufe                | Im Glossary                                                       | Umsetzung                              |
+| --------------------------------------------------------------------------- | -------------------- | ----------------------------------------------------------------- | -------------------------------------- |
+| A1 `/api/v1`, Ressourcen englisch, Plural                                   | 1                    | erfüllt; Vorschläge noch mit Zahl statt UUID (U3)                 | #322                                   |
+| A2 Hülle `data`/`meta`/`links`, `snake_case`, `<feld>_label`                | 1                    | erfüllt; Feldname `status` in DB noch `lifecycle_status`          | #330                                   |
+| A3 Datum ISO 8601 UTC                                                       | 1                    | erfüllt                                                           | –                                      |
+| A4 Sprache `?locale=`, `Accept-Language`, `Content-Language`                | 1 (alle Sprachen: 3) | heute `?lang=` (bleibt bis 1.0 als Alias)                         | #326                                   |
+| A5 Cursor, `limit`, Gesamtzahl nur auf Anfrage, `422` bei ungültigen Werten | 1                    | Feed `changes` mit Cursor; `/terms` mit Seiten                    | #321                                   |
+| A6 `problem+json` mit `type`, `code`, `request_id`                          | 1                    | Format da, ohne `code`/`request_id`                               | #320 über Core (#193)                  |
+| A7 Statuscodes                                                              | 1                    | erfüllt (301 bei Zusammenführung, 304, 409)                       | –                                      |
+| B2 `If-Match` beim Schreiben                                                | 2                    | nur lesend ETag/304                                               | #328                                   |
+| B3 Idempotenz bei `POST /proposals`                                         | 2                    | fehlt                                                             | #328                                   |
+| B5 Caching, Kopfzeile `EduKSX-Release`                                      | 1                    | `X-Glossary-Release`; bis 1.0 parallel (Ausnahmeregister, API-E7) | #327                                   |
+| B6 Synchronisationsvertrag                                                  | 3                    | erfüllt (`changes`, `exports`, Release)                           | –                                      |
+| C1 Token-Präfix `glossary_sa_`                                              | 1                    | `gls_` (gilt bis Ablauf)                                          | #323                                   |
+| C2 Scopes `glossary:<ressource>.<aktion>`, ohne `read-org`                  | 1                    | `propose`, `read-org`                                             | #323                                   |
+| C4 Positivlisten (DEC-018)                                                  | 1                    | erfüllt (`ApiPresenter`)                                          | –                                      |
+| C5 Abruflimit 120/Min., C6 Sicherheitskopfzeilen, CORS                      | 1                    | erfüllt; künftig aus Core                                         | #193                                   |
+| C7 `request_id` erzeugen und zurückgeben                                    | 1                    | nur übernommen                                                    | #320 über Core                         |
+| C9 Datenklassen und Zweck je Operation, Auskunft                            | 2                    | Datenklassen je Spalte (#276)                                     | #312, #314, #328                       |
+| C10 ASVS L2, Scan, Pentest                                                  | 2                    | –                                                                 | #328                                   |
+| D1/D3 OpenAPI mit `x-eduksx-module`, Linter, `oasdiff`                      | 1 (oasdiff: 2)       | OpenAPI 3.1 ohne Modulkennung, ohne Linter                        | #324, #328                             |
+| D5 MCP-Werkzeuge `glossary_<operation>`                                     | 3                    | Konzept DEC-029                                                   | #319                                   |
+| D7 Tests «Prototyp»; D8 Konformitätstest aus Core                           | 1 / 2                | API-Tests vorhanden                                               | #193, #324                             |
+| S5 Steckbrief `/.well-known/eduksx-module.json`, `/health`                  | 1                    | fehlt; Schema `spec/v1/`                                          | #189 (mit Core 0.2), #325, #338 (`ui`) |
+
+Brechende Änderungen für Abnehmer (#321, #322, #323, #326, #330) kommen gemeinsam, abgestimmt mit der Überarbeitung des
+Intranets; bis 1.0 sind sie in der Vorschau erlaubt (DEC-016).
