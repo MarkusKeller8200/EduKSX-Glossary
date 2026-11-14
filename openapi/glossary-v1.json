@@ -70,7 +70,15 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          }
+        ],
+        "security": [],
+        "x-eduksx-ability": "public",
+        "description": "Einstieg: Version, Datenstand, Endpunkte."
       }
     },
     "/v1/terms": {
@@ -110,7 +118,17 @@
                 "historical",
                 "under_review"
               ]
-            }
+            },
+            "example": "current"
+          },
+          {
+            "$ref": "#/components/parameters/Cursor"
+          },
+          {
+            "$ref": "#/components/parameters/Limit"
+          },
+          {
+            "$ref": "#/components/parameters/WithTotal"
           },
           {
             "name": "page",
@@ -119,7 +137,10 @@
               "type": "integer",
               "minimum": 1,
               "default": 1
-            }
+            },
+            "deprecated": true,
+            "description": "Übergangsweise Seiten statt Cursor; ungültige Werte ergeben 422.",
+            "example": 1
           },
           {
             "name": "per_page",
@@ -129,31 +150,22 @@
               "minimum": 1,
               "maximum": 200,
               "default": 50
-            }
-          },
-          {
-            "name": "lang",
-            "in": "query",
-            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "fr",
-                "it",
-                "en"
-              ]
             },
-            "example": "fr"
+            "deprecated": true,
+            "description": "Übergangsweise Seiten statt Cursor; ungültige Werte ergeben 422.",
+            "example": 50
           },
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/Locale"
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/LegacyLang"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -171,6 +183,13 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "Content-Language": {
+                "description": "Sprache der Antwort",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "fr"
               }
             },
             "content": {
@@ -187,13 +206,16 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public",
+        "description": "Veröffentlichte Begriffe suchen und blättern."
       }
     },
-    "/v1/terms/{idOrSlug}": {
+    "/v1/terms/{id_or_slug}": {
       "get": {
         "tags": [
           "Begriffe"
@@ -202,7 +224,7 @@
         "operationId": "getTerm",
         "parameters": [
           {
-            "name": "idOrSlug",
+            "name": "id_or_slug",
             "in": "path",
             "required": true,
             "description": "UUID, Slug oder Code des Permalinks",
@@ -212,28 +234,16 @@
             "example": "klassenlehrperson"
           },
           {
-            "name": "lang",
-            "in": "query",
-            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "fr",
-                "it",
-                "en"
-              ]
-            },
-            "example": "fr"
+            "$ref": "#/components/parameters/Locale"
           },
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/LegacyLang"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -251,6 +261,13 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "Content-Language": {
+                "description": "Sprache der Antwort",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "fr"
               }
             },
             "content": {
@@ -348,8 +365,14 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public",
+        "description": "Ein veröffentlichter Begriff."
       }
     },
     "/v1/index": {
@@ -362,13 +385,7 @@
         "description": "Alle veröffentlichten Begriffe mit den Angaben zum Erkennen und für die Erklärbox. Mit ETag; Abnehmer laden ihn höchstens einmal täglich bzw. nach neuem Datenstand (Kopfzeile X-Glossary-Release).",
         "parameters": [
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -466,7 +483,9 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public"
       }
     },
     "/v1/categories": {
@@ -478,28 +497,16 @@
         "operationId": "listCategories",
         "parameters": [
           {
-            "name": "lang",
-            "in": "query",
-            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "fr",
-                "it",
-                "en"
-              ]
-            },
-            "example": "fr"
+            "$ref": "#/components/parameters/Locale"
           },
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/LegacyLang"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -517,6 +524,13 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "Content-Language": {
+                "description": "Sprache der Antwort",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "fr"
               }
             },
             "content": {
@@ -540,8 +554,14 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public",
+        "description": "Kategorien."
       }
     },
     "/v1/sources": {
@@ -553,28 +573,16 @@
         "operationId": "listSources",
         "parameters": [
           {
-            "name": "lang",
-            "in": "query",
-            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "fr",
-                "it",
-                "en"
-              ]
-            },
-            "example": "fr"
+            "$ref": "#/components/parameters/Locale"
           },
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/LegacyLang"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -592,6 +600,13 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "Content-Language": {
+                "description": "Sprache der Antwort",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "fr"
               }
             },
             "content": {
@@ -615,8 +630,14 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public",
+        "description": "Herkunft (Quelleninstitutionen)."
       }
     },
     "/v1/releases/latest": {
@@ -629,13 +650,7 @@
         "description": "Jede Veröffentlichung und jeder Rückzug erzeugt einen neuen Datenstand. Günstig für die periodische Prüfung, ob ein Sync nötig ist.",
         "parameters": [
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -674,7 +689,9 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public"
       }
     },
     "/v1/changes": {
@@ -694,7 +711,8 @@
               "type": "integer",
               "minimum": 0,
               "default": 0
-            }
+            },
+            "example": 0
           },
           {
             "name": "limit",
@@ -704,31 +722,20 @@
               "minimum": 1,
               "maximum": 1000,
               "default": 500
-            }
-          },
-          {
-            "name": "lang",
-            "in": "query",
-            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "fr",
-                "it",
-                "en"
-              ]
             },
-            "example": "fr"
+            "example": 500
           },
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/Locale"
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/LegacyLang"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -746,6 +753,13 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "Content-Language": {
+                "description": "Sprache der Antwort",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "fr"
               }
             },
             "content": {
@@ -761,8 +775,13 @@
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public"
       }
     },
     "/v1/exports": {
@@ -782,31 +801,20 @@
                 "json"
               ],
               "default": "json"
-            }
-          },
-          {
-            "name": "lang",
-            "in": "query",
-            "description": "Sprache der Ausgabe (de, fr, it, en). Übersetzte Felder ersetzen die deutschen; fehlt eine Übersetzung, bleibt der deutsche Wert. Ohne Angabe: deutsch, ohne Feld «language».",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "de",
-                "fr",
-                "it",
-                "en"
-              ]
             },
-            "example": "fr"
+            "example": "json"
           },
           {
-            "name": "If-None-Match",
-            "in": "header",
-            "required": false,
-            "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/parameters/Locale"
+          },
+          {
+            "$ref": "#/components/parameters/AcceptLanguage"
+          },
+          {
+            "$ref": "#/components/parameters/LegacyLang"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
           }
         ],
         "responses": {
@@ -824,6 +832,13 @@
                 "schema": {
                   "type": "integer"
                 }
+              },
+              "Content-Language": {
+                "description": "Sprache der Antwort",
+                "schema": {
+                  "type": "string"
+                },
+                "example": "fr"
               }
             },
             "content": {
@@ -840,10 +855,13 @@
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
+          "422": {
+            "$ref": "#/components/responses/UnprocessableContent"
           }
-        }
+        },
+        "security": [],
+        "x-eduksx-ability": "public",
+        "description": "Vollstand aller öffentlichen Begriffe."
       }
     },
     "/v1/service/whoami": {
@@ -903,9 +921,10 @@
             }
           },
           "401": {
-            "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token"
+            "$ref": "#/components/responses/Unauthorized"
           }
-        }
+        },
+        "x-eduksx-ability": "service-account"
       }
     },
     "/v1/proposals": {
@@ -965,15 +984,19 @@
             }
           },
           "401": {
-            "description": "Kein gültiges Token mit Scope «propose»"
+            "$ref": "#/components/responses/Unauthorized"
           },
           "404": {
-            "description": "Begriff nicht gefunden oder nicht veröffentlicht"
+            "$ref": "#/components/responses/NotFound"
           },
           "422": {
-            "description": "Ungültige Angaben"
+            "$ref": "#/components/responses/ValidationFailed"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
           }
-        }
+        },
+        "x-eduksx-ability": "glossary:proposals.create"
       }
     },
     "/v1/proposals/{id}": {
@@ -994,9 +1017,11 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "string",
+              "format": "uuid"
             },
-            "example": 1
+            "example": "0193a1b2-7c4d-7e8f-9a0b-000000000101",
+            "description": "UUID des Vorschlags aus der Antwort von POST /v1/proposals"
           }
         ],
         "responses": {
@@ -1011,12 +1036,14 @@
             }
           },
           "401": {
-            "description": "Kein gültiges Token"
+            "$ref": "#/components/responses/Unauthorized"
           },
           "404": {
-            "description": "Nicht gefunden oder von einem anderen Servicekonto"
+            "$ref": "#/components/responses/NotFound"
           }
-        }
+        },
+        "x-eduksx-ability": "glossary:proposals.read",
+        "description": "Stand eines eigenen Vorschlags."
       }
     },
     "/v1/org/terms": {
@@ -1040,7 +1067,8 @@
             "schema": {
               "type": "boolean",
               "default": false
-            }
+            },
+            "example": true
           }
         ],
         "responses": {
@@ -1089,18 +1117,19 @@
             }
           },
           "401": {
-            "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token oder Scope «read-org» fehlt"
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Servicekonto gehört zu keiner Organisation"
+            "$ref": "#/components/responses/Forbidden"
           },
           "429": {
             "$ref": "#/components/responses/TooManyRequests"
           }
-        }
+        },
+        "x-eduksx-ability": "glossary:terms.read"
       }
     },
-    "/v1/org/terms/{idOrSlug}": {
+    "/v1/org/terms/{id_or_slug}": {
       "get": {
         "tags": [
           "Organisation"
@@ -1114,7 +1143,7 @@
         ],
         "parameters": [
           {
-            "name": "idOrSlug",
+            "name": "id_or_slug",
             "in": "path",
             "required": true,
             "description": "UUID oder Slug",
@@ -1153,15 +1182,17 @@
             }
           },
           "401": {
-            "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token oder Scope «read-org» fehlt"
+            "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Servicekonto gehört zu keiner Organisation"
+            "$ref": "#/components/responses/Forbidden"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
-        }
+        },
+        "x-eduksx-ability": "glossary:terms.read",
+        "description": "Ein Begriff in der Darstellung der Organisation."
       }
     }
   },
@@ -1261,6 +1292,16 @@
                 }
               }
             }
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "de",
+              "fr",
+              "it",
+              "en"
+            ],
+            "description": "Sprache des Texts, nur bei verlangter Übersetzung; ohne Übersetzung `de`."
           }
         }
       },
@@ -1614,6 +1655,16 @@
                 }
               }
             ]
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "de",
+              "fr",
+              "it",
+              "en"
+            ],
+            "description": "Sprache des Texts, nur bei verlangter Übersetzung; ohne Übersetzung `de`."
           }
         },
         "example": {
@@ -1682,6 +1733,7 @@
           "meta",
           "links"
         ],
+        "description": "Seite der Begriffsliste. Mit Cursor: `limit`, `next_cursor`, `has_more` (Gesamtzahl nur mit `with_total=1`); übergangsweise mit `page`/`per_page`: `page`, `per_page`, `total`, `last_page`.",
         "properties": {
           "data": {
             "type": "array",
@@ -1692,43 +1744,67 @@
           "meta": {
             "type": "object",
             "properties": {
-              "page": {
-                "type": "integer"
+              "limit": {
+                "type": "integer",
+                "example": 50
               },
-              "per_page": {
-                "type": "integer"
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "example": "eyJrIjoiQUEiLCJpIjoiMDE5My4uLiJ9"
+              },
+              "has_more": {
+                "type": "boolean",
+                "example": true
               },
               "total": {
-                "type": "integer"
-              },
-              "last_page": {
-                "type": "integer"
+                "type": "integer",
+                "description": "nur mit with_total=1 bzw. mit page/per_page",
+                "example": 312
               },
               "release": {
-                "type": "integer"
+                "type": "integer",
+                "example": 42
+              },
+              "page": {
+                "type": "integer",
+                "deprecated": true
+              },
+              "per_page": {
+                "type": "integer",
+                "deprecated": true
+              },
+              "last_page": {
+                "type": "integer",
+                "deprecated": true
               }
             }
           },
           "links": {
             "type": "object",
             "properties": {
-              "first": {
-                "type": "string"
-              },
-              "prev": {
-                "type": [
-                  "string",
-                  "null"
-                ]
-              },
               "next": {
                 "type": [
                   "string",
                   "null"
                 ]
               },
+              "first": {
+                "type": "string",
+                "deprecated": true
+              },
+              "prev": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "deprecated": true
+              },
               "last": {
-                "type": "string"
+                "type": "string",
+                "deprecated": true
               }
             }
           }
@@ -1975,27 +2051,44 @@
       },
       "Problem": {
         "type": "object",
-        "description": "Fehler nach RFC 9457",
+        "description": "Fehler nach RFC 9457 (API-Standard A6).",
         "required": [
           "type",
           "title",
-          "status"
+          "status",
+          "code",
+          "request_id"
         ],
         "properties": {
           "type": {
-            "type": "string"
+            "type": "string",
+            "format": "uri",
+            "example": "https://docs.eduksx.ch/problems/validation_failed"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "example": "Die Eingaben sind nicht gültig."
           },
           "status": {
-            "type": "integer"
+            "type": "integer",
+            "example": 422
           },
           "detail": {
-            "type": "string"
+            "type": "string",
+            "example": "Die Anfrage enthält ungültige Werte."
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]+$",
+            "example": "validation_failed"
           },
           "instance": {
-            "type": "string"
+            "type": "string",
+            "example": "/api/v1/terms"
+          },
+          "request_id": {
+            "type": "string",
+            "example": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
           },
           "errors": {
             "type": "object",
@@ -2004,6 +2097,11 @@
               "items": {
                 "type": "string"
               }
+            },
+            "example": {
+              "name": [
+                "Das Feld ist erforderlich."
+              ]
             }
           }
         }
@@ -2012,7 +2110,9 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer"
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID v7 des Vorschlags"
           },
           "kind": {
             "type": "string",
@@ -2129,20 +2229,13 @@
               "$ref": "#/components/schemas/Problem"
             },
             "example": {
-              "type": "about:blank",
-              "title": "Not Found",
+              "type": "https://docs.eduksx.ch/problems/not_found",
+              "title": "Nicht gefunden.",
               "status": 404,
-              "detail": "Begriff «xyz» ist nicht veröffentlicht oder existiert nicht."
-            }
-          }
-        }
-      },
-      "BadRequest": {
-        "description": "Ungültige Anfrage",
-        "content": {
-          "application/problem+json": {
-            "schema": {
-              "$ref": "#/components/schemas/Problem"
+              "detail": "Begriff «xyz» ist nicht veröffentlicht oder existiert nicht.",
+              "code": "not_found",
+              "instance": "/api/v1/terms",
+              "request_id": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
             }
           }
         }
@@ -2153,13 +2246,107 @@
           "Retry-After": {
             "schema": {
               "type": "integer"
-            }
+            },
+            "example": 30
           }
         },
         "content": {
           "application/problem+json": {
             "schema": {
               "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "https://docs.eduksx.ch/problems/too_many_requests",
+              "title": "Zu viele Anfragen.",
+              "status": 429,
+              "detail": "Too Many Attempts.",
+              "code": "too_many_requests",
+              "instance": "/api/v1/terms",
+              "request_id": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
+            }
+          }
+        }
+      },
+      "UnprocessableContent": {
+        "description": "Ungültige oder unbekannte Parameter, unbekannte Sprache, ungültiger Cursor",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "https://docs.eduksx.ch/problems/glossary/unknown_parameter",
+              "title": "Die Eingaben sind nicht gültig.",
+              "status": 422,
+              "detail": "Unbekannter Parameter: foo.",
+              "code": "unknown_parameter",
+              "instance": "/api/v1/terms",
+              "request_id": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Kein, ungültiges, abgelaufenes oder widerrufenes Token bzw. Scope fehlt",
+        "headers": {
+          "WWW-Authenticate": {
+            "schema": {
+              "type": "string"
+            },
+            "example": "Bearer realm=\"glossary\""
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "https://docs.eduksx.ch/problems/unauthenticated",
+              "title": "Anmeldung erforderlich.",
+              "status": 401,
+              "detail": "Gültiges Token eines Servicekontos nötig.",
+              "code": "unauthenticated",
+              "instance": "/api/v1/terms",
+              "request_id": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Servicekonto ohne Organisation",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "https://docs.eduksx.ch/problems/forbidden",
+              "title": "Keine Berechtigung.",
+              "status": 403,
+              "detail": "Das Servicekonto gehört zu keiner Organisation.",
+              "code": "forbidden",
+              "instance": "/api/v1/terms",
+              "request_id": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
+            }
+          }
+        }
+      },
+      "ValidationFailed": {
+        "description": "Vorschlag ungültig",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            },
+            "example": {
+              "type": "https://docs.eduksx.ch/problems/validation_failed",
+              "title": "Die Eingaben sind nicht gültig.",
+              "status": 422,
+              "detail": "changes: Feld «xyz» ist nicht vorschlagbar.",
+              "code": "validation_failed",
+              "instance": "/api/v1/terms",
+              "request_id": "01JCX7Q3M5V8YB2D4N6P9R1T3W"
             }
           }
         }
@@ -2169,7 +2356,95 @@
       "serviceToken": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Token eines Servicekontos («gls_…»), in der Administration unter «Servicekonten» erstellt; befristet, widerrufbar."
+        "description": "Token eines Servicekontos («glossary_sa_…»; ältere «gls_…» gelten bis zum Ablauf), in der Administration unter «Servicekonten» erstellt; befristet, widerrufbar. Scopes: `glossary:proposals.create`, `glossary:proposals.read`, `glossary:terms.read` (Konten einer Organisation sehen deren Darstellung)."
+      }
+    },
+    "parameters": {
+      "Locale": {
+        "name": "locale",
+        "in": "query",
+        "description": "Sprache der Ausgabe (de, fr, it, en); gewinnt vor der Kopfzeile `Accept-Language`. Übersetzte Felder ersetzen die deutschen, `locale` je Objekt nennt die tatsächliche Sprache (ohne Übersetzung `de`). Antwort mit `Content-Language`.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "de",
+            "fr",
+            "it",
+            "en"
+          ]
+        },
+        "example": "fr"
+      },
+      "AcceptLanguage": {
+        "name": "Accept-Language",
+        "in": "header",
+        "description": "Sprache, wenn `locale` fehlt (beste unterstützte, z. B. `fr-CH, de;q=0.5` → fr); ohne Angabe Deutsch.",
+        "schema": {
+          "type": "string"
+        },
+        "example": "fr-CH, de;q=0.5"
+      },
+      "LegacyLang": {
+        "name": "lang",
+        "in": "query",
+        "deprecated": true,
+        "description": "Frühere Schreibweise von `locale`, gilt übergangsweise weiter.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "de",
+            "fr",
+            "it",
+            "en"
+          ]
+        },
+        "example": "fr"
+      },
+      "Cursor": {
+        "name": "cursor",
+        "in": "query",
+        "description": "Undurchsichtiger Cursor aus `meta.next_cursor` der vorigen Seite. Passt er nicht zu den Filtern: 422 `invalid_cursor`.",
+        "schema": {
+          "type": "string"
+        },
+        "example": "eyJrIjoiQUEiLCJpIjoiMDE5My4uLiJ9"
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Einträge je Seite (Vorgabe 50, höchstens 200).",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 50
+        },
+        "example": 50
+      },
+      "WithTotal": {
+        "name": "with_total",
+        "in": "query",
+        "description": "Gesamtzahl der Treffer in `meta.total` mitliefern.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "0",
+            "1",
+            "true",
+            "false"
+          ]
+        },
+        "example": "1"
+      },
+      "IfNoneMatch": {
+        "name": "If-None-Match",
+        "in": "header",
+        "required": false,
+        "description": "ETag einer früheren Antwort; ist der Inhalt gleich, kommt 304 ohne Inhalt.",
+        "schema": {
+          "type": "string"
+        },
+        "example": "\"5f3c9a…\""
       }
     }
   }

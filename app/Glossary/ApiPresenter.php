@@ -33,7 +33,7 @@ final class ApiPresenter
     ];
 
     /** Nur mit ?lang= (X1, #282): verlangte und je Feld gelieferte Sprache; steht nach den übrigen Feldern. */
-    public const LOCALIZED_FIELDS = ['language'];
+    public const LOCALIZED_FIELDS = ['language', 'locale'];
 
     /** Übersetzbare Felder eines Begriffs in der API (X1, #282): API-Feld → Feld der Übersetzung. */
     public const TRANSLATED_TERM_FIELDS = [

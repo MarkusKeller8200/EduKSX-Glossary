@@ -862,7 +862,7 @@ function Verwaltung({
 
             <h3 className="mt-6 text-sm font-semibold">API-Zugang</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-                Servicekonto mit Scope «read-org» anlegen: Das Token liefert die
+                Servicekonto mit Scope «glossary:terms.read» anlegen: Das Token liefert die
                 Begriffe in der Darstellung dieser Organisation (
                 <code>/api/v1/org/terms</code>). Bisher {servicekonten}{' '}
                 Servicekonto/-konten der Organisation.

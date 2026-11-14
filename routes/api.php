@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->middleware([ApiLocale::class, 'throttle:api'])->group(function () {
     Route::get('/', StatusController::class)->name('api.v1');
     Route::get('terms', [GlossaryApiController::class, 'terms'])->name('api.v1.terms');
-    Route::get('terms/{idOrSlug}', [GlossaryApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->name('api.v1.term');
+    Route::get('terms/{id_or_slug}', [GlossaryApiController::class, 'term'])->where('id_or_slug', '[A-Za-z0-9-]+')->name('api.v1.term');
     Route::get('index', [GlossaryApiController::class, 'index'])->name('api.v1.index');
     Route::get('categories', [GlossaryApiController::class, 'categories'])->name('api.v1.categories');
     Route::get('sources', [GlossaryApiController::class, 'sources'])->name('api.v1.sources');
@@ -27,7 +27,7 @@ Route::prefix('v1')->middleware([ApiLocale::class, 'throttle:api'])->group(funct
     Route::post('proposals', [ProposalApiController::class, 'store'])->middleware(['service.token:glossary:proposals.create', 'throttle:30,1'])->name('api.v1.proposals.store');
     // Organisation (#148): Begriffe in deren Darstellung; die Organisation kommt aus dem Servicekonto
     Route::get('org/terms', [OrganizationApiController::class, 'terms'])->middleware('service.token:glossary:terms.read')->name('api.v1.org.terms');
-    Route::get('org/terms/{idOrSlug}', [OrganizationApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->middleware('service.token:glossary:terms.read')->name('api.v1.org.term');
+    Route::get('org/terms/{id_or_slug}', [OrganizationApiController::class, 'term'])->where('id_or_slug', '[A-Za-z0-9-]+')->middleware('service.token:glossary:terms.read')->name('api.v1.org.term');
     Route::get('proposals/{id}', [ProposalApiController::class, 'show'])->where('id', '[0-9A-Za-z-]+')->middleware('service.token:glossary:proposals.read')->name('api.v1.proposals.show');
 });
 

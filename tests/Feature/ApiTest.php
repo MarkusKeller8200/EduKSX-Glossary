@@ -23,7 +23,7 @@ class ApiTest extends TestCase
     {
         $spec = $this->get('/api/openapi.json')->assertOk()->assertHeader('Content-Type', 'application/json; charset=utf-8')->json();
         $this->assertSame('3.1.0', $spec['openapi']);
-        foreach (['/v1', '/v1/terms', '/v1/terms/{idOrSlug}', '/v1/categories', '/v1/sources', '/v1/releases/latest', '/v1/changes', '/v1/exports'] as $path) {
+        foreach (['/v1', '/v1/terms', '/v1/terms/{id_or_slug}', '/v1/categories', '/v1/sources', '/v1/releases/latest', '/v1/changes', '/v1/exports'] as $path) {
             $this->assertArrayHasKey($path, $spec['paths'], "Pfad {$path} fehlt in der OpenAPI-Beschreibung");
         }
 
