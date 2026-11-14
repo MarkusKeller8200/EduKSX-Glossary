@@ -158,7 +158,7 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 | E1 Modulschlüssel               | `glossary`                                                                                                                      | –                   |
 | E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191 |
 | E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | #311                |
-| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` 0.1                                      | #193                |
+| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                |
 | B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                |
 | B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                |
 | B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                |
