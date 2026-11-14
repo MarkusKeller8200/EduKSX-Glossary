@@ -56,7 +56,7 @@ final class QualityCheck
                 'label' => $label,
                 'hint' => $hint,
                 'count' => $count,
-                'items' => $items->map(function (object $row) use ($detail): array {
+                'items' => array_values($items->map(function (object $row) use ($detail): array {
                     $t = (array) $row;
                     $abbreviation = (string) ($t['official_abbreviation'] ?? '');
 
@@ -65,7 +65,7 @@ final class QualityCheck
                         'title' => trim(($abbreviation !== '' ? $abbreviation.' – ' : '').(string) $t['official_name'], ' –'),
                         'detail' => $detail === null || ($t[$detail] ?? null) === null ? null : substr((string) $t[$detail], 0, 10),
                     ];
-                })->values()->all(),
+                })->all()),
             ];
         }
 
