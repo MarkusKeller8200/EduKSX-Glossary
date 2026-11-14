@@ -634,6 +634,13 @@ function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
                     Löscht Ihre Angaben und beendet alle Sitzungen. Einträge im
                     Sicherheitsprotokoll bleiben nach dem Löschkonzept erhalten.
                 </p>
+                <p className="text-sm text-muted-foreground">
+                    Vorher alle Daten zu Ihrem Konto ansehen:{' '}
+                    <a href="/konto/meine-daten" className="underline">
+                        Meine Daten herunterladen (JSON)
+                    </a>
+                    .
+                </p>
                 <Feld
                     id="delete_password"
                     label={

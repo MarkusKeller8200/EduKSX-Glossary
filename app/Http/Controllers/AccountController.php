@@ -6,8 +6,10 @@ use App\Access\AccessDenied;
 use App\Access\AccountManager;
 use App\Access\Audit;
 use App\Access\Sso\MicrosoftLogin;
+use App\Data\PersonalData;
 use App\Models\User;
 use App\Models\UserIdentity;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,9 +72,31 @@ class AccountController extends Controller
             : 'Sie erhalten keine News. Ändern jederzeit unter «Mein Konto».');
     }
 
+    /** «Meine Daten» (#312, DB-Standard B8): alle Daten des eigenen Kontos; Aufruf im Sicherheitsprotokoll. */
+    public function data(Request $request): JsonResponse
+    {
+        $user = $this->currentUser($request);
+        Audit::log($user, $user, 'account.data_exported');
+
+        return self::download($user);
+    }
+
+    /** Antwort zum Herunterladen: alle Daten eines Kontos als JSON (#312, DB-Standard B8). */
+    public static function download(User $user): JsonResponse
+    {
+        $data = app(PersonalData::class)->export($user);
+        $name = 'glossary-meine-daten-'.now()->format('Y-m-d').'.json';
+
+        return response()->json($data, 200, [
+            'Content-Disposition' => 'attachment; filename="'.$name.'"',
+            'Cache-Control' => 'private, no-store',
+        ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $user = $this->currentUser($request);
+        abort_if($user->is_processing_restricted, 423, 'Die Bearbeitung dieses Kontos ist eingeschränkt.');
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:80'],
             'last_name' => ['required', 'string', 'max:80'],

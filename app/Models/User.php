@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
  * serverseitig über Gates. Rollen ändern nur über App\Access\RoleManager (Schutzregeln, Audit).
  *
  * @property string $id
+ * @property bool $is_processing_restricted Bearbeitung eingeschränkt (#312, DB B13)
  * @property string|null $platform_id Plattform-ID aus EduKSX-Ident (#311)
  * @property string $name Anzeigename (Vor- und Nachname, vom Model nachgeführt)
  * @property string $first_name
@@ -67,7 +68,7 @@ class User extends Authenticatable
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['status' => 'active', 'has_password' => true, 'has_news_opt_in' => false];
+    protected $attributes = ['status' => 'active', 'has_password' => true, 'has_news_opt_in' => false, 'is_processing_restricted' => false];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
@@ -85,6 +86,7 @@ class User extends Authenticatable
             'privacy_notice_acknowledged_at' => 'immutable_datetime',
             'inactivity_notice_sent_at' => 'immutable_datetime',
             'has_password' => 'boolean',
+            'is_processing_restricted' => 'boolean',
             'has_news_opt_in' => 'boolean',
             'news_answered_at' => 'immutable_datetime',
             'password' => 'hashed',

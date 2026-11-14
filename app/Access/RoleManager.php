@@ -223,6 +223,9 @@ final class RoleManager
             'new_values' => $new ?? ($role !== null ? ['role' => $role->key] : null),
         ];
         try {
+            if ($target?->is_processing_restricted) {
+                throw new AccessDenied('Die Bearbeitung dieses Kontos ist eingeschränkt.');
+            }
             $rules();
         } catch (AccessDenied $e) {
             UserAudit::query()->create(array_merge($entry, [

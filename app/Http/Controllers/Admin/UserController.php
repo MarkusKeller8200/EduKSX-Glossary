@@ -6,10 +6,12 @@ use App\Access\AccessDenied;
 use App\Access\AccountManager;
 use App\Access\Audit;
 use App\Access\RoleManager;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Controller;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +58,11 @@ class UserController extends Controller
         $roleNames = Role::query()->pluck('name', 'id');
         $assignments = DB::table('user_roles')->get()->groupBy('user_id');
 
-        $users = User::query()->orderBy('last_name')->orderBy('first_name')->get()->map(fn (User $u): array => [
+        $users = User::query()->orderBy('last_name')->orderBy('first_name')->get()->map(fn (User $u): array => $u->is_processing_restricted ? [
+            // Bearbeitung eingeschränkt (#312, DB B13): Daten nicht anzeigen
+            'id' => $u->id, 'name' => 'Bearbeitung eingeschränkt', 'community_name' => null, 'einrichtung' => '', 'email' => '',
+            'rollen' => [], 'status' => $u->status, 'zweiter_faktor' => false,
+        ] : [
             'id' => $u->id,
             'name' => $u->name,
             'community_name' => $u->community_name,
@@ -89,9 +95,21 @@ class UserController extends Controller
         return redirect("/admin/benutzer/{$user->id}")->with('status', 'Konto angelegt (Rolle Benutzer). Weitere Rollen jetzt zuweisen.');
     }
 
-    public function show(Request $request, User $user): Response
+    /** Daten eines Kontos für eine Anfrage per Brief (#312, DB-Standard B8); Aufruf im Sicherheitsprotokoll. */
+    public function data(Request $request, User $user): JsonResponse
+    {
+        Audit::log($this->currentUser($request), $user, 'account.data_exported');
+
+        return AccountController::download($user);
+    }
+
+    public function show(Request $request, User $user): Response|RedirectResponse
     {
         $actor = $this->currentUser($request);
+        if ($user->is_processing_restricted) {
+            // Bearbeitung eingeschränkt (#312, DB B13): nicht anzeigen; Auskunft über «Daten exportieren» bleibt
+            return redirect('/admin/benutzer')->with('status', 'Die Bearbeitung dieses Kontos ist eingeschränkt (Aufheben: php artisan glossary:einschraenken --aufheben).');
+        }
         $assigned = $user->roleKeys();
         $roles = Role::query()->orderBy('sort_order')->get()->map(fn (Role $r): array => [
             'key' => $r->key,

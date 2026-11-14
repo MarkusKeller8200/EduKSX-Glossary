@@ -180,6 +180,11 @@ export default function UserShow({
                                 Passwort-Link senden
                             </Button>
                         ) : null}
+                        <Button variant="outline" asChild>
+                            <a href={`/admin/benutzer/${b.id}/daten`}>
+                                Daten exportieren
+                            </a>
+                        </Button>
                         {b.zweiter_faktor ? (
                             <Button
                                 variant="outline"
