@@ -3,6 +3,8 @@ import { Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { versionLabel } from '@/components/version-label';
+import { useViewWidth, widthClass } from '@/hooks/use-view-width';
+import { cn } from '@/lib/utils';
 
 /**
  * Hinweis nach einem Update (#255): Hat sich der Stand seit dem letzten Besuch geändert, erscheint «Aktualisiert auf
@@ -12,6 +14,7 @@ import { versionLabel } from '@/components/version-label';
 const KEY = 'glossary.version';
 
 export default function UpdateNotice() {
+    const { view } = useViewWidth();
     const { appVersion } = usePage().props;
     const stand = `${appVersion.version}|${appVersion.build ?? appVersion.build_date ?? ''}`;
     const [neu, setNeu] = useState(false);
@@ -48,7 +51,12 @@ export default function UpdateNotice() {
             role="status"
             className="border-b border-border bg-success-soft text-sm"
         >
-            <div className="mx-auto flex flex-wrap items-center gap-3 px-4 py-2">
+            <div
+                className={cn(
+                    'mx-auto flex flex-wrap items-center gap-3 px-4 py-2',
+                    widthClass(view, 'max-w-6xl'),
+                )}
+            >
                 <Sparkles
                     className="size-4 shrink-0 text-brand-orange"
                     aria-hidden
