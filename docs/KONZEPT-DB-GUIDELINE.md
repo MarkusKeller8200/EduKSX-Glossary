@@ -183,6 +183,14 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 | B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | umgesetzt 0.14.0 (#312): `glossary:einschraenken`                                   |
 | B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                                                                                   |
 
+### Gemeinsame Tabellen aus eduksx/core (DB-E12, #329)
+
+| Tabelle in Core 0.2                        | Im Glossary                                                      | Abgleich                                                                                                                                                                                                                           |
+| ------------------------------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data_changes` (Historie)                  | eigene Migration (#286), gleicher Aufbau                         | Spalten, Typen und CHECK-Regeln gleich; die Migration aus Core lässt eine bestehende Tabelle unverändert (Core C8). Test `CoreTabellenTest` vergleicht die Spalten. Klassen des Glossary (`App\Data\DataChanges`) bleiben vorerst. |
+| `received_events` (Ereignisse von S4)      | aus Core übernommen (#187)                                       | identisch                                                                                                                                                                                                                          |
+| Personen, Organisationen, Mitgliedschaften | noch nicht in Core (kommen mit Core 0.3, C7, nach dem Ident-PoC) | offen: Abgleich `users`, `organizations`, `organization_members`, sobald Core sie liefert                                                                                                                                          |
+
 ## 13. Offene Punkte
 
 Alle Punkte sind entschieden (12.11.2026, DEC-033); umgesetzt werden sie über die genannten Issues.
