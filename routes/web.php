@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DevBackupController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
@@ -241,6 +242,10 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('system/mail/entfernen', [SystemController::class, 'removeMail'])->name('admin.system.mail.remove');
         Route::post('system/update', [SystemController::class, 'requestUpdate'])->middleware('throttle:5,1')->name('admin.system.update');
         Route::post('system/dump', [SystemController::class, 'dump'])->middleware('throttle:3,10')->name('admin.system.dump');
+        // Sicherungen mit Wiederherstellung, nur auf dev (#355, GLOSSARY_DEV_BACKUPS)
+        Route::post('system/sicherungen', [DevBackupController::class, 'store'])->middleware('throttle:5,10')->name('admin.system.backups.store');
+        Route::post('system/wiederherstellen', [DevBackupController::class, 'restore'])->middleware('throttle:5,10')->name('admin.system.backups.restore');
+        Route::delete('system/sicherungen/{name}', [DevBackupController::class, 'destroy'])->where('name', '[A-Za-z0-9._-]+')->name('admin.system.backups.destroy');
     });
 
     // Excel (#13, #15, #111): Export des Arbeitsstands (Redaktion) getrennt vom Import mit Vorschau

@@ -68,4 +68,6 @@ return [
     // Vollständiger Dump (#268): Passwort vorschreiben (Vorgabe aus, später an); Passwort für den Befehl ohne Eingabe
     'dump_require_password' => (bool) env('GLOSSARY_DUMP_REQUIRE_PASSWORD', false),
     'dump_password' => env('GLOSSARY_DUMP_PASSWORD', ''),
+    // Sicherungen auf dev mit Wiederherstellung in der Administration (#355) – nur auf dev einschalten
+    'dev_backups' => (bool) env('GLOSSARY_DEV_BACKUPS', false),
 ];

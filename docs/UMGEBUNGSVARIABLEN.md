@@ -25,6 +25,7 @@ Zeichen in den Tabellen: ★ = Pflicht oder wichtig · 🔒 = Geheimnis.
 | `GLOSSARY_UPDATE_CHECK`        | `true`                         | `false` (Komodo aktualisiert) | `false` (Komodo aktualisiert)                      |
 | `GLOSSARY_REGISTRATION_OPEN`   | nach Bedarf                    | nach Bedarf                   | `false`, bis freigegeben                           |
 | `GLOSSARY_PRIVACY_DRAFT`       | `true`                         | `true`                        | `false`, sobald die Datenschutzerklärung final ist |
+| `GLOSSARY_DEV_BACKUPS`         | `true`                         | `false`                       | `false`                                            |
 | ★🔒 `APP_KEY` / `APP_KEY_FILE` | eigener Schlüssel              | eigener Schlüssel             | eigener Schlüssel, nie teilen                      |
 
 `…` steht für `ghcr.io/markuskeller8200`. `APP_URL` wird aus `GLOSSARY_HOST` gebildet (`https://<host>`).
@@ -118,6 +119,7 @@ landen nur im Protokoll.
 | `GLOSSARY_GITHUB_REPO`                                               | `MarkusKeller8200/EduKSX-Glossary` | «Fehler melden» / «Idee vorschlagen»; leer = ausgeblendet                                                                         |
 | `GLOSSARY_PAGES_URL`                                                 | GitHub Pages des Projekts          | Link zur Dokumentation                                                                                                            |
 | `GLOSSARY_DUMP_REQUIRE_PASSWORD`                                     | `false`                            | vollständiger Dump nur mit Passwort                                                                                               |
+| `GLOSSARY_DEV_BACKUPS`                                               | `false`                            | Sicherungen anlegen und wiederherstellen in Administration › System (#355), Konten bleiben; nur auf dev                           |
 | 🔒 `GLOSSARY_DUMP_PASSWORD`                                          | leer                               | Passwort für `php artisan glossary:dump` ohne Eingabe                                                                             |
 | `GLOSSARY_BUILD` / `GLOSSARY_BUILD_DATE` / `GLOSSARY_BUILD_DESCRIBE` | vom Image                          | Versionsanzeige; nicht von Hand setzen                                                                                            |
 

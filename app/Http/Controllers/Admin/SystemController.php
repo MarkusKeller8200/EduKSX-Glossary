@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\ConfigCheck;
 use App\Support\DatabaseDump;
+use App\Support\DevBackups;
 use App\Support\MailSettings;
 use App\Support\MailSetup;
 use App\Support\UpdateCheck;
@@ -54,6 +55,8 @@ class SystemController extends Controller
             ],
             // Vollständiger Dump (#268)
             'dump' => ['passwortPflicht' => DatabaseDump::passwordRequired()],
+            // Sicherungen mit Wiederherstellung, nur auf dev (#355)
+            'sicherungen' => DevBackups::enabled() ? DevBackups::list() : null,
         ]);
     }
 
