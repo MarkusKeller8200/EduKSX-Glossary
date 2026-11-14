@@ -28,7 +28,7 @@ export default function SearchMisses({
             <h1 className="text-3xl font-semibold tracking-tight">
                 Suchen ohne Treffer
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+            <p className="mt-1 max-w-prose text-sm text-muted-foreground">
                 Suchtexte auf der Website und in der API, die keinen Begriff
                 gefunden haben – meistgesucht zuerst. Ohne Personenbezug;
                 Einträge ohne neue Suche werden nach {tage} Tagen gelöscht.
@@ -39,7 +39,7 @@ export default function SearchMisses({
                     Keine Einträge.
                 </p>
             ) : (
-                <table className="mt-6 w-full max-w-4xl text-sm">
+                <table className="mt-6 w-full text-sm">
                     <thead>
                         <tr className="border-b border-border text-left">
                             <th className="py-2 pr-4 font-medium">Suche</th>

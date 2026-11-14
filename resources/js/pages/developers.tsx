@@ -254,7 +254,7 @@ function Abschnitt({
     children: ReactNode;
 }) {
     return (
-        <section className="mt-8 max-w-3xl">
+        <section className="mt-8">
             <h2 className="text-xl font-semibold">{titel}</h2>
             <div className="mt-3">{children}</div>
         </section>

@@ -80,7 +80,7 @@ export default function Curation({
             <h1 className="flex items-center gap-2 text-3xl font-semibold tracking-tight">
                 <Sparkles className="size-7" aria-hidden /> Einsammeln
             </h1>
-            <p className="mt-2 max-w-3xl text-muted-foreground">
+            <p className="mt-2 max-w-prose text-muted-foreground">
                 Fehlende Begriffe finden und bestehende prüfen.{' '}
                 <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">
                     Prototyp
@@ -111,7 +111,7 @@ export default function Curation({
             </div>
 
             {tab === 'text' ? (
-                <section className="mt-6 max-w-4xl">
+                <section className="mt-6">
                     <form onSubmit={pruefen} className="grid gap-3">
                         <Label htmlFor="text">
                             Text einfügen (z. B. Elternbrief, Weisung, Seite des
@@ -227,7 +227,7 @@ export default function Curation({
             ) : null}
 
             {tab === 'gesucht' ? (
-                <section className="mt-6 max-w-3xl">
+                <section className="mt-6">
                     <p className="text-sm text-muted-foreground">
                         Häufigste Suchen ohne Treffer der letzten 90 Tage (ohne
                         Personenbezug). Alle Einträge unter{' '}
@@ -281,7 +281,7 @@ export default function Curation({
             ) : null}
 
             {tab === 'pruefen' ? (
-                <section className="mt-6 max-w-4xl">
+                <section className="mt-6">
                     <p className="text-sm text-muted-foreground">
                         Veröffentlichte Begriffe nach festen Regeln. Je Regel
                         höchstens 50 Begriffe in der Liste.

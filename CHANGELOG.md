@@ -41,6 +41,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Seitenbreite (#369):** Einsammeln, Suchen ohne Treffer, Servicekonten, Einstellungen, Papierkorb, System und die
+  Seite «Für Entwickler» folgen der gewählten Breite (Darstellungsoptimiert, Breit, Voll); Fliesstext bleibt auf
+  Lesebreite.
 - **Vorschläge mit UUID (#344):** Vorschläge haben intern eine UUID als Schlüssel; Adressen wie `/vorschlaege/…` und
   die API verwenden sie. Die gewohnte «Vorschlag Nr. …» bleibt als Anzeige. Bestehende Vorschläge und ihr Verlauf
   werden beim Update vollständig übernommen.
