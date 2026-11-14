@@ -19,20 +19,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Beim ersten Start mit PostgreSQL übernimmt die App eine vorhandene SQLite-Datenbank automatisch (Kopie vorher,
   Zählung je Tabelle; bei Abweichung startet sie nicht). Auf PostgreSQL sichert der Container mit einem Dump vor jedem
   Update und täglich; die Sicherung ausser Haus nimmt ihn mit. Das Image enthält jetzt den Treiber für PostgreSQL.
-
-### Korrigiert
-
-- `COMPOSE_FILE` aus der `.env` gilt im Container nicht mehr als Datei mit einem Geheimnis (Meldung beim Start).
 - **API Stufe 2 (#347, #348, #349, #350):** Servicekonten können einen eigenen offenen Vorschlag mit
   `DELETE /api/v1/proposals/{id}` zurückziehen; nötig ist `If-Match` mit dem ETag aus GET bzw. POST (fehlt: 428,
   veraltet: 412). `POST /api/v1/proposals` nimmt `Idempotency-Key` an: Wiederholungen liefern dieselbe Antwort ohne
   zweiten Vorschlag. Die OpenAPI nennt je Operation Zweck und Datenklassen; die CI vergleicht sie mit dem letzten
   Release und schlägt bei brechenden Änderungen fehl.
-### Geändert
-
-- **Lizenz AGPL-3.0 (#336):** Der Code steht ab dieser Version unter der GNU Affero General Public License 3.0 oder
-  später (bisher MIT; frühere Versionen bleiben MIT). Die Daten bleiben unter CC BY 4.0. Die Fusszeile verweist auf
-  den Quellcode der laufenden Version (`GLOSSARY_SOURCE_URL`).
 - **Protokolle und Metriken (#192):** Im Container schreibt die Anwendung ihre Protokolle als JSON, eine Zeile je
   Eintrag mit Anfrage-ID, Modul und Version (`LOG_FORMAT=json`). Mit `GLOSSARY_METRICS_TOKEN` gibt es unter `/metrics`
   Metriken für Prometheus: Anfragen und Antwortzeiten je Bereich, Anmeldungen, veröffentlichte Begriffe, offene
@@ -40,6 +31,19 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Plugins für Gastgeber (#338):** Der Steckbrief nennt unter `ui` die Web-Komponenten (`/ui/v1/glossary.js`), die
   Kachel «Glossary-Suche» (`<glossary-search>`, öffentlich) und die Suche für Gastgeber. Mit einer Script-Zeile lässt
   sich die Suche in eine beliebige Seite einbinden – ohne Anmeldung, nur öffentliche Daten, ohne Cookies.
+- **Einsammeln (Prototyp, #360):** Administration › «Einsammeln» mit «Text prüfen» (unbekannte Kürzel samt vermuteter
+  Langform aus einem eingefügten Text, als Entwurf übernehmen), «Gesucht» (häufigste Suchen ohne Treffer) und
+  «Prüfbedarf» (Regeln für veröffentlichte Begriffe). Der geprüfte Text wird nicht gespeichert. Das Konzept dazu steht zur Abnahme (`docs/KONZEPT-EINSAMMELN.md`).
+
+### Geändert
+
+- **Lizenz AGPL-3.0 (#336):** Der Code steht ab dieser Version unter der GNU Affero General Public License 3.0 oder
+  später (bisher MIT; frühere Versionen bleiben MIT). Die Daten bleiben unter CC BY 4.0. Die Fusszeile verweist auf
+  den Quellcode der laufenden Version (`GLOSSARY_SOURCE_URL`).
+
+### Korrigiert
+
+- `COMPOSE_FILE` aus der `.env` gilt im Container nicht mehr als Datei mit einem Geheimnis (Meldung beim Start).
 
 ## [0.14.0] – 2026-11-14
 
