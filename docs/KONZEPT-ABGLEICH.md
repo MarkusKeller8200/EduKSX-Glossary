@@ -58,6 +58,25 @@ Stand: **Entwurf 14.11.2026**, Vorschlag **DEC-041** (#180). Konkretisiert U11 a
   `sync.last_result`.
 - Datenklassen: alle neuen Spalten «intern»; der Abgleich überträgt keine Personendaten (DB B2).
 
+## 4a. Entwicklungs-Sync dev ↔ Master (Vorschlag)
+
+Auftrag aus dem Chat (14.11.2026): «Alles ohne Konten; es soll ein Sync in beide Richtungen sein, dann kann ich neue
+Einträge im dev entwickeln und hochladen.» Gilt nur zwischen **einer** Entwicklungsinstanz (dev) und dem Master – nicht
+für Kunden-Instanzen (dort gilt der Abgleich oben).
+
+| Nr. | Frage             | Vorschlag                                                                                                                                                                                                                                                                                                                                                                                                   | Status    |
+| --- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| A12 | Rolle der Instanz | Einstellung `sync.role`: `master`, `instance` (Abgleich oben) oder `development` (dieser Abschnitt); `development` nur mit `APP_ENV` ≠ production erlaubt                                                                                                                                                                                                                                                   | VORSCHLAG |
+| A13 | Master → dev: was | **alles ausser Konten**: Begriffe mit Revisionen und Entwürfen, Kategorien, Herkunft (mit Reihenfolge und Farben), Übersetzungen, Beziehungen, Vorschläge, Organisationen, Einstellungen ohne Geheimnisse, Protokolle. Personendaten in diesen Tabellen werden dabei **anonymisiert** (wie `glossary:dump --anonymisiert`, DB-Standard B12); Verweise auf Konten, die es auf dev nicht gibt, werden geleert | VORSCHLAG |
+| A14 | Master → dev: wie | dev holt beim Master einen anonymisierten Dump über einen geschützten Endpunkt (Servicekonto mit Scope `glossary:sync.read`) und spielt ihn ein wie «Wiederherstellen – Konten behalten» (#355): Konten, Rollen und Sitzungen auf dev bleiben, alles andere wird ersetzt; vorher automatische Sicherung auf dev. Auslösen von Hand («Vom Master holen») oder nach Zeitplan                                  | VORSCHLAG |
+| A15 | dev → Master: was | **Inhalte**: neue und geänderte Begriffe (mit Übersetzungen, Suchbegriffen, Beziehungen, Kategorien- und Herkunftszuordnung), neue und geänderte Kategorien und Herkünfte (mit Reihenfolge und Farbe). Keine Konten, Organisationen, Vorschläge, Einstellungen oder Protokolle                                                                                                                              | VORSCHLAG |
+| A16 | dev → Master: wie | Liste «Bereit zum Hochladen» (seit dem letzten Holen geändert) mit Kontrollkästchen; dev sendet die Auswahl an den Master (Servicekonto mit Scope `glossary:sync.write`). Auf dem Master entsteht je Begriff eine **neue Revision als Entwurf** mit Herkunft «dev» – veröffentlicht wird dort wie gewohnt (Recht `publish`); optional «direkt veröffentlichen», wenn das Servicekonto das Recht hat         | VORSCHLAG |
+| A17 | Konflikte         | jeder Begriff trägt die Revision, auf der die dev-Änderung beruht; hat sich der Begriff auf dem Master seither geändert, lehnt der Master ihn ab (409) und dev zeigt ihn als «Konflikt» (Vergleich Master ↔ dev, dann neu holen oder bewusst überschreiben)                                                                                                                                                 | VORSCHLAG |
+| A18 | Kennungen         | UUID und Permalink-Code bleiben in beiden Richtungen gleich; neue Begriffe von dev behalten ihre UUID, der Code wird auf dem Master geprüft (bei Kollision neu vergeben und an dev zurückgemeldet)                                                                                                                                                                                                          | VORSCHLAG |
+
+Sicherheit: Beide Endpunkte nur mit Servicekonto-Token, eigenem Scope, Abruflimit und Protokoll; der Dump für dev
+enthält nie Passwörter, zweite Faktoren, Tokens oder Geheimnisse der Einstellungen.
+
 ## 5. Sicherheit
 
 - Abholen nur über HTTPS, nur von der eingestellten Adresse, mit Zeitlimit und Grössenbegrenzung (SSRF-Schutz:
@@ -74,6 +93,11 @@ Stand: **Entwurf 14.11.2026**, Vorschlag **DEC-041** (#180). Konkretisiert U11 a
 - Eigene Begriffe, Organisation und «Meine Darstellung» bleiben unverändert.
 - Fehler beim Abholen: Datenbank unverändert, Meldung sichtbar.
 - Master-Instanz: Abgleich lässt sich nicht einschalten.
+- Entwicklungs-Sync: «Vom Master holen» übernimmt alles ausser Konten, Personendaten anonymisiert; Konten auf dev
+  bleiben.
+- Hochladen: neuer und geänderter Begriff landen auf dem Master als Entwurf; geänderter Begriff mit neuerer
+  Master-Revision ergibt «Konflikt».
+- `development` lässt sich in production nicht einstellen.
 
 ## 7. Issues
 
@@ -83,4 +107,4 @@ Stand: **Entwurf 14.11.2026**, Vorschlag **DEC-041** (#180). Konkretisiert U11 a
 
 ## 8. Verlauf
 
-- 14.11.2026: Entwurf mit Vorschlag DEC-041 nach Auftrag im Chat; ergänzt: Reihenfolge und Labelfarben abgleichen.
+- 14.11.2026: Entwurf mit Vorschlag DEC-041 nach Auftrag im Chat; ergänzt: Reihenfolge und Labelfarben abgleichen; Entwicklungs-Sync dev ↔ Master in beide Richtungen (A12–A18).
