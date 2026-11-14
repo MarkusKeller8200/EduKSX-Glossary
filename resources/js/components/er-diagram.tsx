@@ -1,4 +1,5 @@
-import { Maximize, Minimize, Minus, Plus, Scan } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { Download, Maximize, Minimize, Minus, Plus, Scan } from 'lucide-react';
 import {
     type PointerEvent as ReactPointerEvent,
     useCallback,
@@ -7,6 +8,7 @@ import {
     useState,
 } from 'react';
 import { Button } from '@/components/ui/button';
+import type { SharedData } from '@/types';
 
 type Ansicht = { scale: number; x: number; y: number };
 
@@ -22,6 +24,7 @@ const begrenzt = (scale: number) => Math.min(MAX, Math.max(MIN, scale));
  *
  * Bedienung (#371): Einpassen und zentrieren, vergrössern, verkleinern, verschieben mit Maus bzw. Finger, Zoom mit
  * Ctrl/⌘ + Mausrad bzw. Zwei-Finger-Geste (im Vollbild auch mit dem Mausrad allein), Vollbild (Esc beendet es).
+ * Herunterladen als SVG (#376): in Originalgrösse und immer hell, unabhängig von Zoom und Farbschema.
  */
 export default function ErDiagram({ code }: { code: string }) {
     const rahmen = useRef<HTMLDivElement>(null);
@@ -41,6 +44,38 @@ export default function ErDiagram({ code }: { code: string }) {
     const [geladen, setGeladen] = useState(false);
     const [ansicht, setAnsicht] = useState<Ansicht>({ scale: 1, x: 0, y: 0 });
     const [vollbild, setVollbild] = useState(false);
+    const version = usePage<SharedData>().props.appVersion?.version ?? '';
+
+    const herunterladen = async () => {
+        const { default: mermaid } = await import('mermaid');
+        const dunkel = document.documentElement.classList.contains('dark');
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'strict',
+            theme: 'neutral',
+            er: { useMaxWidth: false },
+        });
+        const { svg } = await mermaid.render('datenmodell-er-svg', code);
+        // für die Anzeige wieder das aktuelle Farbschema
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'strict',
+            theme: dunkel ? 'dark' : 'neutral',
+            er: { useMaxWidth: false },
+        });
+        const datei = new Blob(
+            ['<?xml version="1.0" encoding="UTF-8"?>\n', svg],
+            { type: 'image/svg+xml' },
+        );
+        const url = URL.createObjectURL(datei);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `glossary-datenmodell${version ? `-${version}` : ''}.svg`;
+        document.body.append(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    };
 
     /** Diagramm einpassen und in der Fläche zentrieren (nie grösser als 100 %). */
     const einpassen = useCallback(() => {
@@ -269,6 +304,16 @@ export default function ErDiagram({ code }: { code: string }) {
                     variant="outline"
                     size="sm"
                     className="ml-auto"
+                    onClick={() => void herunterladen()}
+                    disabled={!geladen}
+                >
+                    <Download aria-hidden="true" />
+                    SVG
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={vollbildUmschalten}
                     disabled={!geladen}
                 >
