@@ -8,6 +8,8 @@ import {
     ios,
     useInstallierbar,
 } from '@/lib/install';
+import { useViewWidth, widthClass } from '@/hooks/use-view-width';
+import { cn } from '@/lib/utils';
 
 /**
  * Hinweis «App installieren» auf dem Handy (#240). Android/Chrome: Installation über das Ereignis
@@ -29,6 +31,7 @@ const geschlossen = (): boolean => {
 };
 
 export default function InstallApp() {
+    const { view } = useViewWidth();
     const kann = useInstallierbar();
     const [art, setArt] = useState<'android' | 'ios' | null>(null);
 
@@ -65,7 +68,12 @@ export default function InstallApp() {
             aria-label="App installieren"
             className="border-b border-border bg-info-soft text-sm"
         >
-            <div className="mx-auto flex items-center gap-3 px-4 py-2">
+            <div
+                className={cn(
+                    'mx-auto flex items-center gap-3 px-4 py-2',
+                    widthClass(view, 'max-w-6xl'),
+                )}
+            >
                 <img
                     src="/icon-192.png"
                     alt=""

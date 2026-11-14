@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useViewWidth, widthClass } from '@/hooks/use-view-width';
 
 /**
  * Cookie-Hinweis (#78): beim ersten Besuch, bis «Verstanden». Nur technisch nötige Cookies und selbst gewählte
@@ -33,6 +34,7 @@ export default function CookieNotice({
 }: {
     className?: string;
 }) {
+    const { view } = useViewWidth();
     const sichtbar = useSyncExternalStore(
         subscribe,
         () => (sichtbarJetzt ??= read()),
@@ -61,7 +63,12 @@ export default function CookieNotice({
                 className,
             )}
         >
-            <div className="mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div
+                className={cn(
+                    'mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-3',
+                    widthClass(view, 'max-w-6xl'),
+                )}
+            >
                 <p>
                     Wir verwenden nur technisch nötige Cookies (Anmeldung,
                     Schutz gegen gefälschte Formulare) und speichern deine

@@ -1,6 +1,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
     BookOpen,
+    Code2,
     ClipboardCheck,
     Copy,
     FileUp,
@@ -92,4 +93,6 @@ export const ADMIN_NAV: {
         icon: Trash2,
     },
     { href: '/admin/system', label: 'System', recht: 'system', icon: Server },
+    // öffentliche Seite «Für Entwickler» (API, Einbindung, Datenmodell), für alle in der Administration (Chat 14.11.2026)
+    { href: '/entwickler', label: 'Entwickler', recht: null, icon: Code2 },
 ];
