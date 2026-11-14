@@ -38,7 +38,11 @@ class CurationController extends Controller
             'ergebnis' => $result,
             'gesucht' => DB::table('search_misses')->orderByDesc('count')->orderByDesc('last_seen_at')->limit(30)
                 ->get(['query', 'count', 'last_seen_at'])
-                ->map(fn (object $m): array => ['suche' => (string) $m->query, 'anzahl' => (int) $m->count, 'zuletzt' => substr((string) $m->last_seen_at, 0, 10)])
+                ->map(function (object $row): array {
+                    $m = (array) $row;
+
+                    return ['suche' => (string) $m['query'], 'anzahl' => (int) $m['count'], 'zuletzt' => substr((string) $m['last_seen_at'], 0, 10)];
+                })
                 ->all(),
             'pruefbedarf' => QualityCheck::run(),
             'maxLaenge' => TextScanner::MAX_LENGTH,

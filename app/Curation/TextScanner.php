@@ -142,17 +142,22 @@ final class TextScanner
         $titles = [];
         $terms = DB::table('terms')->whereNull('merged_into_id')
             ->select(['id', 'official_abbreviation', 'official_name'])->get();
-        foreach ($terms as $t) {
-            $title = trim(($t->official_abbreviation ? $t->official_abbreviation.' – ' : '').$t->official_name, ' –');
-            if (is_string($t->official_abbreviation) && $t->official_abbreviation !== '') {
-                $out[mb_strtoupper($t->official_abbreviation)] = ['term_id' => (string) $t->id, 'title' => $title];
+        foreach ($terms as $row) {
+            /** @var array{id: string, official_abbreviation: string|null, official_name: string} $t */
+            $t = (array) $row;
+            $abbreviation = (string) ($t['official_abbreviation'] ?? '');
+            $title = trim(($abbreviation !== '' ? $abbreviation.' – ' : '').$t['official_name'], ' –');
+            if ($abbreviation !== '') {
+                $out[mb_strtoupper($abbreviation)] = ['term_id' => (string) $t['id'], 'title' => $title];
             }
-            $titles[(string) $t->id] = $title;
+            $titles[(string) $t['id']] = $title;
         }
-        foreach (DB::table('term_aliases')->select(['term_id', 'alias'])->get() as $a) {
-            $key = mb_strtoupper((string) $a->alias);
-            if (! isset($out[$key]) && isset($titles[(string) $a->term_id])) {
-                $out[$key] = ['term_id' => (string) $a->term_id, 'title' => $titles[(string) $a->term_id]];
+        foreach (DB::table('term_aliases')->select(['term_id', 'alias'])->get() as $row) {
+            $a = (array) $row;
+            $key = mb_strtoupper((string) ($a['alias'] ?? ''));
+            $termId = (string) ($a['term_id'] ?? '');
+            if (! isset($out[$key]) && isset($titles[$termId])) {
+                $out[$key] = ['term_id' => $termId, 'title' => $titles[$termId]];
             }
         }
 
