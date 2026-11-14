@@ -6,6 +6,14 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Sicherung und Wiederherstellung auf dev (#355):** Administration › System › «Vollständige Sicherung (Restore)»:
+  vor einem Versuch eine Sicherung auf dem Server anlegen und sie später wieder einspielen – oder einen Dump
+  hochladen. Konten mit Passwort und zweitem Faktor, Anmeldungen über Microsoft, Rollen und die laufenden Sitzungen
+  bleiben; alles andere kommt aus der Sicherung. Der Stand davor wird automatisch gesichert. Nur mit
+  `GLOSSARY_DEV_BACKUPS=true` (dev).
+
 ## [0.14.0] – 2026-11-14
 
 ### Neu

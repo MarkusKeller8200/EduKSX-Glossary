@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import DumpPanel from '@/components/dump-panel';
+import RestorePanel from '@/components/restore-panel';
+import type { Sicherung } from '@/components/restore-panel';
 import UpdatePanel, { type UpdateStand } from '@/components/update-panel';
 import MailSettingsForm, {
     type MailEinstellung,
@@ -45,6 +47,7 @@ export default function System({
     mailEinstellung,
     update,
     dump,
+    sicherungen,
 }: {
     mail: Mail;
     warteschlange: { offen: number; fehlgeschlagen: number };
@@ -53,6 +56,7 @@ export default function System({
     mailEinstellung: MailEinstellung;
     update: UpdateStand;
     dump: { passwortPflicht: boolean };
+    sicherungen: Sicherung[] | null;
 }) {
     const { auth } = usePage().props;
     const form = useForm({ an: auth.user?.email ?? '' });
@@ -180,6 +184,13 @@ export default function System({
             </section>
 
             <DumpPanel passwortPflicht={dump.passwortPflicht} />
+
+            {sicherungen !== null ? (
+                <RestorePanel
+                    sicherungen={sicherungen}
+                    passwortPflicht={dump.passwortPflicht}
+                />
+            ) : null}
 
             <UpdatePanel update={update} />
 

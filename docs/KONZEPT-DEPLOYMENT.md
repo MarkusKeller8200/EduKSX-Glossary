@@ -203,6 +203,11 @@ Ablauf dev → prod:
 5. Prüfen: Zählung, `/health`, Anmeldung mit zweitem Faktor, Stichproben, API mit einem Token eines Servicekontos.
 6. DNS bzw. Weiterleitung auf prod; dev auf Testdaten zurücksetzen (P1); Dump-Dateien mit echten Daten löschen.
 
+**Auf dev (#355):** Mit `GLOSSARY_DEV_BACKUPS=true` gibt es in Administration › System zusätzlich «Vollständige
+Sicherung (Restore)»: Sicherungen auf dem Server anlegen (`storage/app/backups/dev/`) und wieder einspielen oder einen
+Dump hochladen. Dabei bleiben Konten, Anmeldungen, Rollen und Sitzungen; Verweise auf Konten, die es nicht mehr gibt,
+werden geleert. Auf test und prod bleibt der Schalter aus.
+
 Rückweg: Die Sicherung `vor-wiederherstellung-….zip` mit demselben Befehl einspielen. Danach die Löschfristen ansehen
 (`glossary:loeschfristen --trocken`, docs/LOESCHKONZEPT.md «Nach einer Wiederherstellung»).
 
