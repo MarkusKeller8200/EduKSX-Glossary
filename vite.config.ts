@@ -91,6 +91,7 @@ export default defineConfig({
             'docs/DATENSCHUTZ-VERZEICHNIS.md',
             // gebautes Script zur Einbindung (#155), Hash für SRI muss gleich bleiben
             'public/embed/**',
+            'public/ui/**',
         ],
         sortTailwindcss: {
             functions: ['clsx', 'cn', 'cva'],

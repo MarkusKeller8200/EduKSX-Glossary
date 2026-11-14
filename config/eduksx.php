@@ -29,12 +29,22 @@ return [
         'events_consumed' => ['ident.user.deleted', 'ident.user.disabled'],
         'classification' => 'internal',
         'data_license' => 'CC-BY-4.0',
+        // Plugins für Gastgeber (#338, KONZEPT-PLUGINS): Web-Komponenten, Kachel «Suche», Suche für die Gastgeber-Suche
+        'ui' => [
+            'elements' => '/ui/v1/glossary.js',
+            'widgets' => [
+                ['id' => 'term-search', 'title' => 'Glossary-Suche', 'element' => 'glossary-search', 'audience' => 'public'],
+            ],
+            'menu' => [
+                ['title' => 'Glossary', 'url' => '/'],
+            ],
+            'search' => ['url' => '/api/v1/terms?q={query}', 'audience' => 'public'],
+        ],
         'urls' => [
             'openapi' => '/api/openapi.json',
             'docs' => '/api/docs',
             'security_contact' => 'https://github.com/MarkusKeller8200/EduKSX-Glossary/security',
         ],
-        'ui' => null,
     ],
 
     /*

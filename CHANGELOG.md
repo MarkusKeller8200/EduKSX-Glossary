@@ -37,6 +37,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Eintrag mit Anfrage-ID, Modul und Version (`LOG_FORMAT=json`). Mit `GLOSSARY_METRICS_TOKEN` gibt es unter `/metrics`
   Metriken für Prometheus: Anfragen und Antwortzeiten je Bereich, Anmeldungen, veröffentlichte Begriffe, offene
   Vorschläge, Warteschlange – ohne Personendaten, nur mit Token.
+- **Plugins für Gastgeber (#338):** Der Steckbrief nennt unter `ui` die Web-Komponenten (`/ui/v1/glossary.js`), die
+  Kachel «Glossary-Suche» (`<glossary-search>`, öffentlich) und die Suche für Gastgeber. Mit einer Script-Zeile lässt
+  sich die Suche in eine beliebige Seite einbinden – ohne Anmeldung, nur öffentliche Daten, ohne Cookies.
 
 ## [0.14.0] – 2026-11-14
 

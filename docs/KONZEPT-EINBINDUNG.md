@@ -157,3 +157,17 @@ Drei Wege, von einfach bis kontrolliert:
 2. Kern und Einbindung für Entwickler mit Testseite – #155
 3. Browser-Erweiterung, Veröffentlichung in den Stores – #153
 4. Organisation in der Erweiterung (optional)
+
+## Web-Komponenten für Gastgeber (#338)
+
+Für Gastgeber wie Intranet und Portal (KONZEPT-PLUGINS in EduKSX-Architektur): `/ui/v1/glossary.js` definiert
+`<glossary-search>` (Attribute `placeholder`, `label`, `limit`, `origin`). Die Suche nutzt die öffentliche API
+(`/api/v1/terms?q=…`, CORS für alle Herkünfte), zeigt Kurzbeschreibung und öffnet die Begriffsseite. Gebaut mit
+`node scripts/build-embed.mjs` aus `packages/highlighter/src/ui.ts` (MIT), geprüft in der CI. Der Steckbrief nennt
+Script, Kachel `term-search` und die Suche für die Gastgeber-Suche. «Meine Vorschläge» (`glossary-my-proposals`) folgt
+mit der Anmeldung über Ident.
+
+```html
+<script src="https://glossary.eduksx.ch/ui/v1/glossary.js" defer></script>
+<glossary-search placeholder="Begriff oder Abkürzung"></glossary-search>
+```

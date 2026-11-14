@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Script zur Einbindung bauen (#155): packages/highlighter/src/embed.ts → public/embed/v1/glossary.js (immer die
+ * Script zur Einbindung (#155) und Web-Komponenten für Gastgeber (#338) bauen: packages/highlighter/src/embed.ts → public/embed/v1/glossary.js (immer die
  * neueste 1.x) und public/embed/v<Version>/glossary.js (unveränderlich), dazu public/embed/manifest.json mit
  * SRI-Hash. Die Dateien liegen im Repository, damit der Hash über Builds gleich bleibt.
  *
@@ -43,7 +43,29 @@ const headers = (cache) => `# Erzeugt von scripts/build-embed.mjs (#155)
     Header set Cache-Control "${cache}"
 </IfModule>
 `;
+// Web-Komponenten für Gastgeber (#338): packages/highlighter/src/ui.ts → public/ui/v1/glossary.js
+const uiSource = readFileSync(
+    resolve(root, 'packages/highlighter/src/ui.ts'),
+    'utf8',
+);
+const uiVersion = /UI_VERSION = '([0-9.]+)'/.exec(uiSource)?.[1];
+if (!uiVersion) {
+    throw new Error('UI_VERSION fehlt');
+}
+const uiResult = await build({
+    input: resolve(root, 'packages/highlighter/src/ui.ts'),
+    write: false,
+    output: {
+        format: 'iife',
+        minify: true,
+        banner: `/*! EduKSX-Glossary Web-Komponenten v${uiVersion} – MIT – https://glossary.eduksx.ch/entwickler */`,
+    },
+});
+const uiCode = uiResult.output[0].code;
+
 const files = {
+    'public/ui/v1/glossary.js': uiCode,
+    'public/ui/v1/.htaccess': headers('public, max-age=3600'),
     'public/embed/v1/glossary.js': code,
     'public/embed/v1/.htaccess': headers('public, max-age=3600'),
     [`public/embed/v${version}/glossary.js`]: code,
