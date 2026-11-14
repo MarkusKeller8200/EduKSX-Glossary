@@ -250,7 +250,7 @@ class MoveToPostgres extends Command
     {
         foreach ($tables as $table) {
             foreach ($target->getSchemaBuilder()->getColumns($table) as $column) {
-                if (($column['auto_increment'] ?? false) && in_array($column['type_name'], ['int2', 'int4', 'int8'], true)) {
+                if ($column['auto_increment'] && in_array($column['type_name'], ['int2', 'int4', 'int8'], true)) {
                     $target->statement("select setval(pg_get_serial_sequence(?, ?), coalesce((select max(\"{$column['name']}\") from \"{$table}\"), 0) + 1, false)", [$table, $column['name']]);
                 }
             }

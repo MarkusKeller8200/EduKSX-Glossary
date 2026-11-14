@@ -18,8 +18,8 @@ use LogicException;
  * @property string|null $target_user_id
  * @property string|null $target_role_id
  * @property string $action
- * @property array<mixed>|null $old
- * @property array<mixed>|null $new
+ * @property array<mixed>|null $old_values
+ * @property array<mixed>|null $new_values
  * @property string $result
  * @property CarbonImmutable $created_at
  */

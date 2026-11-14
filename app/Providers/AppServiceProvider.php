@@ -52,9 +52,13 @@ class AppServiceProvider extends ServiceProvider
         IdentEvents::register();
 
         // PostgreSQL: Schema «glossary» anlegen, falls es fehlt (#333, DB-Standard E2) – einmal je Verbindung
+        // Verbindungen, die schon vor diesem Punkt aufgebaut wurden (z. B. durch einen anderen Provider), ebenso
         Event::listen(function (ConnectionEstablished $event): void {
             PostgresSchema::ensureFor($event->connection);
         });
+        foreach (DB::getConnections() as $connection) {
+            PostgresSchema::ensureFor($connection);
+        }
 
         // Anmeldung mit Microsoft (#45): Provider von SocialiteProviders bei Socialite anmelden
         Event::listen(function (SocialiteWasCalled $event): void {
