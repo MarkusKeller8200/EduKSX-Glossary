@@ -1,6 +1,5 @@
 <?php
 
-use App\Database\StrictSchema;
 use App\Database\Uebergang012;
 use App\Enums\ActorType;
 use App\Enums\AliasType;
@@ -19,6 +18,7 @@ use App\Enums\PublicationAction;
 use App\Enums\ServiceAccountStatus;
 use App\Enums\TermStatus;
 use App\Enums\UserStatus;
+use EduKSX\Core\Database\StrictSchema;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;

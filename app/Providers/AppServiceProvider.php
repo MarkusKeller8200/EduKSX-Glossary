@@ -2,20 +2,19 @@
 
 namespace App\Providers;
 
+use App\Access\IdentEvents;
 use App\Access\Permission;
 use App\Glossary\PublicCache;
 use App\Models\User;
 use App\Organizations\OrganizationService;
 use App\Support\MailSettings;
+use App\Support\Turnstile;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use SocialiteProviders\Manager\SocialiteWasCalled;
@@ -47,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
         // ist dort möglich; die einzelnen Aktionen verlangen ihn)
         Gate::define('administer', fn (User $user): bool => $user->isActive() && $user->needsTwoFactor());
 
+        // Ereignisse von EduKSX-Ident (#187): Empfang und Signatur über eduksx/core, Wirkung hier
+        IdentEvents::register();
+
         // Anmeldung mit Microsoft (#45): Provider von SocialiteProviders bei Socialite anmelden
         Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
@@ -63,8 +65,11 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Öffentliche Lese-API: 120 Abrufe pro Minute und Adresse
-        RateLimiter::for('api', fn (Request $request) => Limit::perMinute(120)->by((string) $request->ip()));
+        // Abruflimit «api» (120/Min. je Token bzw. Adresse) kommt aus eduksx/core (#334).
+        // Spam-Schutz (Turnstile, #41) bettet sich als iframe ein: frame-src für die Sicherheitskopfzeilen von Core
+        if (Turnstile::enabled()) {
+            config(['eduksx.security_headers.frame_src' => ["'self'", 'https://challenges.cloudflare.com']]);
+        }
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Database\StrictSchema;
+use EduKSX\Core\Database\StrictSchema;
 use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;

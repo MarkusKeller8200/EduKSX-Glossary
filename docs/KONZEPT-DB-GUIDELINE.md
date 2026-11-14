@@ -66,7 +66,7 @@ Abweichungen von A1, die mit 0.12.0 umbenannt werden: `…_by` → `…_by_id` (
 `proposal_events.by_author` → `is_by_author`, `users.news_opt_in` → `has_news_opt_in`, `proposals.kind` →
 `proposal_type`, `proposal_events.type` → `event_type`, `duplicate_decisions.kind` → `match_type`. **Umgesetzt** im
 Anfangsstand `database/migrations/2026_11_01_000000_anfangsstand.php` mit Übergang `App\Database\Uebergang012` (#266);
-Helfer für STRICT und CHECK: `App\Database\StrictSchema`; Enums in `app/Enums` (#275). Werte von Status und Arten
+Helfer für STRICT und CHECK: `EduKSX\Core\Database\StrictSchema` aus eduksx/core (#334); Enums in `app/Enums` (#275). Werte von Status und Arten
 englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `lifecycle_status`: `current`, `historical`,
 `under_review`).
 

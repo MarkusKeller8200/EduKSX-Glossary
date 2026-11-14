@@ -1,23 +1,19 @@
 <?php
 
-use App\Data\StaleModel;
 use App\Http\Middleware\AuthenticateServiceToken;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirectFormerHost;
 use App\Http\Middleware\RequirePrivacyAcknowledgement;
-use App\Http\Middleware\SecurityHeaders;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use EduKSX\Core\Eloquent\StaleModel;
+use EduKSX\Core\Http\Problem;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Exceptions\InvalidSignatureException;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -33,8 +29,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Der Container ist nur über Traefik erreichbar (kein veröffentlichter Port).
         $middleware->trustProxies(at: '*');
 
-        // Schutz-Kopfzeilen für alle Antworten (wie im Intranet, #147 dort)
-        $middleware->append(SecurityHeaders::class);
+        // Schutz-Kopfzeilen und X-Request-Id für alle Antworten kommen aus eduksx/core (#334)
 
         // Frühere Adresse weiterleiten (#304), vor allem anderen
         $middleware->prepend(RedirectFormerHost::class);
@@ -67,44 +62,16 @@ return Application::configure(basePath: dirname(__DIR__))
             return null;
         });
 
-        // Optimistisches Sperren (#286): inzwischen geändert – nichts überschrieben; Web zurück mit Meldung, sonst 409
+        // Optimistisches Sperren (#286): inzwischen geändert – nichts überschrieben; Web zurück mit Meldung,
+        // API und JSON als 409 «conflict» über eduksx/core (#334)
         $exceptions->render(function (StaleModel $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json(['title' => 'Konflikt', 'status' => 409, 'detail' => $e->getMessage()], 409);
+            if (Problem::handles($request) || $request->expectsJson()) {
+                return $request->expectsJson() && ! Problem::handles($request) ? Problem::fromThrowable($e, $request) : null;
             }
 
             return back()->withErrors(['form' => $e->getMessage()])->withInput();
         });
 
-        // API: Fehler als application/problem+json (RFC 9457, docs/KONZEPT-API.md)
-        $exceptions->render(function (Throwable $e, Request $request) {
-            if (! $request->is('api/*')) {
-                return null;
-            }
-            $errors = null;
-            if ($e instanceof ValidationException) {
-                $status = 422;
-                $detail = 'Die Anfrage enthält ungültige Werte.';
-                $errors = $e->errors();
-            } elseif ($e instanceof ModelNotFoundException) {
-                $status = 404;
-                $detail = 'Nicht gefunden.';
-            } elseif ($e instanceof HttpExceptionInterface) {
-                $status = $e->getStatusCode();
-                $detail = $e->getMessage() !== '' ? $e->getMessage() : ($status === 404 ? 'Unbekannter Endpunkt.' : null);
-            } else {
-                $status = 500;
-                $detail = config('app.debug') ? $e->getMessage() : null;
-            }
-            $headers = $e instanceof HttpExceptionInterface ? $e->getHeaders() : [];
-
-            return response()->json(array_filter([
-                'type' => 'about:blank',
-                'title' => SymfonyResponse::$statusTexts[$status] ?? 'Error',
-                'status' => $status,
-                'detail' => $detail,
-                'instance' => $request->getRequestUri(),
-                'errors' => $errors,
-            ], fn ($v) => $v !== null), $status, ['Content-Type' => 'application/problem+json'] + $headers, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        });
+        // API: Fehler als application/problem+json mit code und request_id aus eduksx/core (API-Standard A6, #334)
+        Problem::register($exceptions);
     })->create();

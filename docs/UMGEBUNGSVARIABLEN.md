@@ -87,14 +87,17 @@ landen nur im Protokoll.
 
 ## 6. Anmeldung und Schutz
 
-| Variable                     | Standard                                  | Bedeutung                                        |
-| ---------------------------- | ----------------------------------------- | ------------------------------------------------ |
-| `MICROSOFT_CLIENT_ID`        | leer = Knopf ausgeblendet                 | Anmeldung mit Microsoft (Entra-App)              |
-| 🔒 `MICROSOFT_CLIENT_SECRET` | –                                         |                                                  |
-| `MICROSOFT_TENANT`           | `common`                                  | `common` für mehrere Schulen oder eine Tenant-ID |
-| `MICROSOFT_REDIRECT_URI`     | `${APP_URL}/anmelden/microsoft/rueckkehr` | je Umgebung in der Entra-App eintragen           |
-| `TURNSTILE_SITE_KEY`         | leer = aus                                | Spam-Schutz bei der Registrierung (Cloudflare)   |
-| 🔒 `TURNSTILE_SECRET_KEY`    | –                                         |                                                  |
+| Variable                     | Standard                                   | Bedeutung                                                                |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------ |
+| `MICROSOFT_CLIENT_ID`        | leer = Knopf ausgeblendet                  | Anmeldung mit Microsoft (Entra-App)                                      |
+| 🔒 `MICROSOFT_CLIENT_SECRET` | –                                          |                                                                          |
+| `MICROSOFT_TENANT`           | `common`                                   | `common` für mehrere Schulen oder eine Tenant-ID                         |
+| `MICROSOFT_REDIRECT_URI`     | `${APP_URL}/anmelden/microsoft/rueckkehr`  | je Umgebung in der Entra-App eintragen                                   |
+| `TURNSTILE_SITE_KEY`         | leer = aus                                 | Spam-Schutz bei der Registrierung (Cloudflare)                           |
+| 🔒 `TURNSTILE_SECRET_KEY`    | –                                          |                                                                          |
+| 🔒 `EDUKSX_EVENTS_KEYS`      | leer = Empfang aus                         | Schlüssel für Ereignisse von Ident (#187); beim Wechsel beide, mit Komma |
+| `EDUKSX_EVENTS_SOURCES`      | leer = alle Absender mit gültiger Signatur | Adresse von Ident, z. B. `https://ident.eduksx.ch`                       |
+| `EDUKSX_VERSION`             | leer = Datei `VERSION`                     | Version im Steckbrief und in `/health` (#189)                            |
 
 ## 7. Glossary
 

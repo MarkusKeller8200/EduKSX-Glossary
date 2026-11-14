@@ -162,6 +162,12 @@ final class DataClasses
             'published_by_id' => DataClass::Internal,
             'created_at' => DataClass::Internal,
         ],
+        'received_events' => [
+            'event_id' => DataClass::Internal,
+            'type' => DataClass::Internal,
+            'source' => DataClass::Internal,
+            'received_at' => DataClass::Internal,
+        ],
         'role_permissions' => [
             'role_id' => DataClass::Internal,
             'permission' => DataClass::Internal,

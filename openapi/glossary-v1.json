@@ -12,7 +12,9 @@
     "license": {
       "name": "CC BY 4.0 (Daten)",
       "url": "https://creativecommons.org/licenses/by/4.0/deed.de"
-    }
+    },
+    "x-eduksx-module": "glossary",
+    "x-eduksx-api-standard": "1.1"
   },
   "servers": [
     {
