@@ -250,7 +250,7 @@ final class DumpRestore
             (new TableLoader($this->db))->load($tables, $rows);
 
             foreach ($tables as $table) {
-                $expected = $this->dump->tables()[$table] - ($this->dropped[$table] ?? 0);
+                $expected = $this->dump->tables()[$table] - $this->droppedIn($table);
                 if ($this->db->table($table)->count() !== $expected) {
                     throw new RuntimeException("Zählung weicht ab: {$table} (erwartet {$expected})");
                 }
@@ -259,6 +259,12 @@ final class DumpRestore
         });
 
         return $counts;
+    }
+
+    /** Zeilen der Tabelle, die wegen fehlender Konten entfallen sind (gezählt im Lader) */
+    private function droppedIn(string $table): int
+    {
+        return $this->dropped[$table] ?? 0;
     }
 
     /**
