@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Metrics\Metrics;
+use App\Support\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -16,7 +17,7 @@ class MetricsController extends Controller
     {
         abort_unless(Metrics::enabled(), 404);
         $token = (string) $request->bearerToken();
-        if ($token === '' || ! hash_equals((string) config('glossary.metrics_token'), $token)) {
+        if ($token === '' || ! hash_equals(Settings::string('metrics.token'), $token)) {
             return response('Unauthorized', 401, ['WWW-Authenticate' => 'Bearer', 'Content-Type' => 'text/plain']);
         }
 

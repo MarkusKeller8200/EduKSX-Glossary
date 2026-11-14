@@ -24,7 +24,7 @@ final class AppVersion
      */
     public static function sourceUrl(): string
     {
-        $base = rtrim((string) config('glossary.source_url', ''), '/');
+        $base = rtrim(Settings::string('links.source_url'), '/');
         $info = self::info();
         if ($info['dev'] === null && preg_match(self::SEMVER, $info['version']) === 1) {
             return $base.'/tree/v'.$info['version'];

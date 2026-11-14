@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
+- **Alle Einstellungen auf einer Seite (#366):** Administration › Einstellungen zeigt neben den einstellbaren Werten
+  auch die Umgebung (`.env`) zum Ansehen – mit Herkunft je Wert, Geheimnisse nur als «gesetzt». Neu einstellbar:
+  Token für die Metriken (erzeugen, erneuern, entfernen), Adresse des Quellcodes und die Passwortpflicht für Dumps.
+  Werte in der Administration gelten sofort; ist ein Wert in der Umgebung gesetzt, hat er Vorrang und ist gesperrt.
 - **Sicherung und Wiederherstellung auf dev (#355):** Administration › System › «Vollständige Sicherung (Restore)»:
   vor einem Versuch eine Sicherung auf dem Server anlegen und sie später wieder einspielen – oder einen Dump
   hochladen. Konten mit Passwort und zweitem Faktor, Anmeldungen über Microsoft, Rollen und die laufenden Sitzungen

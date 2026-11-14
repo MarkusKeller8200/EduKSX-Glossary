@@ -28,7 +28,7 @@ final class DatabaseDump
 
     public static function passwordRequired(): bool
     {
-        return (bool) config('glossary.dump_require_password', false);
+        return Settings::bool('dump.require_password');
     }
 
     /**
