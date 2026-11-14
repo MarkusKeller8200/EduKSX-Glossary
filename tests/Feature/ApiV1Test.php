@@ -50,7 +50,7 @@ class ApiV1Test extends TestCase
         $this->term(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'categories' => ['per'], 'sources' => ['vsa']]);
         $this->term(['official_abbreviation' => 'LP', 'official_name' => 'Lehrperson'], publish: false);
 
-        $this->getJson('/api/v1/terms')
+        $this->getJson('/api/v1/terms?with_total=1')
             ->assertOk()
             ->assertJsonPath('meta.total', 1)
             ->assertJsonPath('data.0.abbreviation', 'SL')
@@ -65,13 +65,43 @@ class ApiV1Test extends TestCase
             $this->term(['official_abbreviation' => $abk, 'official_name' => "Begriff {$abk}", 'categories' => $abk === 'BB' ? ['per'] : []]);
         }
 
-        $this->getJson('/api/v1/terms?q=bb')->assertJsonPath('meta.total', 1);
-        $this->getJson('/api/v1/terms?category=Personal')->assertJsonPath('meta.total', 1);
+        $this->getJson('/api/v1/terms?q=bb&with_total=1')->assertJsonPath('meta.total', 1);
+        $this->getJson('/api/v1/terms?category=Personal&with_total=1')->assertJsonPath('meta.total', 1);
         $this->getJson('/api/v1/terms?per_page=2&page=2')
             ->assertJsonPath('meta.last_page', 2)
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('links.next', null);
-        $this->getJson('/api/v1/terms?status=gibts-nicht')->assertStatus(400)->assertHeader('Content-Type', 'application/problem+json');
+        $this->getJson('/api/v1/terms?status=gibts-nicht')->assertStatus(422)->assertHeader('Content-Type', 'application/problem+json');
+    }
+
+    /** Cursor nach API-Standard A5, Gesamtzahl auf Anfrage, ungültige und unbekannte Parameter 422 (#321). */
+    public function test_cursor_ohne_luecken_und_doppelte(): void
+    {
+        foreach (['AA', 'BB', 'CC', 'DD', 'EE'] as $abk) {
+            $this->term(['official_abbreviation' => $abk, 'official_name' => "Begriff {$abk}"]);
+        }
+
+        $first = $this->getJson('/api/v1/terms?limit=2')->assertOk()
+            ->assertJsonPath('meta.limit', 2)->assertJsonPath('meta.has_more', true)->assertJsonMissingPath('meta.total');
+        $seen = array_column($first->json('data'), 'abbreviation');
+        // zwischen zwei Seiten wird ein Begriff veröffentlicht, der vor dem Cursor einsortiert wird
+        $this->term(['official_abbreviation' => 'AB', 'official_name' => 'Begriff AB']);
+        $next = $first->json('links.next');
+        while ($next !== null) {
+            $page = $this->getJson($next)->assertOk();
+            $seen = array_merge($seen, array_column($page->json('data'), 'abbreviation'));
+            $next = $page->json('links.next');
+        }
+        $this->assertSame(['AA', 'BB', 'CC', 'DD', 'EE'], $seen);
+
+        $this->getJson('/api/v1/terms?with_total=1')->assertJsonPath('meta.total', 6)->assertJsonPath('meta.next_cursor', null);
+        $this->getJson('/api/v1/terms?per_page=0')->assertStatus(422)->assertJsonPath('code', 'validation_failed')->assertJsonStructure(['errors' => ['per_page']]);
+        $this->getJson('/api/v1/terms?page=-1')->assertStatus(422);
+        $this->getJson('/api/v1/terms?limit=500')->assertStatus(422)->assertJsonPath('code', 'invalid_limit');
+        $this->getJson('/api/v1/terms?foo=1')->assertStatus(422)->assertJsonPath('code', 'unknown_parameter')->assertJsonStructure(['errors' => ['foo']]);
+        $this->getJson('/api/v1/terms?cursor=kaputt')->assertStatus(422)->assertJsonPath('code', 'invalid_cursor');
+        $cursor = $first->json('meta.next_cursor');
+        $this->getJson("/api/v1/terms?cursor={$cursor}&q=aa")->assertStatus(422)->assertJsonPath('code', 'invalid_cursor');
     }
 
     public function test_einzelner_begriff_nach_id_oder_slug(): void
@@ -152,7 +182,7 @@ class ApiV1Test extends TestCase
             ->assertJsonCount(1, 'terms')
             ->assertJsonPath('categories.0.key', 'per')
             ->assertJsonPath('release', 1);
-        $this->getJson('/api/v1/exports?format=csv')->assertStatus(400);
+        $this->getJson('/api/v1/exports?format=csv')->assertStatus(422);
         $this->getJson('/api/v1/categories')->assertJsonPath('data.0.label', 'Personal');
         $this->getJson('/api/v1/sources')->assertJsonPath('data.0.key', 'vsa');
     }
@@ -162,7 +192,7 @@ class ApiV1Test extends TestCase
         $term = $this->term(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung']);
         $this->glossary->publish($this->glossary->save($term, ['is_active' => false], null, true), null);
 
-        $this->getJson('/api/v1/terms')->assertJsonPath('meta.total', 0);
+        $this->getJson('/api/v1/terms?with_total=1')->assertJsonPath('meta.total', 0);
         $this->getJson('/api/v1/changes')->assertJsonPath('data.1.term.is_active', false);
     }
 }

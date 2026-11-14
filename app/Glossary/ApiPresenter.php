@@ -78,10 +78,8 @@ final class ApiPresenter
         foreach ($revisions as $revision) {
             $terms[] = $this->withContext($this->term($revision), $revision, $display);
         }
-        usort($terms, fn (array $a, array $b): int => strcasecmp(
-            (string) ($a['abbreviation'] ?: $a['name']),
-            (string) ($b['abbreviation'] ?: $b['name']),
-        ));
+        // feste Reihenfolge: Anzeigebezeichnung, dann ID (Cursor der Liste, #321)
+        usort($terms, [TermListCursor::class, 'compare']);
 
         return $terms;
     }
@@ -437,6 +435,7 @@ final class ApiPresenter
             }
         }
         $term['language'] = ['requested' => $locale, 'fields' => $fields];
+        $term['locale'] = $fields['name'];   // Sprache des Haupttexts; ohne Übersetzung «de» (#326)
 
         return $term;
     }
@@ -450,12 +449,15 @@ final class ApiPresenter
     public static function localizeItem(array $item, string $locale): array
     {
         $row = (array) (((array) ($item['translations'] ?? []))[$locale] ?? []);
+        $translated = false;
         foreach (self::TRANSLATED_LIST_FIELDS as $field) {
             $value = $row[$field] ?? null;
             if ($locale !== Locale::De->value && is_string($value) && $value !== '') {
                 $item[$field] = $value;
+                $translated = true;
             }
         }
+        $item['locale'] = $translated ? $locale : Locale::De->value;
 
         return $item;
     }

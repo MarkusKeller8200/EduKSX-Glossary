@@ -41,7 +41,8 @@ class UebersetzungenTest extends TestCase
         $term = $this->term();
         $this->assertSame(['fr'], array_keys((array) $term->publishedRevision?->snapshot['translations']));   // leeres it entfällt
 
-        $this->getJson("/api/v1/terms/{$term->slug}")->assertOk()
+        $this->getJson("/api/v1/terms/{$term->slug}", ['Accept-Language' => 'de-CH'])->assertOk()
+            ->assertHeader('Content-Language', 'de')
             ->assertJsonPath('data.name', 'Klassenlehrperson')
             ->assertJsonPath('data.translations.fr.name', 'Maître de classe')
             ->assertJsonMissingPath('data.language');
@@ -57,11 +58,33 @@ class UebersetzungenTest extends TestCase
             ->assertJsonPath('data.language.fields.short_description', 'de')
             ->assertJsonPath('data.categories.0.name', 'Personnel');
 
-        $this->getJson('/api/v1/terms?lang=fr&q=maître')->assertOk()->assertJsonPath('meta.total', 1);
+        $this->getJson('/api/v1/terms?lang=fr&q=maître&with_total=1')->assertOk()->assertJsonPath('meta.total', 1);
         $this->getJson('/api/v1/terms?lang=it')->assertOk()->assertJsonPath('data.0.name', 'Klassenlehrperson')
             ->assertJsonPath('data.0.language.fields.name', 'de');
         $this->getJson('/api/v1/categories?lang=fr')->assertOk()->assertJsonPath('data.0.label', 'Personnel');
-        $this->getJson('/api/v1/terms?lang=xx')->assertStatus(400);
+        $this->getJson('/api/v1/terms?lang=xx')->assertStatus(422)->assertJsonPath('code', 'invalid_locale');
+    }
+
+    /** Sprache nach API-Standard A4 (#326): ?locale= vor Accept-Language, Content-Language, locale je Objekt. */
+    public function test_sprache_mit_locale_und_accept_language(): void
+    {
+        $term = $this->term();
+
+        $this->getJson("/api/v1/terms/{$term->slug}?locale=fr")->assertOk()
+            ->assertHeader('Content-Language', 'fr')
+            ->assertJsonPath('data.name', 'Maître de classe')->assertJsonPath('data.locale', 'fr');
+        $this->assertStringContainsString('Accept-Language', (string) $this->getJson("/api/v1/terms/{$term->slug}?locale=fr")->headers->get('Vary'));
+        // Kopfzeile ohne Parameter; Parameter gewinnt
+        $this->getJson("/api/v1/terms/{$term->slug}", ['Accept-Language' => 'fr-CH, de;q=0.5'])->assertJsonPath('data.name', 'Maître de classe');
+        $this->getJson("/api/v1/terms/{$term->slug}?locale=de", ['Accept-Language' => 'fr'])->assertJsonPath('data.name', 'Klassenlehrperson');
+        // keine italienische Übersetzung: Rückfall erkennbar
+        $this->getJson("/api/v1/terms/{$term->slug}", ['Accept-Language' => 'it'])->assertHeader('Content-Language', 'it')
+            ->assertJsonPath('data.name', 'Klassenlehrperson')->assertJsonPath('data.locale', 'de');
+        $this->getJson('/api/v1/categories?locale=fr')->assertJsonPath('data.0.locale', 'fr');
+        // Fehler in der verlangten Sprache, code bleibt englisch
+        $this->getJson('/api/v1/terms/gibt-es-nicht?locale=fr')->assertStatus(404)
+            ->assertJsonPath('code', 'not_found')->assertJsonPath('title', 'Introuvable.');
+        $this->getJson('/api/v1/terms?locale=xx')->assertStatus(422)->assertHeader('Content-Type', 'application/problem+json');
     }
 
     public function test_entwurf_erst_nach_veroeffentlichung_sichtbar(): void

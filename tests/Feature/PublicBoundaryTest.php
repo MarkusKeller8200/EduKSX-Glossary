@@ -94,7 +94,7 @@ class PublicBoundaryTest extends TestCase
         $this->assertSame([], array_diff(ExportPages::FIELDS, ApiPresenter::PUBLIC_TERM_FIELDS));
 
         // im Change-Feed ohne die vom Gesamtstand abhängigen Felder
-        $change = $this->getJson('/api/v1/changes')->json('data.0.term');
+        $change = $this->getJson('/api/v1/changes', ['Accept-Language' => 'de'])->json('data.0.term');
         $this->assertSame(array_values(array_diff(ApiPresenter::PUBLIC_TERM_FIELDS, ApiPresenter::CONTEXT_FIELDS)), array_keys($change));
     }
 }

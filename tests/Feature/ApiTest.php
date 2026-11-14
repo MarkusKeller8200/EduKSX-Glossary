@@ -105,10 +105,43 @@ class ApiTest extends TestCase
             ->assertNotFound()
             ->assertHeader('Content-Type', 'application/problem+json')
             ->assertJsonPath('status', 404)
-            ->assertJsonPath('title', 'Not Found')
+            ->assertJsonPath('title', 'Nicht gefunden.')
             ->assertJsonPath('code', 'not_found')
             ->assertJsonPath('type', 'https://docs.eduksx.ch/problems/not_found')
             ->assertHeader('X-Request-Id');
+    }
+
+    /** Fehlerformat nach API-Standard A6/C7 (#320): type, code, request_id, Titel in der Sprache; auch 401 und 429. */
+    public function test_fehlerformat_nach_standard(): void
+    {
+        $missing = $this->getJson('/api/v1/terms/gibt-es-nicht', ['Accept-Language' => 'de-CH'])->assertNotFound()
+            ->assertJsonPath('type', 'https://docs.eduksx.ch/problems/not_found')
+            ->assertJsonPath('code', 'not_found')->assertJsonPath('title', 'Nicht gefunden.');
+        $this->assertSame($missing->headers->get('X-Request-Id'), $missing->json('request_id'));
+        $this->assertNotEmpty($missing->json('request_id'));
+
+        foreach (['/api/v1', '/api/v1/terms', '/api/v1/categories'] as $path) {
+            $this->assertNotEmpty($this->getJson($path)->headers->get('X-Request-Id'), $path);
+        }
+
+        $this->getJson('/api/v1/service/whoami')->assertUnauthorized()
+            ->assertHeader('Content-Type', 'application/problem+json')
+            ->assertJsonPath('code', 'unauthenticated')->assertJsonStructure(['type', 'title', 'request_id']);
+
+        config(['eduksx.rate_limit.api' => 1]);
+        $this->getJson('/api/v1/categories');
+        $this->getJson('/api/v1/categories?locale=de')->assertStatus(429)
+            ->assertHeader('Content-Type', 'application/problem+json')
+            ->assertJsonPath('code', 'too_many_requests')->assertJsonPath('title', 'Zu viele Anfragen.');
+    }
+
+    /** Datenstand als EduKSX-Release, bis 1.0 zusätzlich X-Glossary-Release (#327). */
+    public function test_release_kopfzeilen(): void
+    {
+        $response = $this->getJson('/api/v1/terms');
+
+        $this->assertNotNull($response->headers->get('EduKSX-Release'));
+        $this->assertSame($response->headers->get('EduKSX-Release'), $response->headers->get('X-Glossary-Release'));
     }
 
     public function test_cors_fuer_lesezugriffe(): void

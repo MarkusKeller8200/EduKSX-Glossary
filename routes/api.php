@@ -6,11 +6,12 @@ use App\Http\Controllers\Api\OrganizationApiController;
 use App\Http\Controllers\Api\ProposalApiController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StatusController;
+use App\Http\Middleware\ApiLocale;
 use Illuminate\Support\Facades\Route;
 
 // Öffentliche Lese-API, versioniert (docs/KONZEPT-API.md, openapi/glossary-v1.yaml). Nur veröffentlichte Daten.
 // Schreibend nur Vorschläge mit Token eines Servicekontos (#47, #113).
-Route::prefix('v1')->middleware('throttle:api')->group(function () {
+Route::prefix('v1')->middleware([ApiLocale::class, 'throttle:api'])->group(function () {
     Route::get('/', StatusController::class)->name('api.v1');
     Route::get('terms', [GlossaryApiController::class, 'terms'])->name('api.v1.terms');
     Route::get('terms/{idOrSlug}', [GlossaryApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->name('api.v1.term');

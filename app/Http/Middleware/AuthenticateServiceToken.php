@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Access\Service\ServiceAccountManager;
 use Closure;
+use EduKSX\Core\Http\ProblemException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -19,7 +20,8 @@ class AuthenticateServiceToken
     {
         $token = $this->manager->authenticate($request->bearerToken(), $scope);
         if ($token === null) {
-            return response()->json(['message' => 'Gültiges Token eines Servicekontos nötig.'], 401, [
+            // Fehlerformat nach API-Standard A6 (#320)
+            throw ProblemException::common(401, 'unauthenticated', 'Gültiges Token eines Servicekontos nötig.', [
                 'WWW-Authenticate' => 'Bearer realm="glossary"',
                 'Cache-Control' => 'no-store',
             ]);
