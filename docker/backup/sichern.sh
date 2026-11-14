@@ -1,6 +1,7 @@
 #!/bin/sh
 # Sicherung ausser Haus (#197, DEC-028 D6): täglich um ${SICHERUNG_UHRZEIT} die Datenbank-Kopie
-# (storage/app/backups/taeglich.sqlite, erzeugt von glossary:sicherung) und den Schlüssel (storage/app/.app_key) mit
+# (storage/app/backups/taeglich.sqlite bzw. auf PostgreSQL der Dump taeglich.zip, #357; erzeugt von glossary:sicherung)
+# und den Schlüssel (storage/app/.app_key) mit
 # restic verschlüsselt sichern. Ziel: S3-kompatibel (Infomaniak Object Storage, Swiss Backup S3, MinIO, NAS) oder ein
 # Ordner (z. B. eingebundenes NAS). Aufbewahrung ${SICHERUNG_TAGE} Tage (Löschkonzept: 30). Am 1. des Monats
 # Wiederherstellungstest: letzte Sicherung zurückholen und prüfen. Ergebnis in storage/app/backups/sicherung.json.
@@ -26,15 +27,22 @@ melden() { # ergebnis meldung [test]
 
 sichern() {
     restic snapshots > /dev/null 2>&1 || restic init
-    test -f "$DATA/app/backups/taeglich.sqlite" || { melden fehler "Keine Datenbank-Kopie (glossary:sicherung läuft im Dienst scheduler)"; return 1; }
-    restic backup --tag glossary --host glossary "$DATA/app/backups/taeglich.sqlite" "$DATA/app/.app_key"
+    dateien=""
+    for f in taeglich.sqlite taeglich.zip; do
+        if [ -f "$DATA/app/backups/$f" ]; then dateien="$dateien $DATA/app/backups/$f"; fi
+    done
+    [ -n "$dateien" ] || { melden fehler "Keine Datenbank-Kopie (glossary:sicherung läuft im Dienst scheduler)"; return 1; }
+    # shellcheck disable=SC2086
+    restic backup --tag glossary --host glossary $dateien "$DATA/app/.app_key"
     restic forget --tag glossary --keep-within "${TAGE}d" --prune
     test=""
     if [ "$(date +%d)" = "01" ] || [ "${SICHERUNG_TEST:-}" = "jetzt" ]; then
         rm -rf /tmp/wiederherstellung
         restic restore latest --tag glossary --target /tmp/wiederherstellung
         datei="$(find /tmp/wiederherstellung -name taeglich.sqlite | head -n 1)"
-        if [ -n "$datei" ] && head -c 15 "$datei" | grep -q 'SQLite format 3'; then
+        dump="$(find /tmp/wiederherstellung -name taeglich.zip | head -n 1)"
+        if { [ -n "$datei" ] && head -c 15 "$datei" | grep -q 'SQLite format 3'; } \
+            || { [ -n "$dump" ] && unzip -l "$dump" 2> /dev/null | grep -q 'manifest.json'; }; then
             restic check --read-data-subset=5%
             test="ok"
         else

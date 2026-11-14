@@ -21,7 +21,7 @@ less install.sh        # ansehen
 sudo sh install.sh
 ```
 
-Das Skript fragt Ordner (Vorgabe `/opt/glossary`), Adresse, Proxy, Update-Dienst und Sicherung, schreibt `.env`,
+Das Skript fragt Ordner (Vorgabe `/opt/glossary`), Adresse, Proxy, Datenbank, Update-Dienst und Sicherung, schreibt `.env`,
 startet die Dienste, prüft die Konfiguration (`glossary:pruefen`) und legt den ersten Admin an. Danach:
 `https://<adresse>/anmelden` → zweiten Faktor einrichten → Administration → System:
 
@@ -30,6 +30,21 @@ startet die Dienste, prüft die Konfiguration (`glossary:pruefen`) und legt den 
 3. **Updates** – installierte Version, Update-Dienst «aktiv».
 
 Ein zweiter Lauf des Skripts ändert eine bestehende Installation nicht ungefragt (nur Dateien aktualisieren).
+
+### Datenbank: SQLite oder PostgreSQL (#357)
+
+- **SQLite** (Vorgabe): eine Datei im Volumen, nichts zu installieren – genügt für wenige Benutzer.
+- **PostgreSQL im Stack:** Antwort «2» bei «Datenbank». Das Skript ergänzt `compose.postgres.yaml`, legt zwei
+  Passwörter in `secrets/` an (Zugang der App, Verwaltung) und startet PostgreSQL (Image `postgres:18`) nur im
+  internen Netz. Die App erhält einen Zugang mit Rechten nur auf das Schema `glossary`.
+- **Umstellen einer bestehenden Installation:** das Skript nochmals ausführen und «Auf PostgreSQL umstellen?» mit «j»
+  beantworten. Beim nächsten Start übernimmt die App die SQLite-Datenbank automatisch: Kopie
+  `storage/app/backups/vor-postgres-*.sqlite`, Übernahme mit Zählung je Tabelle, Vermerk
+  `storage/app/database/postgres-uebernahme.json`. Stimmt die Zählung nicht, startet die App nicht und PostgreSQL
+  bleibt leer; die SQLite-Datei bleibt in jedem Fall unverändert liegen (zurück: `compose.postgres.yaml` aus
+  `COMPOSE_FILE` entfernen und neu starten).
+- Eine neue Hauptversion von PostgreSQL (z. B. 19) nicht einfach im Image-Tag wechseln: zuerst ein Dump, dann eine
+  frische Datenbank und `glossary:wiederherstellen`.
 
 ## Bausteine
 
@@ -43,6 +58,7 @@ Alles läuft mit demselben Image; was dazukommt, steht in `COMPOSE_FILE` in `.en
 | `compose.schulnetz.yaml` | ausgehender Proxy, eigene Zertifizierungsstelle (Ordner `ca/`)           |
 | `compose.updater.yaml`   | Update-Dienst (Updates aus der Administration, automatische Korrekturen) |
 | `compose.backup.yaml`    | Sicherung ausser Haus mit restic (verschlüsselt, S3 oder Ordner)         |
+| `compose.postgres.yaml`  | PostgreSQL im Stack statt SQLite (#357), Passwörter in `secrets/`        |
 
 Ohne Proxy-Baustein lauscht die App nur auf `127.0.0.1:8080` – dann leitet ein eigener nginx/Apache dorthin weiter.
 
@@ -73,8 +89,9 @@ Ohne Proxy-Baustein lauscht die App nur auf `127.0.0.1:8080` – dann leitet ein
 
 ## Sicherung und Wiederherstellung
 
-- Vor jedem Start sichert der Container die Datenbank (`storage/app/backups/vor-update-*.sqlite`, die letzten 10).
-- Täglich 02:15 eine vollständige Kopie (`taeglich.sqlite`); mit `compose.backup.yaml` sichert restic sie um 02:30
+- Vor jedem Start sichert der Container die Datenbank (`storage/app/backups/vor-update-*.sqlite`, auf PostgreSQL
+  `vor-update-*.zip` als Dump; die letzten 10).
+- Täglich 02:15 eine vollständige Kopie (`taeglich.sqlite`, auf PostgreSQL der Dump `taeglich.zip`); mit `compose.backup.yaml` sichert restic sie um 02:30
   verschlüsselt ausser Haus, bewahrt sie 30 Tage auf und testet am 1. des Monats die Wiederherstellung. Den Stand zeigt
   System → Konfiguration.
 - Sofort sichern und testen: `docker compose run --rm -e SICHERUNG_TEST=jetzt backup jetzt`.
@@ -84,7 +101,9 @@ Ohne Proxy-Baustein lauscht die App nur auf `127.0.0.1:8080` – dann leitet ein
   Datenbank) und `manifest.json` (Zeilen je Tabelle, Prüfsummen). Mit Passwort AES-256-verschlüsselt;
   `GLOSSARY_DUMP_REQUIRE_PASSWORD=true` erlaubt nur noch verschlüsselte Dumps. Wiederherstellen wie unten mit
   `datenbank/glossary.sqlite`.
-- **Wiederherstellen:**
+- **Wiederherstellen auf PostgreSQL:** `docker compose exec app php artisan glossary:wiederherstellen <datei.zip>`
+  (Dump aus `vor-update-*.zip`, `taeglich.zip` oder `glossary:dump`, zuerst mit `--trocken`).
+- **Wiederherstellen (SQLite):**
 
 ```bash
 cd /opt/glossary

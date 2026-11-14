@@ -6,8 +6,9 @@
 #   less install.sh          # ansehen
 #   sudo sh install.sh
 #
-# Fragt Ordner, Adresse, Proxy, Update-Dienst und Sicherung; schreibt .env, startet, prüft und legt den ersten Admin an.
-# Ein zweiter Lauf ändert eine bestehende Installation nicht ungefragt.
+# Fragt Ordner, Adresse, Proxy, Datenbank (SQLite oder PostgreSQL), Update-Dienst und Sicherung; schreibt .env, startet,
+# prüft und legt den ersten Admin an. Ein zweiter Lauf ändert eine bestehende Installation nicht ungefragt; er bietet an,
+# eine Installation mit SQLite auf PostgreSQL umzustellen (Daten werden beim Start übernommen, #357).
 set -eu
 
 REPO="MarkusKeller8200/EduKSX-Glossary"
@@ -21,6 +22,18 @@ frage() { # text vorgabe → Antwort
 ja() { # text vorgabe(j/n)
     a="$(frage "$1 (j/n)" "$2")"
     case "$a" in j|J|ja|Ja|y|Y) return 0 ;; *) return 1 ;; esac
+}
+geheimnis() { # datei – zufälliges Passwort anlegen, falls es fehlt (lesbar für die Container, Ordner nur root)
+    mkdir -p secrets
+    chmod 700 secrets
+    if [ ! -s "secrets/$1" ]; then
+        head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n' > "secrets/$1"
+        chmod 644 "secrets/$1"
+    fi
+}
+postgres_einrichten() {
+    geheimnis db_password
+    geheimnis db_admin_password
 }
 holen() { # pfad-im-repo ziel
     curl -fsSL "https://raw.githubusercontent.com/$REPO/$REF/$1" -o "$2" \
@@ -62,10 +75,11 @@ else
 fi
 
 echo "Dateien holen …"
-for f in compose.yaml compose.proxy.yaml compose.traefik.yaml compose.schulnetz.yaml compose.backup.yaml compose.updater.yaml; do
+for f in compose.yaml compose.proxy.yaml compose.traefik.yaml compose.schulnetz.yaml compose.backup.yaml compose.updater.yaml compose.postgres.yaml; do
     holen "docker/$f" "$f"
 done
-mkdir -p backup
+mkdir -p backup postgres
+holen docker/postgres/init.sh postgres/init.sh
 holen docker/updater/updater.sh updater.sh
 holen docker/backup/sichern.sh backup/sichern.sh
 
@@ -83,6 +97,11 @@ if [ "$NEU" -eq 1 ]; then
                fi
            done ;;
     esac
+    echo "Datenbank: 1 = SQLite (Standard, eine Datei, für wenige Benutzer), 2 = PostgreSQL im Stack"
+    if [ "$(frage "Datenbank" 1)" = "2" ]; then
+        FILES="compose.yaml:compose.postgres.yaml${FILES#compose.yaml}"
+        postgres_einrichten
+    fi
     if ja "Schulnetz: ausgehender Proxy oder eigene Zertifizierungsstelle?" n; then
         FILES="$FILES:compose.schulnetz.yaml"
         mkdir -p ca
@@ -115,6 +134,18 @@ if [ "$NEU" -eq 1 ]; then
     } > .env
     chmod 600 .env
     [ "$BACKUP" -eq 1 ] && echo "WICHTIG: RESTIC_PASSWORD in $DIR/.env sicher ausserhalb des Servers aufbewahren – ohne ihn keine Wiederherstellung."
+fi
+
+if [ "$NEU" -eq 0 ] && ! grep -q '^COMPOSE_FILE=.*compose.postgres.yaml' .env; then
+    if ja "Auf PostgreSQL umstellen? Die Daten aus SQLite werden beim Start übernommen (SQLite-Datei bleibt als Rückfall)." n; then
+        postgres_einrichten
+        if grep -q '^COMPOSE_FILE=' .env; then
+            sed -i 's#^COMPOSE_FILE=compose.yaml#COMPOSE_FILE=compose.yaml:compose.postgres.yaml#' .env
+        else
+            echo "COMPOSE_FILE=compose.yaml:compose.postgres.yaml" >> .env
+        fi
+        echo "PostgreSQL eingerichtet; Passwörter in $DIR/secrets (nur root)."
+    fi
 fi
 
 echo "Starten …"

@@ -48,15 +48,17 @@ Zeichen in den Tabellen: ★ = Pflicht oder wichtig · 🔒 = Geheimnis.
 
 ## 3. Datenbank
 
-| Variable                                                 | Standard                               | Bedeutung                            |
-| -------------------------------------------------------- | -------------------------------------- | ------------------------------------ |
-| `DB_CONNECTION`                                          | `sqlite`                               | `sqlite` oder `pgsql`                |
-| `DB_DATABASE`                                            | `storage/app/database/glossary.sqlite` | Pfad (SQLite) bzw. Name (PostgreSQL) |
-| `DB_SCHEMA`                                              | `glossary`                             | Schema auf PostgreSQL (#333)         |
-| `DB_BUSY_TIMEOUT`                                        | `5000`                                 | SQLite: Wartezeit in ms              |
-| `DB_JOURNAL_MODE`                                        | `wal`                                  | SQLite: Journal                      |
-| `DB_FOREIGN_KEYS`                                        | `true`                                 | SQLite: Fremdschlüssel prüfen        |
-| `DB_HOST` / `DB_PORT` / `DB_USERNAME` / 🔒 `DB_PASSWORD` | `127.0.0.1` / `5432` / – / –           | nur bei PostgreSQL                   |
+| Variable                                                 | Standard                               | Bedeutung                                                                    |
+| -------------------------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `DB_CONNECTION`                                          | `sqlite`                               | `sqlite` oder `pgsql`                                                        |
+| `DB_DATABASE`                                            | `storage/app/database/glossary.sqlite` | Pfad (SQLite) bzw. Name (PostgreSQL)                                         |
+| `DB_SCHEMA`                                              | `glossary`                             | Schema auf PostgreSQL (#333)                                                 |
+| `DB_SQLITE_DATABASE`                                     | `storage/app/database/glossary.sqlite` | SQLite-Datei für die Übernahme, wenn die App auf PostgreSQL läuft (#357)     |
+| `GLOSSARY_POSTGRES_IMAGE`                                | `postgres:18`                          | Image des Dienstes `postgres` in `compose.postgres.yaml` (#357)              |
+| `DB_BUSY_TIMEOUT`                                        | `5000`                                 | SQLite: Wartezeit in ms                                                      |
+| `DB_JOURNAL_MODE`                                        | `wal`                                  | SQLite: Journal                                                              |
+| `DB_FOREIGN_KEYS`                                        | `true`                                 | SQLite: Fremdschlüssel prüfen                                                |
+| `DB_HOST` / `DB_PORT` / `DB_USERNAME` / 🔒 `DB_PASSWORD` | `127.0.0.1` / `5432` / – / –           | nur bei PostgreSQL; mit `compose.postgres.yaml` gesetzt (`DB_PASSWORD_FILE`) |
 
 ## 4. Session, Cache, Warteschlange, Protokoll
 

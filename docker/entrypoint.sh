@@ -9,7 +9,8 @@ mkdir -p storage/app/database storage/app/private storage/app/public storage/app
 
 # Geheimnisse aus Dateien (#196): NAME_FILE=/pfad setzt NAME auf den Inhalt der Datei (Docker/Kubernetes Secrets),
 # z. B. APP_KEY_FILE, MAIL_PASSWORD_FILE. Der Wert erscheint nie in der Ausgabe.
-for name in $(env | sed -n 's/^\([A-Z0-9_]*\)_FILE=.*/\1/p'); do
+# COMPOSE_FILE (Liste der compose-Dateien aus .env) ist kein Geheimnis und bleibt unberührt.
+for name in $(env | sed -n 's/^\([A-Z0-9_]*\)_FILE=.*/\1/p' | grep -vx COMPOSE); do
     file="$(printenv "${name}_FILE")"
     if [ -r "$file" ]; then
         value="$(cat "$file")"
@@ -47,19 +48,42 @@ if [ "$ROLE" != "web" ]; then
     exec "$@"
 fi
 
-# SQLite-Datei anlegen, falls neu; vor dem Umbau eine Sicherung (eine Datei, konsistent über sqlite3 .backup).
-DB="${DB_DATABASE:-storage/app/database/glossary.sqlite}"
-if [ -s "$DB" ]; then
-    sqlite3 "$DB" ".backup 'storage/app/backups/vor-update-$(date -u +%Y%m%dT%H%M%SZ).sqlite'" || echo "[glossary] Sicherung fehlgeschlagen"
-    # nur die letzten 10 Sicherungen behalten
-    ls -1t storage/app/backups/vor-update-*.sqlite 2>/dev/null | tail -n +11 | xargs -r rm -f
+if [ "${DB_CONNECTION:-sqlite}" = "pgsql" ]; then
+    # PostgreSQL (#357): warten, bis die Datenbank Verbindungen annimmt (höchstens 2 Minuten)
+    i=0
+    until php -r '
+        $dsn = sprintf("pgsql:host=%s;port=%s;dbname=%s", getenv("DB_HOST") ?: "127.0.0.1", getenv("DB_PORT") ?: "5432", getenv("DB_DATABASE") ?: "glossary");
+        try { new PDO($dsn, getenv("DB_USERNAME") ?: "", getenv("DB_PASSWORD") ?: "", [PDO::ATTR_TIMEOUT => 3]); } catch (Throwable $e) { exit(1); }
+    ' 2> /dev/null; do
+        i=$((i + 1))
+        [ "$i" -lt 60 ] || { echo "[glossary] PostgreSQL nicht erreichbar (${DB_HOST:-127.0.0.1}:${DB_PORT:-5432})." >&2; exit 1; }
+        sleep 2
+    done
+    php artisan optimize --no-ansi
+    # vor dem Umbau ein Dump (Format glossary:dump, einspielen mit glossary:wiederherstellen); nur die letzten 10
+    if php artisan migrate:status --no-ansi > /dev/null 2>&1; then
+        php artisan glossary:dump "storage/app/backups/vor-update-$(date -u +%Y%m%dT%H%M%SZ).zip" --no-ansi > /dev/null \
+            || echo "[glossary] Sicherung fehlgeschlagen"
+        ls -1t storage/app/backups/vor-update-*.zip 2>/dev/null | tail -n +11 | xargs -r rm -f
+    fi
+    php artisan migrate --force --no-ansi
+    # bestehende SQLite-Datenbank einmalig übernehmen; schlägt das fehl, startet der Container nicht
+    php artisan glossary:postgres-uebernahme --no-ansi
 else
-    touch "$DB"
-fi
+    # SQLite-Datei anlegen, falls neu; vor dem Umbau eine Sicherung (eine Datei, konsistent über sqlite3 .backup).
+    DB="${DB_DATABASE:-storage/app/database/glossary.sqlite}"
+    if [ -s "$DB" ]; then
+        sqlite3 "$DB" ".backup 'storage/app/backups/vor-update-$(date -u +%Y%m%dT%H%M%SZ).sqlite'" || echo "[glossary] Sicherung fehlgeschlagen"
+        # nur die letzten 10 Sicherungen behalten
+        ls -1t storage/app/backups/vor-update-*.sqlite 2>/dev/null | tail -n +11 | xargs -r rm -f
+    else
+        touch "$DB"
+    fi
 
-# Konfiguration, Routen und Views für Produktion vorbereiten; Datenbank auf den Stand bringen.
-php artisan optimize --no-ansi
-php artisan migrate --force --no-ansi
+    # Konfiguration, Routen und Views für Produktion vorbereiten; Datenbank auf den Stand bringen.
+    php artisan optimize --no-ansi
+    php artisan migrate --force --no-ansi
+fi
 
 chown -R www-data:www-data storage bootstrap/cache
 

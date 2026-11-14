@@ -13,6 +13,16 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   hochladen. Konten mit Passwort und zweitem Faktor, Anmeldungen über Microsoft, Rollen und die laufenden Sitzungen
   bleiben; alles andere kommt aus der Sicherung. Der Stand davor wird automatisch gesichert. Nur mit
   `GLOSSARY_DEV_BACKUPS=true` (dev).
+- **PostgreSQL im Stack (#357):** Zusatz `compose.postgres.yaml` mit PostgreSQL 18 nur im internen Netz; die App
+  erhält einen Zugang nur auf das Schema `glossary`, die Passwörter liegen als Dateien in `secrets/`. Das
+  Installationsskript fragt «SQLite oder PostgreSQL» und bietet bei einer bestehenden Installation die Umstellung an.
+  Beim ersten Start mit PostgreSQL übernimmt die App eine vorhandene SQLite-Datenbank automatisch (Kopie vorher,
+  Zählung je Tabelle; bei Abweichung startet sie nicht). Auf PostgreSQL sichert der Container mit einem Dump vor jedem
+  Update und täglich; die Sicherung ausser Haus nimmt ihn mit. Das Image enthält jetzt den Treiber für PostgreSQL.
+
+### Korrigiert
+
+- `COMPOSE_FILE` aus der `.env` gilt im Container nicht mehr als Datei mit einem Geheimnis (Meldung beim Start).
 
 ## [0.14.0] – 2026-11-14
 

@@ -55,15 +55,21 @@ final class ConfigCheck
         // Datenbank und Speicher
         try {
             DB::select('select 1');
-            $add('Daten', 'Datenbank erreichbar', self::OK, (string) config('database.default'));
+            $detail = (string) config('database.default');
+            if (DB::getDriverName() === 'pgsql') {
+                // PostgreSQL (#357): Version und Schema
+                $row = (array) DB::selectOne("select current_setting('server_version') as v, current_schema() as s");
+                $detail = 'PostgreSQL '.$row['v'].', Schema '.$row['s'];
+            }
+            $add('Daten', 'Datenbank erreichbar', self::OK, $detail);
         } catch (Throwable $e) {
             $add('Daten', 'Datenbank erreichbar', self::FEHLER, class_basename($e).' – Verbindung bzw. Datei prüfen.');
         }
         $add('Daten', 'Speicher beschreibbar (storage/)', is_writable(storage_path()) ? self::OK : self::FEHLER,
             is_writable(storage_path()) ? '' : 'Rechte des Volumens prüfen (Besitzer www-data).');
 
-        if (config('database.default') === 'sqlite') {
-            $backups = glob(storage_path('app/backups/*.sqlite')) ?: [];
+        if (in_array(config('database.default'), ['sqlite', 'pgsql'], true)) {
+            $backups = glob(storage_path('app/backups/'.(config('database.default') === 'pgsql' ? 'vor-update-*.zip' : '*.sqlite'))) ?: [];
             $latest = $backups === [] ? null : max(array_map(fn (string $f): int => (int) filemtime($f), $backups));
             $add('Daten', 'Sicherung vor dem Start', $latest === null ? ($production ? self::WARNUNG : self::OK) : self::OK,
                 $latest === null ? 'Noch keine Sicherung in storage/app/backups (entsteht beim nächsten Start des Containers).' : 'zuletzt '.date('d.m.Y H:i', $latest));
