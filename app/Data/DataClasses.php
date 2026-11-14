@@ -137,6 +137,7 @@ final class DataClasses
         ],
         'proposals' => [
             'id' => DataClass::Internal,
+            'uuid' => DataClass::Internal,
             'proposal_type' => DataClass::Internal,
             'term_id' => DataClass::Internal,
             'base_revision' => DataClass::Internal,

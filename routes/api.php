@@ -22,13 +22,13 @@ Route::prefix('v1')->middleware([ApiLocale::class, 'throttle:api'])->group(funct
     Route::get('changes', [GlossaryApiController::class, 'changes'])->name('api.v1.changes');
     Route::get('exports', [GlossaryApiController::class, 'export'])->name('api.v1.exports');
 
-    // Servicekonten (#47): Token prüfen; Vorschläge mit Scope «propose» (#113), landen in der Moderation
+    // Servicekonten (#47): Token prüfen; Scopes nach Standard (#323); Vorschläge landen in der Moderation (#113)
     Route::get('service/whoami', [ServiceController::class, 'whoami'])->middleware('service.token')->name('api.v1.service.whoami');
-    Route::post('proposals', [ProposalApiController::class, 'store'])->middleware(['service.token:propose', 'throttle:30,1'])->name('api.v1.proposals.store');
-    // Organisation (#148): Begriffe in deren Darstellung, Token mit Scope «read-org»
-    Route::get('org/terms', [OrganizationApiController::class, 'terms'])->middleware('service.token:read-org')->name('api.v1.org.terms');
-    Route::get('org/terms/{idOrSlug}', [OrganizationApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->middleware('service.token:read-org')->name('api.v1.org.term');
-    Route::get('proposals/{id}', [ProposalApiController::class, 'show'])->whereNumber('id')->middleware('service.token:propose')->name('api.v1.proposals.show');
+    Route::post('proposals', [ProposalApiController::class, 'store'])->middleware(['service.token:glossary:proposals.create', 'throttle:30,1'])->name('api.v1.proposals.store');
+    // Organisation (#148): Begriffe in deren Darstellung; die Organisation kommt aus dem Servicekonto
+    Route::get('org/terms', [OrganizationApiController::class, 'terms'])->middleware('service.token:glossary:terms.read')->name('api.v1.org.terms');
+    Route::get('org/terms/{idOrSlug}', [OrganizationApiController::class, 'term'])->where('idOrSlug', '[A-Za-z0-9-]+')->middleware('service.token:glossary:terms.read')->name('api.v1.org.term');
+    Route::get('proposals/{id}', [ProposalApiController::class, 'show'])->where('id', '[0-9A-Za-z-]+')->middleware('service.token:glossary:proposals.read')->name('api.v1.proposals.show');
 });
 
 // Maschinenlesbare Beschreibung (OpenAPI 3.1) als YAML und JSON

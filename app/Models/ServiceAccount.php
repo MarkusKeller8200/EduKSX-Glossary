@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Access\Service\ServiceAccountManager;
 use App\Data\RecordsDataChanges;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection;
@@ -67,6 +68,6 @@ class ServiceAccount extends Model
 
     public function hasScope(string $scope): bool
     {
-        return in_array($scope, $this->scopes, true);
+        return in_array($scope, ServiceAccountManager::expand($this->scopes), true);   // auch alte Namen (#323)
     }
 }

@@ -44,13 +44,13 @@ class ServiceAccountTest extends TestCase
             ->assertRedirect()->assertSessionHas('neues_token');
         $token = ServiceAccountToken::query()->firstOrFail();
         $plain = (string) session('neues_token');
-        $this->assertStringStartsWith('gls_', $plain);
+        $this->assertStringStartsWith('glossary_sa_', $plain);
         $this->assertSame(hash('sha256', $plain), $token->token_hash);
         $this->assertStringNotContainsString($plain, (string) json_encode($token->toArray()));
         $this->assertTrue(ServiceAccountAudit::query()->where('action', 'token.created')->exists());
 
         $this->getJson('/api/v1/service/whoami', ['Authorization' => "Bearer {$plain}"])->assertOk()
-            ->assertJsonPath('service_account.name', 'Intranet')->assertJsonPath('service_account.scopes', ['propose']);
+            ->assertJsonPath('service_account.name', 'Intranet')->assertJsonPath('service_account.scopes', ['glossary:proposals.create', 'glossary:proposals.read']);
     }
 
     public function test_benutzer_und_moderator_ohne_servicekonten(): void
@@ -123,5 +123,21 @@ class ServiceAccountTest extends TestCase
         } catch (AccessDenied) {
             $this->addToAssertionCount(1);
         }
+    }
+
+    /** Scopes und Token-Präfix nach API-Standard (#323): alte gls_-Tokens und gespeicherte alte Scopes gelten weiter. */
+    public function test_altes_token_und_alte_scopes_gelten_weiter(): void
+    {
+        $owner = $this->userWithRoles([Role::ORG_ADMIN], 'owner@example.org');
+        $account = $this->manager->create($owner, 'Alt', 'Vorschläge', ['glossary:proposals.create']);
+        // Stand bis 0.13: Scope «propose», Token «gls_…»
+        $account->forceFill(['scopes' => ['propose']])->save();
+        $plain = 'gls_'.str_repeat('a', 40);
+        $account->tokens()->create(['name' => 'Alt', 'token_hash' => hash('sha256', $plain), 'prefix' => substr($plain, 0, 10), 'expires_at' => now()->addDay()]);
+
+        $this->getJson('/api/v1/service/whoami', ['Authorization' => "Bearer {$plain}"])->assertOk()
+            ->assertJsonPath('service_account.scopes', ['glossary:proposals.create', 'glossary:proposals.read']);
+        $this->assertTrue($account->fresh()?->hasScope('glossary:proposals.create'));
+        $this->assertFalse($account->fresh()?->hasScope('glossary:terms.read'));
     }
 }

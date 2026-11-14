@@ -39,7 +39,7 @@ class ServiceAccountController extends Controller
             'zweck' => $a->purpose,
             'verantwortlich' => self::responsible($a),
             'status' => $a->status,
-            'scopes' => $a->scopes,
+            'scopes' => ServiceAccountManager::current($a->scopes),
             'aktive_token' => (int) $a->getAttribute('aktive_token'),
         ])->all();
 
@@ -78,13 +78,13 @@ class ServiceAccountController extends Controller
                 'zweck' => $account->purpose,
                 'verantwortlich' => self::responsible($account),
                 'status' => $account->status,
-                'scopes' => $account->scopes,
+                'scopes' => ServiceAccountManager::current($account->scopes),
                 'angelegt' => $account->created_at?->toDateString(),
             ],
             'token' => $account->tokens()->latest('created_at')->get()->map(fn (ServiceAccountToken $t): array => [
                 'id' => $t->id,
                 'name' => $t->name,
-                'praefix' => $t->prefix,
+                'praefix' => str_starts_with($t->prefix, ServiceAccountManager::LEGACY_PREFIX) ? $t->prefix : ServiceAccountManager::PREFIX.$t->prefix,
                 'bis' => $t->expires_at->toDateString(),
                 'zuletzt' => $t->last_used_at?->toIso8601String(),
                 'widerrufen' => $t->revoked_at?->toDateString(),

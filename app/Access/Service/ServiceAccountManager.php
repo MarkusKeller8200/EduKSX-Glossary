@@ -26,16 +26,63 @@ use Illuminate\Support\Str;
  */
 final class ServiceAccountManager
 {
-    /** Scopes → Bezeichnung. Schreibende Endpunkte prüfen den Scope zusätzlich zur Geschäftslogik. */
+    /**
+     * Scopes → Bezeichnung, nach API-Standard `<modul>:<ressource>.<aktion>` (C2, #323). Schreibende Endpunkte prüfen
+     * den Scope zusätzlich zur Geschäftslogik.
+     */
     public const SCOPES = [
-        'propose' => 'Vorschläge einreichen (landen in der Moderation, nie direkt öffentlich)',
-        'read-org' => 'Begriffe in der Darstellung der eigenen Organisation lesen (nur Organisations-Admins)',
+        'glossary:proposals.create' => 'Vorschläge einreichen (landen in der Moderation, nie direkt öffentlich)',
+        'glossary:proposals.read' => 'Eigene Vorschläge und ihren Stand lesen',
+        'glossary:terms.read' => 'Begriffe in der Darstellung der eigenen Organisation lesen (nur Organisations-Admins)',
     ];
 
-    /** Scope der Organisations-API (#148). */
-    public const ORG_SCOPE = 'read-org';
+    /** Scopes bis 0.13 → neue Namen; gespeicherte alte Namen gelten weiter (#323). */
+    public const LEGACY_SCOPES = [
+        'propose' => ['glossary:proposals.create', 'glossary:proposals.read'],
+        'read-org' => ['glossary:terms.read'],
+    ];
 
-    public const PREFIX = 'gls_';
+    /** Recht der handelnden Person, das ein Scope voraussetzt (null: Organisations-Admin, ORG_SCOPE). */
+    private const SCOPE_PERMISSIONS = [
+        'glossary:proposals.create' => 'propose',
+        'glossary:proposals.read' => 'propose',
+        'glossary:terms.read' => null,
+    ];
+
+    /** Scope der Organisations-Sicht (#148): Die Organisation kommt aus dem Servicekonto. */
+    public const ORG_SCOPE = 'glossary:terms.read';
+
+    /** Token-Präfix nach API-Standard C1 (`<modul>_sa_`); Tokens mit `gls_` gelten bis zu ihrem Ablauf. */
+    public const PREFIX = 'glossary_sa_';
+
+    public const LEGACY_PREFIX = 'gls_';
+
+    /**
+     * Scopes inklusive der neuen Namen für gespeicherte alte (propose, read-org).
+     *
+     * @param  list<string>  $scopes
+     * @return list<string>
+     */
+    public static function expand(array $scopes): array
+    {
+        $out = [];
+        foreach ($scopes as $scope) {
+            $out = array_merge($out, [$scope], self::LEGACY_SCOPES[$scope] ?? []);
+        }
+
+        return array_values(array_unique($out));
+    }
+
+    /**
+     * Für die Anzeige: nur die heutigen Namen.
+     *
+     * @param  list<string>  $scopes
+     * @return list<string>
+     */
+    public static function current(array $scopes): array
+    {
+        return array_values(array_intersect(array_keys(self::SCOPES), self::expand($scopes)));
+    }
 
     public function __construct(private readonly OrganizationService $organizations) {}
 
@@ -76,7 +123,12 @@ final class ServiceAccountManager
     /** @param  list<string>  $scopes */
     public function create(User $actor, string $name, string $purpose, array $scopes): ServiceAccount
     {
-        $scopes = array_values(array_unique($scopes));
+        // alte Namen umsetzen, unbekannte für die Prüfung behalten
+        $normalized = [];
+        foreach ($scopes as $scope) {
+            array_push($normalized, ...(self::LEGACY_SCOPES[$scope] ?? [$scope]));
+        }
+        $scopes = array_values(array_unique($normalized));
         $details = ['name' => $name, 'scopes' => $scopes];
         $organization = null;
         try {
@@ -86,7 +138,7 @@ final class ServiceAccountManager
             $this->requireScopes($actor, $scopes);
             $organization = in_array(self::ORG_SCOPE, $scopes, true) ? $this->adminOrganization($actor) : null;
             if (in_array(self::ORG_SCOPE, $scopes, true) && $organization === null) {
-                throw new AccessDenied('Scope «read-org» nur für Organisations-Admins einer Organisation.');
+                throw new AccessDenied('Scope «'.self::ORG_SCOPE.'» nur für Organisations-Admins einer Organisation.');
             }
         } catch (AccessDenied $e) {
             $this->log($actor, null, null, 'service.created', ['reason' => $e->getMessage()] + $details, 'denied');
@@ -122,7 +174,8 @@ final class ServiceAccountManager
 
         $plain = self::PREFIX.Str::random(40);
         $token = $account->tokens()->create([
-            'name' => $name, 'token_hash' => hash('sha256', $plain), 'prefix' => substr($plain, 0, 10),
+            // Anfang des zufälligen Teils zum Wiedererkennen (Anzeige mit Präfix)
+            'name' => $name, 'token_hash' => hash('sha256', $plain), 'prefix' => substr($plain, strlen(self::PREFIX), 8),
             'expires_at' => now()->addDays($days),
         ]);
 
@@ -150,7 +203,7 @@ final class ServiceAccountManager
      */
     public function authenticate(?string $plain, ?string $scope = null): ?ServiceAccountToken
     {
-        if ($plain === null || ! str_starts_with($plain, self::PREFIX)) {
+        if ($plain === null || (! str_starts_with($plain, self::PREFIX) && ! str_starts_with($plain, self::LEGACY_PREFIX))) {
             return null;
         }
         $token = ServiceAccountToken::query()->where('token_hash', hash('sha256', $plain))->with('account')->first();
@@ -193,7 +246,8 @@ final class ServiceAccountManager
             if (! isset(self::SCOPES[$scope])) {
                 throw new AccessDenied("Unbekannter Scope «{$scope}».");
             }
-            if ($scope !== self::ORG_SCOPE && ! $actor->hasPermission($scope)) {
+            $permission = self::SCOPE_PERMISSIONS[$scope];
+            if ($permission !== null && ! $actor->hasPermission($permission)) {
                 throw new AccessDenied("Scope «{$scope}» geht über die eigenen Rechte hinaus.");
             }
         }
