@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.15.0] – 2026-11-14
+
 ### Neu
 
 - **Datenmodell-Diagramm bedienbar (#371, #376, #378):** Auf der Seite «Für Entwickler» lässt sich das Diagramm einpassen,
