@@ -105,7 +105,7 @@ final class Journal
         TermPublicationEvent::query()->where('actor_id', $user->id)->whereIn('actor_label', $labels)->toBase()
             ->update(['actor_label' => self::DELETED_LABEL]);
         TermPublicationEvent::query()->where('actor_id', $user->id)->toBase()->update(['actor_id' => null]);
-        ImportBatch::query()->where('user_id', $user->id)->toBase()->update(['user_label' => self::DELETED_LABEL, 'user_id' => null]);
+        ImportBatch::query()->where('imported_by_id', $user->id)->toBase()->update(['user_label' => self::DELETED_LABEL, 'imported_by_id' => null]);
     }
 
     private static function blank(mixed $value): bool

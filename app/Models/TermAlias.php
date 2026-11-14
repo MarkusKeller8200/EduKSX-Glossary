@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $term_id
  * @property string $alias
  * @property string $alias_type
- * @property string $language
+ * @property string $locale
  */
 class TermAlias extends Model
 {
@@ -23,7 +23,7 @@ class TermAlias extends Model
     public $timestamps = false;
 
     /** @var list<string> */
-    protected $fillable = ['alias', 'alias_type', 'language'];
+    protected $fillable = ['alias', 'alias_type', 'locale'];
 
     /** @return BelongsTo<Term, $this> */
     public function term(): BelongsTo

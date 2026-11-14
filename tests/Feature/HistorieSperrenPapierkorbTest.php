@@ -65,7 +65,7 @@ class HistorieSperrenPapierkorbTest extends TestCase
 
         $this->put("/admin/begriffe/{$term->id}", [
             'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'short_description' => 'Mein Stand',
-            'lifecycle_status' => 'current', 'is_active' => true, 'lock_version' => $stand,
+            'status' => 'current', 'is_active' => true, 'lock_version' => $stand,
         ])->assertSessionHasErrors('form');
         $this->assertSame('Inzwischen geändert', $term->fresh()?->short_description);
 

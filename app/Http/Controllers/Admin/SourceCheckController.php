@@ -41,7 +41,7 @@ class SourceCheckController extends Controller
         $rows = [];
         foreach (Term::query()->current()->with('sources')->get() as $term) {
             $reasons = [];
-            if ($term->lifecycle_status === TermStatus::UnderReview->value) {
+            if ($term->status === TermStatus::UnderReview->value) {
                 $reasons[] = 'Status «zu prüfen»';
             }
             if ($term->sources->isEmpty()) {

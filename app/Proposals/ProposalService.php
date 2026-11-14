@@ -99,7 +99,7 @@ final class ProposalService
                 'reason' => $reason === '' ? null : $reason,
                 'status' => $status,
                 'organization_id' => $member?->organization_id,
-                'user_id' => $user?->id,
+                'author_id' => $user?->id,
                 'service_account_id' => $service?->id,
                 'author_label' => $label,
             ]);
@@ -230,7 +230,7 @@ final class ProposalService
     public function anonymizeResolvedBefore(DateTimeInterface $before): int
     {
         $ids = Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', $before)
-            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhere('author_label', '!=', Proposal::ANONYMOUS))
+            ->where(fn ($q) => $q->whereNotNull('author_id')->orWhere('author_label', '!=', Proposal::ANONYMOUS))
             ->whereNull('service_account_id')->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
         $this->anonymize($ids);
 
@@ -240,7 +240,7 @@ final class ProposalService
     /** Kontolöschung: Vorschläge der Person ohne Personenbezug (Journal::forget). */
     public static function forget(User $user): void
     {
-        $ids = Proposal::query()->where('user_id', $user->id)->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
+        $ids = Proposal::query()->where('author_id', $user->id)->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
         (new self(app(GlossaryService::class)))->anonymize($ids);
         ProposalEvent::query()->where('actor_id', $user->id)->toBase()->update(['actor_id' => null]);
     }
@@ -253,7 +253,7 @@ final class ProposalService
         if ($ids === []) {
             return;
         }
-        Proposal::query()->whereIn('id', $ids)->toBase()->update(['user_id' => null, 'author_label' => Proposal::ANONYMOUS]);
+        Proposal::query()->whereIn('id', $ids)->toBase()->update(['author_id' => null, 'author_label' => Proposal::ANONYMOUS]);
         ProposalEvent::query()->whereIn('proposal_id', $ids)->where('is_by_author', true)->toBase()
             ->update(['actor_id' => null, 'actor_label' => Proposal::ANONYMOUS]);
     }
@@ -365,7 +365,7 @@ final class ProposalService
 
     private function requireAuthor(Proposal $proposal, User $user): void
     {
-        if ($proposal->user_id !== $user->id) {
+        if ($proposal->author_id !== $user->id) {
             throw new InvalidArgumentException('Nur die einreichende Person kann das.');
         }
     }

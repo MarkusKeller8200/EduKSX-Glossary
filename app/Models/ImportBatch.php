@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * (bei Kontolöschung ersetzt). 12 Monate aufbewahrt.
  *
  * @property int $id
- * @property string|null $user_id
+ * @property string|null $imported_by_id
  * @property string|null $user_label
  * @property string $file_name
  * @property int $format_version
@@ -30,7 +30,7 @@ class ImportBatch extends Model
 
     /** @var list<string> */
     protected $fillable = [
-        'user_id', 'user_label', 'file_name', 'format_version', 'rows', 'created_count', 'updated_count',
+        'imported_by_id', 'user_label', 'file_name', 'format_version', 'rows', 'created_count', 'updated_count',
         'error_count', 'errors',
     ];
 

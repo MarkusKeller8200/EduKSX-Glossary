@@ -59,8 +59,8 @@ class MailSettingsTest extends TestCase
             ->where('mailEinstellung.passwort_gesetzt', true)
             ->missing('mailEinstellung.password'));
         $audit = UserAudit::query()->where('action', 'system.mail.changed')->firstOrFail();
-        $this->assertStringNotContainsString('Sehr-Geheim-123', json_encode($audit->new, JSON_THROW_ON_ERROR));
-        $this->assertSame('neu gesetzt', $audit->new['passwort'] ?? null);
+        $this->assertStringNotContainsString('Sehr-Geheim-123', json_encode($audit->new_values, JSON_THROW_ON_ERROR));
+        $this->assertSame('neu gesetzt', $audit->new_values['passwort'] ?? null);
     }
 
     public function test_leeres_passwort_behaelt_das_bisherige(): void

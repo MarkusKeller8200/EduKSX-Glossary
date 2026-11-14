@@ -278,7 +278,7 @@ class GlossaryApiController extends Controller
                 'term_id' => $e->term_id,
                 'revision' => $e->revision,
                 'merged_into' => $e->merged_into_id,
-                'release' => $e->release_id,
+                'release' => $e->publication_release_id,
                 'occurred_at' => $e->created_at->toIso8601ZuluString(),
                 'term' => $revision instanceof TermRevision
                     ? ($lang === null ? $this->presenter->term($revision) : ApiPresenter::localizeTerm($this->presenter->term($revision), $lang))

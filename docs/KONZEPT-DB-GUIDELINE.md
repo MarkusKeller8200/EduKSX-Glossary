@@ -33,7 +33,7 @@ Plattform-Standard.
 | Geltungsbereich      | Tabellen                                                                                                                                                                                                                                        |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Global**           | `terms`, `term_aliases`, `term_categories`, `term_sources`, `term_translations`, `term_relations`, `categories`, `category_translations`, `sources`, `source_translations`, `term_revisions`, `term_publication_events`, `publication_releases` |
-| **Organisation**     | `organizations`, `organization_members`, `organization_invitations`, `organization_term_overrides`, Vorschläge mit `organization_id`, Servicekonten einer Organisation                                                                          |
+| **Organisation**     | `organizations`, `organization_members`, `organization_invitations`, `term_organization_overrides`, Vorschläge mit `organization_id`, Servicekonten einer Organisation                                                                          |
 | **Persönlich**       | `term_user_overrides` (mit `approved_organization_id` für die Freigabe an eine Organisation, DEC-025), Einstellungen eines Kontos                                                                                                               |
 | **Plattform/intern** | `users`, `user_identities`, `roles`, `user_roles`, `user_audit`, `service_accounts`, `service_account_tokens`, `service_account_audit`, `settings`, `import_batches`, `import_rows`, `search_misses`, `data_changes`                            |
 
@@ -67,8 +67,15 @@ Abweichungen von A1, die mit 0.12.0 umbenannt werden: `…_by` → `…_by_id` (
 `proposal_type`, `proposal_events.type` → `event_type`, `duplicate_decisions.kind` → `match_type`. **Umgesetzt** im
 Anfangsstand `database/migrations/2026_11_01_000000_anfangsstand.php` mit Übergang `App\Database\Uebergang012` (#266);
 Helfer für STRICT und CHECK: `EduKSX\Core\Database\StrictSchema` aus eduksx/core (#334); Enums in `app/Enums` (#275). Werte von Status und Arten
-englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `lifecycle_status`: `current`, `historical`,
+englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `terms.status`: `current`, `historical`,
 `under_review`).
+
+**Namen 0.14.0 (#330, A1/A2 – gleiche Namen in DB, API und Export):** `terms.lifecycle_status` → `status`,
+`term_aliases.language` → `locale`, `user_identities.tenant_id` → `entra_tenant_id`, `organization_term_overrides` →
+`term_organization_overrides`, `proposals.user_id` → `author_id`, `import_batches.user_id` → `imported_by_id`,
+`term_publication_events.release_id` → `publication_release_id`, `user_audit.old`/`new` → `old_values`/`new_values`.
+In einem Schritt mit Vermerk `abwaertskompatibel` (Update mit Unterbruch bis #184); gespeicherte Revisionen und
+Vorschläge mit `lifecycle_status` liest der Code weiter.
 
 ## 5. Ausnahmen von der Normalisierung (A2)
 
@@ -80,7 +87,7 @@ englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `lifecyc
 | `term_revisions.change_set`, `data_changes.changes`                                    | alte und neue Werte                                  | Historie                                                                                                                             | unveränderlich; Personendaten nach B2 nicht enthalten                                                              |
 | `publication_releases`                                                                 | Datenstand mit Prüfsumme                             | Abgleich der Konsumenten                                                                                                             | je Veröffentlichung neu                                                                                            |
 | `duplicate_decisions.term_ids`                                                         | Liste von Begriffs-IDs (JSON)                        | Entscheid gilt für genau diese Gruppe; die Liste ist die Signatur des Entscheids und wird nie einzeln abgefragt oder geändert (#331) | unveränderlich; neue Gruppe = neuer Entscheid; gelöschte Begriffe bleiben als ID stehen                            |
-| `term_user_overrides.aliases_override`, `organization_term_overrides.aliases_override` | Liste abweichender Suchbegriffe (JSON)               | gehört zur Darstellung einer Person bzw. Organisation, wird nur als Ganzes gelesen und ersetzt, nie gesucht oder verknüpft (#331)    | beim Speichern der Darstellung vollständig ersetzt                                                                 |
+| `term_user_overrides.aliases_override`, `term_organization_overrides.aliases_override` | Liste abweichender Suchbegriffe (JSON)               | gehört zur Darstellung einer Person bzw. Organisation, wird nur als Ganzes gelesen und ersetzt, nie gesucht oder verknüpft (#331)    | beim Speichern der Darstellung vollständig ersetzt                                                                 |
 
 Bereinigt mit 0.12.0: `terms.search_terms` entfällt (nur noch `term_aliases`, Typ `search`, E1); `term_sources.url`
 entfällt (Quelle ist `terms.url`, K1).

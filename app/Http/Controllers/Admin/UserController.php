@@ -114,7 +114,7 @@ class UserController extends Controller
                 'rolle' => $e->target_role_id !== null ? ($roleNames[$e->target_role_id] ?? null) : null,
                 'von' => $e->actor_id !== null ? ($names[$e->actor_id] ?? 'gelöschtes Konto') : ($e->actor_label ?? 'System'),
                 'ergebnis' => $e->result,
-                'grund' => is_array($e->new) && isset($e->new['reason']) ? (string) $e->new['reason'] : null,
+                'grund' => is_array($e->new_values) && isset($e->new_values['reason']) ? (string) $e->new_values['reason'] : null,
             ])->all();
 
         return Inertia::render('admin/user-show', [

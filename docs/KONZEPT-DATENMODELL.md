@@ -32,7 +32,7 @@ jede Änderung nachvollziehbar.
 ## Tabellen (Vorschlag)
 
 - `terms`: `id` (UUID v7), `slug`, `official_abbreviation`, `official_name`, `short_description`, `description`,
-  `note`, `url`, `search_terms`, `lifecycle_status`, `is_active`, `valid_from`, `valid_until`, Zeitstempel (DEC-020:
+  `note`, `url`, `search_terms`, `status`, `is_active`, `valid_from`, `valid_until`, Zeitstempel (DEC-020:
   ohne `own_*` und `used_in`).
 - `term_aliases`: `term_id`, `alias`, `alias_type` (`official`, `alternative`, `search`), Sprache; **nicht
   eindeutig**, weil Mehrdeutigkeit erlaubt ist.
@@ -60,7 +60,7 @@ Altwerte gesichert und gemeldet. Eigene Bezeichnungen je Schule (Mandant) späte
 
 | Achse                         | Werte                          | Wirkung                    |
 | ----------------------------- | ------------------------------ | -------------------------- |
-| `terms.lifecycle_status`      | aktuell, historisch, zu prüfen | Anzeige und Filter         |
+| `terms.status`                | aktuell, historisch, zu prüfen | Anzeige und Filter         |
 | `proposals.status`            | eingereicht … veröffentlicht   | Moderation                 |
 | `term_revisions.published_at` | gesetzt = öffentlich           | was Website und API zeigen |
 

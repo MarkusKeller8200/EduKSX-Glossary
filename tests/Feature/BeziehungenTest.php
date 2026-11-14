@@ -33,7 +33,7 @@ class BeziehungenTest extends TestCase
     public function test_nachfolger_in_api_und_website(): void
     {
         $neu = $this->make('SL', 'Schulleitung');
-        $alt = $this->make('RK', 'Rektorat', ['lifecycle_status' => 'historical', 'relations' => [['type' => 'successor', 'term_id' => $neu->id]]]);
+        $alt = $this->make('RK', 'Rektorat', ['status' => 'historical', 'relations' => [['type' => 'successor', 'term_id' => $neu->id]]]);
 
         $this->getJson("/api/v1/terms/{$alt->slug}")->assertOk()
             ->assertJsonPath('data.relations.0.type', 'successor')
@@ -113,7 +113,7 @@ class BeziehungenTest extends TestCase
             ->where('listen.beziehungsarten.successor', 'Nachfolger'));
 
         $this->put("/admin/begriffe/{$alt->id}", [
-            'official_abbreviation' => 'RK', 'official_name' => 'Rektorat', 'lifecycle_status' => 'historical', 'is_active' => true,
+            'official_abbreviation' => 'RK', 'official_name' => 'Rektorat', 'status' => 'historical', 'is_active' => true,
             'relations' => [['type' => 'successor', 'term_id' => $neu->id]],
         ])->assertRedirect("/admin/begriffe/{$alt->id}");
 

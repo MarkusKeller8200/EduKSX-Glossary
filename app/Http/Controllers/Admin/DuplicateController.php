@@ -153,7 +153,7 @@ class DuplicateController extends Controller
             $value = $term->{$field};
             $values[$field] = match (true) {
                 $value instanceof DateTimeInterface => $value->format('Y-m-d'),
-                $field === 'lifecycle_status' => Term::STATUS[TermStatus::normalize((string) $value)],
+                $field === 'status' => Term::STATUS[TermStatus::normalize((string) $value)],
                 default => (string) $value,
             };
         }

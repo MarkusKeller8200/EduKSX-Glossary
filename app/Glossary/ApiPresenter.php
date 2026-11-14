@@ -215,7 +215,7 @@ final class ApiPresenter
             'url' => $str('url'),
             'categories' => $this->refs($this->categories(), $s['categories'] ?? []),
             'sources' => $this->refs($this->sources(), $s['sources'] ?? []),
-            'status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
+            'status' => TermStatus::normalize($s['status'] ?? $s['lifecycle_status'] ?? null),
             'is_active' => (bool) ($s['is_active'] ?? true),
             'valid_from' => $str('valid_from'),
             'valid_until' => $str('valid_until'),

@@ -19,7 +19,7 @@ type Begriff = Record<string, unknown> & {
     categories: string[];
     sources: string[];
     is_active: boolean;
-    lifecycle_status: string;
+    status: string;
     zusammengefuehrt_in: { id: string; titel: string } | null;
     herkunft_pruefung: Pruefung[];
     translations: Record<string, Record<string, string>>;
@@ -95,7 +95,7 @@ const REIHENFOLGE = [
     'note',
     'categories',
     'sources',
-    'lifecycle_status',
+    'status',
     'search_terms',
     'valid_from',
     'valid_until',
@@ -165,7 +165,7 @@ export default function TermShow({
                 .map((k) => opts.find((o) => o.key === k)?.label ?? k)
                 .join(', ');
         }
-        if (key === 'lifecycle_status') {
+        if (key === 'status') {
             return listen.status[String(v)] ?? String(v);
         }
         if (key === 'is_active') {
@@ -209,7 +209,7 @@ export default function TermShow({
                             revision={b.revision}
                             draft={b.ungespeichert}
                         />
-                        <StatusBadge status={b.lifecycle_status} />
+                        <StatusBadge status={b.status} />
                         {!b.is_active ? (
                             <StateBadge state="inactive">inaktiv</StateBadge>
                         ) : null}

@@ -219,15 +219,15 @@ final class RoleManager
             'target_user_id' => $target?->id,
             'target_role_id' => $role?->id,
             'action' => $action,
-            'old' => $old,
-            'new' => $new ?? ($role !== null ? ['role' => $role->key] : null),
+            'old_values' => $old,
+            'new_values' => $new ?? ($role !== null ? ['role' => $role->key] : null),
         ];
         try {
             $rules();
         } catch (AccessDenied $e) {
             UserAudit::query()->create(array_merge($entry, [
                 'result' => 'denied',
-                'new' => ['reason' => $e->getMessage()] + ($entry['new'] ?? []),
+                'new_values' => ['reason' => $e->getMessage()] + ($entry['new_values'] ?? []),
             ]));
 
             throw $e;

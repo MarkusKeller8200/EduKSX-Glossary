@@ -400,7 +400,7 @@ class OrganizationTest extends TestCase
         } catch (AccessDenied) {
             $this->assertNull($organization->fresh()?->entra_tenant_id);
         }
-        $admin->identities()->create(['provider' => 'microsoft', 'issuer' => "https://login.microsoftonline.com/{$tenant}/v2.0", 'subject' => 'sub-admin', 'tenant_id' => $tenant]);
+        $admin->identities()->create(['provider' => 'microsoft', 'issuer' => "https://login.microsoftonline.com/{$tenant}/v2.0", 'subject' => 'sub-admin', 'entra_tenant_id' => $tenant]);
         $this->actingAs($admin)->get('/organisation')->assertInertia(fn (Assert $p) => $p->where('organisation.meine_tenants', [$tenant]));
         $this->actingAs($admin)->put('/organisation/tenant', ['tenant' => $tenant])->assertRedirect();
         $this->assertSame($tenant, $organization->fresh()?->entra_tenant_id);
@@ -408,7 +408,7 @@ class OrganizationTest extends TestCase
         // anderer Admin kann denselben Tenant nicht beanspruchen
         $other = $this->userWithRoles([Role::USER], 'other@schule.ch');
         $otherOrg = $this->organizations->create($other, 'Andere');
-        $other->identities()->create(['provider' => 'microsoft', 'issuer' => "https://login.microsoftonline.com/{$tenant}/v2.0", 'subject' => 'sub-other', 'tenant_id' => $tenant]);
+        $other->identities()->create(['provider' => 'microsoft', 'issuer' => "https://login.microsoftonline.com/{$tenant}/v2.0", 'subject' => 'sub-other', 'entra_tenant_id' => $tenant]);
         $this->expectExceptionObject(new AccessDenied('Dieser Tenant gehört schon zu einer anderen Organisation.'));
         try {
             $this->organizations->setTenant($other->fresh() ?? $other, $otherOrg, $tenant);

@@ -23,7 +23,7 @@ class RedaktionTest extends TestCase
         return [
             'official_abbreviation' => 'SL', 'official_name' => 'Schulleitung', 'official_aliases' => 'S.L.; SL.',
             'short_description' => 'Leitet die Schule.', 'categories' => ['per'], 'sources' => [],
-            'lifecycle_status' => 'current', 'is_active' => true, ...$extra,
+            'status' => 'current', 'is_active' => true, ...$extra,
         ];
     }
 

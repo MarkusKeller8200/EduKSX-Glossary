@@ -32,14 +32,14 @@ class UserAudit extends Model
     protected $table = 'user_audit';
 
     /** @var list<string> */
-    protected $fillable = ['actor_id', 'actor_label', 'target_user_id', 'target_role_id', 'action', 'old', 'new', 'result'];
+    protected $fillable = ['actor_id', 'actor_label', 'target_user_id', 'target_role_id', 'action', 'old_values', 'new_values', 'result'];
 
     /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return ['old' => 'array', 'new' => 'array', 'created_at' => 'immutable_datetime'];
+        return ['old_values' => 'array', 'new_values' => 'array', 'created_at' => 'immutable_datetime'];
     }
 
     protected static function booted(): void
