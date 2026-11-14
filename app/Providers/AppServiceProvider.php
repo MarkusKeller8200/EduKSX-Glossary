@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Access\IdentEvents;
 use App\Access\Permission;
 use App\Glossary\PublicCache;
 use App\Models\User;
@@ -44,6 +45,9 @@ class AppServiceProvider extends ServiceProvider
         // Zugang zur Administration: irgendein Recht ausser den Grundrechten (Einrichtung des zweiten Faktors
         // ist dort möglich; die einzelnen Aktionen verlangen ihn)
         Gate::define('administer', fn (User $user): bool => $user->isActive() && $user->needsTwoFactor());
+
+        // Ereignisse von EduKSX-Ident (#187): Empfang und Signatur über eduksx/core, Wirkung hier
+        IdentEvents::register();
 
         // Anmeldung mit Microsoft (#45): Provider von SocialiteProviders bei Socialite anmelden
         Event::listen(function (SocialiteWasCalled $event): void {

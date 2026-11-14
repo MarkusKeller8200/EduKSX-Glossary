@@ -22,6 +22,13 @@ final class ConformanceTest extends TestCase
 
     public function test_openapi_und_routen(): void
     {
-        $this->assertOpenApiConforms(base_path('openapi/glossary-v1.json'));
+        // Empfang S4 gehört zu eduksx/core und steht in spec/; ab eduksx/core 0.2.1 nicht mehr nötig (EduKSX-Core #22)
+        $this->assertOpenApiConforms(base_path('openapi/glossary-v1.json'), ['POST /api/v1/platform-events']);
+    }
+
+    /** Steckbrief und /health nach spec/v1 (#189). */
+    public function test_steckbrief_und_health(): void
+    {
+        $this->assertPlatformEndpointsConform();
     }
 }
