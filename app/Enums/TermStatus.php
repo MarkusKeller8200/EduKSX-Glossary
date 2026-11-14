@@ -3,7 +3,7 @@
 namespace App\Enums;
 
 /**
- * Status eines Begriffs (lifecycle_status, API «status»).
+ * Status eines Begriffs (status, API «status»).
  * Werte englisch (KONZEPT-KONVENTIONEN K2, #275), Anzeige über label(); Werte bis 0.11.0 über legacyMap().
  */
 enum TermStatus: string

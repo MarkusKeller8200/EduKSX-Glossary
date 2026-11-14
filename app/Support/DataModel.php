@@ -52,7 +52,7 @@ final class DataModel
         'organizations' => 'Organisationen',
         'organization_members' => 'Mitgliedschaften (eine je Konto)',
         'organization_invitations' => 'Einladungen (14 Tage)',
-        'organization_term_overrides' => 'Darstellung der Organisation je Begriff',
+        'term_organization_overrides' => 'Darstellung der Organisation je Begriff',
     ];
 
     /**

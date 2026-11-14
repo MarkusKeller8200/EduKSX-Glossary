@@ -82,7 +82,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
-| `user_id` | intern |
+| `imported_by_id` | intern |
 | `user_label` | personenbezogen |
 | `file_name` | intern |
 | `format_version` | intern |
@@ -117,27 +117,12 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `created_at` | intern |
 | `updated_at` | intern |
 
-## `organization_term_overrides`
-
-| Spalte | Klasse |
-| --- | --- |
-| `id` | intern |
-| `organization_id` | intern |
-| `term_id` | intern |
-| `abbreviation_override` | intern |
-| `name_override` | intern |
-| `short_description_override` | intern |
-| `description_override` | intern |
-| `aliases_override` | intern |
-| `updated_by_id` | intern |
-| `created_at` | intern |
-| `updated_at` | intern |
-
 ## `organizations`
 
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `platform_id` | intern |
 | `name` | intern |
 | `created_by_id` | intern |
 | `created_at` | intern |
@@ -152,6 +137,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `proposal_id` | intern |
 | `event_type` | intern |
 | `actor_id` | intern |
@@ -173,7 +159,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `changes` | intern |
 | `reason` | personenbezogen |
 | `status` | intern |
-| `user_id` | intern |
+| `author_id` | intern |
 | `service_account_id` | intern |
 | `organization_id` | intern |
 | `author_label` | personenbezogen |
@@ -239,6 +225,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `service_account_id` | intern |
 | `token_id` | intern |
 | `actor_id` | intern |
@@ -327,7 +314,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `term_id` | intern |
 | `alias` | öffentlich |
 | `alias_type` | öffentlich |
-| `language` | öffentlich |
+| `locale` | öffentlich |
 
 ## `term_categories`
 
@@ -336,15 +323,32 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `term_id` | intern |
 | `category_id` | intern |
 
+## `term_organization_overrides`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `organization_id` | intern |
+| `term_id` | intern |
+| `abbreviation_override` | intern |
+| `name_override` | intern |
+| `short_description_override` | intern |
+| `description_override` | intern |
+| `aliases_override` | intern |
+| `updated_by_id` | intern |
+| `created_at` | intern |
+| `updated_at` | intern |
+
 ## `term_publication_events`
 
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `term_id` | intern |
 | `action` | öffentlich |
 | `revision` | öffentlich |
-| `release_id` | intern |
+| `publication_release_id` | intern |
 | `merged_into_id` | intern |
 | `actor_type` | intern |
 | `actor_label` | personenbezogen |
@@ -435,7 +439,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `description` | öffentlich |
 | `note` | intern |
 | `url` | öffentlich |
-| `lifecycle_status` | öffentlich |
+| `status` | öffentlich |
 | `is_active` | öffentlich |
 | `valid_from` | öffentlich |
 | `valid_until` | öffentlich |
@@ -452,13 +456,14 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `event_id` | intern |
 | `actor_id` | intern |
 | `actor_label` | personenbezogen |
 | `target_user_id` | intern |
 | `target_role_id` | intern |
 | `action` | intern |
-| `old` | personenbezogen |
-| `new` | personenbezogen |
+| `old_values` | personenbezogen |
+| `new_values` | personenbezogen |
 | `result` | intern |
 | `created_at` | intern |
 
@@ -471,7 +476,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `provider` | intern |
 | `issuer` | personenbezogen |
 | `subject` | personenbezogen |
-| `tenant_id` | personenbezogen |
+| `entra_tenant_id` | personenbezogen |
 | `last_used_at` | personenbezogen |
 | `created_at` | intern |
 | `updated_at` | intern |
@@ -488,6 +493,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | Spalte | Klasse |
 | --- | --- |
 | `id` | intern |
+| `platform_id` | intern |
 | `name` | personenbezogen |
 | `first_name` | personenbezogen |
 | `last_name` | personenbezogen |

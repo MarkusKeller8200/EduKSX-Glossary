@@ -70,7 +70,7 @@ class ProposalTest extends TestCase
 
         $this->post('/vorschlaege', ['werte' => ['official_abbreviation' => 'LP', 'official_name' => 'Lehrperson', 'categories' => ['per']]])
             ->assertRedirect();
-        $this->assertSame(2, Proposal::query()->where('user_id', $user->id)->count());
+        $this->assertSame(2, Proposal::query()->where('author_id', $user->id)->count());
 
         $this->get('/vorschlaege')->assertInertia(fn (Assert $p) => $p->component('proposals/index')->has('vorschlaege', 2));
 
@@ -227,14 +227,14 @@ class ProposalTest extends TestCase
         $this->travel(25)->months();
         $this->artisan('glossary:loeschfristen')->assertSuccessful();
         $old->refresh();
-        $this->assertNull($old->user_id);
+        $this->assertNull($old->author_id);
         $this->assertSame(Proposal::ANONYMOUS, $old->author_label);
         $this->assertSame(0, ProposalEvent::query()->where('proposal_id', $old->id)->where('actor_label', 'Anna')->count());
-        $this->assertSame($user->id, $fresh->refresh()->user_id);   // offen: bleibt
+        $this->assertSame($user->id, $fresh->refresh()->author_id);   // offen: bleibt
 
         $user->delete();
         $fresh->refresh();
-        $this->assertNull($fresh->user_id);
+        $this->assertNull($fresh->author_id);
         $this->assertSame(Proposal::ANONYMOUS, $fresh->author_label);
         $this->assertSame('Neu', $fresh->changes['description']);
     }

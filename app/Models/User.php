@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\DB;
  * serverseitig über Gates. Rollen ändern nur über App\Access\RoleManager (Schutzregeln, Audit).
  *
  * @property string $id
+ * @property string|null $platform_id Plattform-ID aus EduKSX-Ident (#311)
  * @property string $name Anzeigename (Vor- und Nachname, vom Model nachgeführt)
  * @property string $first_name
  * @property string $last_name

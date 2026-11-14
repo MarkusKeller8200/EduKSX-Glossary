@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\HasEventId;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,10 +11,11 @@ use Illuminate\Database\Eloquent\Model;
  * Akteur (actor_*) nur intern, nie im Change-Feed.
  *
  * @property int $id
+ * @property string $event_id UUID v7 für die Zusammenführung über Module (#332)
  * @property string $term_id
  * @property string $action
  * @property int|null $revision
- * @property int|null $release_id
+ * @property int|null $publication_release_id
  * @property string|null $merged_into_id
  * @property string|null $actor_type
  * @property string|null $actor_label
@@ -22,11 +24,13 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TermPublicationEvent extends Model
 {
+    use HasEventId;
+
     public const UPDATED_AT = null;
 
     /** @var list<string> */
     protected $fillable = [
-        'term_id', 'action', 'revision', 'release_id', 'merged_into_id', 'actor_type', 'actor_label', 'actor_id',
+        'term_id', 'action', 'revision', 'publication_release_id', 'merged_into_id', 'actor_type', 'actor_label', 'actor_id',
     ];
 
     /**
@@ -34,6 +38,6 @@ class TermPublicationEvent extends Model
      */
     protected function casts(): array
     {
-        return ['revision' => 'integer', 'release_id' => 'integer', 'created_at' => 'immutable_datetime'];
+        return ['revision' => 'integer', 'publication_release_id' => 'integer', 'created_at' => 'immutable_datetime'];
     }
 }

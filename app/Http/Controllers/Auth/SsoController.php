@@ -134,7 +134,7 @@ class SsoController extends Controller
             return redirect('/anmelden')->withErrors(['email' => 'Anmeldung nicht möglich. Bitte an die Administration wenden.']);
         }
         $identity->forceFill(['last_used_at' => now()])->save();
-        $this->organizations->inviteByTenant($user, $identity->tenant_id);
+        $this->organizations->inviteByTenant($user, $identity->entra_tenant_id);
 
         // zweiter Faktor wie bei der Anmeldung mit Passwort (#37)
         if ($user->hasTwoFactor()) {
@@ -189,7 +189,7 @@ class SsoController extends Controller
 
     /**
      * @param  array{issuer: string, subject: string, tenant_id: string|null, email: string|null, given_name: string|null, family_name: string|null, name: string|null}  $claims
-     * @return array{provider: string, issuer: string, subject: string, tenant_id: string|null}
+     * @return array{provider: string, issuer: string, subject: string, entra_tenant_id: string|null}
      */
     private function identityData(array $claims): array
     {
@@ -197,7 +197,7 @@ class SsoController extends Controller
             'provider' => 'microsoft',
             'issuer' => $claims['issuer'],
             'subject' => $claims['subject'],
-            'tenant_id' => $claims['tenant_id'],
+            'entra_tenant_id' => $claims['tenant_id'],
         ];
     }
 

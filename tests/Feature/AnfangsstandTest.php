@@ -28,7 +28,7 @@ class AnfangsstandTest extends TestCase
         $this->assertSame([], DB::select('pragma foreign_key_check'));
 
         $this->expectException(QueryException::class);
-        DB::table('terms')->insert(['id' => (string) str()->uuid(), 'slug' => 'x', 'lifecycle_status' => 'aktuell']);
+        DB::table('terms')->insert(['id' => (string) str()->uuid(), 'slug' => 'x', 'status' => 'aktuell']);
     }
 
     public function test_strict_typen_werden_abgebildet(): void
@@ -86,7 +86,7 @@ class AnfangsstandTest extends TestCase
     {
         $this->assertSame(0, Artisan::call('migrate', ['--database' => 'alt', '--force' => true]));
 
-        $this->assertSame('under_review', $alt->table('terms')->value('lifecycle_status'));
+        $this->assertSame('under_review', $alt->table('terms')->value('status'));
         $this->assertSame($rev, $alt->table('terms')->value('published_revision_id'));
         $this->assertSame($user, $alt->table('term_revisions')->value('approved_by_id'));
         $this->assertSame(['Rektorat', 'Schulleiter'], $alt->table('term_aliases')->orderBy('id')->pluck('alias')->all());

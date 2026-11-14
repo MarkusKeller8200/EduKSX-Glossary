@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\HasEventId;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * Ereignis eines Vorschlags (#113): Einreichen, Rückfrage, Antwort, Entscheid. Nicht öffentlich.
  *
  * @property int $id
+ * @property string $event_id UUID v7 für die Zusammenführung über Module (#332)
  * @property int $proposal_id
  * @property string $event_type
  * @property string|null $actor_id
@@ -20,6 +22,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ProposalEvent extends Model
 {
+    use HasEventId;
+
     public const UPDATED_AT = null;
 
     /** @var list<string> */

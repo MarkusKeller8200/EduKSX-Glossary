@@ -125,7 +125,7 @@ class UebersetzungenTest extends TestCase
 
         $this->put("/admin/begriffe/{$term->id}", [
             'official_abbreviation' => 'KLP', 'official_name' => 'Klassenlehrperson', 'short_description' => 'Führt die Klasse.',
-            'categories' => ['per'], 'lifecycle_status' => 'current', 'is_active' => true,
+            'categories' => ['per'], 'status' => 'current', 'is_active' => true,
             'translations' => ['fr' => ['abbreviation' => 'MCL', 'name' => 'Maître de classe'], 'en' => ['name' => 'Class teacher']],
         ])->assertRedirect("/admin/begriffe/{$term->id}");
 

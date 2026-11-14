@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\HasEventId;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use LogicException;
@@ -10,6 +11,7 @@ use LogicException;
  * Protokoll der Servicekonten (#47): Anlage, Token, Widerruf, Sperre und Zugriffe mit Ergebnis. Nur anfügen.
  *
  * @property int $id
+ * @property string $event_id UUID v7 für die Zusammenführung über Module (#332)
  * @property string|null $service_account_id
  * @property string|null $token_id
  * @property string|null $actor_id
@@ -21,6 +23,8 @@ use LogicException;
  */
 class ServiceAccountAudit extends Model
 {
+    use HasEventId;
+
     public const UPDATED_AT = null;
 
     protected $table = 'service_account_audit';

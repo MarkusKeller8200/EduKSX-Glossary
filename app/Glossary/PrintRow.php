@@ -66,7 +66,7 @@ final class PrintRow
             'url' => (string) $term->url,
             'kategorien' => $labels($term->categories->sortBy('sort_order')),
             'herkunft' => $labels($term->sources->sortBy('sort_order')),
-            'status' => Term::STATUS[$term->lifecycle_status] ?? $term->lifecycle_status,
+            'status' => Term::STATUS[$term->status] ?? $term->status,
             'gueltig_ab' => (string) $term->valid_from?->toDateString(),
             'gueltig_bis' => (string) $term->valid_until?->toDateString(),
             'bedeutungen' => 1,

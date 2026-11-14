@@ -44,7 +44,7 @@ Eine Schule, Schulgemeinde, Gemeinde oder ein Team zeigt die Begriffe in einer g
 
 - `organizations` (Name, gegründet von), `organization_members` (eine je Konto; Rolle `admin`/`member`, Status
   `active`/`blocked`, `granted_role`), `organization_invitations` (E-Mail, eingeladen von, gültig bis),
-  `organization_term_overrides` (Felder wie `term_user_overrides`, geändert von), `service_accounts.organization_id`.
+  `term_organization_overrides` (Felder wie `term_user_overrides`, geändert von), `service_accounts.organization_id`.
 - Löschfristen: abgelaufene Einladungen werden bei der nächsten Anmeldung eines beliebigen Kontos gelöscht;
   Mitgliedschaft endet mit Austritt, Entfernen oder Kontolöschung; die Darstellung mit der Organisation.
 

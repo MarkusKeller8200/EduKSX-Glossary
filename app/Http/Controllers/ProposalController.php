@@ -76,7 +76,7 @@ class ProposalController extends Controller
 
     public function index(Request $request): Response
     {
-        $list = Proposal::query()->where('user_id', $this->currentUser($request)->id)->with('term.publishedRevision')->latest('id')->get()
+        $list = Proposal::query()->where('author_id', $this->currentUser($request)->id)->with('term.publishedRevision')->latest('id')->get()
             ->map(fn (Proposal $p): array => $this->summary($p))->all();
 
         return Inertia::render('proposals/index', ['vorschlaege' => $list]);
@@ -84,7 +84,7 @@ class ProposalController extends Controller
 
     public function show(Request $request, Proposal $proposal): Response
     {
-        abort_unless($proposal->user_id === $this->currentUser($request)->id, 404);
+        abort_unless($proposal->author_id === $this->currentUser($request)->id, 404);
         $categories = Category::query()->get()->mapWithKeys(fn (Category $c): array => [$c->key => $c->displayLabel()])->all();
 
         return Inertia::render('proposals/show', [

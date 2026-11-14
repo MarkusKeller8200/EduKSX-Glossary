@@ -129,9 +129,9 @@ class GlossaryModelTest extends TestCase
 
     public function test_status_als_text_wie_im_intranet(): void
     {
-        $term = $this->draft(['lifecycle_status' => 'zu prüfen']);
+        $term = $this->draft(['status' => 'zu prüfen']);
 
-        $this->assertSame('under_review', $term->lifecycle_status);
+        $this->assertSame('under_review', $term->status);
     }
 
     public function test_zurueckziehen(): void

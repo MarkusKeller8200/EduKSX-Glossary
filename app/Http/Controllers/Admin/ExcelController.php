@@ -152,7 +152,7 @@ class ExcelController extends Controller
             }
         }
         ImportBatch::query()->create([
-            'user_id' => $user?->id,
+            'imported_by_id' => $user?->id,
             'user_label' => Journal::actorLabel($user),
             'file_name' => (string) ($cached['datei'] ?? 'Datei'),
             'format_version' => (int) ($cached['format'] ?? ExcelFormat::VERSION),

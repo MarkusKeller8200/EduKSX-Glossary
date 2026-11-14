@@ -30,9 +30,9 @@ class SettingsController extends Controller
                 ->map(fn (UserAudit $e): array => [
                     'am' => $e->created_at->toIso8601String(),
                     'von' => $e->actor_id !== null ? (string) ($names[$e->actor_id] ?? '(gelöscht)') : (string) $e->actor_label,
-                    'key' => (string) ($e->new['key'] ?? ''),
-                    'alt' => $e->new['old'] ?? null,
-                    'neu' => $e->new['new'] ?? null,
+                    'key' => (string) ($e->new_values['key'] ?? ''),
+                    'alt' => $e->new_values['old'] ?? null,
+                    'neu' => $e->new_values['new'] ?? null,
                 ])->all(),
         ]);
     }

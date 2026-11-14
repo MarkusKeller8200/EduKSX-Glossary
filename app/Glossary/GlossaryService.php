@@ -35,7 +35,7 @@ final class GlossaryService
 {
     /** Felder, deren Wert beim Zusammenführen aus einem der Begriffe gewählt wird (#16). */
     public const MERGE_CHOICE = [
-        'official_abbreviation', 'official_name', 'short_description', 'description', 'url', 'note', 'lifecycle_status',
+        'official_abbreviation', 'official_name', 'short_description', 'description', 'url', 'note', 'status',
         'valid_from', 'valid_until',
     ];
 
@@ -53,7 +53,7 @@ final class GlossaryService
     /**
      * Begriff anlegen (ohne $term) oder ändern. Ergebnis ist immer ein Entwurf; veröffentlicht wird mit publish().
      *
-     * Felder in $data (alle optional beim Ändern): die Textfelder, lifecycle_status, is_active, valid_from,
+     * Felder in $data (alle optional beim Ändern): die Textfelder, status, is_active, valid_from,
      * valid_until, official_aliases und alternative_aliases (Listen), categories und sources (Listen von
      * Schlüsseln). Beim Anlegen optional «id» (z. B. aus dem Intranet, #13). $context kommt ins Journal (z. B.
      * ['via' => 'excel']).
@@ -436,7 +436,7 @@ final class GlossaryService
             'alternative_aliases' => (array) ($s['alternative_aliases'] ?? []),
             'categories' => (array) ($s['categories'] ?? []),
             'sources' => (array) ($s['sources'] ?? []),
-            'lifecycle_status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
+            'status' => TermStatus::normalize($s['status'] ?? $s['lifecycle_status'] ?? null),
             'is_active' => (bool) ($s['is_active'] ?? true),
             'valid_from' => $s['valid_from'] ?? null,
             'valid_until' => $s['valid_until'] ?? null,
@@ -511,7 +511,7 @@ final class GlossaryService
             'search_aliases' => $aliases('search'),
             'categories' => $keys($term->categories),
             'sources' => $keys($term->sources),
-            'lifecycle_status' => $term->lifecycle_status,
+            'status' => $term->status,
             'is_active' => $term->is_active,
             'valid_from' => $term->valid_from?->toDateString(),
             'valid_until' => $term->valid_until?->toDateString(),
@@ -640,12 +640,15 @@ final class GlossaryService
         if (isset($values['url']) && preg_match('#^https?://\S+$#i', $values['url']) !== 1) {
             throw new InvalidArgumentException('URL muss mit http:// oder https:// beginnen.');
         }
-        if (array_key_exists('lifecycle_status', $data)) {
-            $status = TermStatus::fromAny((string) $data['lifecycle_status']);   // Wert, bisheriger Wert oder Label
+        if (array_key_exists('lifecycle_status', $data) && ! array_key_exists('status', $data)) {
+            $data['status'] = $data['lifecycle_status'];   // gespeicherte Vorschläge bis 0.13 (#330)
+        }
+        if (array_key_exists('status', $data)) {
+            $status = TermStatus::fromAny((string) $data['status']);   // Wert, bisheriger Wert oder Label
             if ($status === null) {
-                throw new InvalidArgumentException('Status «'.$data['lifecycle_status'].'» ist unbekannt.');
+                throw new InvalidArgumentException('Status «'.$data['status'].'» ist unbekannt.');
             }
-            $values['lifecycle_status'] = $status->value;
+            $values['status'] = $status->value;
         }
         if (array_key_exists('is_active', $data)) {
             $values['is_active'] = (bool) $data['is_active'];
@@ -755,17 +758,17 @@ final class GlossaryService
 
         $term->aliases()->delete();
         foreach (array_unique((array) $official) as $alias) {
-            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'official', 'language' => 'de']);
+            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'official', 'locale' => 'de']);
         }
         foreach (array_unique((array) $alternative) as $alias) {
-            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'alternative', 'language' => 'de']);
+            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'alternative', 'locale' => 'de']);
         }
         // Suchbegriffe nur als Aliase (E1, #266): Text aus dem Formular bzw. Excel, sonst die bisherigen
         $search = array_key_exists('search_terms', $values)
             ? $this->list(preg_split('/[;,]/', (string) $values['search_terms']) ?: [])
             : $current->where('alias_type', 'search')->pluck('alias')->all();
         foreach (array_unique($search) as $alias) {
-            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'search', 'language' => 'de']);
+            $term->aliases()->create(['alias' => $alias, 'alias_type' => 'search', 'locale' => 'de']);
         }
     }
 
@@ -784,7 +787,7 @@ final class GlossaryService
             'published_by_id' => $user?->id,
         ]);
         TermPublicationEvent::query()->whereKey(array_map(fn (TermPublicationEvent $e): int => $e->id, $events))
-            ->update(['release_id' => $release->id]);
+            ->update(['publication_release_id' => $release->id]);
     }
 
     /** Slug aus Bezeichnung bzw. Abkürzung, eindeutig mit -2, -3 … */

@@ -33,7 +33,7 @@ Plattform-Standard.
 | Geltungsbereich      | Tabellen                                                                                                                                                                                                                                        |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Global**           | `terms`, `term_aliases`, `term_categories`, `term_sources`, `term_translations`, `term_relations`, `categories`, `category_translations`, `sources`, `source_translations`, `term_revisions`, `term_publication_events`, `publication_releases` |
-| **Organisation**     | `organizations`, `organization_members`, `organization_invitations`, `organization_term_overrides`, Vorschläge mit `organization_id`, Servicekonten einer Organisation                                                                          |
+| **Organisation**     | `organizations`, `organization_members`, `organization_invitations`, `term_organization_overrides`, Vorschläge mit `organization_id`, Servicekonten einer Organisation                                                                          |
 | **Persönlich**       | `term_user_overrides` (mit `approved_organization_id` für die Freigabe an eine Organisation, DEC-025), Einstellungen eines Kontos                                                                                                               |
 | **Plattform/intern** | `users`, `user_identities`, `roles`, `user_roles`, `user_audit`, `service_accounts`, `service_account_tokens`, `service_account_audit`, `settings`, `import_batches`, `import_rows`, `search_misses`, `data_changes`                            |
 
@@ -67,18 +67,27 @@ Abweichungen von A1, die mit 0.12.0 umbenannt werden: `…_by` → `…_by_id` (
 `proposal_type`, `proposal_events.type` → `event_type`, `duplicate_decisions.kind` → `match_type`. **Umgesetzt** im
 Anfangsstand `database/migrations/2026_11_01_000000_anfangsstand.php` mit Übergang `App\Database\Uebergang012` (#266);
 Helfer für STRICT und CHECK: `EduKSX\Core\Database\StrictSchema` aus eduksx/core (#334); Enums in `app/Enums` (#275). Werte von Status und Arten
-englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `lifecycle_status`: `current`, `historical`,
+englisch nach [KONZEPT-KONVENTIONEN.md](KONZEPT-KONVENTIONEN.md) (z. B. `terms.status`: `current`, `historical`,
 `under_review`).
+
+**Namen 0.14.0 (#330, A1/A2 – gleiche Namen in DB, API und Export):** `terms.lifecycle_status` → `status`,
+`term_aliases.language` → `locale`, `user_identities.tenant_id` → `entra_tenant_id`, `organization_term_overrides` →
+`term_organization_overrides`, `proposals.user_id` → `author_id`, `import_batches.user_id` → `imported_by_id`,
+`term_publication_events.release_id` → `publication_release_id`, `user_audit.old`/`new` → `old_values`/`new_values`.
+In einem Schritt mit Vermerk `abwaertskompatibel` (Update mit Unterbruch bis #184); gespeicherte Revisionen und
+Vorschläge mit `lifecycle_status` liest der Code weiter.
 
 ## 5. Ausnahmen von der Normalisierung (A2)
 
-| Wo                                                  | Was ist doppelt                                      | Grund                                        | Wie aktuell gehalten                                                                                               |
-| --------------------------------------------------- | ---------------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `term_revisions.snapshot`                           | Abbild des Begriffs (nur öffentliche/interne Felder) | Revisionen unveränderlich (DEC-022)          | bewusst eingefroren                                                                                                |
-| `terms.published_revision_id`                       | Zeiger auf die veröffentlichte Revision              | schneller Zugriff auf den öffentlichen Stand | in derselben Transaktion wie das Veröffentlichen; Zugehörigkeit per zusammengesetztem Fremdschlüssel (Abschnitt 6) |
-| `author_label`, `actor_label`                       | Name als Text neben der ID                           | lesbar nach Kontolöschung                    | ersetzt durch «Gelöschtes Konto»                                                                                   |
-| `term_revisions.change_set`, `data_changes.changes` | alte und neue Werte                                  | Historie                                     | unveränderlich; Personendaten nach B2 nicht enthalten                                                              |
-| `publication_releases`                              | Datenstand mit Prüfsumme                             | Abgleich der Konsumenten                     | je Veröffentlichung neu                                                                                            |
+| Wo                                                                                     | Was ist doppelt                                      | Grund                                                                                                                                | Wie aktuell gehalten                                                                                               |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `term_revisions.snapshot`                                                              | Abbild des Begriffs (nur öffentliche/interne Felder) | Revisionen unveränderlich (DEC-022)                                                                                                  | bewusst eingefroren                                                                                                |
+| `terms.published_revision_id`                                                          | Zeiger auf die veröffentlichte Revision              | schneller Zugriff auf den öffentlichen Stand                                                                                         | in derselben Transaktion wie das Veröffentlichen; Zugehörigkeit per zusammengesetztem Fremdschlüssel (Abschnitt 6) |
+| `author_label`, `actor_label`                                                          | Name als Text neben der ID                           | lesbar nach Kontolöschung                                                                                                            | ersetzt durch «Gelöschtes Konto»                                                                                   |
+| `term_revisions.change_set`, `data_changes.changes`                                    | alte und neue Werte                                  | Historie                                                                                                                             | unveränderlich; Personendaten nach B2 nicht enthalten                                                              |
+| `publication_releases`                                                                 | Datenstand mit Prüfsumme                             | Abgleich der Konsumenten                                                                                                             | je Veröffentlichung neu                                                                                            |
+| `duplicate_decisions.term_ids`                                                         | Liste von Begriffs-IDs (JSON)                        | Entscheid gilt für genau diese Gruppe; die Liste ist die Signatur des Entscheids und wird nie einzeln abgefragt oder geändert (#331) | unveränderlich; neue Gruppe = neuer Entscheid; gelöschte Begriffe bleiben als ID stehen                            |
+| `term_user_overrides.aliases_override`, `term_organization_overrides.aliases_override` | Liste abweichender Suchbegriffe (JSON)               | gehört zur Darstellung einer Person bzw. Organisation, wird nur als Ganzes gelesen und ersetzt, nie gesucht oder verknüpft (#331)    | beim Speichern der Darstellung vollständig ersetzt                                                                 |
 
 Bereinigt mit 0.12.0: `terms.search_terms` entfällt (nur noch `term_aliases`, Typ `search`, E1); `term_sources.url`
 entfällt (Quelle ist `terms.url`, K1).
@@ -87,6 +96,13 @@ entfällt (Quelle ist `terms.url`, K1).
 
 - UUID v7 für `terms`, `proposals`, `organizations`, `users`, `service_accounts`; fortlaufende Zahl für Protokolle und
   Ereignisse.
+- **Ereignis-ID (#332):** `term_publication_events`, `proposal_events`, `user_audit`, `service_account_audit` und
+  `data_changes` tragen zusätzlich eine UUID v7 `event_id` für das Zusammenführen über Module (Leitstand,
+  Löschregister); die fortlaufende Zahl bleibt Cursor des Änderungs-Feeds.
+- **`settings` ohne `id` (#332, Ausnahme zu A3):** Schlüssel-Wert-Tabelle mit festen englischen Schlüsseln als
+  Primärschlüssel; keine Verweise auf sie, kein Zusammenführen – eine zusätzliche `id` brächte nichts.
+- **Vorschläge (#322):** öffentliche Kennung `proposals.uuid` (UUID v7); Primärschlüssel wird sie mit Schritt 2
+  (#344).
 - Permalink-Code `/g/{code}` (6 Zeichen, unveränderlich, DEC-026): eindeutig über **alle** Zeilen, auch gelöschte; wird
   nie neu vergeben.
 - **`terms.published_revision_id` gehört zum selben Begriff:** `term_revisions` erhält UNIQUE `(term_id, id)`;
@@ -153,19 +169,19 @@ CHANGELOG ohne Entscheidnummern; Commit mit `Refs #n`.
 
 ## 12. DB-Standard 1.2 im Glossary (Teil E, B7–B14)
 
-| Regel                           | Im Glossary                                                                                                                     | Umsetzung           |
-| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| E1 Modulschlüssel               | `glossary`                                                                                                                      | –                   |
-| E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191 |
-| E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | #311                |
-| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                |
-| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                |
-| B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                |
-| B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                |
-| B11 Lesezugriffe                | entfällt (keine Daten der Klasse besonders schützenswert)                                                                       | –                   |
-| B12 Anonymisierte Kopien        | Dump (#268) für dev und test nur anonymisiert                                                                                   | #313                |
-| B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | #312                |
-| B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                   |
+| Regel                           | Im Glossary                                                                                                                     | Umsetzung                                               |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| E1 Modulschlüssel               | `glossary`                                                                                                                      | –                                                       |
+| E2 Schema je Modul              | SQLite-Datei `glossary.sqlite`; auf PostgreSQL Schema `glossary`                                                                | mit PostgreSQL #191                                     |
+| E3 Plattform-IDs                | `platform_id` in `organizations` und `users`; Organisations-ID aus Ident beim Anschluss (#186)                                  | umgesetzt 0.14.0 (#311), Befehl `glossary:plattform-id` |
+| E5 Versionsbindung              | dieses Dokument: «arbeitet nach DB-Standard 1.2.1»; Konformitätstest aus `eduksx/core` (seit #335)                              | #193                                                    |
+| B8 Auskunft und Datenherausgabe | «Meine Daten» und Export in der Administration                                                                                  | #312                                                    |
+| B9 Zweck je Tabelle             | im Code neben den Datenklassen (#276); daraus das Verzeichnis der Bearbeitungen                                                 | #314                                                    |
+| B10 Folgenabschätzung           | keine besonders schützenswerten Daten; Kurz-Folgenabschätzung vor dem öffentlichen Betrieb zusammen mit der Prüfung der Fristen | #278                                                    |
+| B11 Lesezugriffe                | entfällt (keine Daten der Klasse besonders schützenswert)                                                                       | –                                                       |
+| B12 Anonymisierte Kopien        | Dump (#268) für dev und test nur anonymisiert                                                                                   | #313                                                    |
+| B13 Einschränkung               | `users.is_processing_restricted`                                                                                                | #312                                                    |
+| B14 Zusammenlegen               | heute kein Zusammenlegen geplant; Intranet-Abgleich bleibt API                                                                  | –                                                       |
 
 ## 13. Offene Punkte
 

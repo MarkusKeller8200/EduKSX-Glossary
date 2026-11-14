@@ -32,7 +32,7 @@ use Illuminate\Support\Str;
  * @property string|null $note
  * @property string|null $url
  * @property-read string $search_terms Suchbegriffe als Text «a; b», aus den Aliasen vom Typ search (E1, #266)
- * @property string $lifecycle_status
+ * @property string $status
  * @property bool $is_active
  * @property CarbonImmutable|null $valid_from
  * @property CarbonImmutable|null $valid_until
@@ -66,11 +66,11 @@ class Term extends Model
     /** @var list<string> */
     protected $fillable = [
         'slug', 'official_abbreviation', 'official_name', 'short_description', 'description', 'note', 'url',
-        'lifecycle_status', 'is_active', 'valid_from', 'valid_until',
+        'status', 'is_active', 'valid_from', 'valid_until',
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['lifecycle_status' => 'current', 'is_active' => true, 'revision' => 0];
+    protected $attributes = ['status' => 'current', 'is_active' => true, 'revision' => 0];
 
     protected static function booted(): void
     {

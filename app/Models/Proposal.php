@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
  * @property array<string, mixed> $changes
  * @property string|null $reason
  * @property string $status
- * @property string|null $user_id
+ * @property string|null $author_id
  * @property string|null $service_account_id
  * @property string|null $organization_id Vorschlag eines Mitglieds einer Organisation (#148)
  * @property string $author_label
@@ -63,7 +63,7 @@ class Proposal extends Model
     public const ANONYMOUS = 'Community';
 
     /** @var list<string> */
-    protected $fillable = ['proposal_type', 'term_id', 'base_revision', 'changes', 'reason', 'status', 'user_id', 'service_account_id', 'author_label', 'organization_id'];
+    protected $fillable = ['proposal_type', 'term_id', 'base_revision', 'changes', 'reason', 'status', 'author_id', 'service_account_id', 'author_label', 'organization_id'];
 
     /**
      * @return array<string, string>

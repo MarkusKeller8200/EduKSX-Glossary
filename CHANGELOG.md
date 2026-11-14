@@ -15,6 +15,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Ungültige und unbekannte Parameter ergeben 422. Vorschläge über UUID. Scopes `glossary:proposals.create`,
   `glossary:proposals.read`, `glossary:terms.read` und Tokens `glossary_sa_…`; bestehende Servicekonten und
   `gls_…`-Tokens gelten weiter. OpenAPI ohne Warnungen nach dem Regelsatz der Plattform, geprüft in der CI.
+- **Datenbank nach Plattform-Standard (#191, #311, #330, #331, #332, #333):** Einheitliche Namen in Datenbank, API und
+  Export (u. a. `terms.status`, `term_aliases.locale`, `term_organization_overrides`, `proposals.author_id`);
+  Plattform-IDs für Organisationen und Konten (`glossary:plattform-id`); Ereignis-IDs für Feed und Protokolle. Auf
+  PostgreSQL liegen alle Tabellen im Schema `glossary`; Umzug einer SQLite-Datenbank mit `glossary:umzug-postgres`.
+  Das Update auf 0.14 läuft mit kurzem Unterbruch; ein Rücksprung auf 0.13 geht nur mit der Sicherung.
 
 - **Steckbrief und Bereitschaft (#189, #325):** `/.well-known/eduksx-module.json` mit Modulschlüssel, Version,
   API-Version, Datenlizenz, Verweisen auf OpenAPI und Dokumentation sowie den Ereignissen, die das Glossary von Ident

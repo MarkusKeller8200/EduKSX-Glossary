@@ -135,8 +135,8 @@ final class OrganizationService
      */
     public function tenantsOf(User $user): array
     {
-        return array_values(array_unique(array_map('strval', $user->identities()->where('provider', 'microsoft')->whereNotNull('tenant_id')
-            ->where('tenant_id', '!=', UserIdentity::MICROSOFT_CONSUMER_TENANT)->pluck('tenant_id')->all())));
+        return array_values(array_unique(array_map('strval', $user->identities()->where('provider', 'microsoft')->whereNotNull('entra_tenant_id')
+            ->where('entra_tenant_id', '!=', UserIdentity::MICROSOFT_CONSUMER_TENANT)->pluck('entra_tenant_id')->all())));
     }
 
     /**
@@ -452,7 +452,7 @@ final class OrganizationService
     private function forwardProposals(string $organizationId, ?string $userId, string $reason): void
     {
         $ids = Proposal::query()->where('organization_id', $organizationId)->where('status', Proposal::ORG_REVIEW)
-            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
+            ->when($userId !== null, fn ($q) => $q->where('author_id', $userId))->pluck('id')->map(fn ($id): int => (int) $id)->values()->all();
         ProposalService::forwardFromOrganization($ids, $reason);
     }
 

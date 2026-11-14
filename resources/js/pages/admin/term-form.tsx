@@ -21,7 +21,7 @@ type Werte = {
     note: string;
     categories: string[];
     sources: string[];
-    lifecycle_status: string;
+    status: string;
     search_terms: string;
     valid_from: string;
     valid_until: string;
@@ -273,16 +273,12 @@ export default function TermForm({
                         onToggle={(k, on) => toggle('sources', k, on)}
                         error={errors.sources}
                     />
-                    <Feld
-                        id="lifecycle_status"
-                        label="Status"
-                        error={errors.lifecycle_status}
-                    >
+                    <Feld id="status" label="Status" error={errors.status}>
                         <NativeSelect
-                            id="lifecycle_status"
-                            value={form.data.lifecycle_status}
+                            id="status"
+                            value={form.data.status}
                             onChange={(e) =>
-                                form.setData('lifecycle_status', e.target.value)
+                                form.setData('status', e.target.value)
                             }
                         >
                             {Object.entries(listen.status).map(([k, v]) => (

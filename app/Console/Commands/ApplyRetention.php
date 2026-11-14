@@ -81,7 +81,7 @@ class ApplyRetention extends Command
         // 4. Vorschläge (#113, DEC-024): 24 Monate nach Abschluss ohne Personenbezug
         $proposals = $dry
             ? Proposal::query()->whereNotNull('resolved_at')->where('resolved_at', '<', now()->subMonths($proposalMonths))
-                ->whereNotNull('user_id')->count()
+                ->whereNotNull('author_id')->count()
             : app(ProposalService::class)->anonymizeResolvedBefore(now()->subMonths($proposalMonths));
 
         // 5. Import-Protokoll (#64): 12 Monate

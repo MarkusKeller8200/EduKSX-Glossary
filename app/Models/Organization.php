@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * App\Organizations\OrganizationService.
  *
  * @property string $id
+ * @property string|null $platform_id Plattform-ID aus EduKSX-Ident (#311)
  * @property string $name
  * @property string|null $created_by_id
  * @property string|null $entra_tenant_id Microsoft-Tenant (X3, #284), eindeutig

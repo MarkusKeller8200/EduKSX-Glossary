@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Verknüpfter Anmeldedienst eines Kontos (#45). Eindeutig über issuer + subject (W8, #277); tenant_id ist abgeleitet.
+ * Verknüpfter Anmeldedienst eines Kontos (#45). Eindeutig über issuer + subject (W8, #277); entra_tenant_id ist abgeleitet.
  *
  * @property int $id
  * @property string $user_id
  * @property string $provider
  * @property string $issuer
  * @property string $subject
- * @property string|null $tenant_id
+ * @property string|null $entra_tenant_id
  * @property CarbonImmutable|null $last_used_at
  * @property CarbonImmutable|null $created_at
  * @property-read User $user
@@ -31,7 +31,7 @@ class UserIdentity extends Model
     public const PROVIDERS = ['microsoft' => 'Microsoft', 'edulog' => 'Edulog'];
 
     /** @var list<string> */
-    protected $fillable = ['user_id', 'provider', 'issuer', 'subject', 'tenant_id', 'last_used_at'];
+    protected $fillable = ['user_id', 'provider', 'issuer', 'subject', 'entra_tenant_id', 'last_used_at'];
 
     /**
      * @return array<string, string>

@@ -41,7 +41,7 @@ class TermController extends Controller
         'note' => 'Notiz',
         'categories' => 'Kategorien',
         'sources' => 'Herkunft',
-        'lifecycle_status' => 'Status',
+        'status' => 'Status',
         'search_terms' => 'Suchbegriffe',
         'valid_from' => 'Gültig ab',
         'valid_until' => 'Gültig bis',
@@ -72,7 +72,7 @@ class TermController extends Controller
                 'gueltigBis' => $t->valid_until?->toDateString(),
                 'kategorien' => $t->categories->map(fn (Category $c): string => $c->displayLabel())->all(),
                 'herkunft' => $t->sources->map(fn (Source $c): string => $c->displayLabel())->values()->all(),
-                'status' => Term::STATUS[$t->lifecycle_status] ?? $t->lifecycle_status,
+                'status' => Term::STATUS[$t->status] ?? $t->status,
                 'aktiv' => $t->is_active,
                 'revision' => $t->revision,
                 'veroeffentlicht' => $t->publishedRevision?->revision,
@@ -287,7 +287,7 @@ class TermController extends Controller
             'categories.*' => ['string'],
             'sources' => ['array'],
             'sources.*' => ['string'],
-            'lifecycle_status' => ['required', 'string'],
+            'status' => ['required', 'string'],
             'search_terms' => ['nullable', 'string', 'max:2000'],
             'valid_from' => ['nullable', 'date_format:Y-m-d'],
             'valid_until' => ['nullable', 'date_format:Y-m-d'],
@@ -328,7 +328,7 @@ class TermController extends Controller
             return [
                 'official_abbreviation' => '', 'official_aliases' => '', 'alternative_aliases' => '', 'official_name' => '',
                 'short_description' => '', 'description' => '', 'url' => '', 'note' => '', 'categories' => [],
-                'sources' => [], 'lifecycle_status' => TermStatus::Current->value,
+                'sources' => [], 'status' => TermStatus::Current->value,
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
                 'translations' => $this->translationForm([]),
                 'relations' => [],
@@ -348,7 +348,7 @@ class TermController extends Controller
             'note' => (string) $s['note'],
             'categories' => (array) $s['categories'],
             'sources' => (array) $s['sources'],
-            'lifecycle_status' => TermStatus::normalize($s['lifecycle_status'] ?? null),
+            'status' => TermStatus::normalize($s['status'] ?? $s['lifecycle_status'] ?? null),
             'search_terms' => (string) $s['search_terms'],
             'valid_from' => (string) $s['valid_from'],
             'valid_until' => (string) $s['valid_until'],
@@ -424,7 +424,8 @@ class TermController extends Controller
 
                 continue;
             }
-            $out[] = ['feld' => $labels[$field] ?? $field, 'alt' => $text($change['old'] ?? null), 'neu' => $text($change['new'] ?? null)];
+            $out[] = ['feld' => $labels[$field === 'lifecycle_status' ? 'status' : $field] ?? $field,   // Revisionen bis 0.13 (#330)
+                'alt' => $text($change['old'] ?? null), 'neu' => $text($change['new'] ?? null)];
         }
 
         return $out;

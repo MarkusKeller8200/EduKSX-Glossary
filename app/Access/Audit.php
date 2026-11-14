@@ -18,7 +18,7 @@ final class Audit
             'actor_label' => $actor === null ? ($label ?? RoleManager::SERVER) : $label,
             'target_user_id' => $target?->id,
             'action' => $action,
-            'new' => $new,
+            'new_values' => $new,
             'result' => $result,
         ]);
     }

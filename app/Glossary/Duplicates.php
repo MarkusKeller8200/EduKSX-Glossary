@@ -130,7 +130,7 @@ final class Duplicates
             'bezeichnung' => $term->displayName(),
             'kurz' => (string) $term->short_description,
             'kategorien' => $term->categories->map(fn (Category $c): string => $c->displayLabel())->values()->all(),
-            'status' => Term::STATUS[$term->lifecycle_status] ?? $term->lifecycle_status,
+            'status' => Term::STATUS[$term->status] ?? $term->status,
             'aktiv' => $term->is_active,
             'veroeffentlicht' => $term->published_revision_id !== null,
         ];

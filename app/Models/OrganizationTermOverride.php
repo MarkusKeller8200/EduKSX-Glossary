@@ -27,6 +27,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class OrganizationTermOverride extends Model
 {
+    /** Name nach DB-Standard A1 (#330): Begriff zuerst, wie term_user_overrides. */
+    protected $table = 'term_organization_overrides';
+
     use HasUuids;
     use RecordsDataChanges;
 
