@@ -54,12 +54,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   später (bisher MIT; frühere Versionen bleiben MIT). Die Daten bleiben unter CC BY 4.0. Die Fusszeile verweist auf
   den Quellcode der laufenden Version (`GLOSSARY_SOURCE_URL`).
 
-### Korrigiert
-
-- `COMPOSE_FILE` aus der `.env` gilt im Container nicht mehr als Datei mit einem Geheimnis (Meldung beim Start).
-
 ### Behoben
 
+- **`COMPOSE_FILE` im Container:** Der Wert aus der `.env` gilt nicht mehr als Datei mit einem Geheimnis (Meldung beim
+  Start).
 - **Tabellen ohne unnötigen Scrollbalken (#370):** Die Spalte, die den freien Platz aufnimmt, zählt für die
   Mindestbreite der Tabelle nur noch mit ihrer Mindestbreite; ein Scrollbalken erscheint erst, wenn die übrigen
   Spalten wirklich nicht mehr hineinpassen.
