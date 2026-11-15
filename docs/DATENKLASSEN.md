@@ -526,6 +526,8 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `function` | personenbezogen |
 | `institution_type` | intern |
 | `institution_name` | personenbezogen |
+| `institution_kind` | intern |
+| `is_unified_municipality` | intern |
 | `last_login_on` | personenbezogen |
 | `privacy_notice_version` | intern |
 | `privacy_notice_acknowledged_at` | personenbezogen |

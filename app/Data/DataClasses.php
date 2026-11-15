@@ -422,6 +422,8 @@ final class DataClasses
             'function' => DataClass::Personal,
             'institution_type' => DataClass::Internal,
             'institution_name' => DataClass::Personal,
+            'institution_kind' => DataClass::Internal,
+            'is_unified_municipality' => DataClass::Internal,
             'last_login_on' => DataClass::Personal,
             'privacy_notice_version' => DataClass::Internal,
             'privacy_notice_acknowledged_at' => DataClass::Personal,

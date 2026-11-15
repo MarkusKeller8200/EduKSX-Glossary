@@ -35,22 +35,31 @@ class AccountTest extends TestCase
         $this->community('b@example.org')->forceFill(['community_name' => 'Besetzt'])->save();
 
         $this->get('/konto')->assertOk()->assertInertia(fn (Assert $p) => $p->component('account/show')
-            ->where('konto.first_name', 'Anna')->has('einrichtungen', 5));
+            ->where('konto.first_name', 'Anna')->has('einrichtungen', 10)
+            ->where('schularten', ['primary_school', 'secondary_school', 'comprehensive_school']));
 
         $this->put('/konto', ['first_name' => 'Anna', 'last_name' => 'Muster', 'community_name' => 'Besetzt'])
             ->assertSessionHasErrors('community_name');
-        $this->put('/konto', ['first_name' => 'Anna', 'last_name' => 'Muster', 'institution_type' => 'firma'])
-            ->assertSessionHasErrors('institution_type');
+        $this->put('/konto', ['first_name' => 'Anna', 'last_name' => 'Muster', 'institution_kind' => 'school'])
+            ->assertSessionHasErrors('institution_kind');
 
         $this->put('/konto', [
             'first_name' => 'Anna', 'last_name' => 'Beispiel', 'community_name' => 'Anna B.', 'function' => 'Schulleitung',
-            'institution_type' => 'school', 'institution_name' => 'Primarschule Musterdorf',
+            'institution_kind' => 'primary_school', 'is_unified_municipality' => true, 'institution_name' => 'Primarschule Musterdorf',
         ])->assertRedirect();
         $user->refresh();
         $this->assertSame('Anna Beispiel', $user->name);
         $this->assertSame('Anna B.', $user->community_name);
-        $this->assertSame('school', $user->institution_type);
+        $this->assertSame('primary_school', $user->institution_kind);
+        $this->assertTrue($user->is_unified_municipality);
+        $this->assertSame('Primarschule Musterdorf (Primarschule, Einheitsgemeinde)', $user->institutionLabel());
         $this->assertSame('c@example.org', $user->email);   // E-Mail nur mit Bestätigung (#41)
+
+        // Einheitsgemeinde nur bei Schularten (#415)
+        $this->put('/konto', ['first_name' => 'Anna', 'last_name' => 'Beispiel', 'institution_kind' => 'municipal_office', 'is_unified_municipality' => true])
+            ->assertRedirect();
+        $this->assertFalse($user->refresh()->is_unified_municipality);
+        $this->assertSame('Gemeindeamt', $user->institutionLabel());
     }
 
     public function test_passwort_aendern(): void

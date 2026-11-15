@@ -7,6 +7,7 @@ use App\Access\AccountManager;
 use App\Access\Audit;
 use App\Access\Sso\MicrosoftLogin;
 use App\Data\PersonalData;
+use App\Enums\InstitutionKind;
 use App\Models\User;
 use App\Models\UserIdentity;
 use Illuminate\Http\JsonResponse;
@@ -38,7 +39,8 @@ class AccountController extends Controller
                 'email' => $user->email,
                 'community_name' => (string) $user->community_name,
                 'function' => (string) $user->function,
-                'institution_type' => (string) $user->institution_type,
+                'institution_kind' => (string) $user->institution_kind,
+                'is_unified_municipality' => $user->is_unified_municipality,
                 'institution_name' => (string) $user->institution_name,
                 'zweiter_faktor' => $user->hasTwoFactor(),
                 'zweiter_faktor_pflicht' => $user->needsTwoFactor(),
@@ -54,7 +56,9 @@ class AccountController extends Controller
                 'news' => $user->has_news_opt_in,
                 'news_seit' => $user->news_answered_at?->toDateString(),
             ],
-            'einrichtungen' => User::INSTITUTION_TYPES,
+            'einrichtungen' => InstitutionKind::labels(),
+            // Schularten mit dem Merkmal «Einheitsgemeinde» (#415)
+            'schularten' => array_values(array_map(fn (InstitutionKind $k): string => $k->value, array_filter(InstitutionKind::cases(), fn (InstitutionKind $k): bool => $k->isSchool()))),
             'microsoft' => $microsoft->enabled(),
         ]);
     }
@@ -103,16 +107,20 @@ class AccountController extends Controller
             'community_name' => ['nullable', 'string', 'min:3', 'max:40', 'regex:/^[\pL\pN][\pL\pN ._-]*$/u',
                 Rule::unique('users', 'community_name')->ignore($user->id)],
             'function' => ['nullable', 'string', 'max:100'],
-            'institution_type' => ['nullable', Rule::in(array_keys(User::INSTITUTION_TYPES))],
+            'institution_kind' => ['nullable', Rule::enum(InstitutionKind::class)],
+            'is_unified_municipality' => ['boolean'],
             'institution_name' => ['nullable', 'string', 'max:150'],
         ], [
             'community_name.unique' => 'Dieser Community-Name ist schon vergeben.',
             'community_name.regex' => 'Nur Buchstaben, Ziffern, Leerzeichen, Punkt, Binde- und Unterstrich.',
         ]);
-        foreach (['community_name', 'function', 'institution_type', 'institution_name'] as $field) {
+        foreach (['community_name', 'function', 'institution_kind', 'institution_name'] as $field) {
             $value = trim((string) ($data[$field] ?? ''));
             $data[$field] = $value === '' ? null : $value;
         }
+        // Einheitsgemeinde nur bei Schularten (#415)
+        $data['is_unified_municipality'] = (bool) ($data['is_unified_municipality'] ?? false)
+            && InstitutionKind::tryFrom((string) $data['institution_kind'])?->isSchool() === true;
         $user->fill($data)->save();
 
         return back()->with('status', 'Angaben gespeichert.');

@@ -2,6 +2,7 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect } from '@/components/ui/native-select';
@@ -14,7 +15,8 @@ type Konto = {
     email: string;
     community_name: string;
     function: string;
-    institution_type: string;
+    institution_kind: string;
+    is_unified_municipality: boolean;
     institution_name: string;
     zweiter_faktor: boolean;
     zweiter_faktor_pflicht: boolean;
@@ -37,10 +39,12 @@ type Identitaet = {
 export default function AccountShow({
     konto,
     einrichtungen,
+    schularten,
     microsoft,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
+    schularten: string[];
     microsoft: boolean;
 }) {
     return (
@@ -66,7 +70,11 @@ export default function AccountShow({
                 </Button>
             </div>
 
-            <Angaben konto={konto} einrichtungen={einrichtungen} />
+            <Angaben
+                konto={konto}
+                einrichtungen={einrichtungen}
+                schularten={schularten}
+            />
             {/* «Meine Organisation» direkt nach den Angaben (#418) */}
             <MeineOrganisation />
             {konto.passwort_gesetzt ? (
@@ -245,16 +253,19 @@ function Feld({
 function Angaben({
     konto,
     einrichtungen,
+    schularten,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
+    schularten: string[];
 }) {
     const form = useForm({
         first_name: konto.first_name,
         last_name: konto.last_name,
         community_name: konto.community_name,
         function: konto.function,
-        institution_type: konto.institution_type,
+        institution_kind: konto.institution_kind,
+        is_unified_municipality: konto.is_unified_municipality,
         institution_name: konto.institution_name,
     });
     const submit = (e: FormEvent) => {
@@ -326,15 +337,15 @@ function Angaben({
                 </Feld>
                 <div className="grid gap-4 sm:grid-cols-2">
                     <Feld
-                        id="institution_type"
-                        label="Öffentliche Einrichtung"
-                        error={form.errors.institution_type}
+                        id="institution_kind"
+                        label="Art der Einrichtung"
+                        error={form.errors.institution_kind}
                     >
                         <NativeSelect
-                            id="institution_type"
-                            value={form.data.institution_type}
+                            id="institution_kind"
+                            value={form.data.institution_kind}
                             onChange={(e) =>
-                                form.setData('institution_type', e.target.value)
+                                form.setData('institution_kind', e.target.value)
                             }
                         >
                             <option value="">–</option>
@@ -349,7 +360,7 @@ function Angaben({
                     </Feld>
                     <Feld
                         id="institution_name"
-                        label="Gemeinde / Schule"
+                        label="Schule / Gemeinde / Organisation / Behörde"
                         error={form.errors.institution_name}
                     >
                         <Input
@@ -361,6 +372,24 @@ function Angaben({
                         />
                     </Feld>
                 </div>
+                {schularten.includes(form.data.institution_kind) ? (
+                    <div className="flex items-center gap-2">
+                        <Checkbox
+                            id="is_unified_municipality"
+                            checked={form.data.is_unified_municipality}
+                            onCheckedChange={(v) =>
+                                form.setData(
+                                    'is_unified_municipality',
+                                    v === true,
+                                )
+                            }
+                        />
+                        <Label htmlFor="is_unified_municipality">
+                            Einheitsgemeinde (Schule und politische Gemeinde
+                            vereint)
+                        </Label>
+                    </div>
+                ) : null}
                 <p className="text-sm text-muted-foreground">
                     Nur Moderation und Administration sehen Name, E-Mail,
                     Funktion und Einrichtung. Die E-Mail-Adresse lässt sich

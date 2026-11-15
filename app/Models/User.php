@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Access\Permission;
 use App\Data\DataChanges;
 use App\Data\RecordsDataChanges;
+use App\Enums\InstitutionKind;
 use App\Glossary\Journal;
 use App\Notifications\ResetPasswordNotification;
 use App\Organizations\OrganizationService;
@@ -30,7 +31,9 @@ use Illuminate\Support\Facades\DB;
  * @property string $last_name
  * @property string|null $community_name
  * @property string|null $function
- * @property string|null $institution_type
+ * @property string|null $institution_type bis 0.16.0, ersetzt durch institution_kind (#415)
+ * @property string|null $institution_kind
+ * @property bool $is_unified_municipality
  * @property string|null $institution_name
  * @property CarbonImmutable|null $last_login_on
  * @property CarbonImmutable|null $email_verified_at
@@ -55,7 +58,7 @@ class User extends Authenticatable
     use HasUuids, Notifiable;
     use RecordsDataChanges;
 
-    /** Arten öffentlicher Einrichtungen (docs/KONZEPT-BENUTZER.md 4). */
+    /** Arten öffentlicher Einrichtungen bis 0.16.0 – ersetzt durch App\Enums\InstitutionKind (#415), entfällt mit der Spalte. */
     public const INSTITUTION_TYPES = [
         'school' => 'Schule', 'school_district' => 'Schulgemeinde', 'municipality' => 'Gemeinde', 'canton' => 'Kanton',
         'other' => 'andere',
@@ -64,11 +67,11 @@ class User extends Authenticatable
     /** @var list<string> */
     protected $fillable = [
         'name', 'first_name', 'last_name', 'email', 'password', 'community_name', 'function', 'institution_type',
-        'institution_name',
+        'institution_name', 'institution_kind', 'is_unified_municipality',
     ];
 
     /** @var array<string, mixed> */
-    protected $attributes = ['status' => 'active', 'has_password' => true, 'has_news_opt_in' => false, 'is_processing_restricted' => false];
+    protected $attributes = ['status' => 'active', 'has_password' => true, 'has_news_opt_in' => false, 'is_processing_restricted' => false, 'is_unified_municipality' => false];
 
     /** @var list<string>|null Rechte dieser Instanz (je Anfrage neu berechnet) */
     private ?array $permissionCache = null;
@@ -79,6 +82,23 @@ class User extends Authenticatable
     /**
      * @return array<string, string>
      */
+    /** Einrichtung für die Anzeige (#415), z. B. «Schule Musterdorf (Primarschule, Einheitsgemeinde)». */
+    public function institutionLabel(): string
+    {
+        $kind = InstitutionKind::tryFrom((string) $this->institution_kind);
+        $details = array_filter([
+            $kind?->label(),
+            $kind?->isSchool() === true && $this->is_unified_municipality ? 'Einheitsgemeinde' : null,
+        ]);
+
+        $name = trim((string) $this->institution_name);
+        if ($name === '' || $details === []) {
+            return $name !== '' ? $name : implode(', ', $details);
+        }
+
+        return $name.' ('.implode(', ', $details).')';
+    }
+
     protected function casts(): array
     {
         return [
@@ -88,6 +108,7 @@ class User extends Authenticatable
             'has_password' => 'boolean',
             'is_processing_restricted' => 'boolean',
             'has_news_opt_in' => 'boolean',
+            'is_unified_municipality' => 'boolean',
             'news_answered_at' => 'immutable_datetime',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
