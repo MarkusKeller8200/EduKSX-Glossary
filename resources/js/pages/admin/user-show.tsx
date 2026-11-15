@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
+import HistoryPanel, { type VerlaufEintrag } from '@/components/history-panel';
 import type { FormEvent, ReactNode } from 'react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
@@ -52,16 +53,6 @@ type Rolle = {
     aenderbar: boolean;
 };
 
-type Eintrag = {
-    id: number;
-    am: string;
-    aktion: string;
-    rolle: string | null;
-    von: string;
-    ergebnis: string;
-    grund: string | null;
-};
-
 function datum(iso: string | null): string {
     return iso
         ? new Date(iso).toLocaleString('de-CH', {
@@ -71,15 +62,15 @@ function datum(iso: string | null): string {
         : '–';
 }
 
-/** Detail eines Kontos (#38): Rollen, Sperren, zweiter Faktor, Protokoll. */
+/** Detail eines Kontos (#38): Angaben, Rollen, Sperren, zweiter Faktor, Verlauf (#417). */
 export default function UserShow({
     benutzer: b,
     rollen,
-    protokoll,
+    verlauf,
 }: {
     benutzer: Benutzer;
     rollen: Rolle[];
-    protokoll: Eintrag[];
+    verlauf: VerlaufEintrag[];
 }) {
     const form = useForm<{ rollen: string[] }>({
         rollen: rollen.filter((r) => r.zugewiesen).map((r) => r.key),
@@ -281,35 +272,8 @@ export default function UserShow({
                 ))}
             </p>
 
-            <h2 className="mt-8 text-lg font-semibold">Protokoll</h2>
-            {protokoll.length === 0 ? (
-                <p className="mt-2 text-sm text-muted-foreground">
-                    Noch keine Einträge.
-                </p>
-            ) : (
-                <ol className="mt-3 divide-y divide-border rounded-lg border border-border text-sm">
-                    {protokoll.map((e) => (
-                        <li
-                            key={e.id}
-                            className="flex flex-wrap gap-x-3 gap-y-1 px-3 py-2"
-                        >
-                            <span className="text-muted-foreground">
-                                {datum(e.am)}
-                            </span>
-                            <span className="font-medium">
-                                {e.aktion}
-                                {e.rolle ? ` «${e.rolle}»` : ''}
-                            </span>
-                            <span>von {e.von}</span>
-                            {e.ergebnis === 'denied' ? (
-                                <Badge variant="secondary">
-                                    abgewiesen{e.grund ? `: ${e.grund}` : ''}
-                                </Badge>
-                            ) : null}
-                        </li>
-                    ))}
-                </ol>
-            )}
+            {/* Verlauf (#417): Änderungen an den Angaben und Aktionen, auch durch Admin und Org-Admin */}
+            <HistoryPanel eintraege={verlauf} />
         </>
     );
 }

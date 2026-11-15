@@ -14,6 +14,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
 use App\Models\UserIdentity;
+use App\Support\History;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -211,6 +212,8 @@ class UserController extends Controller
             ],
             'rollen' => $roles,
             'protokoll' => $audit,
+            // Verlauf (#417): Änderungen an den Angaben und Aktionen, unten aufklappbar
+            'verlauf' => History::forUser($user),
         ]);
     }
 

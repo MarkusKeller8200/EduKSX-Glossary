@@ -14,6 +14,7 @@ use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Organizations\OrganizationService;
 use App\Proposals\ProposalService;
+use App\Support\History;
 use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -96,6 +97,8 @@ class OrganizationController extends Controller
                 'geaendert' => $o->updated_at?->toDateString(),
             ])->sortBy('slug')->values()->all();
         if ($admin) {
+            // Verlauf der Organisation (#417): nur für Organisations-Admins
+            $props['verlauf'] = History::forOrganization($organization);
             $names = User::query()->whereIn('id', $organization->invitations()->whereNotNull('invited_by_id')->select('invited_by_id'))->pluck('name', 'id');
             $props['einladungen'] = $organization->invitations()->where('expires_at', '>', now())->orderBy('email')->get()
                 ->map(fn (OrganizationInvitation $i): array => [

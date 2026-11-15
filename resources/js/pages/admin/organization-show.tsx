@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import HistoryPanel, { type VerlaufEintrag } from '@/components/history-panel';
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 
@@ -42,8 +43,10 @@ function datum(iso: string | null): string {
 /** Detail einer Organisation in der Administration (#414): alle Angaben lesend, ohne Token und Geheimnisse. */
 export default function OrganizationShow({
     organisation: o,
+    verlauf,
 }: {
     organisation: Organisation;
+    verlauf: VerlaufEintrag[];
 }) {
     return (
         <>
@@ -169,6 +172,8 @@ export default function OrganizationShow({
                     </ul>
                 )}
             </Abschnitt>
+
+            <HistoryPanel eintraege={verlauf} />
         </>
     );
 }

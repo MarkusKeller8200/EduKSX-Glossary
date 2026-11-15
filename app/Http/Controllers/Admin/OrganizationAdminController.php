@@ -8,6 +8,7 @@ use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
 use App\Models\ServiceAccount;
 use App\Models\User;
+use App\Support\History;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -75,6 +76,8 @@ class OrganizationAdminController extends Controller
                         'scopes' => $a->scopes,
                     ])->all(),
             ],
+            // Verlauf (#417)
+            'verlauf' => History::forOrganization($organization),
         ]);
     }
 }
