@@ -30,12 +30,16 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PersonalDisplayController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\SearchEngineController;
 use App\Http\Controllers\SearchMissController;
 use App\Http\Middleware\RequireTwoFactor;
 use Illuminate\Support\Facades\Route;
 
 // Öffentlich: nur lesen (PUB-01)
 Route::get('/', [PageController::class, 'home'])->name('home');
+// Suchmaschinen (#393): robots.txt und Sitemap je Instanz
+Route::get('robots.txt', [SearchEngineController::class, 'robots'])->name('robots');
+Route::get('sitemap.xml', [SearchEngineController::class, 'sitemap'])->name('sitemap');
 // Suche ohne Treffer melden (X4, #285): ohne Personenbezug, begrenzt
 // Metriken für Prometheus (#192): nur mit GLOSSARY_METRICS_TOKEN, Bearer-Token
 Route::get('metrics', MetricsController::class)->withoutMiddleware(['web'])->middleware('throttle:60,1')->name('metrics');

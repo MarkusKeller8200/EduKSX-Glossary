@@ -32,6 +32,10 @@ return [
     // Frühere Adresse, die auf APP_URL weiterleitet (#304), z. B. glossary.markussx.ch nach dem Wechsel auf glossary-dev
     'redirect_host' => (string) env('GLOSSARY_REDIRECT_HOST', ''),
 
+    // Suchmaschinen (#393): nur die öffentliche Instanz wird indexiert (prod: true). Aus = X-Robots-Tag noindex,
+    // robots.txt sperrt alles, keine Sitemap – dev, test und selbst gehostete Kopien konkurrieren nicht mit dem Master.
+    'search_engines' => (bool) env('GLOSSARY_SUCHMASCHINEN', false),
+
     // Selbstregistrierung (#302): Vorgabe des Schalters in den Einstellungen; wirkt nur mit eingerichtetem Versand
     'registration_open' => (bool) env('GLOSSARY_REGISTRATION_OPEN', false),
 

@@ -13,6 +13,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   trägt jetzt die Version der App und das aktuelle Logo. Sobald die Store-Konten eingerichtet sind, kommt jede neue
   Version automatisch in den Chrome Web Store, zu Edge Add-ons und zu Firefox Add-ons. Für Firefox erklärt die
   Erweiterung, dass sie keine Daten erhebt, und braucht deshalb Firefox 140 oder neuer.
+- **Sitemap und Suchmaschinen (#393):** Die öffentliche Instanz liefert `/sitemap.xml` mit allen veröffentlichten
+  Begriffen und eine `robots.txt`, die auf die Sitemap zeigt. Andere Instanzen wie Test- und Entwicklungsumgebungen
+  oder selbst gehostete Kopien erscheinen nicht in Suchmaschinen; einschalten mit `GLOSSARY_SUCHMASCHINEN=true`.
 
 ### Behoben
 
