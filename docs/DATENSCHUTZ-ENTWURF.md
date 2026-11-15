@@ -6,7 +6,7 @@
 
 ## 1. Verantwortliche Stelle
 
-[Rechtlich verantwortliche Person / Organisation], [vollständige Adresse], [Kontaktadresse für Datenschutzanliegen]. EduKSX-Glossary wird unter der Marke [MarKusSXCH / präzise Betreibergesellschaft] angeboten. Verantwortlichkeiten, insbesondere bei Auftragsbearbeitern, werden vertraglich festgelegt.
+Markus Keller (MarKusSXCH, Einzelperson, ohne Handelsregistereintrag), Ohrenberg 13, 8465 Rudolfingen, Schweiz. Datenschutzanliegen: datenschutz@eduksx.ch, allgemeiner Kontakt: info@eduksx.ch. EduKSX-Glossary wird unter der Marke MarKusSXCH angeboten. Verantwortlichkeiten, insbesondere bei Auftragsbearbeitern, werden vertraglich festgelegt. Selbst gehostete Instanzen haben ihre eigenen Betreiber (siehe deren Impressum).
 
 ## 2. Zweck und Grundsatz
 
@@ -124,7 +124,7 @@ Die Anwendung setzt HTTPS, Passwort-Hashing, verpflichtende MFA für privilegier
 
 Bei der Registrierung wird die geltende Datenschutzerklärung angezeigt; Version und Zeitpunkt der Kenntnisnahme werden dokumentiert. Dies ist **keine pauschale Einwilligung** in alle Datenbearbeitungen. Wo eine Einwilligung erforderlich ist, wird sie getrennt, informiert, zweckbezogen und nachweisbar eingeholt; ein Widerruf ist mit Wirkung für die Zukunft möglich, soweit keine andere zulässige Grundlage die Bearbeitung trägt.
 
-Betroffene Personen können je nach anwendbarem Recht Auskunft, Berichtigung und unter den gesetzlichen Voraussetzungen Löschung oder Herausgabe ihrer Personendaten verlangen. Eine Herausgabe umfasst auch die eigene persönliche Darstellung von Begriffen. Weitergehende Rechte, Beschwerdestellen und Rechtsbehelfe bestimmen sich nach der tatsächlich anwendbaren Rechtsordnung. Für Anfragen: [Kontakt]. Zuständige Aufsicht: [nach Betreiberstatus und geltendem Recht präzisieren; nicht automatisch nur EDÖB].
+Betroffene Personen können je nach anwendbarem Recht Auskunft, Berichtigung und unter den gesetzlichen Voraussetzungen Löschung oder Herausgabe ihrer Personendaten verlangen. Eine Herausgabe umfasst auch die eigene persönliche Darstellung von Begriffen. Weitergehende Rechte, Beschwerdestellen und Rechtsbehelfe bestimmen sich nach der tatsächlich anwendbaren Rechtsordnung. Für Anfragen: datenschutz@eduksx.ch. Zuständige Aufsicht: [nach Betreiberstatus und geltendem Recht präzisieren; nicht automatisch nur EDÖB].
 
 ## 11. Änderungen
 
@@ -132,7 +132,7 @@ Die aktuelle Fassung steht unter `/datenschutz` mit Versionsnummer und Gültigke
 
 ## 12. Freigabecheck vor Veröffentlichung
 
-- [ ] Verantwortliche Stelle, Adresse und Kontakt vollständig.
+- [x] Verantwortliche Stelle, Adresse und Kontakt vollständig (15.11.2026).
 - [ ] Anwendbares Datenschutzrecht und Aufsicht korrekt bestimmt; rechtliche Prüfung erfolgt.
 - [ ] Tatsächliches Hosting, Cloudflare, Mailanbieter und Drittdienste dokumentiert.
 - [ ] Verträge, internationale Datenflüsse und Garantien geprüft.

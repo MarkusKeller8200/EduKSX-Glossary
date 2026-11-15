@@ -14,7 +14,15 @@ type Einstellung = {
     gruppe: string;
     label: string;
     hinweis: string;
-    typ: 'int' | 'bool' | 'repo' | 'url' | 'choice' | 'secret';
+    typ:
+        | 'int'
+        | 'bool'
+        | 'repo'
+        | 'url'
+        | 'choice'
+        | 'secret'
+        | 'text'
+        | 'email';
     optionen?: Record<string, string>;
     min?: number;
     max?: number;
@@ -374,7 +382,13 @@ function Feld({
             <div className="flex items-center gap-2">
                 <Input
                     id={id}
-                    type={e.typ === 'int' ? 'number' : 'text'}
+                    type={
+                        e.typ === 'int'
+                            ? 'number'
+                            : e.typ === 'email'
+                              ? 'email'
+                              : 'text'
+                    }
                     min={e.min}
                     max={e.max}
                     className={e.typ === 'int' ? 'w-28' : 'max-w-md'}

@@ -19,6 +19,7 @@ class SearchEngineController extends Controller
         '/versionen' => '0.3',
         '/legals' => '0.2',
         '/datenschutz' => '0.2',
+        '/impressum' => '0.1',
     ];
 
     public function robots(): Response
