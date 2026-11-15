@@ -93,12 +93,8 @@ firefox() {
     dir=$(mktemp -d)
     meta=$(mktemp --suffix=.json)
     (cd "$dir" && python3 -m zipfile -e "$ZIP" .)
-    # Lizenz der Version (Pflicht bei AMO für gelistete Versionen) aus der Variable AMO_LICENSE, z. B. eine SPDX-Kennung
-    if [ -n "${AMO_LICENSE:-}" ]; then
-        jq --arg l "$AMO_LICENSE" '.version.license = $l' "$ROOT/extension/store/amo-metadata.json" > "$meta"
-    else
-        cp "$ROOT/extension/store/amo-metadata.json" "$meta"
-    fi
+    # Lizenz der Version (Pflicht bei AMO für gelistete Versionen): MIT wie der Kern glossary-highlighter (DEC-040)
+    jq --arg l "${AMO_LICENSE:-MIT}" '.version.license = $l' "$ROOT/extension/store/amo-metadata.json" > "$meta"
     if npx --yes web-ext@10.8.0 sign --source-dir "$dir" --artifacts-dir "$dir/../amo" --channel listed \
         --amo-metadata "$meta" --upload-source-code "$SOURCE" \
         --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --approval-timeout 0; then

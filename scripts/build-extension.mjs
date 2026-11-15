@@ -59,7 +59,8 @@ for (const file of ['popup.html', 'popup.css']) {
     cpSync(resolve(src, file), resolve(dist, file));
 }
 cpSync(resolve(src, 'icons'), resolve(dist, 'icons'), { recursive: true });
-cpSync(resolve(root, 'LICENSE'), resolve(dist, 'LICENSE'));
+// Erweiterung und Kern «glossary-highlighter» unter MIT (Bibliothek, DEC-040), nicht die AGPL der App
+cpSync(resolve(root, 'packages/highlighter/LICENSE'), resolve(dist, 'LICENSE'));
 
 const zip = `eduksx-glossary-extension-${manifest.version}.zip`;
 for (const old of readdirSync(src).filter((f) => f.endsWith('.zip'))) {

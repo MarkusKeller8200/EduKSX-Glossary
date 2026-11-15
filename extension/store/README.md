@@ -20,11 +20,10 @@ Umgebung **`browser-stores`**: Dort lässt sich zusätzlich eine Freigabe vor je
 | ------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Chrome  | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` | im Workflow eingetragen (übersteuerbar mit `CHROME_PUBLISHER_ID`, `CHROME_EXTENSION_ID`) | Google Cloud: «Chrome Web Store API» aktivieren, OAuth-Client, Refresh-Token über den OAuth Playground; Publisher-ID im Dashboard unter Settings |
 | Edge    | `EDGE_CLIENT_ID`, `EDGE_API_KEY`                                   | `EDGE_PRODUCT_ID`                                                                        | Partner Center › Microsoft Edge › Publish API › «Create API credentials»                                                                         |
-| Firefox | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`                                 | `AMO_LICENSE` (Lizenz der Version, **ZU PRÜFEN**)                                        | [API-Schlüssel](https://addons.mozilla.org/developers/addon/api/key/)                                                                            |
+| Firefox | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`                                 | `AMO_LICENSE` = `MIT`                                                                    | [API-Schlüssel](https://addons.mozilla.org/developers/addon/api/key/)                                                                            |
 
-**ZU PRÜFEN – Lizenz für AMO:** AMO verlangt für jede gelistete Version eine Lizenz aus seiner Liste. Das Repository
-steht unter `AGPL-3.0-or-later`, die Liste von AMO enthält aber nur `AGPL-3.0-only`. Mögliche Werte für `AMO_LICENSE`
-sind `AGPL-3.0-only`, `MIT` (wie das Script zur Einbindung) oder eine eigene Lizenz von Hand im Developer Hub.
+**Lizenz für AMO:** Die Erweiterung steht wie der Kern `glossary-highlighter` unter **MIT** (Bibliothek nach DEC-040,
+`LICENSE` in der ZIP). Variable `AMO_LICENSE` = `MIT`.
 
 Ablauf bei jedem Release: Der Workflow hängt die ZIP an das Release (#385) und lädt sie danach in jeden eingerichteten
 Store. Chrome und Edge reichen sie zur Prüfung ein und veröffentlichen sie danach. Firefox erhält zusätzlich den
