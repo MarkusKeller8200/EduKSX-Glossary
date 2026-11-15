@@ -127,9 +127,12 @@ return [
     |
     */
 
+    // Präfix «__Host-» (#396): Browser nehmen das Cookie nur über HTTPS, ohne Domain und mit Pfad / an – nicht
+    // fälschbar von Subdomains. Nur mit SESSION_SECURE_COOKIE, sonst lehnt der Browser es lokal über http ab.
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session',
+        (filter_var(env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'), FILTER_VALIDATE_BOOL) && env('SESSION_DOMAIN') === null && env('SESSION_PATH', '/') === '/' ? '__Host-' : '')
+            .Str::slug((string) env('APP_NAME', 'laravel')).'-session',
     ),
 
     /*
