@@ -1,6 +1,7 @@
 # Konzept: Begriffe einsammeln und bestehende prüfen
 
-Stand: **Entwurf 15.11.2026**, Vorschlag **DEC-039**. Auftrag aus dem Chat (14.11.2026): «Konzept, wie wir neue
+Stand: **beschlossen 15.11.2026** (**DEC-039**, Entscheide O1–O7 wie vorgeschlagen; Umsetzung nach der öffentlichen
+Beta). Auftrag aus dem Chat (14.11.2026): «Konzept, wie wir neue
 Glossary-Einträge einsammeln oder bestehende überprüfen können. Alles ist erlaubt; Umsetzung erst nach Freigabe.»
 Ein Prototyp liegt im Branch `prototyp-einsammeln` (Abschnitt 8).
 
@@ -94,9 +95,9 @@ Alle Kanäle münden in **einen Eingang: Kandidaten** (Abschnitt 5).
 | 4     | E5/P4 Quellen beobachten, P3 Paten mit Mail                                             | nach Stufe 2             |
 | 5     | E8/P8 KI, E7 Mail                                                                       | nur mit Freigabe (O5)    |
 
-## 7. Offene Entscheide
+## 7. Entscheide (15.11.2026)
 
-| Nr. | Frage                                                                        | Vorschlag                                                          |
+| Nr. | Frage                                                                        | Entscheid                                                          |
 | --- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | O1  | Wer sieht «Einsammeln»: Recht `edit-terms` (Redaktion) oder auch `moderate`? | `edit-terms`                                                       |
 | O2  | E2 öffentlich: ohne Anmeldung, mit Abrufbegrenzung?                          | ja, 10 Texte je Minute, höchstens 20 000 Zeichen                   |
