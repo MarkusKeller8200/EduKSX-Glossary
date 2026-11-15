@@ -10,6 +10,7 @@ use App\Support\AppVersion;
 use App\Support\ConfigCheck;
 use App\Support\DatabaseDump;
 use App\Support\DevBackups;
+use App\Support\MailLog;
 use App\Support\MailSettings;
 use App\Support\MailSetup;
 use App\Support\UpdateCheck;
@@ -36,6 +37,8 @@ class SystemController extends Controller
     {
         return Inertia::render('admin/system', [
             'mail' => MailSetup::info(),
+            // Mail-Protokoll (#463): ohne Inhalt, Adressen maskiert
+            'mails' => MailLog::overview(),
             'warteschlange' => [
                 'offen' => DB::table('jobs')->count(),
                 'fehlgeschlagen' => DB::table('failed_jobs')->count(),
@@ -58,6 +61,26 @@ class SystemController extends Controller
             // Sicherungen mit Wiederherstellung, nur auf dev (#355)
             'sicherungen' => DevBackups::enabled() ? DevBackups::list() : null,
         ]);
+    }
+
+    /** Fehlgeschlagene Mail erneut versuchen (#463). */
+    public function retryMail(Request $request, string $uuid): RedirectResponse
+    {
+        abort_unless(MailLog::isFailedMail($uuid), 404);
+        Artisan::call('queue:retry', ['id' => [$uuid]]);
+        Audit::log($this->currentUser($request), null, 'system.mail_retry');
+
+        return back()->with('status', 'Die Mail ist wieder in der Warteschlange.');
+    }
+
+    /** Fehlgeschlagene Mail verwerfen (#463). */
+    public function forgetMail(Request $request, string $uuid): RedirectResponse
+    {
+        abort_unless(MailLog::isFailedMail($uuid), 404);
+        Artisan::call('queue:forget', ['id' => $uuid]);
+        Audit::log($this->currentUser($request), null, 'system.mail_forget');
+
+        return back()->with('status', 'Die fehlgeschlagene Mail wurde verworfen.');
     }
 
     /** Mail-Versand speichern und sofort mit einer Testmail prüfen (#219); gesperrt, wenn die Umgebung ihn vorgibt. */

@@ -49,6 +49,8 @@ class UserController extends Controller
         'account.deleted' => 'Konto gelöscht',
         'account.delete_requested' => 'Link zum Löschen des Kontos gesendet',
         'system.testmail' => 'Testmail ausgelöst',
+        'system.mail_retry' => 'Fehlgeschlagene Mail erneut versucht',
+        'system.mail_forget' => 'Fehlgeschlagene Mail verworfen',
         'account.registered' => 'Registriert',
         'account.verified' => 'E-Mail bestätigt',
         'account.email_change_requested' => 'Änderung der E-Mail-Adresse angefragt',

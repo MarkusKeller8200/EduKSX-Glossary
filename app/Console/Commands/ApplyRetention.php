@@ -15,6 +15,7 @@ use App\Models\Source;
 use App\Models\User;
 use App\Proposals\ProposalService;
 use App\Search\SearchMisses;
+use App\Support\MailLog;
 use App\Support\MailSetup;
 use App\Support\Settings;
 use DateTimeInterface;
@@ -99,6 +100,14 @@ class ApplyRetention extends Command
             ? DB::table('api_idempotency_keys')->where('created_at', '<', now()->subHours(Idempotency::HOURS))->count()
             : Idempotency::prune();
 
+        // 6c. Mail-Protokoll (#463): 90 Tage
+        $mails = $dry
+            ? DB::table('mail_log')->where('created_at', '<', now()->subDays(MailLog::RETENTION_DAYS))->count()
+            : MailLog::prune();
+        // fehlgeschlagene Aufträge (enthalten Empfänger): 30 Tage
+        $failedQuery = DB::table('failed_jobs')->where('failed_at', '<', now()->subDays(30));
+        $mails += $dry ? $failedQuery->count() : $failedQuery->delete();
+
         // 7. Papierkorb (#286): nach der Frist endgültig löschen
         $trashed = 0;
         foreach ([Category::class, Source::class, Organization::class] as $model) {
@@ -114,7 +123,7 @@ class ApplyRetention extends Command
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
             ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt, "
-            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$keys} Idempotency-Keys, {$trashed} Einträge aus dem Papierkorb.");
+            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$keys} Idempotency-Keys, {$mails} Einträge im Mail-Protokoll, {$trashed} Einträge aus dem Papierkorb.");
 
         return self::SUCCESS;
     }

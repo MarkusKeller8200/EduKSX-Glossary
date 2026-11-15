@@ -105,6 +105,17 @@ final class Purposes
             'tables' => ['settings', 'import_batches', 'search_misses'],
             'operations' => [],
         ],
+        // Mail-Protokoll (#463)
+        'mail_log' => [
+            'purpose' => 'Nachweis und Fehlersuche beim Mailversand',
+            'basis' => 'Betrieb des Verzeichnisses',
+            'scope' => 'Plattform/intern',
+            'subjects' => 'Empfängerinnen und Empfänger (Adresse gekürzt, z. B. m***@schule.ch); kein Inhalt',
+            'recipients' => 'Systemverwaltung (Recht «system»); Mailserver des Betreibers',
+            'retention' => '90 Tage',
+            'tables' => ['mail_log'],
+            'operations' => [],
+        ],
     ];
 
     /** Zweck einer Tabelle; null, wenn keiner festgelegt ist. */
