@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Browsererweiterung zum Herunterladen (#385):** Jedes Release enthält die Erweiterung für Chrome, Edge und Firefox
+  als ZIP. Die Seite «Für Entwickler» verlinkt sie und erklärt, wie man sie von Hand installiert. Die Erweiterung trägt
+  jetzt die Version der App und das aktuelle Logo.
+
 ### Behoben
 
 - **Wiederherstellen mit Schlüssel der Quelle (#387):** `glossary:wiederherstellen` entfernt Leerzeichen und

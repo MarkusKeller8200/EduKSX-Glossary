@@ -53,11 +53,13 @@ export default function Developers({
     einbindung,
     datenmodell,
     diagramm,
+    erweiterung,
 }: {
     origin: string;
     einbindung: Einbindung | null;
     datenmodell: Tabelle[];
     diagramm: string;
+    erweiterung: { download: string; releases: string } | null;
 }) {
     const fest = einbindung
         ? `<script src="${origin}${einbindung.datei}"
@@ -199,6 +201,69 @@ export default function Developers({
                         </a>
                     </li>
                 </ul>
+            </Abschnitt>
+
+            <Abschnitt titel="4. Browsererweiterung">
+                <p className="text-sm text-muted-foreground">
+                    Die Erweiterung für Chrome, Edge und Firefox erklärt
+                    Abkürzungen auf beliebigen Webseiten – auch dort, wo das
+                    Script nicht eingebunden ist. Sie lädt nur den öffentlichen
+                    Index und sucht im Browser; Inhalte der besuchten Seiten
+                    verlassen den Browser nicht. Hervorgehoben wird erst, wenn
+                    Sie es im Menü der Erweiterung für eine Seite oder Website
+                    einschalten.
+                </p>
+                {erweiterung ? (
+                    <p className="mt-3 text-sm">
+                        <a
+                            href={erweiterung.download}
+                            className="text-link underline underline-offset-4"
+                        >
+                            Erweiterung herunterladen (ZIP)
+                        </a>
+                        <span className="text-muted-foreground">
+                            {' '}
+                            – aus dem{' '}
+                            <a
+                                href={erweiterung.releases}
+                                className="text-link underline underline-offset-4"
+                            >
+                                neuesten Release
+                            </a>
+                        </span>
+                    </p>
+                ) : null}
+                <h3 className="mt-4 font-semibold">Von Hand installieren</h3>
+                <ol className="mt-2 list-decimal space-y-1 pl-6 text-sm">
+                    <li>
+                        ZIP herunterladen und in einen eigenen Ordner entpacken.
+                    </li>
+                    <li>
+                        <strong>Chrome bzw. Edge:</strong>{' '}
+                        <code>chrome://extensions</code> bzw.{' '}
+                        <code>edge://extensions</code> öffnen, «Entwicklermodus»
+                        einschalten, «Entpackte Erweiterung laden» und den
+                        entpackten Ordner wählen.
+                    </li>
+                    <li>
+                        <strong>Firefox:</strong>{' '}
+                        <code>about:debugging#/runtime/this-firefox</code>{' '}
+                        öffnen, «Temporäres Add-on laden» und die Datei{' '}
+                        <code>manifest.json</code> im Ordner wählen. Firefox
+                        entfernt das Add-on beim Beenden wieder; dauerhaft nur
+                        signiert über addons.mozilla.org.
+                    </li>
+                    <li>
+                        Auf einer Seite das Symbol der Erweiterung anklicken und
+                        «Auf dieser Seite hervorheben» wählen.
+                    </li>
+                </ol>
+                <p className="mt-3 text-sm text-muted-foreground">
+                    Den Ordner nicht löschen: Chrome und Edge laden die
+                    Erweiterung bei jedem Start von dort. Für Schulen ist die
+                    Verteilung über die Geräteverwaltung vorgesehen, sobald die
+                    Erweiterung in den Stores erhältlich ist.
+                </p>
             </Abschnitt>
 
             <Abschnitt titel="Datenmodell">

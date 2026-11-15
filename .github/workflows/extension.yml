@@ -1,0 +1,81 @@
+name: extension
+
+# Browser-Erweiterung (#385) als Anhang des neuesten GitHub-Release: «eduksx-glossary-extension-<Version>.zip» und
+# dieselbe Datei als «eduksx-glossary-extension.zip», damit die Seite «Für Entwickler» immer auf
+# …/releases/latest/download/eduksx-glossary-extension.zip verlinken kann. Läuft stündlich (und von Hand) und hängt die
+# Erweiterung an, wenn sie beim Release noch fehlt – gebaut aus dem Stand des Tags, Version = App-Version.
+# Kein workflow_run, damit nie fremder Code in einem Kontext mit Schreibrecht ausgecheckt wird (wie license-report.yml).
+on:
+  schedule:
+    - cron: '41 * * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag, z. B. v0.16.0 (leer = neuestes Release)'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: extension
+  cancel-in-progress: false
+
+jobs:
+  paket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      neu: ${{ steps.release.outputs.skip != 'true' }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - name: Release ohne Erweiterung?
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          tag="${TAG_INPUT:-$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null || true)}"
+          if [ -z "$tag" ]; then
+            echo "Kein Release – nichts zu tun."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif ! gh api "repos/$GITHUB_REPOSITORY/contents/.github/workflows/extension.yml?ref=$tag" --silent 2>/dev/null; then
+            echo "$tag ist älter als dieser Ablauf (#385) – keine Erweiterung anhängen."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx "eduksx-glossary-extension.zip"; then
+            echo "Erweiterung für $tag liegt schon vor."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        if: steps.release.outputs.skip != 'true'
+        with:
+          ref: refs/tags/${{ steps.release.outputs.tag }}
+          persist-credentials: false
+
+      - name: Setup Node
+        if: steps.release.outputs.skip != 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Erweiterung bauen und anhängen
+        if: steps.release.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/build-extension.mjs
+          zip=$(ls extension/eduksx-glossary-extension-*.zip)
+          cp "$zip" extension/eduksx-glossary-extension.zip
+          gh release upload "$TAG" "$zip" extension/eduksx-glossary-extension.zip --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Paket für die Stores aufbewahren
+        if: steps.release.outputs.skip != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: erweiterung
+          path: extension/eduksx-glossary-extension.zip
+          retention-days: 7
