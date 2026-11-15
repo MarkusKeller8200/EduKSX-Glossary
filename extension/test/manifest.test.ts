@@ -11,6 +11,13 @@ const manifest = JSON.parse(
     host_permissions: string[];
     optional_host_permissions: string[];
     content_scripts?: unknown;
+    browser_specific_settings: {
+        gecko: {
+            id: string;
+            strict_min_version: string;
+            data_collection_permissions?: { required: string[] };
+        };
+    };
 };
 
 describe('Manifest der Browser-Erweiterung (#153)', () => {
@@ -27,6 +34,16 @@ describe('Manifest der Browser-Erweiterung (#153)', () => {
         ]);
         expect(manifest.permissions).not.toContain('<all_urls>');
         expect(manifest.content_scripts).toBeUndefined();
+    });
+
+    it('erklärt für Firefox, dass keine Daten erhoben werden (#386)', () => {
+        const gecko = manifest.browser_specific_settings.gecko;
+        expect(gecko.id).toBe('glossary@eduksx.ch');
+        // Pflicht für neue Add-ons auf addons.mozilla.org, wirkt ab Firefox 140
+        expect(gecko.data_collection_permissions).toEqual({
+            required: ['none'],
+        });
+        expect(gecko.strict_min_version).toBe('140.0');
     });
 
     it('nimmt nur http(s)-Ursprünge', () => {

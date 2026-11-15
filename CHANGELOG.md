@@ -8,9 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Neu
 
-- **Browsererweiterung zum Herunterladen (#385):** Jedes Release enthält die Erweiterung für Chrome, Edge und Firefox
-  als ZIP. Die Seite «Für Entwickler» verlinkt sie und erklärt, wie man sie von Hand installiert. Die Erweiterung trägt
-  jetzt die Version der App und das aktuelle Logo.
+- **Browsererweiterung zum Herunterladen (#385, #386):** Jedes Release enthält die Erweiterung für Chrome, Edge und
+  Firefox als ZIP. Die Seite «Für Entwickler» verlinkt sie und erklärt, wie man sie von Hand installiert. Die Erweiterung
+  trägt jetzt die Version der App und das aktuelle Logo. Sobald die Store-Konten eingerichtet sind, kommt jede neue
+  Version automatisch in den Chrome Web Store, zu Edge Add-ons und zu Firefox Add-ons. Für Firefox erklärt die
+  Erweiterung, dass sie keine Daten erhebt, und braucht deshalb Firefox 140 oder neuer.
 
 ### Behoben
 

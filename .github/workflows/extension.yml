@@ -5,6 +5,8 @@ name: extension
 # …/releases/latest/download/eduksx-glossary-extension.zip verlinken kann. Läuft stündlich (und von Hand) und hängt die
 # Erweiterung an, wenn sie beim Release noch fehlt – gebaut aus dem Stand des Tags, Version = App-Version.
 # Kein workflow_run, damit nie fremder Code in einem Kontext mit Schreibrecht ausgecheckt wird (wie license-report.yml).
+# Danach lädt der Job «stores» dieselbe ZIP in Chrome Web Store, Edge Add-ons und Firefox Add-ons (#386) – je Store nur,
+# wenn dessen Zugangsdaten eingetragen sind (extension/store/README.md).
 on:
   schedule:
     - cron: '41 * * * *'
@@ -13,6 +15,10 @@ on:
       tag:
         description: 'Tag, z. B. v0.16.0 (leer = neuestes Release)'
         required: false
+      erneut:
+        description: 'Auch wenn die Erweiterung schon am Release hängt: neu bauen, anhängen und in die Stores laden'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -34,6 +40,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG_INPUT: ${{ inputs.tag }}
+          ERNEUT: ${{ inputs.erneut }}
         run: |
           tag="${TAG_INPUT:-$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName 2>/dev/null || true)}"
           if [ -z "$tag" ]; then
@@ -42,7 +49,7 @@ jobs:
           elif ! gh api "repos/$GITHUB_REPOSITORY/contents/.github/workflows/extension.yml?ref=$tag" --silent 2>/dev/null; then
             echo "$tag ist älter als dieser Ablauf (#385) – keine Erweiterung anhängen."
             echo "skip=true" >> "$GITHUB_OUTPUT"
-          elif gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx "eduksx-glossary-extension.zip"; then
+          elif [ "$ERNEUT" != "true" ] && gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' | grep -qx "eduksx-glossary-extension.zip"; then
             echo "Erweiterung für $tag liegt schon vor."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
@@ -68,6 +75,7 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund
           node scripts/build-extension.mjs
+          git archive --format=zip --output=extension/quellcode.zip HEAD
           zip=$(ls extension/eduksx-glossary-extension-*.zip)
           cp "$zip" extension/eduksx-glossary-extension.zip
           gh release upload "$TAG" "$zip" extension/eduksx-glossary-extension.zip --repo "$GITHUB_REPOSITORY" --clobber
@@ -77,5 +85,47 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: erweiterung
-          path: extension/eduksx-glossary-extension.zip
+          path: |
+            extension/eduksx-glossary-extension.zip
+            extension/quellcode.zip
           retention-days: 7
+
+  stores:
+    needs: paket
+    if: needs.paket.outputs.neu == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Umgebung mit den Secrets der Stores; dort lässt sich eine Freigabe vor dem Upload verlangen
+    environment: browser-stores
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ needs.paket.outputs.tag }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: erweiterung
+          path: paket
+
+      - name: In die Stores laden
+        env:
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          CHROME_PUBLISHER_ID: ${{ vars.CHROME_PUBLISHER_ID }}
+          CHROME_EXTENSION_ID: ${{ vars.CHROME_EXTENSION_ID }}
+          EDGE_CLIENT_ID: ${{ secrets.EDGE_CLIENT_ID }}
+          EDGE_API_KEY: ${{ secrets.EDGE_API_KEY }}
+          EDGE_PRODUCT_ID: ${{ vars.EDGE_PRODUCT_ID }}
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          AMO_LICENSE: ${{ vars.AMO_LICENSE }}
+        run: scripts/extension-stores.sh "$PWD/paket/eduksx-glossary-extension.zip" "$PWD/paket/quellcode.zip"

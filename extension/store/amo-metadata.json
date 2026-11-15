@@ -1,0 +1,17 @@
+{
+    "categories": {
+        "firefox": ["language-support", "other"]
+    },
+    "summary": {
+        "de": "Erklärt Abkürzungen und Begriffe aus Schule und Verwaltung direkt auf Webseiten. Die Suche läuft nur im Browser."
+    },
+    "homepage": {
+        "de": "https://glossary.eduksx.ch/entwickler"
+    },
+    "support_url": {
+        "de": "https://glossary.eduksx.ch/hilfe"
+    },
+    "version": {
+        "approval_notes": "Quellcode im beigelegten Archiv bzw. https://github.com/MarkusKeller8200/EduKSX-Glossary (Ordner extension/ und packages/highlighter/). Build: Node 22, «npm ci» und «node scripts/build-extension.mjs», Ergebnis in extension/dist. Die Erweiterung lädt nur den öffentlichen Index https://glossary.eduksx.ch/api/v1/index und sucht lokal; es werden keine Daten übertragen."
+    }
+}
