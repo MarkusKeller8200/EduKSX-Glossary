@@ -18,15 +18,23 @@ Firefox (ab 121).
 ## Bauen und testen
 
 ```bash
-node scripts/build-extension.mjs   # → extension/dist und extension/eduksx-glossary-<Version>.zip
+node scripts/build-extension.mjs   # → extension/dist und extension/eduksx-glossary-extension-<Version>.zip
 ```
+
+Die Version kommt aus `VERSION` (App-Version, nur X.Y.Z; der Zusatz einer Beta steht in `version_name`). Die Version in
+`extension/manifest.json` ist nur ein Platzhalter. Die Icons sind aus `public/icon.svg` erzeugt
+(`rsvg-convert -w <n> -h <n> public/icon.svg -o extension/icons/icon-<n>.png`).
+
+**Herunterladen (#385):** Der Workflow `extension.yml` hängt die ZIP an jedes neue GitHub-Release
+(`eduksx-glossary-extension-<Version>.zip` und `eduksx-glossary-extension.zip`); die Seite «Für Entwickler» verlinkt
+`…/releases/latest/download/eduksx-glossary-extension.zip` mit einer Anleitung zum Installieren von Hand.
 
 - **Chrome/Edge:** `chrome://extensions` → Entwicklermodus → «Entpackte Erweiterung laden» → `extension/dist`.
 - **Firefox:** `about:debugging#/runtime/this-firefox` → «Temporäres Add-on laden» → `extension/dist/manifest.json`.
 
 ## Veröffentlichen (Projektverantwortliche Person)
 
-1. Version in `extension/manifest.json` erhöhen, bauen.
+1. Version kommt mit dem Release (App-Version), bauen.
 2. ZIP hochladen: [Chrome Web Store](https://chrome.google.com/webstore/devconsole),
    [Edge-Add-ons](https://partner.microsoft.com/dashboard/microsoftedge),
    [Firefox Add-ons](https://addons.mozilla.org/developers/) (ID `glossary@eduksx.ch`).

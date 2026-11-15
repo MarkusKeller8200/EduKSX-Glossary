@@ -10,6 +10,7 @@ use App\Models\Term;
 use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\DataModel;
+use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -87,7 +88,28 @@ class PageController extends Controller
             // Datenmodell (#170): Tabellen, ER-Diagramm, SQL-Script zum Herunterladen
             'datenmodell' => $model->tables(),
             'diagramm' => $model->mermaid(),
+            // Browsererweiterung (#385): ZIP am neuesten Release, gebaut von .github/workflows/extension.yml
+            'erweiterung' => self::extensionLinks(),
         ]);
+    }
+
+    /**
+     * Download der Browsererweiterung (#385) am neuesten Release des Quellcodes; leer, wenn keine Adresse eingestellt
+     * ist oder sie nicht auf GitHub zeigt.
+     *
+     * @return array{download: string, releases: string}|null
+     */
+    private static function extensionLinks(): ?array
+    {
+        $base = rtrim(Settings::string('links.source_url'), '/');
+        if (preg_match('#^https://github\.com/[^/]+/[^/]+$#', $base) !== 1) {
+            return null;
+        }
+
+        return [
+            'download' => $base.'/releases/latest/download/eduksx-glossary-extension.zip',
+            'releases' => $base.'/releases/latest',
+        ];
     }
 
     /** Datenmodell als SQL-Script (#170), nur Struktur. */

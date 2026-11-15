@@ -30,6 +30,19 @@ class EmbedTest extends TestCase
         $this->assertFileExists(public_path('embed/demo.html'));
     }
 
+    /** Browsererweiterung zum Herunterladen (#385): ZIP am neuesten Release des Quellcodes. */
+    public function test_browsererweiterung_zum_herunterladen(): void
+    {
+        config(['glossary.source_url' => 'https://github.com/MarkusKeller8200/EduKSX-Glossary/']);
+        $this->get('/entwickler')->assertInertia(fn (Assert $p) => $p
+            ->where('erweiterung.download', 'https://github.com/MarkusKeller8200/EduKSX-Glossary/releases/latest/download/eduksx-glossary-extension.zip')
+            ->where('erweiterung.releases', 'https://github.com/MarkusKeller8200/EduKSX-Glossary/releases/latest'));
+
+        // eigenes Repository ausserhalb von GitHub: kein Link (die Seite erklärt dann nur das Bauen)
+        config(['glossary.source_url' => 'https://git.schule.example/glossary']);
+        $this->get('/entwickler')->assertInertia(fn (Assert $p) => $p->where('erweiterung', null));
+    }
+
     /** Datenmodell (#170): Tabellen, ER-Diagramm, SQL-Script ohne Daten. */
     public function test_datenmodell(): void
     {

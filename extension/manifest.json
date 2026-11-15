@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "EduKSX-Glossary",
     "short_name": "Glossary",
-    "version": "1.0.0",
+    "version": "0.0.0",
     "description": "Erklärt Abkürzungen und Begriffe aus Schule und Verwaltung direkt auf Webseiten. Die Suche läuft nur im Browser.",
     "homepage_url": "https://glossary.eduksx.ch/entwickler",
     "icons": {
