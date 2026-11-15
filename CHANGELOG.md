@@ -12,6 +12,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   nutzbar ist, und lädt zu Rückmeldungen ein.
 - **Anmeldung (#402):** «Passwort vergessen?» steht unter dem Anmelde-Button, sobald der Mailversand eingerichtet
   ist, auch wenn die Registrierung zu ist. «Konto erstellen» steht daneben, wenn die Registrierung offen ist.
+- **Mailserver einrichten (#405):** In Administration › System führt ein Button neben «Testmail senden» direkt zum
+  Formular für den Versand.
 - **Mein Konto (#418):** «Meine Organisation» kommt direkt nach den eigenen Angaben.
 - **Art der Einrichtung (#415):** In «Mein Konto» stehen neu Persönlich, Primarschule, Sekundarschule, Gesamtschule,
   Firma – Dienstleister, Volksschulamt, Gemeindeamt, Kanton, Datenschutz und andere zur Wahl; bei den Schulen zusätzlich

@@ -175,9 +175,29 @@ export default function System({
                         />
                         <InputError message={form.errors.an} />
                     </div>
-                    <div>
+                    <div className="flex flex-wrap gap-2">
                         <Button type="submit" disabled={form.processing}>
                             Testmail senden
+                        </Button>
+                        {/* Formular steht weiter unten (#405) */}
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                const ziel =
+                                    document.getElementById(
+                                        'versand-einrichten',
+                                    );
+                                ziel?.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                });
+                                document
+                                    .getElementById('mailer')
+                                    ?.focus({ preventScroll: true });
+                            }}
+                        >
+                            Mailserver einrichten
                         </Button>
                     </div>
                 </form>
