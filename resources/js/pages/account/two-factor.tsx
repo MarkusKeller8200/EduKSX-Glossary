@@ -106,10 +106,11 @@ export default function TwoFactorSetup({
                         <InputError message={neu.errors.code} />
                     </form>
                     <p className="text-muted-foreground">
-                        Handy verloren? Auf dem Server zurücksetzen:{' '}
-                        <code>
-                            php artisan glossary:admin E-MAIL --reset-2fa
-                        </code>
+                        Handy verloren? Bei der Anmeldung im Schritt «Code
+                        eingeben» auf «Zweiten Faktor zurücksetzen» klicken –
+                        Sie erhalten einen Link per Mail. Bei erhöhten Rechten
+                        setzt ihn die Administration zurück, für Mitglieder
+                        einer Organisation auch deren Organisations-Admin.
                     </p>
                 </div>
             ) : (
