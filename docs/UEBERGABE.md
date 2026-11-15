@@ -1,6 +1,6 @@
 # Übergabe EduKSX-Glossary
 
-Stand 15.11.2026, 02:35 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument.
+Stand 15.11.2026, 03:15 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument.
 
 Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 
@@ -51,11 +51,10 @@ Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
   `sudo docker compose exec app php artisan glossary:admin <e-mail> --reset-2fa` (Admins müssen ihn danach neu
   einrichten; Pflicht für Admins).
 
-## Offen direkt nach der Übernahme
+## Offen nach der Übernahme
 
-- [ ] Auf prod: `sudo docker compose exec app php artisan up`, `/up` prüfen, Anmeldung mit zweitem Faktor,
-      Stichproben, `glossary:loeschfristen --trocken` ansehen.
-- [ ] dev wieder einschalten: auf dev `docker compose exec app php artisan up`.
+- [x] prod online (15.11.2026, 02:47).
+- [ ] dev wieder einschalten: auf dev `docker compose exec app php artisan up` (falls noch nicht geschehen).
 - [ ] Kopien mit echten Daten bzw. Schlüssel löschen (Projektverantwortlicher, eigene Dateien):
       dev `/root/dev-nach-prod.zip`, `/root/dev-app-key`; prod `/tmp/dev-nach-prod.zip`, `/tmp/dev-app-key`;
       Büro-PC dieselben zwei Dateien. Im prod-Container bleiben `dev-nach-prod.zip` und `vor-wiederherstellung-….zip`
@@ -65,22 +64,26 @@ Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 
 ## Meilenstein 0.16.0 – Plattform und Verbund (id 19)
 
-- triage (Freigabe `_1 bereit` durch Projektverantwortlichen ausstehend): **#385** Browsererweiterung zum Herunterladen (ZIP am Release, Abschnitt auf «Für Entwickler»),
-  **#386** Veröffentlichung in Chrome/Edge/Firefox-Stores (Konten und Secrets durch Projektverantwortlichen),
-  **#387** Wiederherstellen: Schlüssel bereinigen, `--schluessel-datei`.
+- `_3 Beta-Test` (im Chat freigegeben, gemergt am 15.11.2026):
+  - **#387** Wiederherstellen: Schlüssel bereinigt, `--schluessel-datei` (#389). Auf prod erst mit dem Release testbar.
+  - **#385** Erweiterung zum Herunterladen (#390). Workflow `extension.yml` hängt die ZIP an das nächste Release (ab
+    0.16.0). Auf «Für Entwickler» gibt es einen Abschnitt mit Anleitung. Icons zeigen jetzt das aktuelle Logo.
+  - **#386** Stores (#391). Texte und Einrichtung in `extension/store/README.md`, Job «stores» (Umgebung
+    `browser-stores`). Offen durch den Projektverantwortlichen: Konten, die erste Version bei Chrome/Edge von Hand,
+    Secrets/Variablen und die Lizenz für AMO (`AMO_LICENSE`, ZU PRÜFEN: AGPL-3.0-only oder MIT).
+- Manifest der Erweiterung: Firefox ab 140 (`data_collection_permissions: none`, Pflicht bei AMO).
 - Wartet auf Durchsicht des Konzepts: **#180** Abgleich mit dem Master, **#381** Sync dev ↔ Master
   (Entwurfs-PR **#380**, `docs/KONZEPT-ABGLEICH.md`, DEC-041 vorgeschlagen). Nicht umsetzen vor Freigabe.
 - triage, eher Plattform: #261 (MCP – Entscheid «noch nicht»), #202, #200, #184, #183. Vor dem Release von 0.16.0
   vorschlagen, sie in einen späteren Meilenstein zu verschieben.
-- Browsererweiterung existiert seit #153 in `extension/` (Manifest V3) und `packages/highlighter`, wird in der CI
-  gebaut (`node scripts/build-extension.mjs`), ist aber noch nirgends erhältlich.
+- Browsererweiterung: `extension/` (Manifest V3) und `packages/highlighter`. Version = App-Version aus `VERSION`, gebaut
+  mit `node scripts/build-extension.mjs`.
 
 ## Operation (markussx-operation)
 
-- Automatische Updates fehlen noch (Ops-Issue **#7**): Stacks `test/glossary` und `produktion/glossary` in Komodo
-  übernehmen; test «Poll for Updates» + «Auto Update»; prod «Poll for Updates» + Prozedur «Global Auto Update»
-  sonntags 03:05, nur wenn test grün. Offen: Resource Sync (TOML im Repo) oder Einrichtung in der Oberfläche.
-  Angebot steht, die Sync-Datei als Entwurf vorzubereiten.
+- Automatische Updates (Ops-Issue **#7**): Entscheid Komodo Resource Sync (Chat 15.11.2026). Umgesetzt in Ops-PR
+  **#30**, der auf #28 und #29 aufbaut (Reihenfolge #28 → #29 → #30). Dazu kommt #31 (Wächter). Alle PRs warten auf
+  Durchsicht, die CI ist grün. Danach Phase 16 im Ausroll-Assistenten.
 - Bis dahin Updates von Hand: `cd <pfad> && sudo docker compose pull && sudo docker compose up -d`.
 
 ## Lokale Arbeitsumgebung (Hinweise für den Agenten)
