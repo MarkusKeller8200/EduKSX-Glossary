@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Benutzerverwaltung (#458):** Die Liste zeigt zuerst nur aktive Konten, gesperrte über «Gesperrt» bzw. «Alle». Auf
+  Wunsch sind die Konten nach Organisation gruppiert, die Gruppen anfangs eingeklappt.
+
 ### Behoben
 
 - **Administration › Begriffe schneller (#454):** Die Liste lädt nur noch die nötigen Revisionen, misst die
