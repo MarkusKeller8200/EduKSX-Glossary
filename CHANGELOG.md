@@ -13,6 +13,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Anmeldung (#402):** «Passwort vergessen?» steht unter dem Anmelde-Button, sobald der Mailversand eingerichtet
   ist, auch wenn die Registrierung zu ist. «Konto erstellen» steht daneben, wenn die Registrierung offen ist.
 - **Mein Konto (#418):** «Meine Organisation» kommt direkt nach den eigenen Angaben.
+- **Art der Einrichtung (#415):** In «Mein Konto» stehen neu Persönlich, Primarschule, Sekundarschule, Gesamtschule,
+  Firma – Dienstleister, Volksschulamt, Gemeindeamt, Kanton, Datenschutz und andere zur Wahl; bei den Schulen zusätzlich
+  «Einheitsgemeinde». Das Feld daneben heisst «Schule / Gemeinde / Organisation / Behörde».
 
 ## [0.16.0] – 2026-11-15
 
