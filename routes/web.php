@@ -94,6 +94,7 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
     Route::post('einladungen/{invitation}/ablehnen', [OrganizationController::class, 'decline'])->whereNumber('invitation')->name('organization.invitation.decline');
     Route::post('mitglieder/{member}/sperren', [OrganizationController::class, 'block'])->whereNumber('member')->name('organization.member.block');
     Route::post('mitglieder/{member}/entsperren', [OrganizationController::class, 'unblock'])->whereNumber('member')->name('organization.member.unblock');
+    Route::post('mitglieder/{member}/zwei-faktor', [OrganizationController::class, 'resetTwoFactor'])->whereNumber('member')->middleware('throttle:10,1')->name('organization.member.reset-2fa');
     Route::put('mitglieder/{member}/rolle', [OrganizationController::class, 'role'])->whereNumber('member')->name('organization.member.role');
     Route::delete('mitglieder/{member}', [OrganizationController::class, 'remove'])->whereNumber('member')->name('organization.member.destroy');
     Route::post('vorschlaege/{proposal}/bestaetigen', [OrganizationController::class, 'confirmProposal'])->whereUuid('proposal')->name('organization.proposal.confirm');

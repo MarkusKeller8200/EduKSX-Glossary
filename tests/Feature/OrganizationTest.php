@@ -6,6 +6,7 @@ use App\Access\AccessDenied;
 use App\Access\Service\ServiceAccountManager;
 use App\Glossary\GlossaryService;
 use App\Mail\OrganizationInvitationMail;
+use App\Mail\TwoFactorRemoved;
 use App\Models\Organization;
 use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
@@ -55,6 +56,44 @@ class OrganizationTest extends TestCase
         OrganizationMember::query()->create(['organization_id' => $organization->id, 'user_id' => $user->id, 'role' => 'member', 'status' => 'active']);
 
         return $user;
+    }
+
+    /** Organisations-Admin löscht den zweiten Faktor eines einfachen Mitglieds (#404), nicht von Admins. */
+    public function test_org_admin_loescht_zweiten_faktor_eines_mitglieds(): void
+    {
+        config(['mail.default' => 'smtp', 'mail.from.address' => 'noreply@eduksx.ch']);
+        Mail::fake();
+        [$organization, $admin] = $this->organisation();
+        $mitglied = $this->member($organization, 'lehrer@schule.ch', true);
+        $zweiterAdmin = $this->member($organization, 'zweite@schule.ch', true);
+        OrganizationMember::query()->where('user_id', $zweiterAdmin->id)->update(['role' => 'admin']);
+        $moderator = $this->member($organization, 'mod@schule.ch', true);
+        $moderator->roles()->attach(Role::byKey(Role::MODERATOR)->id);
+
+        $memberId = fn (User $u): int => (int) OrganizationMember::query()->where('user_id', $u->id)->value('id');
+
+        $this->actingAs($admin);
+        $this->get('/organisation')->assertInertia(fn (Assert $p) => $p
+            ->where('mitglieder', fn ($rows): bool => collect($rows)->firstWhere('email', 'lehrer@schule.ch')['zweiter_faktor_loeschbar'] === true
+                && collect($rows)->firstWhere('email', 'zweite@schule.ch')['zweiter_faktor_loeschbar'] === false
+                && collect($rows)->firstWhere('email', 'mod@schule.ch')['zweiter_faktor_loeschbar'] === false));
+
+        $this->post("/organisation/mitglieder/{$memberId($mitglied)}/zwei-faktor")->assertRedirect()->assertSessionHas('status');
+        $this->assertFalse($mitglied->refresh()->hasTwoFactor());
+        Mail::assertQueued(TwoFactorRemoved::class, fn (TwoFactorRemoved $m): bool => $m->hasTo('lehrer@schule.ch'));
+
+        // andere Organisations-Admins und Konten mit weiteren Rechten nur über die Administration
+        $this->post("/organisation/mitglieder/{$memberId($zweiterAdmin)}/zwei-faktor")->assertSessionHasErrors();
+        $this->assertTrue($zweiterAdmin->refresh()->hasTwoFactor());
+        $this->post("/organisation/mitglieder/{$memberId($moderator)}/zwei-faktor")->assertSessionHasErrors();
+        $this->assertTrue($moderator->refresh()->hasTwoFactor());
+
+        // Mitglieder anderer Organisationen nicht
+        $fremd = $this->userWithRoles([Role::USER], 'fremd@andere.ch');
+        $andere = $this->organizations->create($fremd, 'Andere Schule');
+        $ziel = $this->member($andere, 'ziel@andere.ch', true);
+        $this->post("/organisation/mitglieder/{$memberId($ziel)}/zwei-faktor")->assertSessionHasErrors();
+        $this->assertTrue($ziel->refresh()->hasTwoFactor());
     }
 
     public function test_benutzer_gruendet_und_wird_organisations_admin(): void

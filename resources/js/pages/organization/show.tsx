@@ -29,6 +29,7 @@ type Mitglied = {
     gesperrt: boolean;
     ich: boolean;
     seit: string | null;
+    zweiter_faktor_loeschbar: boolean;
 };
 
 type Einladung = {
@@ -290,8 +291,29 @@ function Mitglieder({
 }) {
     const aktion = async (
         m: Mitglied,
-        art: 'sperren' | 'entsperren' | 'admin' | 'mitglied' | 'entfernen',
+        art:
+            | 'sperren'
+            | 'entsperren'
+            | 'admin'
+            | 'mitglied'
+            | 'entfernen'
+            | 'zwei-faktor',
     ) => {
+        if (art === 'zwei-faktor') {
+            const ok = await confirmAction(
+                `Zweiten Faktor von ${m.name} löschen? Nur nach geprüfter Identität (z. B. Handy verloren). Das Mitglied wird abgemeldet und erhält eine Mail.`,
+                { confirmLabel: 'Zweiten Faktor löschen', destructive: true },
+            );
+            if (ok) {
+                router.post(
+                    `/organisation/mitglieder/${m.id}/zwei-faktor`,
+                    {},
+                    opts,
+                );
+            }
+
+            return;
+        }
         if (art === 'entfernen') {
             const ok = await confirmAction(
                 `${m.name} aus der Organisation entfernen? Das Konto bleibt bestehen.`,
@@ -410,6 +432,21 @@ function Mitglieder({
                                                             ? 'Entsperren'
                                                             : 'Sperren'}
                                                     </Button>
+                                                    {m.zweiter_faktor_loeschbar ? (
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() =>
+                                                                aktion(
+                                                                    m,
+                                                                    'zwei-faktor',
+                                                                )
+                                                            }
+                                                        >
+                                                            Zweiten Faktor
+                                                            löschen
+                                                        </Button>
+                                                    ) : null}
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
