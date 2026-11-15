@@ -46,7 +46,9 @@ class PublicGlossaryTest extends TestCase
         $this->get('/')->assertInertia(fn (Assert $page) => $page->where('begriffe.0.version', 1));
 
         $this->glossary->publish($this->glossary->save($sl->refresh(), ['short_description' => 'Leitet die Schule.'], null, true), null);
-        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('begriffe.0.version', 2));
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('begriffe.0.version', 2)
+            // «Mehr Details» (#428): Datum der Veröffentlichung
+            ->where('begriffe.0.veroeffentlichtAm', today()->toDateString()));
     }
 
     /** Kacheln und Tabelle auf der Startseite (#213): alle öffentlichen Werte, keine internen. */

@@ -30,6 +30,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Kacheln unten rechts. In der Balken-Ansicht ist jede zweite Zeile leicht hinterlegt, Begriffe ohne Abkürzung tragen
   den Hinweis «keine Abkürzung», Kategorien stehen direkt nach dem Begriff und die Herkunft rechtsbündig in derselben
   Zeile, beide mit kleiner Beschriftung.
+- **Mehr Details in der Liste (#428):** Gültigkeit und der Hinweis «angepasst» (eigene Darstellung bzw. die der
+  Organisation) stehen immer unter dem Begriff, wenn gesetzt. Der Schalter «Mehr Details» blendet Aliase,
+  Beschreibung, Quelle, Permalink und das Datum der Version ein; die Wahl bleibt im Browser gemerkt.
 - **Öffentliche Beta (#401):** Der Hinweis oben auf jeder Seite sagt jetzt, dass das Glossary als öffentliche Beta
   nutzbar ist, und lädt zu Rückmeldungen ein.
 - **Anmeldung (#402):** «Passwort vergessen?» steht unter dem Anmelde-Button, sobald der Mailversand eingerichtet

@@ -44,7 +44,7 @@ final class PublicGlossary
     /**
      * Kurzform für Liste und Suche.
      *
-     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, code: string, beschreibung: string, url: string, aliase: list<string>, schreibweisen: list<string>, gueltigAb: mixed, gueltigBis: mixed, suchbegriffe: string, version: int, suche: string, persoenlich?: bool, organisation?: bool}>
+     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, code: string, beschreibung: string, url: string, aliase: list<string>, schreibweisen: list<string>, gueltigAb: mixed, gueltigBis: mixed, suchbegriffe: string, version: int, veroeffentlichtAm: string|null, suche: string, persoenlich?: bool, organisation?: bool}>
      */
     public function list(?User $user = null): array
     {
@@ -83,6 +83,8 @@ final class PublicGlossary
                     'suchbegriffe' => implode(', ', array_map('strval', array_filter((array) ($s['search_aliases'] ?? [])))),
                     // Version als Tag «V1» (#425): Nummer der veröffentlichten Revision
                     'version' => (int) ($s['revision_number'] ?? 0),
+                    // «Mehr Details» (#428): Datum der Veröffentlichung dieser Version
+                    'veroeffentlichtAm' => isset($s['published_on']) ? (string) $s['published_on'] : null,
                     'suche' => mb_strtolower(implode(' ', array_filter([
                         $abk, $name, $kurz, implode(' ', (array) ($s['official_aliases'] ?? [])),
                         implode(' ', (array) ($s['alternative_aliases'] ?? [])), $s['search_terms'] ?? null,
@@ -363,14 +365,15 @@ final class PublicGlossary
     {
         // Abbilder je Datenstand zwischengespeichert (#137)
         /** @var list<array<string, mixed>> $snapshots */
-        // «snapshots.v2»: mit Nummer der Revision (#425); alte Einträge im Zwischenspeicher gelten nicht mehr
-        $snapshots = app(PublicCache::class)->remember('snapshots.v2', function (): array {
+        // «snapshots.v3»: mit Nummer und Datum der Revision (#425, #428); alte Einträge im Zwischenspeicher gelten nicht mehr
+        $snapshots = app(PublicCache::class)->remember('snapshots.v3', function (): array {
             $snapshots = [];
             foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
                 $snapshot = $term->publishedRevision?->snapshot;
                 if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
                     // Permalink-Code gehört zum Begriff, nicht zur Revision (#213)
-                    $snapshots[] = $snapshot + ['code' => $term->code, 'revision_number' => $term->publishedRevision->revision];
+                    $snapshots[] = $snapshot + ['code' => $term->code, 'revision_number' => $term->publishedRevision->revision,
+                        'published_on' => $term->publishedRevision->published_at?->toDateString()];
                 }
             }
 
