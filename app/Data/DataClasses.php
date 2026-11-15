@@ -153,6 +153,16 @@ final class DataClasses
             'published_by_id' => DataClass::Internal,
             'created_at' => DataClass::Internal,
         ],
+        // Mail-Protokoll (#463): Adresse nur maskiert, kein Inhalt; 90 Tage
+        'mail_log' => [
+            'id' => DataClass::Internal,
+            'created_at' => DataClass::Internal,
+            'kind' => DataClass::Internal,
+            'recipient' => DataClass::Personal,
+            'status' => DataClass::Internal,
+            'mailer' => DataClass::Internal,
+            'error' => DataClass::Internal,
+        ],
         'api_idempotency_keys' => [
             'id' => DataClass::Internal,
             'service_account_id' => DataClass::Internal,

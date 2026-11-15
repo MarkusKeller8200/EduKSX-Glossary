@@ -182,6 +182,18 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `published_by_id` | intern |
 | `created_at` | intern |
 
+## `mail_log`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `created_at` | intern |
+| `kind` | intern |
+| `recipient` | personenbezogen |
+| `status` | intern |
+| `mailer` | intern |
+| `error` | intern |
+
 ## `api_idempotency_keys`
 
 | Spalte | Klasse |

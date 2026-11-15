@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import DumpPanel from '@/components/dump-panel';
+import MailLogPanel, { type MailUebersicht } from '@/components/mail-log-panel';
 import RestorePanel from '@/components/restore-panel';
 import type { Sicherung } from '@/components/restore-panel';
 import UpdatePanel, { type UpdateStand } from '@/components/update-panel';
@@ -41,6 +42,7 @@ const STATUS: Record<Pruefung['status'], string> = {
 /** Systemseite (#40, #196): E-Mail-Versand und Konfiguration prüfen. Zugangsdaten stehen nur in der Umgebung des Servers. */
 export default function System({
     mail,
+    mails,
     warteschlange,
     version,
     pruefung,
@@ -50,6 +52,7 @@ export default function System({
     sicherungen,
 }: {
     mail: Mail;
+    mails: MailUebersicht;
     warteschlange: { offen: number; fehlgeschlagen: number };
     version: string;
     pruefung: Pruefung[];
@@ -202,6 +205,8 @@ export default function System({
                     </div>
                 </form>
             </section>
+
+            <MailLogPanel mails={mails} />
 
             <DumpPanel passwortPflicht={dump.passwortPflicht} />
 

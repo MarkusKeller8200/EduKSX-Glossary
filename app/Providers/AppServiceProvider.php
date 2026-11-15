@@ -9,12 +9,15 @@ use App\Glossary\PublicCache;
 use App\Metrics\Metrics;
 use App\Models\User;
 use App\Organizations\OrganizationService;
+use App\Support\MailLog;
 use App\Support\MailSettings;
 use App\Support\Turnstile;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Events\ConnectionEstablished;
+use Illuminate\Mail\Events\MessageSent;
+use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -66,6 +69,10 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(function (SocialiteWasCalled $event): void {
             $event->extendSocialite('microsoft', MicrosoftProvider::class);
         });
+
+        // Mail-Protokoll (#463): versendet bzw. nach allen Versuchen fehlgeschlagen, ohne Inhalt
+        Event::listen(fn (MessageSent $event) => MailLog::sent($event));
+        Event::listen(fn (JobFailed $event) => MailLog::failed($event));
 
         // Anmeldungen für die Metriken (#192)
         Event::listen(fn (Login $event) => Metrics::login('ok'));

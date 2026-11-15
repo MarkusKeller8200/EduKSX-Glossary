@@ -275,6 +275,9 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::get('papierkorb', [TrashController::class, 'index'])->name('admin.trash');
         Route::post('papierkorb/{kind}/{id}/wiederherstellen', [TrashController::class, 'restore'])->whereIn('kind', ['kategorien', 'herkunft', 'organisationen'])->name('admin.trash.restore');
         Route::post('system/testmail', [SystemController::class, 'testMail'])->middleware('throttle:5,1')->name('admin.system.testmail');
+        // Mail-Protokoll (#463): fehlgeschlagene Mails erneut versuchen oder verwerfen
+        Route::post('system/mails/{uuid}/wiederholen', [SystemController::class, 'retryMail'])->whereUuid('uuid')->name('admin.system.mail.retry');
+        Route::delete('system/mails/{uuid}', [SystemController::class, 'forgetMail'])->whereUuid('uuid')->name('admin.system.mail.forget');
         Route::post('system/mail', [SystemController::class, 'saveMail'])->middleware('throttle:10,1')->name('admin.system.mail');
         Route::post('system/mail/entfernen', [SystemController::class, 'removeMail'])->name('admin.system.mail.remove');
         Route::post('system/update', [SystemController::class, 'requestUpdate'])->middleware('throttle:5,1')->name('admin.system.update');
