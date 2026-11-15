@@ -41,7 +41,7 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   beschreiben den aktuellen Stand (Verlauf, E-Mail ändern, zweiter Faktor, Browsererweiterung, Cookies).
 - **Liste der Begriffe (#425):** Jeder Begriff zeigt seine Version als kurzen Tag (z. B. «V2») ganz rechts, in den
   Kacheln unten rechts. In der Balken-Ansicht ist jede zweite Zeile leicht hinterlegt, Begriffe ohne Abkürzung tragen
-  den Hinweis «keine Abkürzung», Kategorien stehen direkt nach dem Begriff und die Herkunft rechtsbündig in derselben
+  den fetten Hinweis «k. Abk.», Kategorien stehen direkt nach dem Begriff und die Herkunft rechtsbündig in derselben
   Zeile, beide mit kleiner Beschriftung.
 - **Mehr Details in der Liste (#428):** Gültigkeit und der Hinweis «angepasst» (eigene Darstellung bzw. die der
   Organisation) stehen immer unter dem Begriff, wenn gesetzt. Der Schalter «Mehr Details» blendet Aliase,

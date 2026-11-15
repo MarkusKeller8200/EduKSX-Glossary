@@ -389,9 +389,12 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                             {b.abkuerzung}
                                         </span>
                                     ) : (
-                                        <span className="text-xs text-muted-foreground italic">
-                                            keine Abkürzung
-                                        </span>
+                                        <abbr
+                                            title="keine Abkürzung"
+                                            className="text-xs font-semibold text-muted-foreground no-underline"
+                                        >
+                                            k. Abk.
+                                        </abbr>
                                     )}
                                     <span translate="no">{b.bezeichnung}</span>
                                     {/* Kategorien direkt nach dem Begriff, Herkunft rechtsbündig (#425) */}
