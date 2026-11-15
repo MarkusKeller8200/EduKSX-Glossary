@@ -40,6 +40,7 @@ class UserController extends Controller
         'account.unblocked' => 'Konto entsperrt',
         'mfa.enabled' => 'Zweiter Faktor eingerichtet',
         'mfa.reset' => 'Zweiter Faktor zurückgesetzt',
+        'mfa.reset_requested' => 'Link zum Zurücksetzen des zweiten Faktors angefordert',
         'password.reset_sent' => 'Link zum Zurücksetzen des Passworts gesendet',
         'mfa.recovery_codes' => 'Neue Wiederherstellungscodes',
         'mfa.recovery_used' => 'Wiederherstellungscode verwendet',
