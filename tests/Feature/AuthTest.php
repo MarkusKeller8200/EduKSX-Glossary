@@ -49,6 +49,21 @@ class AuthTest extends TestCase
         $this->get('/anmelden/code')->assertRedirect('/anmelden');
     }
 
+    public function test_code_abfrage_zeigt_konto_und_laesst_abbrechen(): void
+    {
+        $this->admin();
+        $this->post('/anmelden', ['email' => 'admin@example.org', 'password' => 'ein-langes-Test-Passwort-1']);
+
+        $this->get('/anmelden/code')->assertOk()->assertInertia(fn (Assert $p) => $p->component('auth/two-factor')
+            ->where('konto', 'admin@example.org'));
+
+        // anderes Konto (#440): Schritt 2 ist danach nicht mehr erreichbar
+        $this->post('/anmelden/code/abbrechen')->assertRedirect('/anmelden');
+        $this->get('/anmelden/code')->assertRedirect('/anmelden');
+        $this->post('/anmelden/code', ['code' => Totp::code(self::TOTP_SECRET)])->assertRedirect('/anmelden');
+        $this->assertGuest();
+    }
+
     public function test_ohne_zweiten_faktor_zuerst_einrichten(): void
     {
         $user = User::query()->create(['name' => 'Neu', 'email' => 'neu@example.org', 'password' => 'ein-langes-Test-Passwort-4']);

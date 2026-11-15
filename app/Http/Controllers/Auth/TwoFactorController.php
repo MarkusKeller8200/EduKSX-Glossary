@@ -26,11 +26,24 @@ class TwoFactorController extends Controller
     /** Schritt 2 der Anmeldung: Code eingeben (Passwort war richtig). */
     public function challenge(Request $request): Response|RedirectResponse
     {
-        if (! $request->session()->has('login.id')) {
+        $id = $request->session()->get('login.id');
+        $user = is_string($id) ? User::query()->find($id) : null;
+        if ($user === null) {
+            $request->session()->forget(['login.id', 'login.remember']);
+
             return redirect('/anmelden');
         }
 
-        return Inertia::render('auth/two-factor');
+        // Konto anzeigen, mit dem man sich gerade anmeldet (#440); das Passwort war bereits richtig
+        return Inertia::render('auth/two-factor', ['konto' => $user->email]);
+    }
+
+    /** Schritt 2 abbrechen und mit einem anderen Konto anmelden (#440). */
+    public function cancel(Request $request): RedirectResponse
+    {
+        $request->session()->forget(['login.id', 'login.remember']);
+
+        return redirect('/anmelden');
     }
 
     public function verify(Request $request): RedirectResponse

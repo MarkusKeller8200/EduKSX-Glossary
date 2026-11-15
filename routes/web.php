@@ -122,6 +122,7 @@ Route::middleware('guest')->group(function () {
     Route::post('anmelden', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
     Route::get('anmelden/code', [TwoFactorController::class, 'challenge'])->name('login.two-factor');
     Route::post('anmelden/code', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('login.two-factor.verify');
+    Route::post('anmelden/code/abbrechen', [TwoFactorController::class, 'cancel'])->name('login.two-factor.cancel');
     // Zweiten Faktor selbst zurücksetzen (#403): Link per Mail, dann E-Mail und Passwort
     Route::post('anmelden/code/zuruecksetzen', [TwoFactorResetController::class, 'request'])->middleware('throttle:5,1')->name('two-factor.reset.request');
     Route::get('zwei-faktor-zuruecksetzen/{user}/{hash}', [TwoFactorResetController::class, 'show'])->whereUuid('user')->middleware('signed')->name('two-factor.reset');

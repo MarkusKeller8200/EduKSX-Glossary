@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 /** Anmeldung, Schritt 2: Code aus der Authenticator-App oder Wiederherstellungscode (#11). */
-export default function TwoFactorChallenge() {
+export default function TwoFactorChallenge({ konto }: { konto: string }) {
     const form = useForm({ code: '' });
+    // anderes Konto: Schritt 2 abbrechen (#440)
+    const abbrechen = () => router.post('/anmelden/code/abbrechen');
     const zuruecksetzen = () =>
         router.post(
             '/anmelden/code/zuruecksetzen',
@@ -30,6 +32,21 @@ export default function TwoFactorChallenge() {
                     Sechsstelliger Code aus der Authenticator-App – oder einer
                     der Wiederherstellungscodes.
                 </p>
+                {/* Konto, mit dem man sich gerade anmeldet (#440) */}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border border-border bg-muted px-3 py-2 text-sm">
+                    <span>
+                        <span className="text-muted-foreground">Konto </span>
+                        <span className="font-medium break-all">{konto}</span>
+                    </span>
+                    <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto px-0"
+                        onClick={abbrechen}
+                    >
+                        Mit anderem Konto anmelden
+                    </Button>
+                </div>
                 <form onSubmit={submit} className="mt-6 space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="code">Code</Label>

@@ -29,6 +29,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Zweiter Faktor bei der Anmeldung (#440):** «Code eingeben» zeigt das Konto, mit dem man sich anmeldet, und
+  bietet «Mit anderem Konto anmelden» an.
 - **GitHub und Lesefassung (#409, #410):** README und Hinweise zum Betrieb beschreiben den Stand der öffentlichen Beta.
   Die Lesefassung auf GitHub Pages holt die Begriffe täglich aus der öffentlichen API und hat ein Produkt-Intro.
 - **Rechtliches, Datenschutz und Hilfe (#406, #407, #408):** «Rechtliches» erklärt kurz, was CC BY 4.0 für die
