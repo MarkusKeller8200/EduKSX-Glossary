@@ -65,12 +65,12 @@ Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 ## Meilenstein 0.16.0 – Plattform und Verbund (id 19)
 
 - `_3 Beta-Test` (im Chat freigegeben, gemergt am 15.11.2026):
-  - **#387** Wiederherstellen: Schlüssel bereinigt, `--schluessel-datei` (#389). Auf prod erst mit dem Release testbar.
-  - **#385** Erweiterung zum Herunterladen (#390). Workflow `extension.yml` hängt die ZIP an das nächste Release (ab
-    0.16.0). Auf «Für Entwickler» gibt es einen Abschnitt mit Anleitung. Icons zeigen jetzt das aktuelle Logo.
-  - **#386** Stores (#391). Texte und Einrichtung in `extension/store/README.md`, Job «stores» (Umgebung
-    `browser-stores`). Offen durch den Projektverantwortlichen: Konten, die erste Version bei Chrome/Edge von Hand,
-    Secrets/Variablen und die Lizenz für AMO (`AMO_LICENSE`, ZU PRÜFEN: AGPL-3.0-only oder MIT).
+    - **#387** Wiederherstellen: Schlüssel bereinigt, `--schluessel-datei` (#389). Auf prod erst mit dem Release testbar.
+    - **#385** Erweiterung zum Herunterladen (#390). Workflow `extension.yml` hängt die ZIP an das nächste Release (ab
+      0.16.0). Auf «Für Entwickler» gibt es einen Abschnitt mit Anleitung. Icons zeigen jetzt das aktuelle Logo.
+    - **#386** Stores (#391). Texte und Einrichtung in `extension/store/README.md`, Job «stores» (Umgebung
+      `browser-stores`). Offen durch den Projektverantwortlichen: Konten, die erste Version bei Chrome/Edge von Hand,
+      Secrets/Variablen und die Lizenz für AMO (`AMO_LICENSE`, ZU PRÜFEN: AGPL-3.0-only oder MIT).
 - Manifest der Erweiterung: Firefox ab 140 (`data_collection_permissions: none`, Pflicht bei AMO).
 - Wartet auf Durchsicht des Konzepts: **#180** Abgleich mit dem Master, **#381** Sync dev ↔ Master
   (Entwurfs-PR **#380**, `docs/KONZEPT-ABGLEICH.md`, DEC-041 vorgeschlagen). Nicht umsetzen vor Freigabe.

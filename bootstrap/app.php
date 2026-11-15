@@ -6,6 +6,7 @@ use App\Http\Middleware\CountRequests;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\NoIndexUnlessPublic;
 use App\Http\Middleware\RedirectFormerHost;
 use App\Http\Middleware\RequirePrivacyAcknowledgement;
 use EduKSX\Core\Eloquent\StaleModel;
@@ -41,6 +42,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(RedirectFormerHost::class);
         // Anfragen und Antwortzeiten für /metrics (#192), nur mit GLOSSARY_METRICS_TOKEN aktiv
         $middleware->append(CountRequests::class);
+        // Ohne GLOSSARY_SUCHMASCHINEN=true: X-Robots-Tag noindex auf allen Antworten (#393)
+        $middleware->append(NoIndexUnlessPublic::class);
 
         $middleware->web(append: [
             EnsureAccountActive::class,
