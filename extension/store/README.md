@@ -16,11 +16,11 @@ Hinweis.
 Danach Secrets bzw. Variablen im Repository eintragen (Settings › Secrets and variables › Actions). Am besten in der
 Umgebung **`browser-stores`**: Dort lässt sich zusätzlich eine Freigabe vor jedem Upload verlangen.
 
-| Store   | Secrets                                                            | Variablen (nicht geheim)                          | Woher                                                                                                                                            |
-| ------- | ------------------------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Chrome  | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` | `CHROME_PUBLISHER_ID`, `CHROME_EXTENSION_ID`      | Google Cloud: «Chrome Web Store API» aktivieren, OAuth-Client, Refresh-Token über den OAuth Playground; Publisher-ID im Dashboard unter Settings |
-| Edge    | `EDGE_CLIENT_ID`, `EDGE_API_KEY`                                   | `EDGE_PRODUCT_ID`                                 | Partner Center › Microsoft Edge › Publish API › «Create API credentials»                                                                         |
-| Firefox | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`                                 | `AMO_LICENSE` (Lizenz der Version, **ZU PRÜFEN**) | [API-Schlüssel](https://addons.mozilla.org/developers/addon/api/key/)                                                                            |
+| Store   | Secrets                                                            | Variablen (nicht geheim)                                                                 | Woher                                                                                                                                            |
+| ------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chrome  | `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` | im Workflow eingetragen (übersteuerbar mit `CHROME_PUBLISHER_ID`, `CHROME_EXTENSION_ID`) | Google Cloud: «Chrome Web Store API» aktivieren, OAuth-Client, Refresh-Token über den OAuth Playground; Publisher-ID im Dashboard unter Settings |
+| Edge    | `EDGE_CLIENT_ID`, `EDGE_API_KEY`                                   | `EDGE_PRODUCT_ID`                                                                        | Partner Center › Microsoft Edge › Publish API › «Create API credentials»                                                                         |
+| Firefox | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`                                 | `AMO_LICENSE` (Lizenz der Version, **ZU PRÜFEN**)                                        | [API-Schlüssel](https://addons.mozilla.org/developers/addon/api/key/)                                                                            |
 
 **ZU PRÜFEN – Lizenz für AMO:** AMO verlangt für jede gelistete Version eine Lizenz aus seiner Liste. Das Repository
 steht unter `AGPL-3.0-or-later`, die Liste von AMO enthält aber nur `AGPL-3.0-only`. Mögliche Werte für `AMO_LICENSE`
@@ -30,6 +30,9 @@ Ablauf bei jedem Release: Der Workflow hängt die ZIP an das Release (#385) und 
 Store. Chrome und Edge reichen sie zur Prüfung ein und veröffentlichen sie danach. Firefox erhält zusätzlich den
 Quellcode des Tags, weil der Code gebündelt und verkleinert ist. Betas erreichen die Stores nicht: Der Workflow nimmt
 nur das neueste Release, und Betas sind Vorabversionen. Von Hand: Actions › extension › «Run workflow».
+
+Chrome Web Store: Item `pglomjiinimdmmdfefchcghjahhkokmf`, öffentlich nach der ersten Prüfung unter
+`https://chromewebstore.google.com/detail/pglomjiinimdmmdfefchcghjahhkokmf`.
 
 ## Angaben für die Store-Einträge (de)
 
