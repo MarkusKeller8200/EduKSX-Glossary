@@ -26,6 +26,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Rechtliches, Datenschutz und Hilfe (#406, #407, #408):** «Rechtliches» erklärt kurz, was CC BY 4.0 für die
+  Begriffe und AGPL-3.0 für den Code heisst, und listet die Lizenzen aller ausgelieferten Teile und der wichtigsten
+  Drittkomponenten mit Link auf den vollständigen Lizenzbericht. Die Datenschutzerklärung (Entwurf) und die Hilfe
+  beschreiben den aktuellen Stand (Verlauf, E-Mail ändern, zweiter Faktor, Browsererweiterung, Cookies).
 - **Liste der Begriffe (#425):** Jeder Begriff zeigt seine Version als kurzen Tag (z. B. «V2») ganz rechts, in den
   Kacheln unten rechts. In der Balken-Ansicht ist jede zweite Zeile leicht hinterlegt, Begriffe ohne Abkürzung tragen
   den Hinweis «keine Abkürzung», Kategorien stehen direkt nach dem Begriff und die Herkunft rechtsbündig in derselben
@@ -43,6 +47,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Art der Einrichtung (#415):** In «Mein Konto» stehen neu Persönlich, Primarschule, Sekundarschule, Gesamtschule,
   Firma – Dienstleister, Volksschulamt, Gemeindeamt, Kanton, Datenschutz und andere zur Wahl; bei den Schulen zusätzlich
   «Einheitsgemeinde». Das Feld daneben heisst «Schule / Gemeinde / Organisation / Behörde».
+
+### Behoben
+
+- **Lizenz der Browsererweiterung (#408):** Der ZIP liegt jetzt die MIT-Lizenz bei, unter der die Erweiterung steht.
 
 ## [0.16.0] – 2026-11-15
 

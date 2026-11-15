@@ -1,6 +1,6 @@
 # Rechtliches, Drittlizenzen und Code-Herkunft – EduKSX-Glossary
 
-**Stand:** 07.11.2026 · **Status:** laufendes Lizenz- und Herkunftsregister, **keine vollständige rechtliche Freigabe**  
+**Stand:** 15.11.2026 (Prüfung AGPL/CC BY, #408) · **Status:** laufendes Lizenz- und Herkunftsregister, **keine vollständige rechtliche Freigabe**  
 **Öffentliche Kurzfassung:** `/legals` (nach Deployment) · **Geltung:** Quellcode, installierte Pakete, kopierte Dateien, Assets, Fonts, Build-/Containerbestandteile und Glossary-Daten.
 
 > Diese Übersicht dokumentiert den überprüften Ausgangspunkt. Ein NPM-/Composer-Manifest allein beweist keine vollständige Lizenzkonformität. Bei jedem Release müssen die tatsächlich aufgelösten Versionen, transitiven Abhängigkeiten, übernommenen Dateien und vollständigen Lizenzhinweise überprüft werden. Marken und Projektbezeichnungen verbleiben bei ihren jeweiligen Inhabern. Die Auflistung ist keine Empfehlung der genannten Hersteller.
@@ -16,6 +16,19 @@
 | Marke MarKusSXCH / EduKSX                                                                                | Marken-/Kennzeichnungsrechte getrennt von Software- und Datenlizenz behandeln.                                                                                                                                                                                                                                                              |
 
 **Besonders wichtig:** Sollte für eigene Bestandteile eine nicht-kommerzielle Lizenz gewählt werden, darf dies die durch MIT, ISC, OFL oder andere Drittbedingungen eingeräumten Rechte nicht einschränken. Eine Lizenz mit generellem Verbot kommerzieller Nutzung ist keine OSI-anerkannte Open-Source-Lizenz.
+
+## 1a. Prüfung AGPL-3.0 und CC BY 4.0 (15.11.2026, #408)
+
+| Pflicht                                            | Umsetzung                                                                                                                                                                                     | Ergebnis                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| AGPL §13: Quellcode der laufenden Version anbieten | Fusszeile «Quellcode (AGPL-3.0)» verlinkt `…/tree/v<Version>` bzw. den Commit des Developer Release (`AppVersion::sourceUrl`)                                                                 | erfüllt                                                                                         |
+| Lizenztext und Hinweis im Repository               | `LICENSE` (AGPL-3.0), `composer.json`/`package.json` `AGPL-3.0-or-later`, README, CONTRIBUTING                                                                                                | erfüllt                                                                                         |
+| Bibliotheken unter MIT (DEC-040)                   | Script zur Einbindung: Kopfzeile «MIT»; Browsererweiterung: bis 0.16.0 lag der ZIP die AGPL-Lizenz der App bei, **behoben**: ab 0.17.0 `packages/highlighter/LICENSE` (MIT); AMO-Lizenz `MIT` | behoben                                                                                         |
+| Drittkomponenten verträglich                       | Lizenzbericht je Release (`license-report.md`), Auswahl auf `/legals`                                                                                                                         | erfüllt, Bericht je Release                                                                     |
+| CC BY 4.0: Namensnennung bei Weitergabe            | API (`license`), Index, Erklärbox, Erweiterung, Markdown- und PDF-Export, Fusszeile                                                                                                           | erfüllt                                                                                         |
+| CC BY 4.0 bei Excel- und CSV-Export                | keine Quellenangabe in der Datei (eine Zusatzzeile würde den Re-Import der Redaktion stören)                                                                                                  | **Lücke**: Hinweis auf `/legals`; Vorschlag: eigenes Blatt «Lizenz» im Excel-Export der Website |
+| Nur lizenzierbare Texte unter CC BY                | Regel in der Redaktion (Quellenprüfung, #63); fremde Texte nicht übernehmen                                                                                                                   | organisatorisch                                                                                 |
+| Erklärung in einfacher Sprache                     | `/legals` «Was heisst das?» und Datenschutzerklärung Abschnitt 5                                                                                                                              | erfüllt                                                                                         |
 
 ## 2. Direkt übernommener oder kopierter Quellcode
 
