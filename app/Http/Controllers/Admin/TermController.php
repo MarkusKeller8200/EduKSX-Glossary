@@ -52,7 +52,21 @@ class TermController extends Controller
 
     public function index(): Response
     {
-        $terms = Term::query()->current()->with(['categories', 'sources', 'aliases', 'publishedRevision', 'latestRevision'])->get()
+        // Revisionen nur laden, wo sie für «Entwurf» nötig sind (#454): sonst hydriert die Liste jede Revision samt Abbild
+        $terms = Term::query()->current()->with(['categories', 'sources', 'aliases', 'publishedRevision:id,term_id,revision'])->get();
+        $differ = $terms->filter(fn (Term $t): bool => $t->publishedRevision !== null && $t->publishedRevision->revision !== $t->revision);
+        if ($differ->isNotEmpty()) {
+            $ids = $differ->pluck('id')->all();
+            $latest = TermRevision::query()->whereIn('term_id', $ids)
+                ->whereRaw('revision = (select max(r2.revision) from term_revisions r2 where r2.term_id = term_revisions.term_id)')
+                ->get()->keyBy('term_id');
+            $published = TermRevision::query()->whereIn('id', $differ->map(fn (Term $t) => $t->published_revision_id)->all())->get()->keyBy('id');
+            foreach ($differ as $t) {
+                $t->setRelation('latestRevision', $latest->get($t->id));
+                $t->setRelation('publishedRevision', $published->get($t->published_revision_id));
+            }
+        }
+        $terms = $terms
             ->sortBy(fn (Term $t): string => mb_strtolower($t->displayAbbreviation() ?: $t->displayName()))
             ->values()
             ->map(fn (Term $t): array => [

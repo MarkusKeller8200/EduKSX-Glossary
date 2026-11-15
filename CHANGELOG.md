@@ -6,6 +6,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Behoben
+
+- **Administration › Begriffe schneller (#454):** Die Liste lädt nur noch die nötigen Revisionen, misst die
+  Spaltenbreiten an den ersten Zeilen und zeigt die übrigen schrittweise an.
+
 ## [0.17.0] – 2026-11-15
 
 ### Neu

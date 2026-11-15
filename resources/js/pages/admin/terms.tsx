@@ -122,16 +122,21 @@ export default function Terms({
     const [kategorien, setKategorien] = useState<string[]>([]);
     const [herkunft, setHerkunft] = useState<string[]>([]);
     const q = suche.trim().toLowerCase();
-    const liste = begriffe.filter(
-        (b) =>
-            (!q ||
-                `${b.abkuerzung} ${b.bezeichnung} ${b.kurz} ${b.kategorien.join(' ')}`
-                    .toLowerCase()
-                    .includes(q)) &&
-            (kategorien.length === 0 ||
-                b.kategorien.some((k) => kategorien.includes(k))) &&
-            (herkunft.length === 0 ||
-                b.herkunft.some((h) => herkunft.includes(h))),
+    // gemerkt (#454): sonst entstehen bei jedem Klick (z. B. Auswahl) neue Gruppen und alle Zeilen neu
+    const liste = useMemo(
+        () =>
+            begriffe.filter(
+                (b) =>
+                    (!q ||
+                        `${b.abkuerzung} ${b.bezeichnung} ${b.kurz} ${b.kategorien.join(' ')}`
+                            .toLowerCase()
+                            .includes(q)) &&
+                    (kategorien.length === 0 ||
+                        b.kategorien.some((k) => kategorien.includes(k))) &&
+                    (herkunft.length === 0 ||
+                        b.herkunft.some((h) => herkunft.includes(h))),
+            ),
+        [begriffe, q, kategorien, herkunft],
     );
     const alleKategorien = useMemo(
         () => labelsAus(begriffe.flatMap((b) => b.kategorien)),
@@ -144,6 +149,15 @@ export default function Terms({
     const gruppen = useMemo(
         () => gruppieren(liste, gruppierung),
         [liste, gruppierung],
+    );
+    const gridGruppen = useMemo(
+        () =>
+            gruppen.map((g) => ({
+                key: g.titel,
+                title: g.titel,
+                rows: g.begriffe,
+            })),
+        [gruppen],
     );
     const [auswahl, setAuswahl] = useState<Set<string>>(new Set());
     const [sending, setSending] = useState(false);
@@ -326,11 +340,7 @@ export default function Terms({
                     onVisibleRows={(rows) =>
                         setSichtbar([...new Set(rows.map((b) => b.id))])
                     }
-                    groups={gruppen.map((g) => ({
-                        key: g.titel,
-                        title: g.titel,
-                        rows: g.begriffe,
-                    }))}
+                    groups={gridGruppen}
                     empty={
                         begriffe.length === 0
                             ? 'Noch keine Begriffe – mit dem Excel-Import übernehmen.'
