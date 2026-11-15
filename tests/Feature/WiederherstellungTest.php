@@ -121,6 +121,49 @@ final class WiederherstellungTest extends TestCase
         $this->assertSame(['a-1', 'b-2'], $restored->two_factor_recovery_codes);
     }
 
+    public function test_schluessel_mit_zeilenumbruch_und_aus_datei(): void
+    {
+        $lea = $this->daten();
+        $sourceKey = (string) config('app.key');
+        $file = $this->dump();
+        $this->otherKey();
+        $this->production();
+
+        // Leerzeichen und Zeilenumbrüche wie beim Einfügen ins verdeckte Feld (#387)
+        $this->artisan('glossary:wiederherstellen', ['datei' => $file, '--trocken' => true, '--schluessel-quelle' => " {$sourceKey}\r\n"])
+            ->expectsOutputToContain('Prüfung bestanden')->assertSuccessful();
+
+        // Datei ohne bzw. mit Zeilenumbruch am Ende
+        $keyFile = storage_path('framework/testing/app-key-quelle');
+        $this->files[] = $keyFile;
+        file_put_contents($keyFile, $sourceKey."\n");
+        $this->artisan('glossary:wiederherstellen', ['datei' => $file, '--ja' => true, '--schluessel-datei' => $keyFile])
+            ->assertSuccessful();
+        $this->assertSame('GEHEIMNIS123', User::query()->findOrFail($lea->id)->two_factor_secret);
+    }
+
+    public function test_schluessel_falsch_oder_fehlend_verstaendlich_gemeldet(): void
+    {
+        $this->daten();
+        $sourceKey = (string) config('app.key');
+        $file = $this->dump();
+        $this->otherKey();
+        $this->production();
+
+        // falsche Form: Meldung nennt die erwartete Form, aber nicht den Wert
+        $kaputt = $sourceKey.'GEHEIM';
+        $this->artisan('glossary:wiederherstellen', ['datei' => $file, '--trocken' => true, '--schluessel-quelle' => $kaputt])
+            ->expectsOutputToContain('erwartet base64: + 44 Zeichen')
+            ->doesntExpectOutputToContain($kaputt)
+            ->assertFailed();
+
+        $this->artisan('glossary:wiederherstellen', ['datei' => $file, '--trocken' => true, '--schluessel-datei' => '/gibt/es/nicht'])
+            ->expectsOutputToContain('Schlüsseldatei nicht gefunden')->assertFailed();
+
+        $this->artisan('glossary:wiederherstellen', ['datei' => $file, '--trocken' => true, '--schluessel-datei' => '/gibt/es/nicht', '--schluessel-quelle' => $sourceKey])
+            ->expectsOutputToContain('nicht beides')->assertFailed();
+    }
+
     public function test_probelauf_aendert_nichts(): void
     {
         $this->daten();

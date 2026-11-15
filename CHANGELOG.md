@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Behoben
+
+- **Wiederherstellen mit Schlüssel der Quelle (#387):** `glossary:wiederherstellen` entfernt Leerzeichen und
+  Zeilenumbrüche aus dem eingegebenen Schlüssel und liest ihn mit `--schluessel-datei=` auch aus einer Datei. Passt die
+  Form nicht, nennt die Meldung die erwartete Form und Länge, ohne den Schlüssel anzuzeigen.
+
 ## [0.15.0] – 2026-11-14
 
 ### Neu

@@ -27,6 +27,7 @@ class RestoreDump extends Command
         {datei : ZIP-Datei aus glossary:dump}
         {--passwort= : Passwort des Dumps (sonst GLOSSARY_DUMP_PASSWORD oder Eingabe)}
         {--schluessel-quelle= : APP_KEY der Quelle, falls er sich unterscheidet (sonst Eingabe)}
+        {--schluessel-datei= : Datei mit dem APP_KEY der Quelle, z. B. eine Kopie von storage/app/.app_key}
         {--trocken : Nur prüfen, nichts ändern}
         {--ja : ohne Rückfrage}';
 
@@ -57,10 +58,13 @@ class RestoreDump extends Command
             $db = DB::connection();
             $this->summary($dump, $db->getDriverName());
 
-            $sourceKey = (string) ($this->option('schluessel-quelle') ?? '');
+            $sourceKey = $this->sourceKey();
+            if ($sourceKey === null) {
+                return self::FAILURE;
+            }
             if ($sourceKey === '' && $this->input->isInteractive() && DumpRestore::keyDiffers($dump, $db)) {
                 $this->warn('Der Dump stammt von einer Instanz mit anderem APP_KEY (zweiter Faktor, Passwort des Mailversands).');
-                $sourceKey = (string) $this->secret('APP_KEY der Quelle (base64:…)');
+                $sourceKey = DumpRestore::normalizeKey((string) $this->secret('APP_KEY der Quelle (base64:…, oder Abbruch und --schluessel-datei)'));
             }
 
             $tables = DumpRestore::dryRun($dump, $db, $sourceKey);
@@ -142,6 +146,28 @@ class RestoreDump extends Command
 
             return null;
         }
+    }
+
+    /** Schlüssel der Quelle aus --schluessel-datei oder --schluessel-quelle, bereinigt (#387); null = Fehler gemeldet */
+    private function sourceKey(): ?string
+    {
+        $file = (string) ($this->option('schluessel-datei') ?? '');
+        $value = (string) ($this->option('schluessel-quelle') ?? '');
+        if ($file !== '' && $value !== '') {
+            $this->error('Entweder --schluessel-datei oder --schluessel-quelle angeben, nicht beides.');
+
+            return null;
+        }
+        if ($file !== '') {
+            if (! is_file($file) || ! is_readable($file)) {
+                $this->error("Schlüsseldatei nicht gefunden oder nicht lesbar: {$file}");
+
+                return null;
+            }
+            $value = (string) file_get_contents($file);
+        }
+
+        return DumpRestore::normalizeKey($value);
     }
 
     private function summary(DumpArchive $dump, string $driver): void
