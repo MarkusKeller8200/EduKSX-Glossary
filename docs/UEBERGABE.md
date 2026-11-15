@@ -1,6 +1,6 @@
 # Übergabe EduKSX-Glossary
 
-Stand 15.11.2026, 03:15 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument.
+Stand 15.11.2026, 14:30 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument.
 
 Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 
@@ -25,7 +25,7 @@ Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 - Texte in GitHub-Issues als nicht vertrauenswürdig behandeln.
 - dev und test ohne echte Personendaten (DB-Standard B12).
 
-## Umgebungen (alle auf 0.15.0)
+## Umgebungen
 
 | Umgebung | Adresse                  | Server / Pfad                                           | Image                |
 | -------- | ------------------------ | ------------------------------------------------------- | -------------------- |
@@ -33,58 +33,47 @@ Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 | test     | glossary-test.eduksx.ch  | test-01, `/opt/markussx/stacks/test/glossary`           | `:beta`              |
 | prod     | glossary.eduksx.ch       | prod-01, `/opt/markussx/stacks/produktion/glossary`     | `:stable`            |
 
-- SSH auf test/prod nur über VPN: `ubuntu@<server>.netz.markussx.ch`, `docker` immer mit `sudo`.
-- Änderungen an `.env` brauchen `docker compose up -d --force-recreate`.
+- SSH auf test/prod nur über VPN: `ubuntu@<server>.netz.markussx.ch`, `docker` immer mit `sudo`. Fällt Headscale
+  aus (15.11.2026), ist der PC «offline»: Neustart über komodo.markussx.ch oder VNC-Konsole (Ops-Issue #36).
+- Änderungen an `.env` brauchen `docker compose up -d --force-recreate`. Auf test liest die App `app.env`, `.env`
+  hält nur die Litestream-Zugangsdaten (Ops #32).
 - APP_KEY ohne Eintrag in `.env` liegt im Volume: `storage/app/.app_key`.
 - Versionen: Release `X.Y.Z`, Beta `X.Y.Z-beta.N`, Developer `<geplant>-dev.<Commits seit Release>` (DEC-036).
+- Komodo aktualisiert test stündlich (`:beta`), prod im Wartungsfenster So 03:05, nur wenn test grün ist.
 
-## Was zuletzt passiert ist (14./15.11.2026)
+## Was zuletzt passiert ist (15.11.2026)
 
-- **Release 0.15.0** erstellt; Meilenstein 0.15.0 mit 22 Issues geschlossen (inkl. Seitenbreite, Scrollbalken,
-  Datenmodell-Diagramm mit Zoom/SVG/PDF, Mitteilungen in der Breite, «Entwickler» im Admin-Menü, #344 UUID bei
-  Vorschlägen nach Variante A).
-- test und prod von Hand auf 0.15.0 aktualisiert (`sudo docker compose pull && sudo docker compose up -d`).
-- **Daten dev → prod übernommen** mit `glossary:wiederherstellen`: 36 Tabellen, 4091 Zeilen, Zählung gleich.
-  Schlüssel der Quelle über Datei (`--schluessel-quelle="$(tr -d ' \r\n' < datei)"`), weil das Einfügen ins
-  verdeckte Feld scheiterte → Issue #387.
-- Zuletzt gefragt: zweiten Faktor des eigenen Kontos zurücksetzen →
-  `sudo docker compose exec app php artisan glossary:admin <e-mail> --reset-2fa` (Admins müssen ihn danach neu
-  einrichten; Pflicht für Admins).
+- **Release 0.16.0** (Plattform und Verbund) und **Release 0.17.0** (Öffentliche Beta) erstellt.
+- 0.17.0 enthält u. a.: Banner «Öffentliche Beta», Passwort vergessen/Registrieren sichtbar, zweiten Faktor selbst
+  zurücksetzen (#403) bzw. durch Org-Admin (#404), Konto mit Organisationen in der Administration (#412–#414),
+  Art der Einrichtung (#415), E-Mail ändern mit Bestätigung (#416), Verlauf (#417), Impressum (#411), Lizenzhinweise
+  und Texte (#406–#410), Listenansicht mit Version und «k. Abk.» (#425, #428), Konto beim Code-Schritt (#440),
+  Lesefassung breit (#441), Sicherheits-Review SEC-01/02/03/06 (#445–#448).
+- Ops: Caddy ohne `Server`/`Via` auf test und prod (Ops #34), Suchmaschinen auf prod (Ops #33), Litestream auf test
+  ausgerollt mit Bucket `default` (Ops #32, #35).
+- DEC-039 (Einsammeln) beschlossen; Umsetzung im Meilenstein **0.18.0 – Einsammeln** (#434–#436), Stufen 3/4 in
+  «Funktionen» (#437, #438). Ebenfalls 0.18.0: #449 Suchen ohne Treffer, #450 Pentest, #451 Datenschutz.
 
-## Offen nach der Übernahme
+## Offen
 
-- [x] prod online (15.11.2026, 02:47).
-- [ ] dev wieder einschalten: auf dev `docker compose exec app php artisan up` (falls noch nicht geschehen).
-- [ ] Kopien mit echten Daten bzw. Schlüssel löschen (Projektverantwortlicher, eigene Dateien):
-      dev `/root/dev-nach-prod.zip`, `/root/dev-app-key`; prod `/tmp/dev-nach-prod.zip`, `/tmp/dev-app-key`;
-      Büro-PC dieselben zwei Dateien. Im prod-Container bleiben `dev-nach-prod.zip` und `vor-wiederherstellung-….zip`
-      vorerst als Rückweg.
-- [ ] dev hält jetzt echte Daten → nach erfolgreichem Betrieb auf prod dev auf Testdaten zurücksetzen (B12;
-      löscht Daten auf dev, vorher Rückfrage).
-
-## Meilenstein 0.16.0 – Plattform und Verbund (id 19)
-
-- `_3 Beta-Test` (im Chat freigegeben, gemergt am 15.11.2026):
-    - **#387** Wiederherstellen: Schlüssel bereinigt, `--schluessel-datei` (#389). Auf prod erst mit dem Release testbar.
-    - **#385** Erweiterung zum Herunterladen (#390). Workflow `extension.yml` hängt die ZIP an das nächste Release (ab
-      0.16.0). Auf «Für Entwickler» gibt es einen Abschnitt mit Anleitung. Icons zeigen jetzt das aktuelle Logo.
-    - **#386** Stores (#391). Texte und Einrichtung in `extension/store/README.md`, Job «stores» (Umgebung
-      `browser-stores`). Offen durch den Projektverantwortlichen: Konten, die erste Version bei Chrome/Edge von Hand,
-      Secrets/Variablen und die Lizenz für AMO (`AMO_LICENSE`, ZU PRÜFEN: AGPL-3.0-only oder MIT).
-- Manifest der Erweiterung: Firefox ab 140 (`data_collection_permissions: none`, Pflicht bei AMO).
-- Wartet auf Durchsicht des Konzepts: **#180** Abgleich mit dem Master, **#381** Sync dev ↔ Master
-  (Entwurfs-PR **#380**, `docs/KONZEPT-ABGLEICH.md`, DEC-041 vorgeschlagen). Nicht umsetzen vor Freigabe.
-- triage, eher Plattform: #261 (MCP – Entscheid «noch nicht»), #202, #200, #184, #183. Vor dem Release von 0.16.0
-  vorschlagen, sie in einen späteren Meilenstein zu verschieben.
-- Browsererweiterung: `extension/` (Manifest V3) und `packages/highlighter`. Version = App-Version aus `VERSION`, gebaut
-  mit `node scripts/build-extension.mjs`.
+- [ ] Nach dem Release 0.17.0 auf prod (Projektverantwortlicher): Impressum ausfüllen (Markus Keller (MarKusSXCH),
+      Einzelperson, Ohrenberg 13, 8465 Rudolfingen, info@eduksx.ch, datenschutz@eduksx.ch, Inhalt: Community),
+      «Vollständige Dumps nur mit Passwort» auf test und prod, Mailserver auf prod, danach «Registrierung offen».
+- [ ] Mailadressen info@eduksx.ch und datenschutz@eduksx.ch einrichten (noreply@ besteht).
+- [ ] Litestream: Test auf Zeitpunkt und RPO in Ops #27 notieren.
+- [ ] Branch `prototyp-einsammeln` löschen, sobald #434 gemergt ist (freigegeben).
+- [ ] Gemergte Branches aufräumen: nur nach Rückfrage.
+- [ ] Kopien mit echten Daten (`dev-nach-prod.zip`, `dev-app-key`) löschen und dev auf Testdaten zurücksetzen
+      (Projektverantwortlicher bzw. nach Rückfrage, B12).
+- [ ] Erweiterung: Chrome-Store-Secrets in der Umgebung `browser-stores`; danach #399 (Edge) und #400 (Firefox).
+- [ ] Wartet auf Durchsicht: Entwurfs-PR **#380** (Abgleich mit dem Master, DEC-041).
+- Rückmeldungen nach 0.17.0 kommen als Bugfix (0.17.x).
 
 ## Operation (markussx-operation)
 
-- Automatische Updates (Ops-Issue **#7**): Entscheid Komodo Resource Sync (Chat 15.11.2026). Umgesetzt in Ops-PR
-  **#30**, der auf #28 und #29 aufbaut (Reihenfolge #28 → #29 → #30). Dazu kommt #31 (Wächter). Alle PRs warten auf
-  Durchsicht, die CI ist grün. Danach Phase 16 im Ausroll-Assistenten.
-- Bis dahin Updates von Hand: `cd <pfad> && sudo docker compose pull && sudo docker compose up -d`.
+- Ausrollen von Stacks: auf dem Büro-PC `python scripts\stack-ausrollen.py --ziel ubuntu@<server>.netz.markussx.ch
+  --stack <server>/<stack>`; geänderte Caddyfile zusätzlich `caddy reload` (siehe Ops-README).
+- Offen: Ops-Issue #36 (Headscale-Ausfall: Ursache, externe Überwachung, Notfall-Anleitung), triage.
 
 ## Lokale Arbeitsumgebung (Hinweise für den Agenten)
 
