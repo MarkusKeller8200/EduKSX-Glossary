@@ -6,8 +6,8 @@ use App\Models\OrganizationMember;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
-use Inertia\Testing\AssertableInertia as Assert;
 use App\Organizations\OrganizationService;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 /** Benutzer und Rollen in der Administration (#38). */
