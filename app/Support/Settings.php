@@ -24,7 +24,7 @@ final class Settings
      * `env`: Variable der Umgebung mit Vorrang – ist sie gesetzt, ist die Einstellung in der Administration gesperrt (#366).
      * Typ `secret`: verschlüsselt gespeichert (APP_KEY), nie angezeigt; setzen nur über setSecret().
      *
-     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice'|'secret', min?: int, max?: int, einheit?: string, optionen?: array<string, string>, env?: string}>
+     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice'|'secret'|'text'|'email', min?: int, max?: int, einheit?: string, optionen?: array<string, string>, env?: string}>
      */
     public const DEFINITIONS = [
         'retention.inactive_months' => ['gruppe' => 'Löschfristen', 'label' => 'Inaktive Community-Konten löschen nach', 'hinweis' => 'Ohne Anmeldung; vorher kommt ein Hinweis per Mail.', 'typ' => 'int', 'min' => 6, 'max' => 60, 'einheit' => 'Monaten'],
