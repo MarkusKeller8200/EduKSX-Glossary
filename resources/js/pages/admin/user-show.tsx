@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -20,6 +20,26 @@ type Benutzer = {
     gesperrt_am: string | null;
     zweiter_faktor: boolean;
     angelegt: string | null;
+    angaben: {
+        vorname: string;
+        nachname: string;
+        art_einrichtung: string | null;
+        einrichtung_name: string | null;
+        einheitsgemeinde: boolean;
+        organisation: { id: string; name: string; rolle: string } | null;
+        passwort_gesetzt: boolean;
+        zweiter_faktor_seit: string | null;
+        anmeldedienste: {
+            anbieter: string;
+            seit: string | null;
+            zuletzt: string | null;
+        }[];
+        datenschutz_version: string | null;
+        datenschutz_am: string | null;
+        news: boolean;
+        news_am: string | null;
+        hinweis_inaktiv_am: string | null;
+    };
     rechte: string[];
     selbst: boolean;
 };
@@ -209,6 +229,8 @@ export default function UserShow({
                 </Alert>
             ) : null}
 
+            <AlleAngaben b={b} />
+
             <h2 className="mt-8 text-lg font-semibold">Rollen</h2>
             <p className="mt-1 text-sm text-muted-foreground">
                 Ohne Rolle kann das Konto nur lesen (wie Gast). Grau: ausserhalb
@@ -289,5 +311,91 @@ export default function UserShow({
                 </ol>
             )}
         </>
+    );
+}
+
+/** Alle Angaben des Kontos lesend (#414); Geheimnisse (Passwort, zweiter Faktor, Tokens) erscheinen nie. */
+function AlleAngaben({ b }: { b: Benutzer }) {
+    const a = b.angaben;
+    const zeilen: [string, ReactNode][] = [
+        ['Vorname', a.vorname],
+        ['Nachname', a.nachname],
+        ['E-Mail', b.email],
+        ['Community-Name', b.community_name ?? '–'],
+        ['Funktion', b.funktion ?? '–'],
+        ['Art der Einrichtung', a.art_einrichtung ?? '–'],
+        [
+            'Schule / Gemeinde / Organisation / Behörde',
+            a.einrichtung_name ?? '–',
+        ],
+        ['Einheitsgemeinde', a.einheitsgemeinde ? 'ja' : 'nein'],
+        [
+            'Organisation',
+            a.organisation ? (
+                <>
+                    <Link
+                        href={`/admin/organisationen/${a.organisation.id}`}
+                        className="text-link underline-offset-4 hover:underline"
+                    >
+                        {a.organisation.name}
+                    </Link>{' '}
+                    <span className="text-muted-foreground">
+                        ({a.organisation.rolle})
+                    </span>
+                </>
+            ) : (
+                '–'
+            ),
+        ],
+        ['Passwort', a.passwort_gesetzt ? 'gesetzt' : 'nur Anmeldedienst'],
+        [
+            'Zweiter Faktor',
+            b.zweiter_faktor
+                ? `eingerichtet seit ${datum(a.zweiter_faktor_seit)}`
+                : 'nicht eingerichtet',
+        ],
+        [
+            'Anmeldedienste',
+            a.anmeldedienste.length === 0
+                ? '–'
+                : a.anmeldedienste
+                      .map(
+                          (d) =>
+                              `${d.anbieter} (seit ${d.seit ?? '–'}, zuletzt ${d.zuletzt ?? '–'})`,
+                      )
+                      .join(', '),
+        ],
+        ['Angelegt', datum(b.angelegt)],
+        ['Letzte Anmeldung', b.letzte_anmeldung ?? '–'],
+        [
+            'Datenschutzerklärung',
+            a.datenschutz_am
+                ? `Version ${a.datenschutz_version ?? '–'} zur Kenntnis genommen am ${datum(a.datenschutz_am)}`
+                : 'noch nicht zur Kenntnis genommen',
+        ],
+        [
+            'News',
+            a.news_am
+                ? `${a.news ? 'ja' : 'nein'} (beantwortet ${datum(a.news_am)})`
+                : 'noch nicht gefragt',
+        ],
+        [
+            'Hinweis wegen Inaktivität',
+            a.hinweis_inaktiv_am ? datum(a.hinweis_inaktiv_am) : '–',
+        ],
+    ];
+
+    return (
+        <section className="mt-8">
+            <h2 className="text-lg font-semibold">Angaben</h2>
+            <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[18rem_1fr]">
+                {zeilen.map(([k, v]) => (
+                    <div key={k} className="contents">
+                        <dt className="text-muted-foreground">{k}</dt>
+                        <dd>{v}</dd>
+                    </div>
+                ))}
+            </dl>
+        </section>
     );
 }

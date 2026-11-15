@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import DataGrid from '@/components/data-grid';
 import IconAction from '@/components/icon-action';
 import { Pencil } from 'lucide-react';
+import UserAdminTabs from '@/components/user-admin-tabs';
 
 type Konto = {
     id: string;
@@ -19,6 +20,9 @@ type Konto = {
     rollen: string[];
     status: string;
     zweiter_faktor: boolean;
+    organisation: { id: string; name: string; rolle: string } | null;
+    letzte_anmeldung: string | null;
+    angelegt: string | null;
 };
 
 /** Benutzerverwaltung (#38): Liste mit Suche und Filter, Konto anlegen. */
@@ -32,7 +36,7 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
     const liste = benutzer.filter(
         (b) =>
             (!q ||
-                `${b.name} ${b.community_name ?? ''} ${b.email} ${b.einrichtung} ${b.rollen.join(' ')}`
+                `${b.name} ${b.community_name ?? ''} ${b.email} ${b.einrichtung} ${b.organisation?.name ?? ''} ${b.rollen.join(' ')}`
                     .toLowerCase()
                     .includes(q)) &&
             (filter === 'alle' ||
@@ -46,7 +50,7 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight">
-                        Benutzer
+                        Benutzer und Organisationen
                     </h1>
                 </div>
                 <div className="flex gap-2">
@@ -56,7 +60,8 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                     <Button onClick={() => setNeu(!neu)}>Konto anlegen</Button>
                 </div>
             </div>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <UserAdminTabs aktiv="benutzer" />
+            <p className="mt-4 text-sm text-muted-foreground">
                 {benutzer.length} Konten. Rollen und Sperren im Detail eines
                 Kontos; jede Änderung steht im Protokoll.
             </p>
@@ -71,7 +76,7 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                     <Input
                         id="suche"
                         type="search"
-                        placeholder="Name, E-Mail oder Rolle …"
+                        placeholder="Name, E-Mail, Organisation oder Rolle …"
                         value={suche}
                         onChange={(e) => setSuche(e.target.value)}
                     />
@@ -135,6 +140,30 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                             cell: (b) => b.email,
                         },
                         {
+                            id: 'organisation',
+                            header: 'Organisation',
+                            width: 220,
+                            sortValue: (b) => b.organisation?.name ?? '',
+                            cell: (b) =>
+                                b.organisation ? (
+                                    <>
+                                        <Link
+                                            href={`/admin/organisationen/${b.organisation.id}`}
+                                            className="text-link underline-offset-4 hover:underline"
+                                        >
+                                            {b.organisation.name}
+                                        </Link>
+                                        <span className="block text-muted-foreground">
+                                            {b.organisation.rolle}
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="text-muted-foreground">
+                                        –
+                                    </span>
+                                ),
+                        },
+                        {
                             id: 'rollen',
                             header: 'Rollen',
                             width: 220,
@@ -177,6 +206,20 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                                     )}
                                 </div>
                             ),
+                        },
+                        {
+                            id: 'letzte_anmeldung',
+                            header: 'Letzte Anmeldung',
+                            width: 150,
+                            sortValue: (b) => b.letzte_anmeldung ?? '',
+                            cell: (b) => b.letzte_anmeldung ?? '–',
+                        },
+                        {
+                            id: 'angelegt',
+                            header: 'Angelegt',
+                            width: 120,
+                            sortValue: (b) => b.angelegt ?? '',
+                            cell: (b) => b.angelegt ?? '–',
                         },
                         {
                             id: 'aktionen',

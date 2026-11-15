@@ -6,6 +6,13 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Neu
+
+- **Organisationen in der Administration (#412, #413, #414):** Unter «Benutzer» gibt es die Reiter Benutzer und
+  Organisationen. Die Liste der Konten zeigt die Organisation mit Rolle, die letzte Anmeldung und das Datum der
+  Anlage. Organisationen erscheinen mit Mitgliedern, Organisations-Admins und offenen Einladungen. Die Detailseiten von
+  Konto und Organisation zeigen alle Angaben lesend, ohne Passwörter, Codes oder Token.
+
 ### Geändert
 
 - **Öffentliche Beta (#401):** Der Hinweis oben auf jeder Seite sagt jetzt, dass das Glossary als öffentliche Beta
