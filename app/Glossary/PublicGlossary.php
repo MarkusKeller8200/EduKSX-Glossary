@@ -370,7 +370,7 @@ final class PublicGlossary
                 $snapshot = $term->publishedRevision?->snapshot;
                 if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
                     // Permalink-Code gehört zum Begriff, nicht zur Revision (#213)
-                    $snapshots[] = $snapshot + ['code' => $term->code, 'revision_number' => (int) $term->publishedRevision?->revision];
+                    $snapshots[] = $snapshot + ['code' => $term->code, 'revision_number' => $term->publishedRevision->revision];
                 }
             }
 
