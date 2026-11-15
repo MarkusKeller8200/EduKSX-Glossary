@@ -36,6 +36,9 @@ FROM php:8.4-apache AS app
 
 # zip: Excel-Dateien (.xlsx) für Import/Export; sqlite3: Sicherung der Datenbank (.backup); libpq/pdo_pgsql:
 # PostgreSQL (#191, #357)
+# Apache-Konfiguration «zz-glossary.conf»: nach security.conf von Debian laden, sonst gilt dort «ServerTokens OS»
+# (#396). Kopfzeilen, die auch eduksx/core setzt, genau einmal: die Kopie aus PHP entfernen und für alle Antworten
+# (auch statische Dateien und Fehler) setzen.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libzip-dev libpq-dev sqlite3 \
     && rm -rf /var/lib/apt/lists/* \
@@ -49,9 +52,11 @@ RUN apt-get update \
         '<Directory /var/www/html/public>' \
         '    AllowOverride All' \
         '</Directory>' \
+        'Header onsuccess unset X-Content-Type-Options' \
         'Header always set X-Content-Type-Options "nosniff"' \
+        'Header onsuccess unset Referrer-Policy' \
         'Header always set Referrer-Policy "strict-origin-when-cross-origin"' \
-        > /etc/apache2/conf-enabled/glossary.conf \
+        > /etc/apache2/conf-enabled/zz-glossary.conf \
     && cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
     && printf '%s\n' \
         'expose_php=Off' \

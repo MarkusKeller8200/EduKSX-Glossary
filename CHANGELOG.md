@@ -22,6 +22,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Wiederherstellen mit Schlüssel der Quelle (#387):** `glossary:wiederherstellen` entfernt Leerzeichen und
   Zeilenumbrüche aus dem eingegebenen Schlüssel und liest ihn mit `--schluessel-datei=` auch aus einer Datei. Passt die
   Form nicht, nennt die Meldung die erwartete Form und Länge, ohne den Schlüssel anzuzeigen.
+- **Sicherheitskopfzeilen (#396):** `X-Content-Type-Options` und `Referrer-Policy` kommen nur noch einmal (vorher
+  doppelt), der Server nennt keine Version mehr, und das Sitzungs-Cookie trägt über HTTPS das Präfix `__Host-`. Nach dem
+  Update ist man einmal abgemeldet.
 
 ## [0.15.0] – 2026-11-14
 
