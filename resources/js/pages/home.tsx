@@ -42,12 +42,16 @@ type Begriff = {
     gueltigBis: string | null;
     suchbegriffe: string;
     version: number;
+    veroeffentlichtAm: string | null;
+    persoenlich?: boolean;
+    organisation?: boolean;
     suche: string;
 };
 
 /** Ansicht der Liste (#213): Balken (Vorgabe), Tabelle oder Kacheln; im Browser gemerkt */
 type Ansicht = 'balken' | 'tabelle' | 'kacheln';
 const ANSICHT_KEY = 'glossary.ansicht';
+const DETAILS_KEY = 'glossary.details';
 
 function gespeicherteAnsicht(): Ansicht {
     try {
@@ -101,6 +105,22 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
     const [gewaehlt, setGewaehlt] = useState<string[]>([]);
     const [herkunft, setHerkunft] = useState<string[]>([]);
     const [ansicht, setAnsichtState] = useState<Ansicht>(gespeicherteAnsicht);
+    // «Mehr Details» in der Balken-Ansicht (#428), im Browser gemerkt
+    const [details, setDetailsState] = useState<boolean>(() => {
+        try {
+            return window.localStorage.getItem(DETAILS_KEY) === '1';
+        } catch {
+            return false;
+        }
+    });
+    const setDetails = (v: boolean) => {
+        setDetailsState(v);
+        try {
+            window.localStorage.setItem(DETAILS_KEY, v ? '1' : '0');
+        } catch {
+            // ohne Speicher: gilt bis zum Neuladen
+        }
+    };
     const setAnsicht = (v: Ansicht) => {
         setAnsichtState(v);
         try {
@@ -302,36 +322,49 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             {handy ? null : (
                 <div className="sticky top-[var(--kopf-hoehe,0px)] z-10 -mx-4 mt-4 flex flex-wrap items-center justify-between gap-2 bg-background px-4 py-2">
                     {anzahl}
-                    <ToggleGroup
-                        type="single"
-                        variant="outline"
-                        size="sm"
-                        value={ansicht}
-                        onValueChange={(v) => v && setAnsicht(v as Ansicht)}
-                        aria-label="Ansicht"
-                    >
-                        <ToggleGroupItem
-                            value="balken"
-                            aria-label="Balken"
-                            title="Balken"
+                    <div className="flex items-center gap-2">
+                        {ansicht === 'balken' ? (
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant={details ? 'default' : 'outline'}
+                                aria-pressed={details}
+                                onClick={() => setDetails(!details)}
+                            >
+                                Mehr Details
+                            </Button>
+                        ) : null}
+                        <ToggleGroup
+                            type="single"
+                            variant="outline"
+                            size="sm"
+                            value={ansicht}
+                            onValueChange={(v) => v && setAnsicht(v as Ansicht)}
+                            aria-label="Ansicht"
                         >
-                            <List aria-hidden />
-                        </ToggleGroupItem>
-                        <ToggleGroupItem
-                            value="tabelle"
-                            aria-label="Tabelle"
-                            title="Tabelle"
-                        >
-                            <Table2 aria-hidden />
-                        </ToggleGroupItem>
-                        <ToggleGroupItem
-                            value="kacheln"
-                            aria-label="Kacheln"
-                            title="Kacheln"
-                        >
-                            <LayoutGrid aria-hidden />
-                        </ToggleGroupItem>
-                    </ToggleGroup>
+                            <ToggleGroupItem
+                                value="balken"
+                                aria-label="Balken"
+                                title="Balken"
+                            >
+                                <List aria-hidden />
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                                value="tabelle"
+                                aria-label="Tabelle"
+                                title="Tabelle"
+                            >
+                                <Table2 aria-hidden />
+                            </ToggleGroupItem>
+                            <ToggleGroupItem
+                                value="kacheln"
+                                aria-label="Kacheln"
+                                title="Kacheln"
+                            >
+                                <LayoutGrid aria-hidden />
+                            </ToggleGroupItem>
+                        </ToggleGroup>
+                    </div>
                 </div>
             )}
 
@@ -384,7 +417,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                         {b.kurz}
                                     </span>
                                 ) : null}
+                                {/* immer, wenn gesetzt (#428): Gültigkeit und eigene Darstellung */}
+                                <ImmerSichtbar b={b} />
                             </Link>
+                            {details ? <Details b={b} /> : null}
                         </li>
                     ))}
                 </ul>
@@ -571,5 +607,91 @@ function Labels({
                 <ListBadge key={l} list={list} label={l} />
             ))}
         </span>
+    );
+}
+
+const datumCH = (iso: string | null): string =>
+    iso ? new Date(iso).toLocaleDateString('de-CH') : '';
+
+/** Gültigkeit und Hinweis «angepasst» – kurz und inhaltlich wichtig, deshalb immer (#428). */
+function ImmerSichtbar({ b }: { b: Begriff }) {
+    const gueltig = [
+        b.gueltigAb ? `ab ${datumCH(b.gueltigAb)}` : '',
+        b.gueltigBis ? `bis ${datumCH(b.gueltigBis)}` : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+    const angepasst = b.persoenlich
+        ? 'angepasst (meine Darstellung)'
+        : b.organisation
+          ? 'angepasst (Organisation)'
+          : '';
+    if (!gueltig && !angepasst) {
+        return null;
+    }
+
+    return (
+        <span className="mt-1 flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+            {gueltig ? <span>Gültig {gueltig}</span> : null}
+            {angepasst ? (
+                <span className="rounded bg-accent px-1.5 text-accent-foreground">
+                    {angepasst}
+                </span>
+            ) : null}
+        </span>
+    );
+}
+
+/** «Mehr Details» (#428): Aliase, Beschreibung, Quelle, Permalink, Datum der Version – ausserhalb des Zeilen-Links. */
+function Details({ b }: { b: Begriff }) {
+    const aliase = [...b.aliase, ...b.schreibweisen].join(', ');
+
+    return (
+        <div className="grid gap-1 px-2 pb-3 text-xs text-muted-foreground">
+            {aliase ? (
+                <p translate="no">
+                    <span className="font-medium text-foreground/70">
+                        Auch:
+                    </span>{' '}
+                    {aliase}
+                </p>
+            ) : null}
+            {b.beschreibung ? (
+                <p
+                    className="line-clamp-2 whitespace-pre-line"
+                    title={b.beschreibung}
+                    translate="no"
+                >
+                    {b.beschreibung}
+                </p>
+            ) : null}
+            <p className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {b.url ? (
+                    <a
+                        href={b.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-link hover:underline"
+                    >
+                        Quelle ↗
+                    </a>
+                ) : null}
+                {b.code ? (
+                    <a
+                        href={`/g/${b.code}`}
+                        className="font-mono text-link hover:underline"
+                        title="Permalink"
+                    >
+                        /g/{b.code}
+                    </a>
+                ) : null}
+                {b.veroeffentlichtAm ? (
+                    <span>
+                        Version {b.version} veröffentlicht am{' '}
+                        {datumCH(b.veroeffentlichtAm)}
+                    </span>
+                ) : null}
+            </p>
+        </div>
     );
 }
