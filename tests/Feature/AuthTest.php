@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\Totp;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -83,6 +84,24 @@ class AuthTest extends TestCase
             ->assertSessionHas('recovery_codes');
         $this->assertTrue($user->refresh()->hasTwoFactor());
         $this->get('/admin')->assertOk();
+    }
+
+    public function test_neue_wiederherstellungscodes_nur_mit_code(): void
+    {
+        Mail::fake();
+        config(['mail.default' => 'array']);
+        $user = $this->admin();
+        $this->actingAs($user);
+        $vorher = $user->two_factor_recovery_codes;
+
+        // #446: ohne bzw. mit falschem Code keine neuen Codes
+        $this->post('/konto/zwei-faktor/codes')->assertSessionHasErrors('code');
+        $this->post('/konto/zwei-faktor/codes', ['code' => '000000'])->assertSessionHasErrors('code');
+        $this->assertSame($vorher, $user->refresh()->two_factor_recovery_codes);
+
+        $this->post('/konto/zwei-faktor/codes', ['code' => Totp::code(self::TOTP_SECRET)])
+            ->assertRedirect('/konto/zwei-faktor')->assertSessionHas('recovery_codes');
+        $this->assertNotSame($vorher, $user->refresh()->two_factor_recovery_codes);
     }
 
     public function test_wiederherstellungscode_gilt_einmal(): void

@@ -126,7 +126,10 @@ export default function AccountShow({
                 </div>
             </Abschnitt>
 
-            <Loeschen passwortGesetzt={konto.passwort_gesetzt} />
+            <Loeschen
+                passwortGesetzt={konto.passwort_gesetzt}
+                zweiterFaktor={konto.zweiter_faktor}
+            />
             <HistoryPanel eintraege={verlauf} />
         </>
     );
@@ -654,16 +657,28 @@ function Anmeldedienste({
     );
 }
 
-function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
+function Loeschen({
+    passwortGesetzt,
+    zweiterFaktor,
+}: {
+    passwortGesetzt: boolean;
+    zweiterFaktor: boolean;
+}) {
     const form = useForm({ password: '' });
+    // ohne Passwort und ohne zweiten Faktor: Link per Mail statt sofort löschen (#445)
+    const perLink = !passwortGesetzt && !zweiterFaktor;
     const submit = async (e: FormEvent) => {
         e.preventDefault();
         if (
-            await confirmAction(
+            perLink ||
+            (await confirmAction(
                 'Konto endgültig löschen? Die Anmeldung ist danach nicht mehr möglich.',
-            )
+            ))
         ) {
-            form.post('/konto/loeschen', { preserveScroll: true });
+            form.post('/konto/loeschen', {
+                preserveScroll: true,
+                onSuccess: () => form.reset('password'),
+            });
         }
     };
 
@@ -681,19 +696,39 @@ function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
                     </a>
                     .
                 </p>
+                {perLink ? (
+                    <p className="text-sm text-muted-foreground">
+                        Ihr Konto hat kein eigenes Passwort. Nach der Eingabe
+                        schicken wir einen Link an Ihre E-Mail-Adresse; erst
+                        damit wird das Konto gelöscht.
+                    </p>
+                ) : null}
                 <Feld
                     id="delete_password"
                     label={
                         passwortGesetzt
                             ? 'Passwort bestätigen'
-                            : 'Zur Bestätigung «LÖSCHEN» eingeben'
+                            : zweiterFaktor
+                              ? 'Code aus der Authenticator-App'
+                              : 'Zur Bestätigung «LÖSCHEN» eingeben'
                     }
                     error={form.errors.password}
                 >
                     <Input
                         id="delete_password"
                         type={passwortGesetzt ? 'password' : 'text'}
-                        autoComplete="current-password"
+                        inputMode={
+                            !passwortGesetzt && zweiterFaktor
+                                ? 'numeric'
+                                : undefined
+                        }
+                        autoComplete={
+                            passwortGesetzt
+                                ? 'current-password'
+                                : zweiterFaktor
+                                  ? 'one-time-code'
+                                  : 'off'
+                        }
                         value={form.data.password}
                         onChange={(e) =>
                             form.setData('password', e.target.value)
@@ -707,7 +742,7 @@ function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
                         variant="destructive"
                         disabled={form.processing}
                     >
-                        Konto löschen
+                        {perLink ? 'Link zum Löschen senden' : 'Konto löschen'}
                     </Button>
                 </div>
             </form>

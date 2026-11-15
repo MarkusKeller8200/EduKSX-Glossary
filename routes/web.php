@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\Admin\CurationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DevBackupController;
@@ -147,6 +148,12 @@ Route::get('registrieren/bestaetigen/{user}/{hash}', [RegisterController::class,
 // Bestätigung der neuen E-Mail-Adresse (#416): auch ohne Anmeldung, z. B. auf dem Handy
 Route::get('konto/email/bestaetigen/{user}/{hash}', [EmailChangeController::class, 'confirm'])
     ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('account.email.confirm');
+
+// Konto löschen ohne eigenes Passwort (#445): Link an die eigene Adresse, auch ohne Anmeldung
+Route::get('konto/loeschen/bestaetigen/{user}/{hash}', [AccountDeletionController::class, 'show'])
+    ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('account.delete.confirm');
+Route::post('konto/loeschen/bestaetigen/{user}/{hash}', [AccountDeletionController::class, 'destroy'])
+    ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('account.delete.confirm.post');
 
 // Mein Konto (#39): für alle angemeldeten Konten, auch Community
 Route::middleware('auth')->prefix('konto')->group(function () {
