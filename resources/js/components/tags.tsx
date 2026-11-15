@@ -193,3 +193,19 @@ export function StateBadge({
         </Badge>
     );
 }
+
+/** Version eines Begriffs als kurzer Tag «V1» (#425): Nummer der veröffentlichten Revision. */
+export function VersionTag({ version }: { version: number | undefined }) {
+    if (!version) {
+        return null;
+    }
+
+    return (
+        <span
+            className="inline-flex shrink-0 items-center rounded border border-border px-1.5 py-0.5 font-mono text-[0.7rem] leading-none text-muted-foreground"
+            title={`Version ${version} (veröffentlichte Revision)`}
+        >
+            V{version}
+        </span>
+    );
+}
