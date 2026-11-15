@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.17.0] – 2026-11-15
+
 ### Neu
 
 - **Organisationen in der Administration (#412, #413, #414):** Unter «Benutzer» gibt es die Reiter Benutzer und
