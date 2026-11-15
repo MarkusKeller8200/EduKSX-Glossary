@@ -10,6 +10,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 - **Administration › Begriffe schneller (#454):** Die Liste lädt nur noch die nötigen Revisionen, misst die
   Spaltenbreiten an den ersten Zeilen und zeigt die übrigen schrittweise an.
+- **Hinweis «Handy verloren?» (#456):** Die Seite «Zweiter Faktor» beschreibt den Weg über die Anmeldung bzw. die
+  Administration statt eines Serverbefehls.
 
 ## [0.17.0] – 2026-11-15
 
