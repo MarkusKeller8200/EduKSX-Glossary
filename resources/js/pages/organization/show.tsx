@@ -6,9 +6,20 @@ import { confirmAction } from '@/components/confirm-dialog';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+
+/** Domain der Organisation (#462) */
+type DomainStand = {
+    aktuell: string | null;
+    automatisch: boolean;
+    meine: string;
+    meine_bestaetigt: boolean;
+    oeffentlich: boolean;
+    kandidaten: number;
+};
 
 type Organisation = {
     name: string;
@@ -19,6 +30,7 @@ type Organisation = {
     gegruendet: string | null;
     tenant: string | null;
     meine_tenants: string[];
+    domain: DomainStand | null;
 };
 
 type Mitglied = {
@@ -164,6 +176,7 @@ export default function OrganizationShow(props: Props) {
                             servicekonten={props.servicekonten}
                             tenant={org.tenant}
                             meineTenants={org.meine_tenants}
+                            domain={org.domain}
                         />
                     ) : null}
                     <Austreten />
@@ -802,11 +815,13 @@ function Verwaltung({
     servicekonten,
     tenant,
     meineTenants,
+    domain,
 }: {
     name: string;
     servicekonten: number;
     tenant: string | null;
     meineTenants: string[];
+    domain: DomainStand | null;
 }) {
     const tenantForm = useForm<{ tenant: string | null }>({ tenant: null });
     const setTenant = (wert: string | null) => {
@@ -902,6 +917,8 @@ function Verwaltung({
             ) : null}
             <InputError message={tenantForm.errors.tenant} />
 
+            {domain ? <Domain domain={domain} /> : null}
+
             <h3 className="mt-6 text-sm font-semibold">API-Zugang</h3>
             <p className="mt-1 text-sm text-muted-foreground">
                 Servicekonto mit Scope «glossary:terms.read» anlegen: Das Token
@@ -957,5 +974,104 @@ function Abschnitt({
             <h2 className="text-lg font-semibold">{titel}</h2>
             <div className="mt-3">{children}</div>
         </section>
+    );
+}
+
+/**
+ * Domain der Organisation (#462): aus der eigenen bestätigten Adresse; auf Wunsch Konten dieser Domain automatisch
+ * aufnehmen. Die Personen und die Org-Admins erhalten eine Mail, austreten ist jederzeit möglich.
+ */
+function Domain({ domain }: { domain: DomainStand }) {
+    const form = useForm<{ setzen: boolean }>({ setzen: true });
+    const setzen = (wert: boolean) => {
+        form.transform(() => ({ setzen: wert }));
+        form.put('/organisation/domain', opts);
+    };
+    const auto = useForm<{ an: boolean }>({ an: true });
+    const umschalten = async (an: boolean) => {
+        if (
+            an &&
+            !(await confirmAction(
+                `Konten mit einer bestätigten Adresse @${domain.aktuell} automatisch aufnehmen? Jetzt betrifft das ${domain.kandidaten} Konto/Konten ohne Organisation; sie und die Organisations-Admins erhalten eine Mail.`,
+                { confirmLabel: 'Einschalten' },
+            ))
+        ) {
+            return;
+        }
+        auto.transform(() => ({ an }));
+        auto.put('/organisation/domain/automatisch', opts);
+    };
+    const kannSetzen =
+        domain.meine_bestaetigt &&
+        !domain.oeffentlich &&
+        domain.meine !== domain.aktuell;
+
+    return (
+        <>
+            <h3 className="mt-6 text-sm font-semibold">Domain</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+                Die Domain Ihrer bestätigten E-Mail-Adresse gilt als Domain der
+                Organisation (eine je Organisation). Auf Wunsch werden Konten
+                mit einer bestätigten Adresse dieser Domain automatisch
+                aufgenommen; die Personen werden informiert und können jederzeit
+                austreten. Öffentliche Mail-Anbieter sind ausgeschlossen.
+            </p>
+            <p className="mt-2 text-sm">
+                {domain.aktuell ? (
+                    <>
+                        Aktuell: <code translate="no">@{domain.aktuell}</code>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2"
+                            disabled={form.processing}
+                            onClick={() => setzen(false)}
+                        >
+                            Lösen
+                        </Button>
+                    </>
+                ) : (
+                    'Keine Domain hinterlegt.'
+                )}
+            </p>
+            {kannSetzen ? (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    disabled={form.processing}
+                    onClick={() => setzen(true)}
+                >
+                    <span translate="no">@{domain.meine}</span>&nbsp;übernehmen
+                </Button>
+            ) : !domain.aktuell ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {domain.oeffentlich
+                        ? 'Ihre Adresse gehört zu einem öffentlichen Mail-Anbieter – dafür ist keine Domain möglich.'
+                        : 'Dazu zuerst die eigene E-Mail-Adresse bestätigen.'}
+                </p>
+            ) : null}
+            {domain.aktuell ? (
+                <label className="mt-3 flex items-center gap-2 text-sm">
+                    <Checkbox
+                        checked={domain.automatisch}
+                        disabled={auto.processing}
+                        onCheckedChange={(v) => umschalten(v === true)}
+                    />
+                    Konten mit dieser Domain automatisch aufnehmen
+                    {!domain.automatisch && domain.kandidaten > 0 ? (
+                        <span className="text-muted-foreground">
+                            ({domain.kandidaten} Konto/Konten ohne Organisation)
+                        </span>
+                    ) : null}
+                </label>
+            ) : null}
+            <InputError
+                message={
+                    (form.errors as Record<string, string>).domain ??
+                    (auto.errors as Record<string, string>).domain
+                }
+            />
+        </>
     );
 }

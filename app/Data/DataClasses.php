@@ -99,6 +99,8 @@ final class DataClasses
             'is_role_granted' => DataClass::Internal,
             'created_at' => DataClass::Internal,
             'updated_at' => DataClass::Internal,
+            'joined_via' => DataClass::Internal,
+            'notice_shown_at' => DataClass::Internal,
         ],
         'organizations' => [
             'id' => DataClass::Internal,
@@ -111,6 +113,8 @@ final class DataClasses
             'lock_version' => DataClass::Internal,
             'deleted_at' => DataClass::Internal,
             'deleted_by_id' => DataClass::Internal,
+            'email_domain' => DataClass::Internal,
+            'is_domain_auto_join' => DataClass::Internal,
         ],
         'proposal_events' => [
             'id' => DataClass::Internal,

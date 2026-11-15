@@ -116,6 +116,8 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `is_role_granted` | intern |
 | `created_at` | intern |
 | `updated_at` | intern |
+| `joined_via` | intern |
+| `notice_shown_at` | intern |
 
 ## `organizations`
 
@@ -131,6 +133,8 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `lock_version` | intern |
 | `deleted_at` | intern |
 | `deleted_by_id` | intern |
+| `email_domain` | intern |
+| `is_domain_auto_join` | intern |
 
 ## `proposal_events`
 

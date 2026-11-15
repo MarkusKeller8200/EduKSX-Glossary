@@ -8,7 +8,10 @@ use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
 use App\Models\ServiceAccount;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use App\Support\History;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,6 +52,8 @@ class OrganizationAdminController extends Controller
                 'name' => $organization->name,
                 'plattform_id' => $organization->platform_id,
                 'microsoft_tenant' => $organization->entra_tenant_id,
+                'domain' => $organization->email_domain,
+                'domain_automatisch' => $organization->is_domain_auto_join,
                 'angelegt' => $organization->created_at?->toIso8601String(),
                 'angelegt_von' => $creator?->name,
                 'mitglieder' => $organization->members()->with('user')->orderBy('created_at')->get()
@@ -79,5 +84,13 @@ class OrganizationAdminController extends Controller
             // Verlauf (#417)
             'verlauf' => History::forOrganization($organization),
         ]);
+    }
+
+    /** Domain einer Organisation lösen (#462), z. B. wenn sie zu Unrecht beansprucht wurde. */
+    public function clearDomain(Request $request, Organization $organization, OrganizationService $organizations): RedirectResponse
+    {
+        $organizations->clearDomainByAdmin($this->currentUser($request), $organization);
+
+        return back()->with('status', 'Domain gelöst; die automatische Aufnahme ist aus.');
     }
 }

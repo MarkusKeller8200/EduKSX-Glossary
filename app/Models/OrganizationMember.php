@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $user_id
  * @property string $role admin, member
  * @property string $status active, blocked
+ * @property string|null $joined_via invitation, registration, domain, founded, admin (#462)
+ * @property CarbonImmutable|null $notice_shown_at
  * @property bool $is_role_granted globale Rolle «Organisations-Admin» durch die Organisation vergeben
  * @property CarbonImmutable|null $created_at
  * @property-read Organization $organization
@@ -29,14 +31,14 @@ class OrganizationMember extends Model
     public const MEMBER = 'member';
 
     /** @var list<string> */
-    protected $fillable = ['organization_id', 'user_id', 'role', 'status', 'is_role_granted'];
+    protected $fillable = ['organization_id', 'user_id', 'role', 'status', 'is_role_granted', 'joined_via'];
 
     /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
-        return ['is_role_granted' => 'boolean', 'created_at' => 'immutable_datetime', 'updated_at' => 'immutable_datetime'];
+        return ['is_role_granted' => 'boolean', 'created_at' => 'immutable_datetime', 'updated_at' => 'immutable_datetime', 'notice_shown_at' => 'immutable_datetime'];
     }
 
     /** @return BelongsTo<Organization, $this> */

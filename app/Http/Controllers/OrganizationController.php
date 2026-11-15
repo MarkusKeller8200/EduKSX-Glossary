@@ -69,6 +69,15 @@ class OrganizationController extends Controller
             // Mandant (X3, #284): Microsoft-Tenant und die Tenants, mit denen der Admin selbst verknüpft ist
             'tenant' => $organization->entra_tenant_id,
             'meine_tenants' => $admin ? $this->organizations->tenantsOf($user) : [],
+            // Domain (#462): eine je Organisation, aus der bestätigten Adresse des Org-Admins
+            'domain' => $admin ? [
+                'aktuell' => $organization->email_domain,
+                'automatisch' => $organization->is_domain_auto_join,
+                'meine' => OrganizationService::domainOf($user->email),
+                'meine_bestaetigt' => $user->email_verified_at !== null,
+                'oeffentlich' => in_array(OrganizationService::domainOf($user->email), OrganizationService::PUBLIC_DOMAINS, true),
+                'kandidaten' => $this->organizations->countDomainCandidates($organization),
+            ] : null,
         ];
         if (! $member->isActive()) {
             return Inertia::render('organization/show', $props);
@@ -168,6 +177,32 @@ class OrganizationController extends Controller
 
         return $this->run(fn () => $this->organizations->setTenant($user, $this->organizationOf($user), $tenant),
             $tenant === null ? 'Microsoft-Tenant gelöst.' : 'Microsoft-Tenant gespeichert.', 'tenant');
+    }
+
+    /** Domain der Organisation aus der eigenen bestätigten Adresse übernehmen bzw. lösen (#462). */
+    public function domain(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['setzen' => ['required', 'boolean']]);
+        $user = $this->currentUser($request);
+        $set = (bool) $data['setzen'];
+
+        return $this->run(fn () => $this->organizations->setDomain($user, $this->organizationOf($user), $set),
+            $set ? 'Domain gespeichert.' : 'Domain gelöst.', 'domain');
+    }
+
+    /** Konten der Domain automatisch aufnehmen ein/aus (#462). */
+    public function domainAutoJoin(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['an' => ['required', 'boolean']]);
+        $user = $this->currentUser($request);
+        $count = 0;
+        $response = $this->run(function () use ($user, $data, &$count): void {
+            $count = $this->organizations->setDomainAutoJoin($user, $this->organizationOf($user), (bool) $data['an']);
+        }, '', 'domain');
+
+        return $response->with('status', (bool) $data['an']
+            ? "Automatische Aufnahme eingeschaltet – {$count} Konto/Konten aufgenommen; sie wurden informiert."
+            : 'Automatische Aufnahme ausgeschaltet.');
     }
 
     public function destroy(Request $request): RedirectResponse

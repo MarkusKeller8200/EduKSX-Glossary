@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string|null $created_by_id
  * @property string|null $entra_tenant_id Microsoft-Tenant (X3, #284), eindeutig
+ * @property string|null $email_domain Domain der Organisation (#462), eindeutig
+ * @property bool $is_domain_auto_join Konten der Domain automatisch aufnehmen (#462)
  * @property CarbonImmutable|null $created_at
  * @property-read Collection<int, OrganizationMember> $members
  * @property-read Collection<int, OrganizationInvitation> $invitations
@@ -40,7 +42,7 @@ class Organization extends Model
      */
     protected function casts(): array
     {
-        return ['created_at' => 'immutable_datetime', 'updated_at' => 'immutable_datetime'];
+        return ['created_at' => 'immutable_datetime', 'updated_at' => 'immutable_datetime', 'is_domain_auto_join' => 'boolean'];
     }
 
     /** @return HasMany<OrganizationMember, $this> */
