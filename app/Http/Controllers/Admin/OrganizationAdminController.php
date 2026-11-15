@@ -30,7 +30,7 @@ class OrganizationAdminController extends Controller
                 'name' => $o->name,
                 'mitglieder' => (int) $o->getAttribute('mitglieder'),
                 'einladungen' => (int) $o->getAttribute('einladungen'),
-                'admins' => $o->members->map(fn (OrganizationMember $m): string => (string) $m->user?->name)->filter()->values()->all(),
+                'admins' => $o->members->map(fn (OrganizationMember $m): string => $m->user->name)->filter()->values()->all(),
                 'microsoft' => $o->entra_tenant_id !== null,
                 'angelegt' => $o->created_at?->toDateString(),
             ])->all();
@@ -53,11 +53,11 @@ class OrganizationAdminController extends Controller
                 'mitglieder' => $organization->members()->with('user')->orderBy('created_at')->get()
                     ->map(fn (OrganizationMember $m): array => [
                         'user_id' => $m->user_id,
-                        'name' => $m->user !== null && ! $m->user->is_processing_restricted ? $m->user->name : 'Bearbeitung eingeschränkt',
-                        'email' => $m->user !== null && ! $m->user->is_processing_restricted ? $m->user->email : '',
+                        'name' => $m->user->is_processing_restricted ? 'Bearbeitung eingeschränkt' : $m->user->name,
+                        'email' => $m->user->is_processing_restricted ? '' : $m->user->email,
                         'rolle' => $m->isAdmin() ? 'Organisations-Admin' : 'Mitglied',
                         'status' => $m->status,
-                        'zweiter_faktor' => $m->user?->hasTwoFactor() ?? false,
+                        'zweiter_faktor' => $m->user->hasTwoFactor(),
                         'seit' => $m->created_at?->toDateString(),
                     ])->all(),
                 'einladungen' => $organization->invitations()->orderBy('created_at')->get()
