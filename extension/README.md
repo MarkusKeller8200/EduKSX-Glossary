@@ -2,7 +2,7 @@
 
 Erklärt Abkürzungen und Begriffe des Glossary auf beliebigen Webseiten: feine, gepunktete Unterstreichung, Erklärbox
 mit Abkürzung, Bezeichnung, Kurztext und Link (Permalink) – per Maus und Tastatur. Manifest V3 für Chrome, Edge und
-Firefox (ab 121).
+Firefox (ab 140).
 
 ## Datenschutz und Berechtigungen
 
@@ -33,6 +33,9 @@ Die Version kommt aus `VERSION` (App-Version, nur X.Y.Z; der Zusatz einer Beta s
 - **Firefox:** `about:debugging#/runtime/this-firefox` → «Temporäres Add-on laden» → `extension/dist/manifest.json`.
 
 ## Veröffentlichen (Projektverantwortliche Person)
+
+Automatisch mit jedem Release, sobald die Store-Konten und Secrets eingerichtet sind (#386). Texte, Bilder,
+Datenschutzangaben und die Einrichtung stehen in [`store/README.md`](store/README.md). Von Hand:
 
 1. Version kommt mit dem Release (App-Version), bauen.
 2. ZIP hochladen: [Chrome Web Store](https://chrome.google.com/webstore/devconsole),
