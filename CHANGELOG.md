@@ -11,6 +11,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Mail-Protokoll (#463):** Administration › System zeigt die Warteschlange (wartend, fehlgeschlagen, erneut versuchen
   oder verwerfen) und die zuletzt versendeten Mails – mit Zeit, Art und gekürzter Adresse, ohne Inhalt. Fehlgeschlagene
   Aufträge werden jetzt festgehalten. Einträge werden nach 90 Tagen gelöscht.
+- **Einladung automatisch angenommen (#461):** Wer mit einer eingeladenen Adresse ein Konto anlegt, ist nach dem
+  Bestätigen der Adresse Mitglied der Organisation; der einladende Organisations-Admin erhält einen Hinweis.
 
 ### Geändert
 

@@ -7,6 +7,7 @@ use App\Access\RoleManager;
 use App\Http\Controllers\Controller;
 use App\Mail\ConfirmRegistration;
 use App\Models\User;
+use App\Organizations\OrganizationService;
 use App\Support\Registration;
 use App\Support\Turnstile;
 use Illuminate\Http\RedirectResponse;
@@ -93,12 +94,16 @@ class RegisterController extends Controller
         if ($account === null || ! hash_equals(sha1($account->email), $hash)) {
             return redirect('/anmelden')->withErrors(['email' => 'Der Link ist ungültig. Bitte nochmals registrieren.']);
         }
+        $joined = null;
         if ($account->isPending()) {
             $account->forceFill(['status' => 'active', 'email_verified_at' => now()])->save();
             Audit::log($account, $account, 'account.verified');
+            // Einladung an diese Adresse: jetzt Mitglied (#461)
+            $joined = app(OrganizationService::class)->joinOnVerifiedEmail($account, 'Registrierung');
         }
 
-        return redirect('/anmelden')->with('status', 'E-Mail-Adresse bestätigt. Sie können sich jetzt anmelden.');
+        return redirect('/anmelden')->with('status', 'E-Mail-Adresse bestätigt. Sie können sich jetzt anmelden.'
+            .($joined !== null ? ' Sie sind jetzt Mitglied von «'.$joined->name.'» (Einladung angenommen; verlassen unter «Mein Konto → Meine Organisation»).' : ''));
     }
 
     /** Bestätigungslink senden; ein Ausfall des Mailversands blockiert die Registrierung nicht. */

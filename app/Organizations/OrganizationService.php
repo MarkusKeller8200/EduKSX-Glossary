@@ -9,6 +9,7 @@ use App\Access\RoleManager;
 use App\Enums\MemberRole;
 use App\Enums\MemberStatus;
 use App\Glossary\TwoFactor;
+use App\Mail\InvitationAccepted;
 use App\Mail\OrganizationInvitationMail;
 use App\Mail\TwoFactorRemoved;
 use App\Models\Organization;
@@ -25,7 +26,9 @@ use App\Models\UserIdentity;
 use App\Proposals\ProposalService;
 use App\Support\MailSetup;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 /**
  * Einzige Stelle, die Organisationen ändert (#148, DEC-025, docs/KONZEPT-ORGANISATION.md).
@@ -262,6 +265,44 @@ final class OrganizationService
             ]);
             $invitation->delete();
         });
+    }
+
+    /**
+     * Neues Konto mit bestätigter Adresse (#461): Lag für genau diese Adresse schon vor dem Anlegen eine gültige
+     * Einladung vor, wird das Konto Mitglied (älteste Einladung) – die Bestätigung der Adresse belegt, dass die
+     * eingeladene Person das Konto angelegt hat. Bestehende Konten nehmen Einladungen weiterhin selbst an. Der
+     * einladende Org-Admin erhält einen Hinweis. Gibt die Organisation zurück oder null.
+     */
+    public function joinOnVerifiedEmail(User $user, string $via): ?Organization
+    {
+        if (! $user->isActive() || $this->membershipOf($user) !== null) {
+            return null;
+        }
+        $invitation = OrganizationInvitation::query()->whereRaw('lower(email) = ?', [mb_strtolower($user->email)])
+            ->where('expires_at', '>', now())->where('created_at', '<', $user->created_at ?? now())
+            ->with('organization')->orderBy('created_at')->orderBy('id')->first();
+        if ($invitation === null) {
+            return null;
+        }
+        $organization = $invitation->organization;
+        DB::transaction(function () use ($user, $invitation): void {
+            OrganizationMember::query()->create([
+                'organization_id' => $invitation->organization_id, 'user_id' => $user->id,
+                'role' => OrganizationMember::MEMBER, 'status' => 'active',
+            ]);
+            $invitation->delete();
+        });
+        Audit::log($user, $user, 'organization.joined', ['organization' => $organization->name, 'via' => $via]);
+        $inviter = $invitation->invited_by_id !== null ? User::query()->find($invitation->invited_by_id) : null;
+        if ($inviter !== null && $inviter->isActive() && MailSetup::configured()) {
+            try {
+                Mail::to($inviter->email)->send(new InvitationAccepted($organization->name, $user->name));
+            } catch (Throwable $e) {
+                Log::warning('Mail «Einladung angenommen» fehlgeschlagen', ['exception' => $e::class]);
+            }
+        }
+
+        return $organization;
     }
 
     public function decline(User $user, OrganizationInvitation $invitation): void
