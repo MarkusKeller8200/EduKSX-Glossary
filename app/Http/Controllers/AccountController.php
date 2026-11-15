@@ -10,6 +10,7 @@ use App\Data\PersonalData;
 use App\Enums\InstitutionKind;
 use App\Models\User;
 use App\Models\UserIdentity;
+use App\Support\History;
 use App\Support\MailSetup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -63,6 +64,8 @@ class AccountController extends Controller
             'microsoft' => $microsoft->enabled(),
             // E-Mail-Adresse ändern nur mit Mailversand (#416)
             'emailAenderbar' => MailSetup::configured(),
+            // Verlauf des eigenen Kontos (#417), unten aufklappbar
+            'verlauf' => History::forUser($user),
         ]);
     }
 

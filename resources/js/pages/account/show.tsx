@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import HistoryPanel, { type VerlaufEintrag } from '@/components/history-panel';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -42,12 +43,14 @@ export default function AccountShow({
     schularten,
     microsoft,
     emailAenderbar,
+    verlauf,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
     schularten: string[];
     microsoft: boolean;
     emailAenderbar: boolean;
+    verlauf: VerlaufEintrag[];
 }) {
     return (
         <>
@@ -124,6 +127,7 @@ export default function AccountShow({
             </Abschnitt>
 
             <Loeschen passwortGesetzt={konto.passwort_gesetzt} />
+            <HistoryPanel eintraege={verlauf} />
         </>
     );
 }

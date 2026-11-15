@@ -1,4 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import HistoryPanel, { type VerlaufEintrag } from '@/components/history-panel';
 import { Fragment, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import { confirmAction } from '@/components/confirm-dialog';
@@ -74,6 +75,8 @@ type Props = {
     darstellungen: PersoenlicheDarstellung[];
     meine_einladungen: MeineEinladung[];
     darf_gruenden: boolean;
+    /** nur für Organisations-Admins (#417) */
+    verlauf?: VerlaufEintrag[];
 };
 
 const opts = { preserveScroll: true } as const;
@@ -166,6 +169,7 @@ export default function OrganizationShow(props: Props) {
                     <Austreten />
                 </>
             )}
+            {props.verlauf ? <HistoryPanel eintraege={props.verlauf} /> : null}
         </>
     );
 }

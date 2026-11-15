@@ -20,6 +20,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   entfernt, und nach der nächsten Anmeldung wird das Einrichten angeboten. Gilt für Konten ohne erhöhte Rechte.
 - **E-Mail-Adresse ändern (#416):** In «Mein Konto» lässt sich die Adresse ändern. Ein Link geht an die neue Adresse,
   die bisherige erhält einen Hinweis; erst nach der Bestätigung gilt die neue.
+- **Verlauf (#417):** «Mein Konto», «Meine Organisation» (für Organisations-Admins) und die Detailseiten der
+  Administration zeigen ganz unten einen aufklappbaren Verlauf: wer wann was geändert hat, auch Änderungen durch
+  Administration und Organisations-Admins. Personenbezogene Werte erscheinen nur als «geändert».
 
 ### Geändert
 
