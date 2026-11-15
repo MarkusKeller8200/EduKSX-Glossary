@@ -203,18 +203,25 @@ schreibt «system.restore» ins Protokoll. Nicht übernommen werden Sitzungen, C
 Zurücksetzen des Passworts: Alle melden sich neu an, und Mails aus der Warteschlange der Quelle werden nicht verschickt.
 
 Stammt der Dump von einer Instanz mit anderem `APP_KEY`, fragt der Befehl nach dem Schlüssel der Quelle (oder
-`--schluessel-quelle=`) und verschlüsselt zweiten Faktor und Mailpasswort mit dem eigenen Schlüssel neu. Der Schlüssel
-der Quelle wird nicht gespeichert.
+`--schluessel-datei=` bzw. `--schluessel-quelle=`) und verschlüsselt zweiten Faktor und Mailpasswort mit dem eigenen
+Schlüssel neu. Der Schlüssel der Quelle wird nicht gespeichert. Leerzeichen und Zeilenumbrüche entfernt der Befehl
+(#387); passt die Form nicht, nennt die Meldung die erwartete Form (`base64:` + 44 Zeichen) und die erhaltene Länge,
+nie den Wert. Am sichersten ist `--schluessel-datei`: Steht `APP_KEY` nicht in der `.env`, liegt der Schlüssel im
+Volume unter `storage/app/.app_key`.
 
 Ablauf dev → prod:
 
 1. prod frisch installieren, gleiche Version wie dev (sonst zuerst angleichen), `/health` grün.
 2. dev anhalten (`php artisan down`), Dump schreiben: `php artisan glossary:dump --passwort`.
-3. Den ZIP-Dump über das VPN nach `prod-01` in `storage/app/backups/` kopieren.
-4. prod: `php artisan glossary:wiederherstellen storage/app/backups/<datei>.zip --trocken`, danach ohne `--trocken`
-   (Passwort, APP_KEY von dev, Bestätigung «WIEDERHERSTELLEN»).
+3. Den ZIP-Dump und den Schlüssel von dev (`storage/app/.app_key` bzw. `APP_KEY` aus der `.env`, z. B.
+   `docker compose cp app:/var/www/html/storage/app/.app_key ./dev-app-key`) über das VPN nach `prod-01` kopieren und in
+   den Container legen: `sudo docker compose cp <datei>.zip app:/var/www/html/storage/app/backups/` und ebenso die
+   Schlüsseldatei (auf test/prod `docker` immer mit `sudo`).
+4. prod: `php artisan glossary:wiederherstellen storage/app/backups/<datei>.zip --schluessel-datei=<schluesseldatei>
+   --trocken`, danach ohne `--trocken` (Passwort, Bestätigung «WIEDERHERSTELLEN»).
 5. Prüfen: Zählung, `/health`, Anmeldung mit zweitem Faktor, Stichproben, API mit einem Token eines Servicekontos.
-6. DNS bzw. Weiterleitung auf prod; dev auf Testdaten zurücksetzen (P1); Dump-Dateien mit echten Daten löschen.
+6. DNS bzw. Weiterleitung auf prod; dev auf Testdaten zurücksetzen (P1); Dump-Dateien mit echten Daten und die
+   Schlüsseldateien löschen (auf beiden Servern, im Container und auf dem Arbeitsplatz).
 
 **Auf dev (#355):** Mit `GLOSSARY_DEV_BACKUPS=true` gibt es in Administration › System zusätzlich «Vollständige
 Sicherung (Restore)»: Sicherungen auf dem Server anlegen (`storage/app/backups/dev/`) und wieder einspielen oder einen

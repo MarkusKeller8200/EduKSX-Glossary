@@ -149,19 +149,44 @@ final class DumpRestore
         if ($sample === null || $this->decrypts(app(StringEncrypter::class), $sample)) {
             return;   // nichts verschlüsselt oder gleicher Schlüssel
         }
-        if ($sourceKey === null || $sourceKey === '') {
-            throw new RuntimeException('Der Dump wurde mit einem anderen APP_KEY verschlüsselt (zweiter Faktor, Mailversand) – Schlüssel der Quelle mit --schluessel-quelle angeben.');
+        $sourceKey = self::normalizeKey($sourceKey);
+        if ($sourceKey === '') {
+            throw new RuntimeException('Der Dump wurde mit einem anderen APP_KEY verschlüsselt (zweiter Faktor, Mailversand) – Schlüssel der Quelle mit --schluessel-datei oder --schluessel-quelle angeben.');
         }
-        $key = str_starts_with($sourceKey, 'base64:') ? base64_decode(substr($sourceKey, 7)) : $sourceKey;
-        try {
-            $source = new Encrypter((string) $key, (string) config('app.cipher'));
-        } catch (RuntimeException $e) {
-            throw new RuntimeException('Schlüssel der Quelle ist ungültig: '.$e->getMessage(), 0, $e);
-        }
+        $source = self::sourceEncrypter($sourceKey);
         if (! $this->decrypts($source, $sample)) {
             throw new RuntimeException('Schlüssel der Quelle passt nicht zum Dump.');
         }
         $this->source = $source;
+    }
+
+    /**
+     * Schlüssel der Quelle bereinigen (#387): Leerzeichen und Zeilenumbrüche entfernen – beim Einfügen ins verdeckte Feld
+     * oder aus einer Datei ohne Zeilenumbruch am Ende kommen sie leicht mit. Ein APP_KEY enthält keine.
+     */
+    public static function normalizeKey(?string $key): string
+    {
+        return (string) preg_replace('/\s+/', '', (string) $key);
+    }
+
+    /** Encrypter für den Schlüssel der Quelle; bei falscher Form eine Meldung mit erwarteter Form, ohne den Wert. */
+    private static function sourceEncrypter(string $sourceKey): Encrypter
+    {
+        $sourceKey = self::normalizeKey($sourceKey);
+        $cipher = (string) config('app.cipher');
+        $raw = str_starts_with($sourceKey, 'base64:') ? base64_decode(substr($sourceKey, 7), true) : $sourceKey;
+        if (is_string($raw) && Encrypter::supported($raw, $cipher)) {
+            return new Encrypter($raw, $cipher);
+        }
+        $expected = 'base64: + '.strlen(base64_encode(Encrypter::generateKey($cipher))).' Zeichen';
+        $found = str_starts_with($sourceKey, 'base64:')
+            ? 'base64: + '.(strlen($sourceKey) - 7).' Zeichen'
+            : strlen($sourceKey).' Zeichen ohne «base64:»';
+        if ($raw === false) {
+            $found .= ', kein gültiges Base64';
+        }
+
+        throw new RuntimeException("Schlüssel der Quelle ist ungültig: erwartet {$expected} (wie APP_KEY in .env bzw. storage/app/.app_key), erhalten {$found}.");
     }
 
     /** Ein verschlüsselter Wert aus den Tabellen, die eingespielt werden */
