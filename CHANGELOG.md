@@ -18,6 +18,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Zweiten Faktor selbst zurücksetzen (#403):** Wer keinen Zugriff mehr auf die Authenticator-App hat, fordert im
   Schritt «Code» einen Link per Mail an und bestätigt dort mit E-Mail und Passwort. Danach ist der zweite Faktor
   entfernt, und nach der nächsten Anmeldung wird das Einrichten angeboten. Gilt für Konten ohne erhöhte Rechte.
+- **E-Mail-Adresse ändern (#416):** In «Mein Konto» lässt sich die Adresse ändern. Ein Link geht an die neue Adresse,
+  die bisherige erhält einen Hinweis; erst nach der Bestätigung gilt die neue.
 
 ### Geändert
 

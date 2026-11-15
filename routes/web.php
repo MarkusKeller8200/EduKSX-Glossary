@@ -24,6 +24,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\TwoFactorResetController;
+use App\Http\Controllers\EmailChangeController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\OrganizationController;
@@ -141,6 +142,9 @@ Route::get('anmelden/microsoft/rueckkehr', [SsoController::class, 'callback'])->
 // Bestätigungslink der Registrierung (signiert, 60 Minuten; ohne Anmeldung)
 Route::get('registrieren/bestaetigen/{user}/{hash}', [RegisterController::class, 'verify'])
     ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('register.verify');
+// Bestätigung der neuen E-Mail-Adresse (#416): auch ohne Anmeldung, z. B. auf dem Handy
+Route::get('konto/email/bestaetigen/{user}/{hash}', [EmailChangeController::class, 'confirm'])
+    ->middleware(['signed', 'throttle:10,1'])->whereUuid('user')->name('account.email.confirm');
 
 // Mein Konto (#39): für alle angemeldeten Konten, auch Community
 Route::middleware('auth')->prefix('konto')->group(function () {
@@ -149,6 +153,8 @@ Route::middleware('auth')->prefix('konto')->group(function () {
     Route::get('meine-daten', [AccountController::class, 'data'])->middleware('throttle:10,1')->name('account.data');
     Route::post('news', [AccountController::class, 'news'])->middleware('throttle:10,1')->name('account.news');
     Route::put('passwort', [AccountController::class, 'password'])->middleware('throttle:10,1')->name('account.password');
+    // E-Mail-Adresse ändern mit Bestätigung (#416)
+    Route::post('email', [EmailChangeController::class, 'request'])->middleware('throttle:5,1')->name('account.email');
     Route::post('loeschen', [AccountController::class, 'destroy'])->middleware('throttle:5,1')->name('account.destroy');
     Route::post('anmeldedienste/microsoft', [SsoController::class, 'startLink'])->middleware('throttle:5,1')->name('account.identities.microsoft');
     Route::delete('anmeldedienste/{identity}', [SsoController::class, 'unlink'])->whereNumber('identity')->middleware('throttle:5,1')->name('account.identities.destroy');

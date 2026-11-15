@@ -49,6 +49,8 @@ class UserController extends Controller
         'system.testmail' => 'Testmail ausgelöst',
         'account.registered' => 'Registriert',
         'account.verified' => 'E-Mail bestätigt',
+        'account.email_change_requested' => 'Änderung der E-Mail-Adresse angefragt',
+        'account.email_changed' => 'E-Mail-Adresse geändert',
         'account.password_reset' => 'Passwort über Link zurückgesetzt',
         'privacy.acknowledged' => 'Datenschutzerklärung zur Kenntnis genommen',
         'identity.linked' => 'Anmeldedienst verknüpft',

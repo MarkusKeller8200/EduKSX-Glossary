@@ -10,6 +10,7 @@ use App\Data\PersonalData;
 use App\Enums\InstitutionKind;
 use App\Models\User;
 use App\Models\UserIdentity;
+use App\Support\MailSetup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -60,6 +61,8 @@ class AccountController extends Controller
             // Schularten mit dem Merkmal «Einheitsgemeinde» (#415)
             'schularten' => array_values(array_map(fn (InstitutionKind $k): string => $k->value, array_filter(InstitutionKind::cases(), fn (InstitutionKind $k): bool => $k->isSchool()))),
             'microsoft' => $microsoft->enabled(),
+            // E-Mail-Adresse ändern nur mit Mailversand (#416)
+            'emailAenderbar' => MailSetup::configured(),
         ]);
     }
 
