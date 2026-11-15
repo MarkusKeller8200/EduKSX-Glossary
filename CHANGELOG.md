@@ -15,6 +15,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Zweiter Faktor durch Organisations-Admins (#404):** In «Meine Organisation» löschen Organisations-Admins den
   zweiten Faktor eines Mitglieds, etwa nach Verlust des Handys. Das Mitglied wird abgemeldet und erhält eine Mail.
   Andere Organisations-Admins und Konten mit weiteren Rechten bleiben der Administration vorbehalten.
+- **Zweiten Faktor selbst zurücksetzen (#403):** Wer keinen Zugriff mehr auf die Authenticator-App hat, fordert im
+  Schritt «Code» einen Link per Mail an und bestätigt dort mit E-Mail und Passwort. Danach ist der zweite Faktor
+  entfernt, und nach der nächsten Anmeldung wird das Einrichten angeboten. Gilt für Konten ohne erhöhte Rechte.
 
 ### Geändert
 

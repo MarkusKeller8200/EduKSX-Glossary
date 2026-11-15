@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,12 @@ import { Label } from '@/components/ui/label';
 /** Anmeldung, Schritt 2: Code aus der Authenticator-App oder Wiederherstellungscode (#11). */
 export default function TwoFactorChallenge() {
     const form = useForm({ code: '' });
+    const zuruecksetzen = () =>
+        router.post(
+            '/anmelden/code/zuruecksetzen',
+            {},
+            { preserveScroll: true },
+        );
     const submit = (e: FormEvent) => {
         e.preventDefault();
         form.post('/anmelden/code', { onFinish: () => form.reset('code') });
@@ -49,6 +55,18 @@ export default function TwoFactorChallenge() {
                         Anmelden
                     </Button>
                 </form>
+                {/* Selbst zurücksetzen per Link (#403); bei erhöhten Rechten nur über die Administration */}
+                <div className="mt-6 border-t border-border pt-4 text-sm text-muted-foreground">
+                    <p>Kein Zugriff mehr auf die Authenticator-App?</p>
+                    <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto px-0"
+                        onClick={zuruecksetzen}
+                    >
+                        Zweiten Faktor zurücksetzen
+                    </Button>
+                </div>
             </div>
         </>
     );

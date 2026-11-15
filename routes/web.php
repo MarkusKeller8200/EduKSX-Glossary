@@ -23,6 +23,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
+use App\Http\Controllers\Auth\TwoFactorResetController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\OrganizationController;
@@ -119,6 +120,10 @@ Route::middleware('guest')->group(function () {
     Route::post('anmelden', [LoginController::class, 'store'])->middleware('throttle:10,1')->name('login.store');
     Route::get('anmelden/code', [TwoFactorController::class, 'challenge'])->name('login.two-factor');
     Route::post('anmelden/code', [TwoFactorController::class, 'verify'])->middleware('throttle:10,1')->name('login.two-factor.verify');
+    // Zweiten Faktor selbst zurücksetzen (#403): Link per Mail, dann E-Mail und Passwort
+    Route::post('anmelden/code/zuruecksetzen', [TwoFactorResetController::class, 'request'])->middleware('throttle:5,1')->name('two-factor.reset.request');
+    Route::get('zwei-faktor-zuruecksetzen/{user}/{hash}', [TwoFactorResetController::class, 'show'])->whereUuid('user')->middleware('signed')->name('two-factor.reset');
+    Route::post('zwei-faktor-zuruecksetzen/{user}/{hash}', [TwoFactorResetController::class, 'reset'])->whereUuid('user')->middleware(['signed', 'throttle:10,1'])->name('two-factor.reset.confirm');
 
     // Selbstregistrierung mit Double-Opt-in und «Passwort vergessen» (#41); nur mit eingerichtetem Mailversand
     Route::get('registrieren', [RegisterController::class, 'create'])->name('register');
