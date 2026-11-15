@@ -1,5 +1,10 @@
 # Einrichten und Deployment: glossary.eduksx.ch
 
+> **Geltungsbereich (Stand 0.17.0):** Diese Anleitung beschreibt die **Entwicklungsumgebung** auf Hostinger
+> (`glossary-dev.markussx.ch`, Traefik). test und prod (`glossary-test.eduksx.ch`, `glossary.eduksx.ch`) laufen auf
+> Infomaniak über das Betriebs-Repo `markussx-operation` (Caddy, Komodo). Für eigene Installationen gilt
+> [docs/SELBST-HOSTEN.md](docs/SELBST-HOSTEN.md).
+
 > Eigene Instanz für eine Schule oder Gemeinde: [docs/SELBST-HOSTEN.md](docs/SELBST-HOSTEN.md).
 
 Anleitung für das Gerüst (#7). Aufbau wie im sek-intranet (`DEPLOY.md` dort), Konzept in

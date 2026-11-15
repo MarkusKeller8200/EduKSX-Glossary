@@ -43,7 +43,7 @@
 <main>
   <p class="wm" aria-label="EduKSX-Glossary"><span aria-hidden="true"><span class="v">E</span>du<span class="o">K</span><span class="b">SX</span>-Glossary</span></p>
   <p class="lead">Begriffe und Abkürzungen – reduzierte Lesefassung.</p>
-  <p class="hint">Vollständige Fassung mit Detailseiten, Quellen und API: <a href="https://glossary.eduksx.ch">glossary.eduksx.ch</a></p>
+  <p class="hint">Vollständige Fassung mit Detailseiten, Quellen und API: <a href="https://glossary.eduksx.ch">glossary.eduksx.ch</a> · Was ist das Glossary? <a href="produkt.html">Produkt-Intro</a></p>
 
   <input id="suche" type="search" placeholder="Begriff oder Abkürzung suchen …" aria-label="Begriff suchen" autocomplete="off">
   <nav class="az" id="az" aria-label="Index A–Z"></nav>
@@ -59,7 +59,7 @@
   </footer>
 </main>
 <script>
-  // Daten: site/begriffe.json, erzeugt mit «php artisan glossary:export-pages» aus dem veröffentlichten Stand (#27)
+  // Daten: site/begriffe.json, täglich vom Workflow «pages» aus /api/v1/exports (#410) bzw. «php artisan glossary:export-pages» (#27)
   const el = (id) => document.getElementById(id);
   const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
   let begriffe = [], full = 'https://glossary.eduksx.ch', buchstabe = null, kategorie = null;

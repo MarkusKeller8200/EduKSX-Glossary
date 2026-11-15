@@ -26,6 +26,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **GitHub und Lesefassung (#409, #410):** README und Hinweise zum Betrieb beschreiben den Stand der öffentlichen Beta.
+  Die Lesefassung auf GitHub Pages holt die Begriffe täglich aus der öffentlichen API und hat ein Produkt-Intro.
 - **Rechtliches, Datenschutz und Hilfe (#406, #407, #408):** «Rechtliches» erklärt kurz, was CC BY 4.0 für die
   Begriffe und AGPL-3.0 für den Code heisst, und listet die Lizenzen aller ausgelieferten Teile und der wichtigsten
   Drittkomponenten mit Link auf den vollständigen Lizenzbericht. Die Datenschutzerklärung (Entwurf) und die Hilfe

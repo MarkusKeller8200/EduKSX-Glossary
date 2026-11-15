@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EduKSX-Glossary – Begriffe und Abkürzungen für Schule und Verwaltung</title>
+  <meta name="description" content="EduKSX-Glossary erklärt Begriffe und Abkürzungen aus Volksschule, Schulgemeinde und Gemeinde – als Website, API, Script für eigene Seiten und Browsererweiterung. Offene Daten unter CC BY 4.0.">
+  <link rel="icon" href="bilder/icon.svg" type="image/svg+xml">
+  <style>
+    /* Farben nach CI MarKusSXCH (docs/KONZEPT-DESIGN.md), wie die Lesefassung */
+    :root { --bg: #ffffff; --fg: #222222; --muted: #5a6678; --line: #e2e8f0; --link: #0272ad; --card: #f8fafc;
+      --violet: #7952b3; --orange: #ff8a00; --blue: #007ebb; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #151b24; --fg: #f2f5f8; --muted: #aab6c7; --line: #2d3746; --link: #32b8f2; --card: #1b2330;
+        --violet: #b59aff; --blue: #32b8f2; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 17px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+    main { max-width: 980px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    a { color: var(--link); }
+    .wm { font-weight: 700; font-size: 1.1rem; margin: 0 0 2rem; display: flex; align-items: center; gap: .5rem; }
+    .wm img { width: 32px; height: 32px; }
+    .wm .v { color: var(--violet); } .wm .o { color: var(--orange); } .wm .b { color: var(--blue); }
+    h1 { font-size: clamp(1.9rem, 4vw, 2.8rem); line-height: 1.15; margin: 0; letter-spacing: -.02em; }
+    .lead { font-size: 1.2rem; color: var(--muted); max-width: 46rem; margin: 1rem 0 1.5rem; }
+    .cta { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 2.5rem; }
+    .btn { display: inline-block; padding: .65rem 1.1rem; border-radius: 8px; text-decoration: none; font-weight: 600; border: 1px solid var(--line); color: var(--fg); }
+    .btn.primary { background: var(--orange); border-color: var(--orange); color: #222222; }
+    figure { margin: 0; }
+    figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; display: block; }
+    figcaption { color: var(--muted); font-size: .9rem; margin-top: .5rem; }
+    h2 { font-size: 1.5rem; margin: 3rem 0 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.2rem; }
+    .card h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
+    .card p { margin: 0; color: var(--muted); font-size: .95rem; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+    ul.check { padding-left: 1.2rem; } ul.check li { margin: .3rem 0; }
+    footer { margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <p class="wm"><img src="bilder/icon.svg" alt=""><span><span class="v">E</span>du<span class="o">K</span><span class="b">SX</span>-Glossary</span></p>
+
+  <h1>Abkürzungen aus Schule und Verwaltung – verständlich erklärt.</h1>
+  <p class="lead">
+    SL, SHP, DaZ, VSA, LP21: Elternbriefe, Lehrpläne und Verordnungen stecken voller Abkürzungen. Das EduKSX-Glossary
+    sammelt Begriffe aus Volksschule, Schulgemeinde und Gemeinde, erklärt sie kurz und nennt die Quelle – frei
+    zugänglich, ohne Konto, mit offenen Daten.
+  </p>
+  <p class="cta">
+    <a class="btn primary" href="https://glossary.eduksx.ch">Glossary öffnen</a>
+    <a class="btn" href="https://glossary.eduksx.ch/entwickler">Für Entwickler</a>
+    <a class="btn" href="index.html">Lesefassung</a>
+  </p>
+
+  <figure>
+    <img src="bilder/liste.png" alt="Liste der Begriffe mit Abkürzung, Bezeichnung, Kategorie, Herkunft und Version" width="1280" height="900">
+    <figcaption>Die Liste mit Suche, Filtern und «Mehr Details» (Beispieldaten).</figcaption>
+  </figure>
+
+  <h2>Für wen?</h2>
+  <div class="grid">
+    <div class="card"><h3>Eltern und Öffentlichkeit</h3><p>Begriffe nachschlagen, ohne Anmeldung – auf dem Handy oder als installierbare WebApp.</p></div>
+    <div class="card"><h3>Schulen und Gemeinden</h3><p>Eine gemeinsame Sprache im Team: eigene Darstellung der Begriffe für die Organisation, Vorschläge mit Freigabe.</p></div>
+    <div class="card"><h3>Verwaltung und Behörden</h3><p>Abkürzungen in eigenen Webseiten automatisch erklären – per Script oder Browsererweiterung.</p></div>
+    <div class="card"><h3>Entwicklerinnen und Entwickler</h3><p>Offene REST-API mit OpenAPI-Beschreibung, Change-Feed und Index für die Erkennung.</p></div>
+  </div>
+
+  <h2>Was es kann</h2>
+  <div class="two">
+    <ul class="check">
+      <li><strong>Suchen und filtern</strong> nach Abkürzung, Bezeichnung, Schreibweise, Kategorie und Herkunft.</li>
+      <li><strong>Jeder Begriff mit Quelle</strong>, Gültigkeit, Version und Verlauf – nachvollziehbar statt Hörensagen.</li>
+      <li><strong>Mitmachen:</strong> Korrekturen und neue Begriffe vorschlagen; die Redaktion prüft und veröffentlicht.</li>
+      <li><strong>Organisationen</strong> mit gemeinsamer Darstellung, Einladungen und eigener API.</li>
+      <li><strong>Exporte</strong> nach Excel, CSV, PDF und Markdown.</li>
+      <li><strong>Sicher:</strong> zweiter Faktor, Verlauf aller Änderungen, Daten in der Schweiz.</li>
+    </ul>
+    <figure>
+      <img src="bilder/erklaerbox.png" alt="Webseite mit gepunktet unterstrichenen Abkürzungen und einer Erklärbox zu SHP" width="1280" height="800">
+      <figcaption>Browsererweiterung und Script: Abkürzungen auf beliebigen Seiten erklärt – die Suche läuft nur im Browser.</figcaption>
+    </figure>
+  </div>
+
+  <h2>Offen und frei</h2>
+  <div class="grid">
+    <div class="card"><h3>Daten: CC BY 4.0</h3><p>Frei nutzbar, auch kommerziell – mit Quellenangabe «EduKSX-Glossary (glossary.eduksx.ch)».</p></div>
+    <div class="card"><h3>Code: AGPL-3.0</h3><p>Selbst betreiben, anpassen, weitergeben; geänderte Fassungen im Netz bleiben offen. Script und Erweiterung unter MIT.</p></div>
+    <div class="card"><h3>Selbst hosten</h3><p>Ein signiertes Docker-Image je Release, SQLite oder PostgreSQL, Updates mit Rücksprung – <a href="https://github.com/MarkusKeller8200/EduKSX-Glossary/blob/main/docs/SELBST-HOSTEN.md">Anleitung</a>.</p></div>
+  </div>
+
+  <h2>Öffentliche Beta</h2>
+  <p>
+    Das Glossary ist seit Version 0.16.0 öffentlich nutzbar; Inhalte und Funktionen wachsen laufend.
+    Rückmeldungen und Begriffe sind willkommen: <a href="https://glossary.eduksx.ch/vorschlaege/neu">Begriff vorschlagen</a>
+    oder über die <a href="https://github.com/MarkusKeller8200/EduKSX-Glossary/issues/new/choose">Issue-Formulare</a>.
+  </p>
+
+  <footer>
+    <a href="https://glossary.eduksx.ch">glossary.eduksx.ch</a> ·
+    <a href="https://github.com/MarkusKeller8200/EduKSX-Glossary">Quellcode</a> ·
+    <a href="https://glossary.eduksx.ch/legals">Rechtliches</a> ·
+    <a href="https://glossary.eduksx.ch/impressum">Impressum</a> ·
+    Developed by <a href="https://markussx.ch/eduksx">MarKusSXCH</a>
+  </footer>
+</main>
+</body>
+</html>

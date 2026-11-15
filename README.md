@@ -1,29 +1,35 @@
 # EduKSX-Glossary
 
 Öffentliches Glossar mit Begriffen und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden –
-Website und REST-API. Ziel: **https://glossary.eduksx.ch** (in Aufbau); reduzierte Lesefassung:
-**https://markuskeller8200.github.io/EduKSX-Glossary/**
+Website, REST-API, Script zur Einbindung und Browsererweiterung. **Öffentliche Beta:** https://glossary.eduksx.ch ·
+[Produkt-Intro](https://markuskeller8200.github.io/EduKSX-Glossary/produkt.html) ·
+reduzierte Lesefassung: https://markuskeller8200.github.io/EduKSX-Glossary/
 
-## Funktionen (Stand 0.8.0)
+## Funktionen (Stand 0.17.0)
 
-- **Website:** Suche, Filter nach Kategorie und Herkunft, Tabelle oder Kacheln, Detailseite je Begriff mit Verlauf;
-  Ansichten Mobil, Darstellungsoptimiert, Breit und Voll; Hilfe zu allen Feldern (`/hilfe`).
-- **Konten:** Registrierung mit Bestätigung, Microsoft-Anmeldung, zweiter Faktor (Pflicht ab Organisations-Admin),
-  Rollen Gast, Benutzer, Organisations-Admin, Moderator, Admin, Developer.
+- **Website:** Suche, Filter nach Kategorie und Herkunft, Balken (mit «Mehr Details»), Tabelle oder Kacheln, Version
+  je Begriff, Detailseite mit Verlauf, Permalink `/g/{Code}`; Ansichten Mobil, Darstellungsoptimiert, Breit und Voll;
+  installierbar als WebApp; Hilfe nach Rolle (`/hilfe`).
+- **Konten:** Registrierung mit Bestätigung, Microsoft-Anmeldung, zweiter Faktor (Pflicht ab Moderator und für
+  Organisations-Admins, Selbst-Zurücksetzen per Mail), E-Mail ändern mit Bestätigung, Verlauf, «Meine Daten».
+- **Organisationen:** gründen, einladen, eigene Darstellung der Begriffe, Freigaben, Servicekonten mit Scope `read-org`.
 - **Ab Benutzer:** Export (Excel, CSV, PDF, Markdown), Vorschläge und Korrekturen mit Rückfragen, persönliche
   Darstellung eines Begriffs.
 - **Redaktion:** Begriffe mit Revisionen, Entwurf und Veröffentlichung (optional Vier-Augen-Prinzip), Wiederherstellen,
-  Doppelte zusammenführen, Quellenprüfung, Altwerte, Moderation der Vorschläge, Excel-Import mit Vorschau, Listen
-  (Kategorien, Herkunft) mit Excel.
-- **Verwaltung:** Benutzer und Rollen, Passwort-Link, Servicekonten mit Token, allgemeine Einstellungen, System.
-- **API:** `/api/v1` (OpenAPI 3.1, Doku unter `/api/docs`), Change-Feed für den Abgleich, Vorschläge per Token;
-  Lesefassung über GitHub Pages.
+  Doppelte zusammenführen, Quellenprüfung, Moderation der Vorschläge, Excel-Import mit Vorschau, Listen mit Excel.
+- **Verwaltung:** Benutzer und Organisationen (lesend), Rollen, Passwort-Link, Servicekonten mit Token, Einstellungen,
+  System (Mailversand, Sicherung und Wiederherstellung, Updates).
+- **API und Einbindung:** `/api/v1` (OpenAPI 3.1, Doku `/api/docs`, Swagger `/api/swagger`, Postman), Index für die
+  Erkennung, Change-Feed; Script zur Einbindung und Browsererweiterung für Chrome, Edge und Firefox
+  (Seite «Für Entwickler»).
+- **Betrieb:** signiertes Docker-Image je Release, SQLite oder PostgreSQL, Update-Dienst mit Rücksprung,
+  Sitemap und Suchmaschinen nur für die öffentliche Instanz.
 
 ## Stack
 
 Wie das [sek-intranet](https://github.com/MarkusKeller8200/sek-intranet): Laravel 13 (PHP 8.4), Inertia 3, React 19,
-TypeScript, shadcn/ui, Tailwind 4 – mit **SQLite** als Datenbank. Auftritt nach CI MarKusSXCH, GUI-Bausteine aus
-dem Intranet übernommen. Konzepte: [docs/KONZEPT.md](docs/KONZEPT.md), Entscheide:
+TypeScript, shadcn/ui, Tailwind 4 – mit **SQLite oder PostgreSQL**. Gemeinsame Bausteine aus `eduksx/core`.
+Auftritt nach CI MarKusSXCH. Konzepte: [docs/KONZEPT.md](docs/KONZEPT.md), Entscheide:
 [docs/ENTSCHEIDE.md](docs/ENTSCHEIDE.md).
 
 ## Starten
@@ -40,25 +46,34 @@ composer dev                # http://localhost:8000
 composer ci:check           # Prüfungen wie in der CI
 ```
 
-Online stellen auf `https://glossary.eduksx.ch` (Hostinger-VPS, Docker, Traefik, Cloudflare): [DEPLOY.md](DEPLOY.md).
+Betrieb: **selbst hosten** mit [docs/SELBST-HOSTEN.md](docs/SELBST-HOSTEN.md) (Docker, Caddy oder Traefik, Updates).
+Die öffentliche Instanz läuft auf test-01/prod-01 über das Betriebs-Repo `markussx-operation`; die Entwicklungsumgebung
+(Hostinger) beschreibt [DEPLOY.md](DEPLOY.md), die Umgebungsvariablen [docs/UMGEBUNGSVARIABLEN.md](docs/UMGEBUNGSVARIABLEN.md).
 
 ## Aufbau
 
-| Pfad                           | Inhalt                                                                              |
-| ------------------------------ | ----------------------------------------------------------------------------------- |
-| `app/`, `routes/`, `database/` | Laravel: Website, Anmeldung, Administration, API `/api/v1`                          |
-| `resources/js/`                | React-Seiten und Bausteine (aus dem Intranet, [Liste](docs/UEBERNAHME-INTRANET.md)) |
-| `openapi/glossary-v1.json`     | Beschreibung der API (OpenAPI 3.1, auch als YAML unter `/api/openapi.yaml`)         |
-| `site/`                        | reduzierte Lesefassung über GitHub Pages                                            |
-| `VERSION`, `CHANGELOG.md`      | Version und Versionshistorie (Seite «Versionen»)                                    |
-| `docs/`                        | Konzepte, Entscheide, Ablauf auf GitHub                                             |
+| Pfad                                  | Inhalt                                                                              |
+| ------------------------------------- | ----------------------------------------------------------------------------------- |
+| `app/`, `routes/`, `database/`        | Laravel: Website, Anmeldung, Administration, API `/api/v1`                          |
+| `resources/js/`                       | React-Seiten und Bausteine (aus dem Intranet, [Liste](docs/UEBERNAHME-INTRANET.md)) |
+| `openapi/glossary-v1.json`            | Beschreibung der API (OpenAPI 3.1, auch als YAML unter `/api/openapi.yaml`)         |
+| `site/`                               | Lesefassung und Produkt-Intro über GitHub Pages                                     |
+| `packages/highlighter/`, `extension/` | Kern der Erkennung (MIT), Script zur Einbindung, Browsererweiterung                 |
+| `VERSION`, `CHANGELOG.md`             | Version und Versionshistorie (Seite «Versionen»)                                    |
+| `docs/`                               | Konzepte, Entscheide, Ablauf auf GitHub                                             |
 
 ## Rechtliches und Drittlizenzen
 
-Die Herkunft verwendeter Frameworks, kopierter Komponenten und weiterer Bibliotheken ist in
-[docs/LEGAL.md](docs/LEGAL.md) dokumentiert. Die öffentliche Übersicht ist unter `/legals` vorgesehen.
-`sek-intranet` und `my-github-blueprint` sind eigene Repositories; geprüft werden die darin
-enthaltenen Fremdanteile und deren Lizenzpflichten. Der eigene Code steht ab Version 0.15.0 unter der [GNU Affero General Public License 3.0 oder später](LICENSE) (AGPL-3.0-or-later, DEC-040; Versionen bis 0.14.0 unter MIT), die Daten unter CC BY 4.0. Wer eine geänderte Fassung im Netz betreibt, stellt deren Quellcode bereit (Link «Quellcode» in der Fusszeile, `GLOSSARY_SOURCE_URL`). Ausnahme: `packages/highlighter` (Einbindungs-Script `public/embed/` und Browser-Erweiterung) bleibt unter MIT ([eigene LICENSE](packages/highlighter/LICENSE)), damit fremde Seiten es ohne Auflagen einbinden können; Drittkomponenten behalten ihre Lizenzen. Diese Dokumentation ersetzt keine vollständige Lizenzinventur.
+- **Code:** [GNU Affero General Public License 3.0 oder später](LICENSE) (AGPL-3.0-or-later) ab Version 0.15.0, bis
+  0.14.0 MIT. Wer eine geänderte Fassung im Netz betreibt, stellt deren Quellcode bereit (Link «Quellcode» in der
+  Fusszeile, `GLOSSARY_SOURCE_URL`).
+- **Script zur Einbindung und Browsererweiterung:** MIT ([packages/highlighter/LICENSE](packages/highlighter/LICENSE)),
+  damit fremde Seiten sie ohne Auflagen einbinden können.
+- **Daten:** CC BY 4.0 – frei nutzbar mit Quellenangabe «EduKSX-Glossary (glossary.eduksx.ch)».
+- **Marke:** EduKSX und MarKusSXCH sind nicht Teil der Lizenzen.
+
+Öffentliche Übersicht mit Erklärung: [/legals](https://glossary.eduksx.ch/legals); Herkunft und Prüfstand:
+[docs/LEGAL.md](docs/LEGAL.md); vollständiger Lizenzbericht je Release als Anhang `license-report.md`.
 
 ## Mitmachen
 
