@@ -3,11 +3,14 @@
 namespace App\Organizations;
 
 use App\Access\AccessDenied;
+use App\Access\AccountManager;
 use App\Access\Audit;
 use App\Access\RoleManager;
 use App\Enums\MemberRole;
 use App\Enums\MemberStatus;
+use App\Glossary\TwoFactor;
 use App\Mail\OrganizationInvitationMail;
+use App\Mail\TwoFactorRemoved;
 use App\Models\Organization;
 use App\Models\OrganizationInvitation;
 use App\Models\OrganizationMember;
@@ -281,6 +284,35 @@ final class OrganizationService
         // Gesperrte Organisations-Admins verlieren die Verwaltung und damit die globale Rolle
         if ($member->isAdmin()) {
             $blocked ? $this->revokeRole($member) : $this->grantRole($member);
+        }
+    }
+
+    /**
+     * Zweiten Faktor eines Mitglieds löschen (#404), z. B. nach Verlust des Handys. Nur einfache Mitglieder: andere
+     * Organisations-Admins und Konten, die den zweiten Faktor für eigene Rechte brauchen (ab Moderator), nur über die
+     * Administration (Entscheid 15.11.2026). Sitzungen enden, das Konto erhält eine Mail.
+     */
+    public function resetTwoFactor(User $actor, OrganizationMember $member): void
+    {
+        $target = $member->user;
+        $this->guard($actor, $target, 'mfa.reset', function () use ($actor, $member, $target): void {
+            $this->requireAdmin($actor, $member->organization);
+            $this->requireNotSelf($actor, $member);
+            if ($member->isAdmin()) {
+                throw new AccessDenied('Den zweiten Faktor von Organisations-Admins setzt die Administration zurück.');
+            }
+            if ($target->needsTwoFactor()) {
+                throw new AccessDenied('Dieses Konto braucht den zweiten Faktor für weitere Rechte – zurücksetzen nur über die Administration.');
+            }
+            if (! $target->hasTwoFactor()) {
+                throw new AccessDenied('Für dieses Konto ist kein zweiter Faktor eingerichtet.');
+            }
+        }, ['organization' => $member->organization->name, 'durch' => 'Organisations-Admin']);
+
+        app(TwoFactor::class)->reset($target);
+        app(AccountManager::class)->endSessions($target);
+        if (MailSetup::configured()) {
+            Mail::to($target->email)->send(new TwoFactorRemoved('durch einen Organisations-Admin von «'.$member->organization->name.'»'));
         }
     }
 

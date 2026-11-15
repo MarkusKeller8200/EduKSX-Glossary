@@ -85,6 +85,9 @@ class OrganizationController extends Controller
                 'gesperrt' => ! $m->isActive(),
                 'ich' => $m->user_id === $user->id,
                 'seit' => $m->created_at?->toDateString(),
+                // Zweiten Faktor löschen (#404): nur einfache Mitglieder ohne weitere Rechte, die einen haben
+                'zweiter_faktor_loeschbar' => $admin && ! $m->isAdmin() && $m->user_id !== $user->id
+                    && $m->user->hasTwoFactor() && ! $m->user->needsTwoFactor(),
             ])->all();
         $props['anpassungen'] = OrganizationTermOverride::query()->where('organization_id', $organization->id)->with('term')->get()
             ->map(fn (OrganizationTermOverride $o): array => [
@@ -211,6 +214,12 @@ class OrganizationController extends Controller
     public function block(Request $request, OrganizationMember $member): RedirectResponse
     {
         return $this->run(fn () => $this->organizations->setBlocked($this->currentUser($request), $member, true), 'Mitglied gesperrt.');
+    }
+
+    /** Zweiten Faktor eines Mitglieds löschen (#404) */
+    public function resetTwoFactor(Request $request, OrganizationMember $member): RedirectResponse
+    {
+        return $this->run(fn () => $this->organizations->resetTwoFactor($this->currentUser($request), $member), 'Zweiter Faktor gelöscht – das Mitglied richtet ihn bei der nächsten Anmeldung neu ein.');
     }
 
     public function unblock(Request $request, OrganizationMember $member): RedirectResponse

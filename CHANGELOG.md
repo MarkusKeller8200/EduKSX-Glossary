@@ -12,6 +12,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Organisationen. Die Liste der Konten zeigt die Organisation mit Rolle, die letzte Anmeldung und das Datum der
   Anlage. Organisationen erscheinen mit Mitgliedern, Organisations-Admins und offenen Einladungen. Die Detailseiten von
   Konto und Organisation zeigen alle Angaben lesend, ohne Passwörter, Codes oder Token.
+- **Zweiter Faktor durch Organisations-Admins (#404):** In «Meine Organisation» löschen Organisations-Admins den
+  zweiten Faktor eines Mitglieds, etwa nach Verlust des Handys. Das Mitglied wird abgemeldet und erhält eine Mail.
+  Andere Organisations-Admins und Konten mit weiteren Rechten bleiben der Administration vorbehalten.
 
 ### Geändert
 
@@ -136,7 +139,6 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Zählung je Tabelle; der bisherige Stand wird zuerst gesichert, ein Abbruch ändert nichts. Stammt der Dump von einer
   Instanz mit anderem `APP_KEY`, werden zweiter Faktor und Mailpasswort mit dem Schlüssel der Quelle neu verschlüsselt.
   Alle melden sich danach neu an. Nur in production; dev und test erhalten weiter nur anonymisierte Dumps.
-
 - **Steckbrief und Bereitschaft (#189, #325):** `/.well-known/eduksx-module.json` mit Modulschlüssel, Version,
   API-Version, Datenlizenz, Verweisen auf OpenAPI und Dokumentation sowie den Ereignissen, die das Glossary von Ident
   annimmt; `/health` meldet Datenbank, Migrationen, Warteschlange und Speicher (503, wenn Datenbank oder Migrationen
@@ -443,10 +445,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Öffentlicher Verlauf (#68):** Die Detailseite zeigt die veröffentlichten Revisionen mit Datum, ohne Personen.
 - **Quellenprüfung (#69):** Prüfdatum und Belegstatus je Herkunft; Seite «Prüfung» mit jährlicher Wiedervorlage.
 - **Import-Protokoll (#64):** Jeder übernommene Import mit Datei, Person, Zeitpunkt und Ergebnis.
-
 - **Softwarelizenz (#65):** Der eigene Code steht unter der MIT-Lizenz (Datei `LICENSE`, Hinweis auf
   `/legals`).
-
 - **Farbige Labels (#77, #91, #92):** Kategorien und Herkunft in der Farbe, die unter «Listen» gewählt wird (Palette
   aus dem Intranet, hell und dunkel mit Kontrast AA). Status der Begriffe als Label (aktuell grün, zu prüfen orange,
   historisch grau), Veröffentlichung als «V1», «V2» … und «Entwurf V…», inaktiv und zusammengeführt eigens markiert.
@@ -465,7 +465,6 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 - **Microsoft-Anmeldung (#61):** einmaliger nonce je Anmeldung, im id_token geprüft.
 - **Log-Rotation (#60):** Docker rotiert die Logs je Dienst; Frist 14 Tage über den Host (DEPLOY.md).
-
 - **Administration (#89, #90):** Kopf in zwei Zeilen – Titel, Person und Abmelden oben, alle Menüpunkte darunter;
   Beschreibungen unter den Seitentiteln in voller Breite.
 
@@ -508,46 +507,37 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Moderatoren bearbeiten Begriffe, veröffentlichen aber nicht. Schutzregeln: niemand erhöht eigene Rechte,
   Developer nur per `php artisan glossary:developer E-MAIL`, das letzte Developer-Konto und die letzte
   Verwaltungsberechtigung bleiben erhalten. Jede Änderung steht im Protokoll.
-
 - **Anmeldung gehärtet (#37):** Privilegierte Rechte gelten nur mit bestätigtem zweitem Faktor, auch wenn die Rolle
   sie hat. Gesperrte Konten verlieren den Zugang sofort, auch in offenen Sitzungen; Entsperren im Notfall mit
   `php artisan glossary:admin E-MAIL --entsperren`. Rollenänderungen wirken ohne neue Anmeldung. Einrichten,
   Zurücksetzen und Wiederherstellungscodes des zweiten Faktors stehen im Protokoll. Konten ohne Verwaltungsrechte
   landen nach der Anmeldung auf der Startseite. Sitzungs-Cookie im Betrieb nur über HTTPS.
-
 - **Veröffentlichungsgrenze (#43):** Öffentliche Ausgaben (Website, API, Vollstand, Change-Feed, GitHub Pages)
   bauen nur aus einer Positivliste von Feldern. Ein automatischer Test prüft, dass Notizen, «Intern genutzt in»,
   Entwürfe, unveröffentlichte Begriffe und Kontodaten nirgends erscheinen.
-
 - **Benutzer und Rollen verwalten (#38):** Neue Seiten «Benutzer» (Liste mit Suche und Filter, Konto anlegen,
   Detail mit Rollen, Sperren, zweiten Faktor zurücksetzen und Protokoll) und «Rollen und Rechte» (Rechte je Rolle mit
   Schutzklassen, eigene Rollen wie «Redaktion Schule» anlegen). Was ausserhalb der eigenen Befugnis liegt, ist
   ausgegraut und wird serverseitig abgewiesen.
-
 - **Mein Konto (#39):** Seite `/konto` für alle angemeldeten Konten: Vor- und Nachname, freiwillig Community-Name
   (öffentlich nur bei Vorschlägen), Funktion, Art der Einrichtung und Gemeinde/Schule; Passwort ändern (andere
   Sitzungen werden abgemeldet), zweiter Faktor (für Community freiwillig) und Konto löschen. Gespeichert wird von
   der letzten Anmeldung nur das Datum.
-
 - **E-Mail-Versand (#40):** an keinen Anbieter gebunden (Microsoft 365, Google, SMTP von Infomaniak/Hostinger oder
   Versanddienste), eingestellt nur in der Umgebung des Servers (Anleitung in DEPLOY.md). Neue Seite «System» für
   Developer mit Stand des Versands und Testmail. Mails laufen im Betrieb über eine Warteschlange mit Wiederholung;
   dafür kommen die Dienste `worker` und `scheduler` dazu.
-
 - **Konto anlegen und Passwort vergessen (#41):** Selbstregistrierung mit Bestätigungslink per E-Mail (60 Minuten,
   Double-Opt-in), Spam-Schutz mit Cloudflare Turnstile (wenn eingerichtet) und Kenntnisnahme der
   Datenschutzerklärung (Version und Zeitpunkt gespeichert). Neue Konten haben nur Community-Rechte; unbestätigte
   werden nach 7 Tagen gelöscht (`glossary:loeschfristen`, täglich). «Passwort vergessen» schickt einen einmaligen
   Link; die Antworten verraten nicht, ob eine Adresse ein Konto hat. Beides nur mit eingerichtetem Mailversand.
-
 - **Datenschutz (#42):** Seite `/datenschutz` mit Version und Hinweis «Entwurf» (Link im Fuss). Angemeldete Konten
   nehmen jede neue Version einmal zur Kenntnis (gespeichert mit Zeitpunkt, getrennt von Einwilligungen).
   Löschkonzept in `docs/LOESCHKONZEPT.md`; `glossary:loeschfristen` löscht täglich unbestätigte Registrierungen,
   inaktive Community-Konten nach 24 Monaten (Hinweis per Mail 30 Tage vorher) und Protokolleinträge nach der Frist.
-
 - **Keine fremden Server auf öffentlichen Seiten (#44):** Die API-Doku (Scalar) wird selbst ausgeliefert statt von
   jsDelivr geladen; die Schrift Inter wird beim Build eingebunden. Datenschutzerklärung und Rechtliches nachgeführt.
-
 - **Anmelden mit Microsoft (#45):** Knopf «Mit Microsoft anmelden» für Geschäfts-, Schul- und private
   Microsoft-Konten (OpenID Connect mit PKCE, geprüftes id_token). Neue Konten haben nur Community-Rechte. Eine
   gleiche E-Mail verknüpft nie automatisch: Bestehende Konten verknüpfen Microsoft unter «Mein Konto» nach
