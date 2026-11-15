@@ -49,6 +49,7 @@ Route::get('metrics', MetricsController::class)->withoutMiddleware(['web'])->mid
 Route::post('suche/ohne-treffer', [SearchMissController::class, 'store'])->middleware('throttle:20,1')->name('search-miss');
 Route::get('versionen', [PageController::class, 'versions'])->name('versions');
 Route::get('legals', [PageController::class, 'legals'])->name('legals');
+Route::get('impressum', [PageController::class, 'imprint'])->name('imprint');
 Route::get('hilfe', [PageController::class, 'help'])->name('help');
 // Einbindung für Entwickler (#155, DEC-026)
 Route::get('entwickler', [PageController::class, 'developers'])->name('developers');

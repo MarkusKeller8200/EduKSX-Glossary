@@ -23,6 +23,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 - **Verlauf (#417):** «Mein Konto», «Meine Organisation» (für Organisations-Admins) und die Detailseiten der
   Administration zeigen ganz unten einen aufklappbaren Verlauf: wer wann was geändert hat, auch Änderungen durch
   Administration und Organisations-Admins. Personenbezogene Werte erscheinen nur als «geändert».
+- **Impressum (#411):** Neue Seite `/impressum`, verlinkt in der Fusszeile. Die Angaben trägt jede Instanz unter
+  Administration › Einstellungen › Impressum ein (oder in der Umgebung). Die Datenschutzerklärung nennt die
+  verantwortliche Stelle.
 
 ### Geändert
 

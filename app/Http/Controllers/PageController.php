@@ -150,6 +150,23 @@ class PageController extends Controller
         return Inertia::render('legals');
     }
 
+    /** Impressum (#411): Angaben je Instanz aus den Einstellungen (Administration › Einstellungen › Impressum). */
+    public function imprint(): Response
+    {
+        $email = Settings::string('imprint.email');
+
+        return Inertia::render('imprint', [
+            'impressum' => [
+                'betreiber' => Settings::string('imprint.operator'),
+                'adresse' => Settings::string('imprint.address'),
+                'email' => $email,
+                'datenschutz' => Settings::string('imprint.privacy_email') ?: $email,
+                'register' => Settings::string('imprint.register'),
+                'inhalt' => Settings::string('imprint.content'),
+            ],
+        ]);
+    }
+
     /** Versionshistorie aus CHANGELOG.md (docs/KONZEPT-VERSIONIERUNG.md, #6). */
     public function versions(): Response
     {

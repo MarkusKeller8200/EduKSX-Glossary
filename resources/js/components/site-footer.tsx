@@ -84,6 +84,13 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                         Rechtliches
                     </Link>
                     {' · '}
+                    <Link
+                        href="/impressum"
+                        className="text-link underline-offset-4 hover:underline"
+                    >
+                        Impressum
+                    </Link>
+                    {' · '}
                     <a
                         href={links.quellcode}
                         className="text-link underline-offset-4 hover:underline"

@@ -24,7 +24,7 @@ final class Settings
      * `env`: Variable der Umgebung mit Vorrang – ist sie gesetzt, ist die Einstellung in der Administration gesperrt (#366).
      * Typ `secret`: verschlüsselt gespeichert (APP_KEY), nie angezeigt; setzen nur über setSecret().
      *
-     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice'|'secret', min?: int, max?: int, einheit?: string, optionen?: array<string, string>, env?: string}>
+     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice'|'secret'|'text'|'email', min?: int, max?: int, einheit?: string, optionen?: array<string, string>, env?: string}>
      */
     public const DEFINITIONS = [
         'retention.inactive_months' => ['gruppe' => 'Löschfristen', 'label' => 'Inaktive Community-Konten löschen nach', 'hinweis' => 'Ohne Anmeldung; vorher kommt ein Hinweis per Mail.', 'typ' => 'int', 'min' => 6, 'max' => 60, 'einheit' => 'Monaten'],
@@ -43,6 +43,13 @@ final class Settings
         'dump.require_password' => ['gruppe' => 'Betrieb', 'label' => 'Vollständige Dumps nur mit Passwort', 'hinweis' => 'Administration › System und glossary:dump verlangen ein Passwort (AES-256).', 'typ' => 'bool', 'env' => 'GLOSSARY_DUMP_REQUIRE_PASSWORD'],
         'metrics.token' => ['gruppe' => 'Betrieb', 'label' => 'Token für die Metriken (/metrics)', 'hinweis' => 'Prometheus ruft /metrics mit «Authorization: Bearer <Token>» ab. Ohne Token sind die Metriken aus.', 'typ' => 'secret', 'env' => 'GLOSSARY_METRICS_TOKEN'],
         'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
+        // Impressum (#411): je Instanz; leer zeigt die Seite einen Hinweis für die Betreiber
+        'imprint.operator' => ['gruppe' => 'Impressum', 'label' => 'Betreiber', 'hinweis' => 'Name der Person oder Organisation, die diese Instanz betreibt, z. B. «Muster Schule, Schulverwaltung».', 'typ' => 'text', 'max' => 150, 'env' => 'GLOSSARY_IMPRESSUM_BETREIBER'],
+        'imprint.address' => ['gruppe' => 'Impressum', 'label' => 'Postadresse', 'hinweis' => 'Strasse, PLZ und Ort.', 'typ' => 'text', 'max' => 200, 'env' => 'GLOSSARY_IMPRESSUM_ADRESSE'],
+        'imprint.email' => ['gruppe' => 'Impressum', 'label' => 'Kontakt (E-Mail)', 'hinweis' => 'Allgemeine Anfragen.', 'typ' => 'email', 'env' => 'GLOSSARY_IMPRESSUM_EMAIL'],
+        'imprint.privacy_email' => ['gruppe' => 'Impressum', 'label' => 'Kontakt Datenschutz (E-Mail)', 'hinweis' => 'Anfragen zu Personendaten; leer = Kontakt oben.', 'typ' => 'email', 'env' => 'GLOSSARY_IMPRESSUM_DATENSCHUTZ'],
+        'imprint.register' => ['gruppe' => 'Impressum', 'label' => 'Handelsregister / UID', 'hinweis' => 'Leer, wenn keine vorhanden.', 'typ' => 'text', 'max' => 100, 'env' => 'GLOSSARY_IMPRESSUM_UID'],
+        'imprint.content' => ['gruppe' => 'Impressum', 'label' => 'Verantwortlich für den Inhalt', 'hinweis' => 'Z. B. «Die Community des Glossary; verantwortlich für die Veröffentlichung: …».', 'typ' => 'text', 'max' => 300, 'env' => 'GLOSSARY_IMPRESSUM_INHALT'],
     ];
 
     /** Zwischenspeicher je Anwendungsinstanz (pro Anfrage bzw. Test frisch). */
@@ -68,6 +75,12 @@ final class Settings
             'links.source_url' => (string) config('glossary.source_url', ''),
             'dump.require_password' => (bool) config('glossary.dump_require_password', false),
             'metrics.token' => (string) config('glossary.metrics_token', ''),
+            'imprint.operator' => (string) config('glossary.imprint.operator', ''),
+            'imprint.address' => (string) config('glossary.imprint.address', ''),
+            'imprint.email' => (string) config('glossary.imprint.email', ''),
+            'imprint.privacy_email' => (string) config('glossary.imprint.privacy_email', ''),
+            'imprint.register' => (string) config('glossary.imprint.register', ''),
+            'imprint.content' => (string) config('glossary.imprint.content', ''),
             default => throw new InvalidArgumentException("Unbekannte Einstellung «{$key}»."),
         };
     }
@@ -234,6 +247,22 @@ final class Settings
                 $options = $def['optionen'] ?? [];
                 if (! array_key_exists($v, $options)) {
                     throw new InvalidArgumentException("«{$label}»: ungültige Auswahl.");
+                }
+
+                return $v;
+            })(),
+            'text' => (function () use ($label, $value, $def): string {
+                $v = trim((string) $value);
+                if (mb_strlen($v) > (int) ($def['max'] ?? 200)) {
+                    throw new InvalidArgumentException("«{$label}»: höchstens ".(int) ($def['max'] ?? 200).' Zeichen.');
+                }
+
+                return $v;
+            })(),
+            'email' => (function () use ($label, $value): string {
+                $v = trim((string) $value);
+                if ($v !== '' && filter_var($v, FILTER_VALIDATE_EMAIL) === false) {
+                    throw new InvalidArgumentException("«{$label}»: gültige E-Mail-Adresse angeben.");
                 }
 
                 return $v;

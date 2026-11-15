@@ -32,6 +32,16 @@ return [
     // Frühere Adresse, die auf APP_URL weiterleitet (#304), z. B. glossary.markussx.ch nach dem Wechsel auf glossary-dev
     'redirect_host' => (string) env('GLOSSARY_REDIRECT_HOST', ''),
 
+    // Impressum (#411): Vorgaben je Instanz, einstellbar unter Administration › Einstellungen
+    'imprint' => [
+        'operator' => (string) env('GLOSSARY_IMPRESSUM_BETREIBER', ''),
+        'address' => (string) env('GLOSSARY_IMPRESSUM_ADRESSE', ''),
+        'email' => (string) env('GLOSSARY_IMPRESSUM_EMAIL', ''),
+        'privacy_email' => (string) env('GLOSSARY_IMPRESSUM_DATENSCHUTZ', ''),
+        'register' => (string) env('GLOSSARY_IMPRESSUM_UID', ''),
+        'content' => (string) env('GLOSSARY_IMPRESSUM_INHALT', ''),
+    ],
+
     // Suchmaschinen (#393): nur die öffentliche Instanz wird indexiert (prod: true). Aus = X-Robots-Tag noindex,
     // robots.txt sperrt alles, keine Sitemap – dev, test und selbst gehostete Kopien konkurrieren nicht mit dem Master.
     'search_engines' => (bool) env('GLOSSARY_SUCHMASCHINEN', false),
