@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\OrganizationMember;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
+use App\Organizations\OrganizationService;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -38,6 +40,45 @@ class UserAdminTest extends TestCase
             ->where('protokoll.0.aktion', 'Rolle vergeben')
             ->where('rollen.5.key', Role::DEVELOPER)
             ->where('rollen.5.aenderbar', false));
+    }
+
+    /** Spalte Organisation (#412), Organisationen als Liste und Detail nur lesend (#413, #414). */
+    public function test_organisationen_in_der_benutzerverwaltung(): void
+    {
+        $leitung = $this->userWithRoles([Role::USER], 'leitung@schule.example');
+        $org = app(OrganizationService::class)->create($leitung, 'Schule Muster');
+        $mitglied = $this->userWithRoles([Role::USER], 'lehrer@schule.example');
+        OrganizationMember::query()->create(['organization_id' => $org->id, 'user_id' => $mitglied->id, 'role' => 'member', 'status' => 'active']);
+        $org->invitations()->create(['email' => 'neu@schule.example', 'invited_by_id' => $leitung->id, 'expires_at' => now()->addDays(7)]);
+
+        $this->actingAs($this->userWithRoles([Role::MODERATOR], 'mod@example.org'));
+        $this->get('/admin/organisationen')->assertForbidden();
+        $this->get("/admin/organisationen/{$org->id}")->assertForbidden();
+
+        $this->actingAs($this->admin());
+        $this->get('/admin/benutzer')->assertInertia(fn (Assert $p) => $p
+            ->where('benutzer', fn ($rows): bool => collect($rows)->contains(fn ($r): bool => $r['email'] === 'leitung@schule.example'
+                && $r['organisation']['name'] === 'Schule Muster' && $r['organisation']['rolle'] === 'Organisations-Admin')
+                && collect($rows)->contains(fn ($r): bool => $r['email'] === 'lehrer@schule.example' && $r['organisation']['rolle'] === 'Mitglied')));
+
+        $this->get('/admin/organisationen')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/organizations')
+            ->where('organisationen.0.name', 'Schule Muster')
+            ->where('organisationen.0.mitglieder', 2)
+            ->where('organisationen.0.einladungen', 1)
+            ->where('organisationen.0.admins', [$leitung->name]));
+
+        $this->get("/admin/organisationen/{$org->id}")->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/organization-show')
+            ->where('organisation.name', 'Schule Muster')
+            ->has('organisation.mitglieder', 2)
+            ->where('organisation.einladungen.0.email', 'neu@schule.example'));
+
+        // Detail des Kontos: alle Angaben lesend, keine Geheimnisse (#414)
+        $mitglied->forceFill(['two_factor_secret' => 'GEHEIMNIS123', 'institution_kind' => 'primary_school', 'is_unified_municipality' => true])->save();
+        $response = $this->get("/admin/benutzer/{$mitglied->id}")->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->where('benutzer.angaben.organisation.name', 'Schule Muster')
+            ->where('benutzer.angaben.art_einrichtung', 'Primarschule')
+            ->where('benutzer.angaben.einheitsgemeinde', true));
+        $this->assertStringNotContainsString('GEHEIMNIS123', (string) $response->getContent());
     }
 
     public function test_developer_vergabe_ueber_oberflaeche_abgewiesen_und_protokolliert(): void

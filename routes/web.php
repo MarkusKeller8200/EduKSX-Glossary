@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DevBackupController;
 use App\Http\Controllers\Admin\DuplicateController;
 use App\Http\Controllers\Admin\ExcelController;
 use App\Http\Controllers\Admin\ListController;
+use App\Http\Controllers\Admin\OrganizationAdminController;
 use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SearchMissController as AdminSearchMissController;
@@ -212,6 +213,9 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::post('benutzer/{user}/entsperren', [UserController::class, 'unblock'])->whereUuid('user')->name('admin.users.unblock');
         Route::post('benutzer/{user}/passwort-link', [UserController::class, 'sendPasswordReset'])->whereUuid('user')->middleware('throttle:10,1')->name('admin.users.password-link');
         Route::post('benutzer/{user}/zwei-faktor', [UserController::class, 'resetTwoFactor'])->whereUuid('user')->name('admin.users.reset-2fa');
+        // Organisationen (#413, #414): Liste und Detail nur lesend
+        Route::get('organisationen', [OrganizationAdminController::class, 'index'])->name('admin.organizations');
+        Route::get('organisationen/{organization}', [OrganizationAdminController::class, 'show'])->whereUuid('organization')->name('admin.organizations.show');
         Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
         Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');
         Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');

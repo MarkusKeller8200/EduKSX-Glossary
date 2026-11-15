@@ -6,11 +6,14 @@ use App\Access\AccessDenied;
 use App\Access\AccountManager;
 use App\Access\Audit;
 use App\Access\RoleManager;
+use App\Enums\InstitutionKind;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Controller;
+use App\Models\OrganizationMember;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\UserAudit;
+use App\Models\UserIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,10 +61,14 @@ class UserController extends Controller
         $roleNames = Role::query()->pluck('name', 'id');
         $assignments = DB::table('user_roles')->get()->groupBy('user_id');
 
+        // Organisation je Konto (#412): aktive Mitgliedschaft in einer nicht gelöschten Organisation
+        $memberships = self::memberships();
+
         $users = User::query()->orderBy('last_name')->orderBy('first_name')->get()->map(fn (User $u): array => $u->is_processing_restricted ? [
             // Bearbeitung eingeschränkt (#312, DB B13): Daten nicht anzeigen
             'id' => $u->id, 'name' => 'Bearbeitung eingeschränkt', 'community_name' => null, 'einrichtung' => '', 'email' => '',
             'rollen' => [], 'status' => $u->status, 'zweiter_faktor' => false,
+            'organisation' => null, 'letzte_anmeldung' => null, 'angelegt' => null,
         ] : [
             'id' => $u->id,
             'name' => $u->name,
@@ -71,9 +78,36 @@ class UserController extends Controller
             'rollen' => ($assignments[$u->id] ?? collect())->map(fn ($a): string => (string) ($roleNames[$a->role_id] ?? ''))->values()->all(),
             'status' => $u->status,
             'zweiter_faktor' => $u->hasTwoFactor(),
+            'organisation' => $memberships[$u->id] ?? null,
+            'letzte_anmeldung' => $u->last_login_on?->toDateString(),
+            'angelegt' => $u->created_at?->toDateString(),
         ])->all();
 
         return Inertia::render('admin/users', ['benutzer' => $users]);
+    }
+
+    /**
+     * Organisation je Konto (#412, #414): aktive Mitgliedschaft in einer nicht gelöschten Organisation.
+     *
+     * @return array<string, array{id: string, name: string, rolle: string}>
+     */
+    private static function memberships(?string $userId = null): array
+    {
+        $out = [];
+        OrganizationMember::query()->with('organization')
+            ->where('status', 'active')
+            ->when($userId !== null, fn ($q) => $q->where('user_id', $userId))
+            ->whereHas('organization')
+            ->get()
+            ->each(function (OrganizationMember $m) use (&$out): void {
+                $out[$m->user_id] = [
+                    'id' => $m->organization->id,
+                    'name' => $m->organization->name,
+                    'rolle' => $m->isAdmin() ? 'Organisations-Admin' : 'Mitglied',
+                ];
+            });
+
+        return $out;
     }
 
     /** Konto administrativ anlegen (solange keine Selbstregistrierung möglich ist). */
@@ -148,6 +182,27 @@ class UserController extends Controller
                 'gesperrt_am' => $user->blocked_at?->toIso8601String(),
                 'zweiter_faktor' => $user->hasTwoFactor(),
                 'angelegt' => $user->created_at?->toIso8601String(),
+                // Alle Angaben lesend (#414), ohne Geheimnisse (Passwort, zweiter Faktor, Tokens) – docs/DATENKLASSEN.md
+                'angaben' => [
+                    'vorname' => $user->first_name,
+                    'nachname' => $user->last_name,
+                    'art_einrichtung' => InstitutionKind::tryFrom((string) $user->institution_kind)?->label(),
+                    'einrichtung_name' => $user->institution_name,
+                    'einheitsgemeinde' => $user->is_unified_municipality,
+                    'organisation' => self::memberships($user->id)[$user->id] ?? null,
+                    'passwort_gesetzt' => $user->has_password,
+                    'zweiter_faktor_seit' => $user->two_factor_confirmed_at?->toIso8601String(),
+                    'anmeldedienste' => $user->identities()->orderBy('created_at')->get()->map(fn (UserIdentity $i): array => [
+                        'anbieter' => UserIdentity::PROVIDERS[$i->provider] ?? $i->provider,
+                        'seit' => $i->created_at?->toDateString(),
+                        'zuletzt' => $i->last_used_at?->toDateString(),
+                    ])->all(),
+                    'datenschutz_version' => $user->privacy_notice_version,
+                    'datenschutz_am' => $user->privacy_notice_acknowledged_at?->toIso8601String(),
+                    'news' => $user->has_news_opt_in,
+                    'news_am' => $user->news_answered_at?->toIso8601String(),
+                    'hinweis_inaktiv_am' => $user->inactivity_notice_sent_at?->toIso8601String(),
+                ],
                 'rechte' => $user->permissions(),
                 'selbst' => $actor->id === $user->id,
             ],
