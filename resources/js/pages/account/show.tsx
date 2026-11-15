@@ -41,11 +41,13 @@ export default function AccountShow({
     einrichtungen,
     schularten,
     microsoft,
+    emailAenderbar,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
     schularten: string[];
     microsoft: boolean;
+    emailAenderbar: boolean;
 }) {
     return (
         <>
@@ -74,6 +76,11 @@ export default function AccountShow({
                 konto={konto}
                 einrichtungen={einrichtungen}
                 schularten={schularten}
+            />
+            <EmailAendern
+                email={konto.email}
+                aenderbar={emailAenderbar}
+                passwortGesetzt={konto.passwort_gesetzt}
             />
             {/* «Meine Organisation» direkt nach den Angaben (#418) */}
             <MeineOrganisation />
@@ -392,8 +399,7 @@ function Angaben({
                 ) : null}
                 <p className="text-sm text-muted-foreground">
                     Nur Moderation und Administration sehen Name, E-Mail,
-                    Funktion und Einrichtung. Die E-Mail-Adresse lässt sich
-                    ändern, sobald die Bestätigung per Mail eingerichtet ist.
+                    Funktion und Einrichtung.
                 </p>
                 <div>
                     <Button
@@ -701,6 +707,93 @@ function Loeschen({ passwortGesetzt }: { passwortGesetzt: boolean }) {
                     </Button>
                 </div>
             </form>
+        </Abschnitt>
+    );
+}
+
+/** E-Mail-Adresse ändern (#416): Link an die neue Adresse, Hinweis an die alte; gilt erst nach der Bestätigung. */
+function EmailAendern({
+    email,
+    aenderbar,
+    passwortGesetzt,
+}: {
+    email: string;
+    aenderbar: boolean;
+    passwortGesetzt: boolean;
+}) {
+    const form = useForm({ email: '', current_password: '' });
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.post('/konto/email', {
+            preserveScroll: true,
+            onSuccess: () => form.reset(),
+            onFinish: () => form.reset('current_password'),
+        });
+    };
+
+    return (
+        <Abschnitt titel="E-Mail-Adresse">
+            <p className="text-sm">
+                Heute: <span className="font-medium">{email}</span>
+            </p>
+            {aenderbar ? (
+                <form onSubmit={submit} className="mt-3 grid max-w-xl gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Feld
+                            id="neue_email"
+                            label="Neue E-Mail-Adresse"
+                            error={form.errors.email}
+                        >
+                            <Input
+                                id="neue_email"
+                                type="email"
+                                autoComplete="email"
+                                value={form.data.email}
+                                onChange={(e) =>
+                                    form.setData('email', e.target.value)
+                                }
+                                required
+                            />
+                        </Feld>
+                        {passwortGesetzt ? (
+                            <Feld
+                                id="email_passwort"
+                                label="Aktuelles Passwort"
+                                error={form.errors.current_password}
+                            >
+                                <Input
+                                    id="email_passwort"
+                                    type="password"
+                                    autoComplete="current-password"
+                                    value={form.data.current_password}
+                                    onChange={(e) =>
+                                        form.setData(
+                                            'current_password',
+                                            e.target.value,
+                                        )
+                                    }
+                                    required
+                                />
+                            </Feld>
+                        ) : null}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        Wir schicken einen Link an die neue Adresse; erst nach
+                        dem Klick gilt sie. Die bisherige Adresse erhält einen
+                        Hinweis.
+                    </p>
+                    <div>
+                        <Button type="submit" disabled={form.processing}>
+                            Link senden
+                        </Button>
+                    </div>
+                </form>
+            ) : (
+                <p className="mt-2 text-sm text-muted-foreground">
+                    Die Adresse lässt sich ändern, sobald der Mailversand
+                    eingerichtet ist.
+                </p>
+            )}
         </Abschnitt>
     );
 }
