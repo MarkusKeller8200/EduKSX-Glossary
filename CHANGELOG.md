@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.16.0] – 2026-11-15
+
 ### Neu
 
 - **Browsererweiterung zum Herunterladen (#385, #386):** Jedes Release enthält die Erweiterung für Chrome, Edge und
