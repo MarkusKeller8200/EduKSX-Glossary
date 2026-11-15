@@ -1,10 +1,15 @@
 name: pages
 
 # GitHub-Blueprint: Inhalt des Ordners «site» als GitHub Pages veröffentlichen (Quelle: GitHub Actions).
+# Datenstand (#410): täglich und bei jedem Lauf frisch aus der öffentlichen API von glossary.eduksx.ch
+# (/api/v1/exports, gleiche Felder wie «php artisan glossary:export-pages»); ist sie nicht erreichbar, bleibt
+# site/begriffe.json aus dem Repository.
 on:
   push:
     branches: [main]
     paths: ['site/**', 'VERSION']
+  schedule:
+    - cron: '23 3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -28,6 +33,17 @@ jobs:
           persist-credentials: false
       - name: Version für den Fuss der Website
         run: cp VERSION site/VERSION
+      - name: Datenstand aus der öffentlichen API
+        run: |
+          if curl -fsS --max-time 60 https://glossary.eduksx.ch/api/v1/exports -o /tmp/export.json; then
+            jq --arg v "$(cat VERSION)" '{release, checksum, published_at, version: $v, full_url: "https://glossary.eduksx.ch",
+              license, categories,
+              terms: [.terms[] | {id, slug, abbreviation, name, aliases, short_description, categories, status, url}]}' \
+              /tmp/export.json > site/begriffe.json
+            echo "$(jq '.terms | length' site/begriffe.json) Begriffe übernommen."
+          else
+            echo "::warning::API nicht erreichbar – site/begriffe.json aus dem Repository bleibt."
+          fi
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
