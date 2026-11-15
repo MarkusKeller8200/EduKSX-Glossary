@@ -6,6 +6,7 @@ import {
     RevisionBadges,
     StateBadge,
     StatusBadge,
+    VersionTag,
 } from '@/components/tags';
 import { isCurrentStatus } from '@/lib/colors';
 
@@ -26,6 +27,8 @@ export type TermCardData = {
     kategorien: string[];
     herkunft: string[];
     status: string;
+    /** Version als Tag «V1» (#425) */
+    version?: number;
     /** nur Administration */
     aktiv?: boolean;
     revision?: number;
@@ -170,8 +173,10 @@ export default function TermCard({
                 </dl>
             ) : null}
 
-            {oeffentlich || b.code || b.url ? (
-                <footer className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            {oeffentlich || b.code || b.url || b.version ? (
+                <footer
+                    className={`flex flex-wrap items-center gap-x-3 gap-y-1 text-xs ${details.length === 0 ? 'mt-auto' : ''}`}
+                >
                     {/* Detailansicht (#249) */}
                     {oeffentlich ? (
                         <Link
@@ -204,6 +209,12 @@ export default function TermCard({
                             <span className="truncate">Quelle</span>
                             <ExternalLink className="size-3" aria-hidden />
                         </a>
+                    ) : null}
+                    {/* Version immer unten rechts (#425) */}
+                    {b.version ? (
+                        <span className={b.url ? '' : 'ml-auto'}>
+                            <VersionTag version={b.version} />
+                        </span>
                     ) : null}
                 </footer>
             ) : null}

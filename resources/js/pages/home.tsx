@@ -13,7 +13,12 @@ import { useHandy } from '@/hooks/use-handy';
 import { isCurrentStatus } from '@/lib/colors';
 import { meldeSucheOhneTreffer } from '@/lib/search-miss';
 import { cn } from '@/lib/utils';
-import { ListBadges, StatusBadge } from '@/components/tags';
+import {
+    ListBadge,
+    ListBadges,
+    StatusBadge,
+    VersionTag,
+} from '@/components/tags';
 
 // PDF-Dialog und Druckansicht erst beim Öffnen laden (#137)
 const GlossaryPdfDialog = lazy(
@@ -36,6 +41,7 @@ type Begriff = {
     gueltigAb: string | null;
     gueltigBis: string | null;
     suchbegriffe: string;
+    version: number;
     suche: string;
 };
 
@@ -330,12 +336,16 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
             )}
 
             {sicht === 'balken' ? (
-                <ul className="mt-2 divide-y divide-border border-y border-border">
+                <ul className="mt-2 border-y border-border">
                     {liste.map((b) => (
-                        <li key={b.slug}>
+                        // jeder zweite Balken leicht hinterlegt (#425)
+                        <li
+                            key={b.slug}
+                            className="border-b border-border last:border-b-0 even:bg-muted/40"
+                        >
                             <Link
                                 href={`/begriffe/${b.slug}`}
-                                className="block px-1 py-3 hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                                className="block px-2 py-3 hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
                             >
                                 <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                                     {b.abkuerzung ? (
@@ -345,19 +355,29 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                         >
                                             {b.abkuerzung}
                                         </span>
-                                    ) : null}
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground italic">
+                                            keine Abkürzung
+                                        </span>
+                                    )}
                                     <span translate="no">{b.bezeichnung}</span>
-                                    <ListBadges
-                                        list="herkunft"
-                                        labels={b.herkunft}
-                                    />
-                                    <ListBadges
+                                    {/* Kategorien direkt nach dem Begriff, Herkunft rechtsbündig (#425) */}
+                                    <Labels
+                                        titel="Kategorie"
                                         list="kategorien"
                                         labels={b.kategorien}
                                     />
                                     {!isCurrentStatus(b.status) ? (
                                         <StatusBadge status={b.status} />
                                     ) : null}
+                                    <span className="ml-auto flex items-baseline gap-3">
+                                        <Labels
+                                            titel="Herkunft"
+                                            list="herkunft"
+                                            labels={b.herkunft}
+                                        />
+                                        <VersionTag version={b.version} />
+                                    </span>
                                 </span>
                                 {b.kurz ? (
                                     <span className="mt-1 block text-sm text-muted-foreground">
@@ -486,6 +506,13 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                 sortValue: (b) => b.status,
                                 cell: (b) => <StatusBadge status={b.status} />,
                             },
+                            {
+                                id: 'version',
+                                header: 'Version',
+                                width: 90,
+                                sortValue: (b) => b.version,
+                                cell: (b) => <VersionTag version={b.version} />,
+                            },
                         ]}
                     />
                 </div>
@@ -518,5 +545,31 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                 </Link>
             </p>
         </>
+    );
+}
+
+/** Labels einer Liste in einer Zeile mit kleiner Beschriftung davor (#425). */
+function Labels({
+    titel,
+    list,
+    labels,
+}: {
+    titel: string;
+    list: 'kategorien' | 'herkunft';
+    labels: string[];
+}) {
+    if (labels.length === 0) {
+        return null;
+    }
+
+    return (
+        <span className="inline-flex flex-wrap items-baseline gap-1">
+            <span className="text-[0.65rem] tracking-wide text-muted-foreground uppercase">
+                {titel}
+            </span>
+            {labels.map((l) => (
+                <ListBadge key={l} list={list} label={l} />
+            ))}
+        </span>
     );
 }

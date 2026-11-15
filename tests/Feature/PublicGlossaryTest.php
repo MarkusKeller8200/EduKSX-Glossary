@@ -39,6 +39,16 @@ class PublicGlossaryTest extends TestCase
             ->where('begriffe.0.kategorien', ['Personal']));
     }
 
+    /** Version als Tag «V1» (#425): Nummer der veröffentlichten Revision. */
+    public function test_startseite_zeigt_version(): void
+    {
+        $sl = $this->term(['official_abbreviation' => 'SL', 'official_name' => 'Schulleitung']);
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('begriffe.0.version', 1));
+
+        $this->glossary->publish($this->glossary->save($sl->refresh(), ['short_description' => 'Leitet die Schule.'], null, true), null);
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('begriffe.0.version', 2));
+    }
+
     /** Kacheln und Tabelle auf der Startseite (#213): alle öffentlichen Werte, keine internen. */
     public function test_startseite_liefert_oeffentliche_werte_fuer_kacheln(): void
     {
