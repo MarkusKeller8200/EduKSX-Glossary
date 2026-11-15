@@ -22,6 +22,11 @@ import { cn } from '@/lib/utils';
  * ersten Anzeigen, nach Grössenänderungen der Tabelle und wenn sich der Inhalt ändert (Suche, Filter, Gruppen).
  * Doppelklick auf den Splitter passt eine von Hand gezogene Spalte wieder an den Inhalt an.
  */
+/** Zeilen, die zuerst erscheinen und an denen die Spaltenbreiten gemessen werden (#454) */
+const MEASURE_ROWS = 80;
+/** so viele Zeilen kommen danach je Schritt dazu */
+const RENDER_STEP = 150;
+
 export type GridColumn<T> = {
     id: string;
     header: ReactNode;
@@ -226,6 +231,46 @@ export default function DataGrid<T>({
             : base;
     }, [groups, rows, sorter]);
     const count = sections.reduce((n, g) => n + g.rows.length, 0);
+    // Grosse Listen (#454): zuerst nur die ersten Zeilen – an ihnen werden auch die Spaltenbreiten gemessen (#128),
+    // das automatische Tabellenlayout über Hunderte Zeilen ist teuer –, den Rest in Schritten danach. So steht die
+    // Tabelle sofort, und der Browser bleibt bedienbar.
+    const [limit, setLimit] = useState(MEASURE_ROWS);
+    // Balken und Kacheln messen keine Spalten
+    const itemLayout =
+        (layout === 'cards' && renderCard !== undefined) ||
+        (layout === 'bars' && renderBar !== undefined);
+    const waiting = measuring && !itemLayout;
+    const max = waiting ? MEASURE_ROWS : limit;
+    const lengths = useMemo(
+        () => new Map(sections.map((g) => [g.key, g.rows.length])),
+        [sections],
+    );
+    useEffect(() => {
+        if (waiting || limit >= count) {
+            return;
+        }
+        // nach dem nächsten Bild, damit die ersten Zeilen sofort sichtbar sind
+        const frame = requestAnimationFrame(() =>
+            setLimit((l) => l + RENDER_STEP),
+        );
+
+        return () => cancelAnimationFrame(frame);
+    }, [waiting, limit, count]);
+    const shown: GridGroup<T>[] = useMemo(() => {
+        if (count <= max) {
+            return sections;
+        }
+        let left = max;
+
+        return sections
+            .map((g) => {
+                const rows = g.rows.slice(0, Math.max(0, left));
+                left -= rows.length;
+
+                return { ...g, rows };
+            })
+            .filter((g) => g.rows.length > 0);
+    }, [sections, count, max]);
 
     // Inhalt geändert (#128): neu messen. Signatur aus Gruppen und Zeilen-IDs statt Referenz, damit neu berechnete,
     // aber gleiche Listen keine Schleife auslösen.
@@ -251,6 +296,7 @@ export default function DataGrid<T>({
         if (lastData.current !== dataKey) {
             lastData.current = dataKey;
             setMeasured({});
+            setLimit(MEASURE_ROWS);
         }
     }, [dataKey]);
 
@@ -351,13 +397,13 @@ export default function DataGrid<T>({
         return (
             <div ref={wrapper} className="grid gap-4">
                 {caption ? <h2 className="sr-only">{caption}</h2> : null}
-                {sections.map((g) => (
+                {shown.map((g) => (
                     <section key={g.key || 'alle'} className="grid gap-2">
                         {g.title ? (
                             <h3 className="font-semibold">
                                 {g.title}{' '}
                                 <span className="font-normal text-muted-foreground">
-                                    ({g.rows.length})
+                                    ({lengths.get(g.key) ?? g.rows.length})
                                 </span>
                             </h3>
                         ) : null}
@@ -516,7 +562,7 @@ export default function DataGrid<T>({
                         })}
                     </tr>
                 </thead>
-                {sections.map((g) => (
+                {shown.map((g) => (
                     <tbody key={g.key || 'alle'}>
                         {g.title ? (
                             <tr className="border-t border-border bg-muted/50">
@@ -528,7 +574,10 @@ export default function DataGrid<T>({
                                     <span className="sticky left-3">
                                         {g.title}{' '}
                                         <span className="font-normal text-muted-foreground">
-                                            ({g.rows.length})
+                                            (
+                                            {lengths.get(g.key) ??
+                                                g.rows.length}
+                                            )
                                         </span>
                                     </span>
                                 </th>
