@@ -1,8 +1,9 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,24 +26,69 @@ type Konto = {
     angelegt: string | null;
 };
 
+const GRUPPIERT = 'glossary.admin.users.gruppiert';
+
 /** Benutzerverwaltung (#38): Liste mit Suche und Filter, Konto anlegen. */
 export default function Users({ benutzer }: { benutzer: Konto[] }) {
     const [suche, setSuche] = useState('');
-    const [filter, setFilter] = useState<'alle' | 'gesperrt' | 'ohne2fa'>(
-        'alle',
-    );
+    // Vorgabe «Aktive»: gesperrte Konten nur auf Wunsch
+    const [filter, setFilter] = useState<
+        'aktive' | 'alle' | 'gesperrt' | 'ohne2fa'
+    >('aktive');
+    // optional nach Organisation gruppiert, Gruppen anfangs eingeklappt (gemerkt im Browser)
+    const [gruppiert, setGruppiert] = useState<boolean>(() => {
+        try {
+            return localStorage.getItem(GRUPPIERT) === '1';
+        } catch {
+            return false;
+        }
+    });
+    const gruppieren = (an: boolean) => {
+        setGruppiert(an);
+        try {
+            localStorage.setItem(GRUPPIERT, an ? '1' : '0');
+        } catch {
+            // ohne Speicher im Browser: nur für diese Seite
+        }
+    };
     const [neu, setNeu] = useState(false);
+    const gesperrt = benutzer.filter((b) => b.status === 'blocked').length;
     const q = suche.trim().toLowerCase();
-    const liste = benutzer.filter(
-        (b) =>
-            (!q ||
-                `${b.name} ${b.community_name ?? ''} ${b.email} ${b.einrichtung} ${b.organisation?.name ?? ''} ${b.rollen.join(' ')}`
-                    .toLowerCase()
-                    .includes(q)) &&
-            (filter === 'alle' ||
-                (filter === 'gesperrt' && b.status === 'blocked') ||
-                (filter === 'ohne2fa' && !b.zweiter_faktor)),
+    const liste = useMemo(
+        () =>
+            benutzer.filter(
+                (b) =>
+                    (!q ||
+                        `${b.name} ${b.community_name ?? ''} ${b.email} ${b.einrichtung} ${b.organisation?.name ?? ''} ${b.rollen.join(' ')}`
+                            .toLowerCase()
+                            .includes(q)) &&
+                    (filter === 'alle' ||
+                        (filter === 'aktive' && b.status !== 'blocked') ||
+                        (filter === 'gesperrt' && b.status === 'blocked') ||
+                        (filter === 'ohne2fa' && !b.zweiter_faktor)),
+            ),
+        [benutzer, q, filter],
     );
+    const gruppen = useMemo(() => {
+        if (!gruppiert) {
+            return undefined;
+        }
+        const map = new Map<string, Konto[]>();
+        for (const b of liste) {
+            const key = b.organisation?.name ?? '';
+            map.set(key, [...(map.get(key) ?? []), b]);
+        }
+
+        return [...map.entries()]
+            .sort(([a], [b]) =>
+                a === '' ? 1 : b === '' ? -1 : a.localeCompare(b, 'de-CH'),
+            )
+            .map(([key, rows]) => ({
+                key: key || '—',
+                title: key || 'Ohne Organisation',
+                rows,
+            }));
+    }, [liste, gruppiert]);
 
     return (
         <>
@@ -62,8 +108,10 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
             </div>
             <UserAdminTabs aktiv="benutzer" />
             <p className="mt-4 text-sm text-muted-foreground">
-                {benutzer.length} Konten. Rollen und Sperren im Detail eines
-                Kontos; jede Änderung steht im Protokoll.
+                {benutzer.length} Konten
+                {gesperrt > 0 ? `, davon ${gesperrt} gesperrt` : ''}. Rollen und
+                Sperren im Detail eines Kontos; jede Änderung steht im
+                Protokoll.
             </p>
 
             {neu ? <NeuesKonto onDone={() => setNeu(false)} /> : null}
@@ -83,6 +131,7 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                 </div>
                 {(
                     [
+                        ['aktive', 'Aktive'],
                         ['alle', 'Alle'],
                         ['gesperrt', 'Gesperrt'],
                         ['ohne2fa', 'Ohne zweiten Faktor'],
@@ -98,13 +147,22 @@ export default function Users({ benutzer }: { benutzer: Konto[] }) {
                         {text}
                     </Button>
                 ))}
+                <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                        checked={gruppiert}
+                        onCheckedChange={(v) => gruppieren(v === true)}
+                    />
+                    Nach Organisation gruppieren
+                </label>
             </div>
 
             <div className="mt-4">
                 <DataGrid
                     id="admin.users"
                     caption="Benutzer"
-                    rows={liste}
+                    rows={gruppen ? undefined : liste}
+                    groups={gruppen}
+                    collapsible={gruppiert}
                     getRowId={(b: Konto) => b.id}
                     empty="Keine Treffer."
                     initialSort={{ id: 'name', desc: false }}

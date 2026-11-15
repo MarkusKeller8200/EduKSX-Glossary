@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from 'lucide-react';
 import {
     useCallback,
     useEffect,
@@ -116,6 +116,7 @@ export default function DataGrid<T>({
     renderCard,
     renderBar,
     resetToken = 0,
+    collapsible = false,
 }: {
     /** Schlüssel zum Merken von Breiten und Sortierung */
     id: string;
@@ -137,6 +138,8 @@ export default function DataGrid<T>({
     layout?: 'table' | 'bars' | 'cards';
     renderCard?: (row: T) => ReactNode;
     renderBar?: (row: T) => ReactNode;
+    /** Gruppen einklappbar, anfangs eingeklappt (nur Tabelle) */
+    collapsible?: boolean;
     /** bei Änderung: gespeicherte Breiten verwerfen und nach Inhalt neu messen («Ansicht zurücksetzen») */
     resetToken?: number;
 }) {
@@ -235,6 +238,19 @@ export default function DataGrid<T>({
     // das automatische Tabellenlayout über Hunderte Zeilen ist teuer –, den Rest in Schritten danach. So steht die
     // Tabelle sofort, und der Browser bleibt bedienbar.
     const [limit, setLimit] = useState(MEASURE_ROWS);
+    // aufgeklappte Gruppen, wenn `collapsible`
+    const [offen, setOffen] = useState<Set<string>>(() => new Set());
+    const aufklappen = (key: string) =>
+        setOffen((alt) => {
+            const neu = new Set(alt);
+            if (neu.has(key)) {
+                neu.delete(key);
+            } else {
+                neu.add(key);
+            }
+
+            return neu;
+        });
     // Balken und Kacheln messen keine Spalten
     const itemLayout =
         (layout === 'cards' && renderCard !== undefined) ||
@@ -562,55 +578,81 @@ export default function DataGrid<T>({
                         })}
                     </tr>
                 </thead>
-                {shown.map((g) => (
-                    <tbody key={g.key || 'alle'}>
-                        {g.title ? (
-                            <tr className="border-t border-border bg-muted/50">
-                                <th
-                                    scope="colgroup"
-                                    colSpan={columns.length}
-                                    className="px-3 py-2 text-left font-semibold"
-                                >
-                                    <span className="sticky left-3">
-                                        {g.title}{' '}
-                                        <span className="font-normal text-muted-foreground">
-                                            (
-                                            {lengths.get(g.key) ??
-                                                g.rows.length}
-                                            )
-                                        </span>
-                                    </span>
-                                </th>
-                            </tr>
-                        ) : null}
-                        {g.rows.map((r) => (
-                            <tr
-                                key={`${g.key}-${getRowId(r)}`}
-                                className={cn(
-                                    'border-t border-border align-top',
-                                    rowClassName?.(r),
-                                )}
-                            >
-                                {columns.map((c, i) => (
-                                    <td
-                                        key={c.id}
-                                        style={stickyStyle(c, i)}
-                                        translate={
-                                            c.noTranslate ? 'no' : undefined
-                                        }
-                                        className={cn(
-                                            'px-3 py-2 break-words',
-                                            stickyClass(c),
-                                            c.className,
-                                        )}
+                {shown.map((g) => {
+                    // eingeklappte Gruppen: Zeilen erst beim Aufklappen; zum Messen der Breiten trotzdem kurz zeigen
+                    const auf = !collapsible || offen.has(g.key);
+                    const anzahl = lengths.get(g.key) ?? g.rows.length;
+
+                    return (
+                        <tbody key={g.key || 'alle'}>
+                            {g.title ? (
+                                <tr className="border-t border-border bg-muted/50">
+                                    <th
+                                        scope="colgroup"
+                                        colSpan={columns.length}
+                                        className="px-3 py-2 text-left font-semibold"
                                     >
-                                        {c.cell(r)}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                ))}
+                                        {collapsible ? (
+                                            <button
+                                                type="button"
+                                                aria-expanded={auf}
+                                                onClick={() =>
+                                                    aufklappen(g.key)
+                                                }
+                                                className="sticky left-3 inline-flex items-center gap-1 rounded-sm text-left focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                                            >
+                                                <ChevronRight
+                                                    aria-hidden
+                                                    className={cn(
+                                                        'size-4 transition-transform',
+                                                        auf && 'rotate-90',
+                                                    )}
+                                                />
+                                                {g.title}{' '}
+                                                <span className="font-normal text-muted-foreground">
+                                                    ({anzahl})
+                                                </span>
+                                            </button>
+                                        ) : (
+                                            <span className="sticky left-3">
+                                                {g.title}{' '}
+                                                <span className="font-normal text-muted-foreground">
+                                                    ({anzahl})
+                                                </span>
+                                            </span>
+                                        )}
+                                    </th>
+                                </tr>
+                            ) : null}
+                            {(auf || waiting ? g.rows : []).map((r) => (
+                                <tr
+                                    key={`${g.key}-${getRowId(r)}`}
+                                    className={cn(
+                                        'border-t border-border align-top',
+                                        rowClassName?.(r),
+                                    )}
+                                >
+                                    {columns.map((c, i) => (
+                                        <td
+                                            key={c.id}
+                                            style={stickyStyle(c, i)}
+                                            translate={
+                                                c.noTranslate ? 'no' : undefined
+                                            }
+                                            className={cn(
+                                                'px-3 py-2 break-words',
+                                                stickyClass(c),
+                                                c.className,
+                                            )}
+                                        >
+                                            {c.cell(r)}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    );
+                })}
                 {count === 0 ? (
                     <tbody>
                         <tr>
