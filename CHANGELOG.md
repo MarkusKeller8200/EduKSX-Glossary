@@ -6,6 +6,14 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Öffentliche Beta (#401):** Der Hinweis oben auf jeder Seite sagt jetzt, dass das Glossary als öffentliche Beta
+  nutzbar ist, und lädt zu Rückmeldungen ein.
+- **Anmeldung (#402):** «Passwort vergessen?» steht unter dem Anmelde-Button, sobald der Mailversand eingerichtet
+  ist, auch wenn die Registrierung zu ist. «Konto erstellen» steht daneben, wenn die Registrierung offen ist.
+- **Mein Konto (#418):** «Meine Organisation» kommt direkt nach den eigenen Angaben.
+
 ## [0.16.0] – 2026-11-15
 
 ### Neu

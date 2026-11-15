@@ -7,12 +7,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
-/** Anmeldung lokaler Konten (DEC-014); Registrierung und «Passwort vergessen» nur mit Mailversand (#41). */
+/**
+ * Anmeldung lokaler Konten (DEC-014). «Passwort vergessen» mit eingerichtetem Mailversand, «Konto erstellen» bei
+ * offener Registrierung (#41, #402).
+ */
 export default function Login({
     registrierung,
+    passwortVergessen,
     microsoft,
 }: {
     registrierung: boolean;
+    passwortVergessen: boolean;
     microsoft: boolean;
 }) {
     const form = useForm({ email: '', password: '', remember: false });
@@ -87,6 +92,28 @@ export default function Login({
                     >
                         Anmelden
                     </Button>
+                    {passwortVergessen || registrierung ? (
+                        <div className="flex flex-wrap justify-between gap-2 text-sm">
+                            {passwortVergessen ? (
+                                <Link
+                                    href="/passwort-vergessen"
+                                    className="text-link underline-offset-4 hover:underline"
+                                >
+                                    Passwort vergessen?
+                                </Link>
+                            ) : (
+                                <span />
+                            )}
+                            {registrierung ? (
+                                <Link
+                                    href="/registrieren"
+                                    className="font-medium text-link underline-offset-4 hover:underline"
+                                >
+                                    Konto erstellen
+                                </Link>
+                            ) : null}
+                        </div>
+                    ) : null}
                 </form>
                 {microsoft ? (
                     <div className="mt-4">
@@ -102,27 +129,6 @@ export default function Login({
                             </a>
                         </Button>
                     </div>
-                ) : null}
-                {registrierung ? (
-                    <>
-                        <p className="mt-6 text-sm">
-                            <Link
-                                href="/passwort-vergessen"
-                                className="text-link underline-offset-4 hover:underline"
-                            >
-                                Passwort vergessen?
-                            </Link>
-                        </p>
-                        <p className="mt-4 rounded-lg border border-border p-3 text-sm">
-                            Noch kein Konto?{' '}
-                            <Link
-                                href="/registrieren"
-                                className="font-medium text-link underline underline-offset-4"
-                            >
-                                Hier ein Konto erstellen
-                            </Link>
-                        </p>
-                    </>
                 ) : null}
 
                 {/* Was man angemeldet tun kann (#168) */}

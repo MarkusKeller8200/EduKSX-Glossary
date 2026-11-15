@@ -67,6 +67,8 @@ export default function AccountShow({
             </div>
 
             <Angaben konto={konto} einrichtungen={einrichtungen} />
+            {/* «Meine Organisation» direkt nach den Angaben (#418) */}
+            <MeineOrganisation />
             {konto.passwort_gesetzt ? (
                 <Passwort />
             ) : (
@@ -87,7 +89,6 @@ export default function AccountShow({
             <Anmeldedienste konto={konto} microsoft={microsoft} />
             <Export />
             <MeineVorschlaege />
-            <MeineOrganisation />
             <News aktiv={konto.news} seit={konto.news_seit} />
 
             <Abschnitt titel="Zweiter Faktor">
@@ -169,7 +170,7 @@ function News({ aktiv, seit }: { aktiv: boolean; seit: string | null }) {
 /** Organisation (#148): gründen, Mitglieder, Einladungen – für alle angemeldeten Konten. */
 function MeineOrganisation() {
     return (
-        <Abschnitt titel="Organisation">
+        <Abschnitt titel="Meine Organisation">
             <p className="text-sm text-muted-foreground">
                 Gemeinsame Darstellung der Begriffe für eine Schule, Gemeinde
                 oder ein Team: gründen, Mitglieder einladen, Einladungen

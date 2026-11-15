@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Access\Sso\MicrosoftLogin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\MailSetup;
 use App\Support\Registration;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Http\RedirectResponse;
@@ -27,6 +28,8 @@ class LoginController extends Controller
     {
         return Inertia::render('auth/login', [
             'registrierung' => Registration::open(),
+            // «Passwort vergessen» braucht nur den Mailversand, nicht die offene Registrierung (#402)
+            'passwortVergessen' => MailSetup::configured(),
             'microsoft' => app(MicrosoftLogin::class)->enabled(),
         ]);
     }
