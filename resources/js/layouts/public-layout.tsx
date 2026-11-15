@@ -1,4 +1,4 @@
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import ConfirmHost from '@/components/confirm-dialog';
 import CookieNotice from '@/components/cookie-notice';
@@ -47,8 +47,14 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                             widthClass(view, 'max-w-6xl'),
                         )}
                     >
-                        In Entwicklung – Inhalte und Funktionen entstehen
-                        schrittweise.
+                        Öffentliche Beta – das Glossary ist nutzbar, Inhalte und
+                        Funktionen werden laufend erweitert.{' '}
+                        <Link
+                            href="/hilfe"
+                            className="underline underline-offset-4"
+                        >
+                            Rückmeldungen willkommen.
+                        </Link>
                     </p>
                 </div>
             ) : null}

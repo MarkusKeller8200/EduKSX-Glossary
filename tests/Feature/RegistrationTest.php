@@ -41,7 +41,17 @@ class RegistrationTest extends TestCase
         config(['mail.default' => 'log']);
         $this->get('/registrieren')->assertNotFound();
         $this->get('/passwort-vergessen')->assertNotFound();
-        $this->get('/anmelden')->assertInertia(fn (Assert $p) => $p->where('registrierung', false));
+        $this->get('/anmelden')->assertInertia(fn (Assert $p) => $p->where('registrierung', false)->where('passwortVergessen', false));
+    }
+
+    /** «Passwort vergessen» braucht nur den Mailversand, nicht die offene Registrierung (#402). */
+    public function test_passwort_vergessen_auch_bei_geschlossener_registrierung(): void
+    {
+        $this->mailOn();
+        config(['glossary.registration_open' => false]);
+        $this->get('/anmelden')->assertInertia(fn (Assert $p) => $p->where('registrierung', false)->where('passwortVergessen', true));
+        $this->get('/passwort-vergessen')->assertOk();
+        $this->get('/registrieren')->assertNotFound();
     }
 
     public function test_double_opt_in(): void
