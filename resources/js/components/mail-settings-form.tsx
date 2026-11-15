@@ -76,7 +76,10 @@ export default function MailSettingsForm({
     };
 
     return (
-        <section className="mt-8 max-w-2xl">
+        <section
+            id="versand-einrichten"
+            className="mt-8 max-w-2xl scroll-mt-20"
+        >
             <h2 className="flex items-center gap-2 text-lg font-semibold">
                 Versand einrichten
                 {e.quelle === 'umgebung' ? (
