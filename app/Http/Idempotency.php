@@ -5,7 +5,6 @@ namespace App\Http;
 use App\Models\ServiceAccount;
 use Closure;
 use EduKSX\Core\Http\ProblemException;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +21,9 @@ final class Idempotency
 
     public const HOURS = 24;
 
+    /** Platzhalter während der Bearbeitung (HTTP 102 Processing); liegt im erlaubten Bereich 100–599. */
+    private const PROCESSING = 102;
+
     /** @param  Closure(): JsonResponse  $action */
     public static function handle(Request $request, ServiceAccount $account, Closure $action): JsonResponse
     {
@@ -34,35 +36,47 @@ final class Idempotency
         }
         $hash = hash('sha256', $request->method().' '.$request->path()."\n".$request->getContent());
 
-        $stored = self::find($account, $key);
-        if ($stored !== null) {
+        // abgelaufener Eintrag bzw. hängengebliebene Reservierung (älter als 5 Minuten): Platz machen
+        DB::table('api_idempotency_keys')->where('service_account_id', $account->id)->where('idempotency_key', $key)
+            ->where(fn ($q) => $q->where('created_at', '<', now()->subHours(self::HOURS))
+                ->orWhere(fn ($q) => $q->where('response_status', self::PROCESSING)->where('created_at', '<', now()->subMinutes(5))))
+            ->delete();
+
+        // Schlüssel vor der Aktion reservieren (#447, Security-Review SEC-03): der eindeutige Index lässt bei
+        // gleichzeitigen Anfragen nur eine durch; die anderen erhalten die gespeicherte Antwort bzw. 409.
+        $reserved = DB::table('api_idempotency_keys')->insertOrIgnore([
+            'service_account_id' => $account->id,
+            'idempotency_key' => $key,
+            'request_hash' => $hash,
+            'response_status' => self::PROCESSING,
+            'response_body' => '',
+            'created_at' => now(),
+        ]);
+        if ($reserved === 0) {
+            $stored = self::find($account, $key);
+            if ($stored === null) {
+                throw ProblemException::common(409, 'conflict', 'Diese Anfrage wird gerade bearbeitet. Bitte später wiederholen.', ['Retry-After' => '1']);
+            }
+
             return self::replay($stored, $hash);
         }
 
-        // abgelaufener Eintrag mit demselben Schlüssel: Platz machen
-        DB::table('api_idempotency_keys')->where('service_account_id', $account->id)->where('idempotency_key', $key)
-            ->where('created_at', '<', now()->subHours(self::HOURS))->delete();
-
-        $response = $action();
-        if ($response->getStatusCode() >= 500) {
-            return $response;   // Serverfehler nicht festhalten: eine Wiederholung darf es nochmals versuchen
-        }
+        $release = fn () => DB::table('api_idempotency_keys')->where('service_account_id', $account->id)
+            ->where('idempotency_key', $key)->where('response_status', self::PROCESSING)->delete();
         try {
-            DB::table('api_idempotency_keys')->insert([
-                'service_account_id' => $account->id,
-                'idempotency_key' => $key,
-                'request_hash' => $hash,
-                'response_status' => $response->getStatusCode(),
-                'response_body' => (string) $response->getContent(),
-                'created_at' => now(),
-            ]);
-        } catch (QueryException) {
-            // gleichzeitige Anfrage mit demselben Schlüssel: die erste gewinnt
-            $stored = self::find($account, $key);
-            if ($stored !== null) {
-                return self::replay($stored, $hash);
-            }
+            $response = $action();
+        } catch (\Throwable $e) {
+            $release();   // Fehler: eine Wiederholung darf es nochmals versuchen
+
+            throw $e;
         }
+        if ($response->getStatusCode() >= 500) {
+            $release();   // Serverfehler nicht festhalten
+
+            return $response;
+        }
+        DB::table('api_idempotency_keys')->where('service_account_id', $account->id)->where('idempotency_key', $key)
+            ->update(['response_status' => $response->getStatusCode(), 'response_body' => (string) $response->getContent()]);
 
         return $response;
     }
@@ -98,6 +112,9 @@ final class Idempotency
     {
         if (! hash_equals($stored['request_hash'], $hash)) {
             throw ProblemException::common(422, 'idempotency_key_reused', 'Dieser Idempotency-Key wurde schon für eine andere Anfrage verwendet.');
+        }
+        if ($stored['response_status'] === self::PROCESSING) {
+            throw ProblemException::common(409, 'conflict', 'Diese Anfrage wird gerade bearbeitet. Bitte später wiederholen.', ['Retry-After' => '1']);
         }
 
         return JsonResponse::fromJsonString($stored['response_body'], $stored['response_status'], [

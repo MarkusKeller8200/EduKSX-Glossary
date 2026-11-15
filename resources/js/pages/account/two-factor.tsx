@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import QrCode from '@/components/qr-code';
@@ -6,7 +6,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { confirmAction } from '@/components/confirm-dialog';
 
 /** Zweiter Faktor einrichten bzw. verwalten (#11). Pflicht für privilegierte Rechte, sonst freiwillig (#37, #39). */
 export default function TwoFactorSetup({
@@ -23,6 +22,15 @@ export default function TwoFactorSetup({
     verbleibend: number;
 }) {
     const form = useForm({ code: '' });
+    // neue Wiederherstellungscodes nur mit aktuellem Code (#446)
+    const neu = useForm({ code: '' });
+    const neueCodes = (e: FormEvent) => {
+        e.preventDefault();
+        neu.post('/konto/zwei-faktor/codes', {
+            preserveScroll: true,
+            onFinish: () => neu.reset('code'),
+        });
+    };
     const submit = (e: FormEvent) => {
         e.preventDefault();
         form.post('/konto/zwei-faktor', { onFinish: () => form.reset('code') });
@@ -60,20 +68,43 @@ export default function TwoFactorSetup({
                         <strong>{verbleibend}</strong> Wiederherstellungscodes
                         sind gültig.
                     </p>
-                    <Button
-                        variant="outline"
-                        onClick={async () => {
-                            if (
-                                await confirmAction(
-                                    'Neue Wiederherstellungscodes erzeugen? Die bisherigen gelten danach nicht mehr.',
-                                )
-                            ) {
-                                router.post('/konto/zwei-faktor/codes');
-                            }
-                        }}
+                    <form
+                        onSubmit={neueCodes}
+                        className="space-y-2 rounded-lg border border-border p-4"
                     >
-                        Neue Wiederherstellungscodes
-                    </Button>
+                        <Label htmlFor="neu-code">
+                            Neue Wiederherstellungscodes erzeugen
+                        </Label>
+                        <p className="text-muted-foreground">
+                            Zur Bestätigung den aktuellen Code aus der
+                            Authenticator-App eingeben. Die bisherigen Codes
+                            gelten danach nicht mehr.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            <Input
+                                id="neu-code"
+                                inputMode="numeric"
+                                autoComplete="one-time-code"
+                                required
+                                className="max-w-40"
+                                value={neu.data.code}
+                                onChange={(e) =>
+                                    neu.setData('code', e.target.value)
+                                }
+                                aria-invalid={
+                                    neu.errors.code ? true : undefined
+                                }
+                            />
+                            <Button
+                                type="submit"
+                                variant="outline"
+                                disabled={neu.processing}
+                            >
+                                Neue Codes erzeugen
+                            </Button>
+                        </div>
+                        <InputError message={neu.errors.code} />
+                    </form>
                     <p className="text-muted-foreground">
                         Handy verloren? Auf dem Server zurücksetzen:{' '}
                         <code>

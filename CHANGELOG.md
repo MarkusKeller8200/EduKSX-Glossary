@@ -59,6 +59,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Behoben
 
+- **Sicherheits-Review (#445, #446, #447, #448):** Konten ohne eigenes Passwort löschen sich nur noch über einen Link an
+  die eigene Adresse oder mit dem Code des zweiten Faktors. Neue Wiederherstellungscodes verlangen den aktuellen Code
+  und lösen eine Hinweismail aus. Die API reserviert einen Idempotency-Key vor der Aktion, gleichzeitige Anfragen
+  erhalten 409. Der Excel-Import weist Dateien ab, die entpackt grösser als 50 MB sind.
 - **Lizenz der Browsererweiterung (#408):** Der ZIP liegt jetzt die MIT-Lizenz bei, unter der die Erweiterung steht.
 
 ## [0.16.0] – 2026-11-15

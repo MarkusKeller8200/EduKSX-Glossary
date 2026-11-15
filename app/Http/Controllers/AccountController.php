@@ -8,6 +8,7 @@ use App\Access\Audit;
 use App\Access\Sso\MicrosoftLogin;
 use App\Data\PersonalData;
 use App\Enums\InstitutionKind;
+use App\Glossary\TwoFactor;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\History;
@@ -18,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
@@ -154,15 +156,44 @@ class AccountController extends Controller
         return back()->with('status', 'Passwort geändert. Andere Sitzungen wurden abgemeldet.');
     }
 
-    /** Konto löschen: Passwort bestätigen; Schutzregeln (letzter Developer bzw. letzte Verwaltung) gelten. */
-    public function destroy(Request $request, AccountManager $accounts): RedirectResponse
+    /**
+     * Konto löschen: Passwort bestätigen; Schutzregeln (letzter Developer bzw. letzte Verwaltung) gelten. Ohne eigenes
+     * Passwort (nur Anmeldedienst, #45): mit zweitem Faktor dessen Code, sonst ein Link an die eigene Adresse (#445).
+     */
+    public function destroy(Request $request, AccountManager $accounts, TwoFactor $twoFactor): RedirectResponse
     {
         $user = $this->currentUser($request);
-        $data = $request->validate(['password' => ['required', 'string']]);
-        // ohne eigenes Passwort (nur Anmeldedienst, #45): Eingabe «LÖSCHEN» als Bestätigung
-        $ok = $user->has_password ? Hash::check((string) $data['password'], $user->password) : $data['password'] === 'LÖSCHEN';
-        if (! $ok) {
-            throw ValidationException::withMessages(['password' => $user->has_password ? 'Das Passwort stimmt nicht.' : 'Bitte «LÖSCHEN» eingeben.']);
+        $data = $request->validate(['password' => ['required', 'string', 'max:200']]);
+        if ($user->has_password) {
+            if (! Hash::check((string) $data['password'], $user->password)) {
+                throw ValidationException::withMessages(['password' => 'Das Passwort stimmt nicht.']);
+            }
+        } elseif ($user->hasTwoFactor()) {
+            $key = 'konto-loeschen|'.$user->id;
+            if (RateLimiter::tooManyAttempts($key, 5)) {
+                throw ValidationException::withMessages(['password' => 'Zu viele Versuche. Bitte in '.RateLimiter::availableIn($key).' Sekunden nochmals.']);
+            }
+            if (! $twoFactor->check($user, (string) $data['password'])) {
+                RateLimiter::hit($key, 60);
+
+                throw ValidationException::withMessages(['password' => 'Der Code stimmt nicht.']);
+            }
+        } else {
+            if ($data['password'] !== 'LÖSCHEN') {
+                throw ValidationException::withMessages(['password' => 'Bitte «LÖSCHEN» eingeben.']);
+            }
+            if (! MailSetup::configured()) {
+                throw ValidationException::withMessages(['password' => 'Der Mailversand ist nicht eingerichtet – bitte an die Administration wenden.']);
+            }
+            $key = 'konto-loeschen-link|'.$user->id;
+            if (RateLimiter::tooManyAttempts($key, 3)) {
+                throw ValidationException::withMessages(['password' => 'Es wurden schon Links verschickt. Bitte in '.RateLimiter::availableIn($key).' Sekunden nochmals.']);
+            }
+            RateLimiter::hit($key, 3600);
+            AccountDeletionController::sendLink($user);
+            Audit::log($user, $user, 'account.delete_requested');
+
+            return back()->with('status', 'Wir haben einen Link an Ihre E-Mail-Adresse geschickt. Erst damit wird das Konto gelöscht ('.AccountDeletionController::MINUTES.' Minuten).');
         }
         try {
             $accounts->delete($user, $user);

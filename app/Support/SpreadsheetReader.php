@@ -17,6 +17,11 @@ final class SpreadsheetReader
 {
     public const MAX_ROWS = 5000;
 
+    /** Grenzen für den Inhalt einer .xlsx (ZIP): entpackt je Datei und gesamt, Anzahl Einträge (#448, SEC-06). */
+    public const MAX_UNPACKED_BYTES = 50 * 1024 * 1024;
+
+    public const MAX_ZIP_ENTRIES = 1000;
+
     /**
      * @param  list<string>  $columns  Spaltennamen, die zurückgegeben werden (Whitelist)
      * @return array{header: list<string>, rows: list<array<string, string>>}
@@ -108,8 +113,9 @@ final class SpreadsheetReader
         }
 
         try {
+            self::checkLimits($zip);
             $shared = self::sharedStrings($zip);
-            $sheetXml = $zip->getFromName(self::firstSheetPath($zip));
+            $sheetXml = self::entry($zip, self::firstSheetPath($zip));
             if ($sheetXml === false) {
                 throw new RuntimeException('Keine Tabelle in der Excel-Datei gefunden.');
             }
@@ -140,12 +146,41 @@ final class SpreadsheetReader
         }
     }
 
+    /** Stark komprimierte oder ungewöhnlich aufgebaute Dateien abweisen, bevor etwas entpackt wird (#448). */
+    private static function checkLimits(ZipArchive $zip): void
+    {
+        $tooLarge = new RuntimeException('Die Excel-Datei ist zu gross oder ungewöhnlich aufgebaut (entpackt höchstens 50 MB).');
+        if ($zip->numFiles > self::MAX_ZIP_ENTRIES) {
+            throw $tooLarge;
+        }
+        $total = 0;
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            $size = is_array($stat) ? (int) $stat['size'] : 0;
+            $total += $size;
+            if ($size > self::MAX_UNPACKED_BYTES || $total > self::MAX_UNPACKED_BYTES) {
+                throw $tooLarge;
+            }
+        }
+    }
+
+    /** Eintrag lesen, höchstens bis zur Grenze – auch wenn die Grössenangabe im Archiv nicht stimmt. */
+    private static function entry(ZipArchive $zip, string $name): string|false
+    {
+        $data = $zip->getFromName($name, self::MAX_UNPACKED_BYTES + 1);
+        if (is_string($data) && strlen($data) > self::MAX_UNPACKED_BYTES) {
+            throw new RuntimeException('Die Excel-Datei ist zu gross oder ungewöhnlich aufgebaut (entpackt höchstens 50 MB).');
+        }
+
+        return $data;
+    }
+
     /**
      * @return list<string>
      */
     private static function sharedStrings(ZipArchive $zip): array
     {
-        $xml = $zip->getFromName('xl/sharedStrings.xml');
+        $xml = self::entry($zip, 'xl/sharedStrings.xml');
         if ($xml === false) {
             return [];
         }
@@ -169,8 +204,8 @@ final class SpreadsheetReader
 
     private static function firstSheetPath(ZipArchive $zip): string
     {
-        $workbook = $zip->getFromName('xl/workbook.xml');
-        $rels = $zip->getFromName('xl/_rels/workbook.xml.rels');
+        $workbook = self::entry($zip, 'xl/workbook.xml');
+        $rels = self::entry($zip, 'xl/_rels/workbook.xml.rels');
         if ($workbook === false || $rels === false) {
             return 'xl/worksheets/sheet1.xml';
         }

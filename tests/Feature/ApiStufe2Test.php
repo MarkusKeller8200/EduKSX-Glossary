@@ -91,6 +91,26 @@ final class ApiStufe2Test extends TestCase
         $this->assertSame(0, DB::table('api_idempotency_keys')->count());
     }
 
+    public function test_idempotenz_reserviert_vor_der_aktion(): void
+    {
+        [$account, $headers] = $this->konto();
+        $headers['Idempotency-Key'] = 'intranet-parallel';
+        $body = ['changes' => ['official_name' => 'Hauswart']];
+        $hash = hash('sha256', 'POST api/v1/proposals'."\n".json_encode($body));
+
+        // #447: eine gleichzeitige Anfrage hat den Schlüssel reserviert → 409, keine zweite Aktion
+        DB::table('api_idempotency_keys')->insert(['service_account_id' => $account->id, 'idempotency_key' => 'intranet-parallel',
+            'request_hash' => $hash, 'response_status' => 102, 'response_body' => '', 'created_at' => now()]);
+        $this->postJson('/api/v1/proposals', $body, $headers)->assertStatus(409)->assertJsonPath('code', 'conflict');
+        $this->assertSame(0, Proposal::query()->count());
+
+        // hängengebliebene Reservierung (älter als 5 Minuten) blockiert nicht
+        DB::table('api_idempotency_keys')->update(['created_at' => now()->subMinutes(6)]);
+        $this->postJson('/api/v1/proposals', $body, $headers)->assertCreated();
+        $this->postJson('/api/v1/proposals', $body, $headers)->assertCreated()->assertHeader('Idempotency-Replayed', 'true');
+        $this->assertSame(1, Proposal::query()->count());
+    }
+
     public function test_jede_operation_nennt_zweck_und_datenklassen(): void
     {
         $spec = json_decode((string) file_get_contents(base_path('openapi/glossary-v1.json')), true);

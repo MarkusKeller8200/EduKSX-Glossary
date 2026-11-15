@@ -47,6 +47,7 @@ class UserController extends Controller
         'mfa.recovery_used' => 'Wiederherstellungscode verwendet',
         'account.password' => 'Passwort geändert',
         'account.deleted' => 'Konto gelöscht',
+        'account.delete_requested' => 'Link zum Löschen des Kontos gesendet',
         'system.testmail' => 'Testmail ausgelöst',
         'account.registered' => 'Registriert',
         'account.verified' => 'E-Mail bestätigt',

@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Auth;
 use App\Access\Audit;
 use App\Glossary\TwoFactor;
 use App\Http\Controllers\Controller;
+use App\Mail\RecoveryCodesRenewed;
 use App\Models\User;
+use App\Support\MailSetup;
 use App\Support\Totp;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -118,9 +121,24 @@ class TwoFactorController extends Controller
     {
         /** @var User $user */
         $user = $request->user();
+        // nur mit aktuellem Code aus der App oder gültigem Wiederherstellungscode (#446, Security-Review SEC-02)
+        $data = $request->validate(['code' => ['required', 'string', 'max:20']]);
+        $key = '2fa-codes|'.$user->id;
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            throw ValidationException::withMessages(['code' => 'Zu viele Versuche. Bitte in '.RateLimiter::availableIn($key).' Sekunden nochmals.']);
+        }
+        if (! $this->twoFactor->check($user, (string) $data['code'])) {
+            RateLimiter::hit($key, 60);
+
+            throw ValidationException::withMessages(['code' => 'Der Code stimmt nicht.']);
+        }
+        RateLimiter::clear($key);
 
         $codes = $this->twoFactor->newRecoveryCodes($user);
         Audit::log($user, $user, 'mfa.recovery_codes');
+        if (MailSetup::configured()) {
+            Mail::to($user->email)->send(new RecoveryCodesRenewed);
+        }
 
         return redirect()->route('account.two-factor')
             ->with('recovery_codes', $codes)
