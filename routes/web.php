@@ -164,6 +164,8 @@ Route::middleware('auth')->prefix('konto')->group(function () {
     Route::put('/', [AccountController::class, 'update'])->name('account.update');
     Route::get('meine-daten', [AccountController::class, 'data'])->middleware('throttle:10,1')->name('account.data');
     Route::post('news', [AccountController::class, 'news'])->middleware('throttle:10,1')->name('account.news');
+    // ausgeblendete Hinweise wieder anzeigen (#469)
+    Route::post('hinweise', [AccountController::class, 'resetNotices'])->middleware('throttle:10,1')->name('account.notices');
     // Als Moderator/in bewerben (#460)
     Route::post('moderation', [AccountController::class, 'applyModeration'])->middleware('throttle:5,1')->name('account.moderation');
     Route::delete('moderation/{roleRequest}', [AccountController::class, 'withdrawModeration'])->whereNumber('roleRequest')->name('account.moderation.withdraw');

@@ -48,6 +48,7 @@ class UserController extends Controller
         'account.password' => 'Passwort geändert',
         'account.deleted' => 'Konto gelöscht',
         'role.requested' => 'Als Moderator/in beworben',
+        'account.notices_reset' => 'Hinweise wieder angezeigt',
         'role.request_withdrawn' => 'Bewerbung zurückgezogen',
         'role.request_accepted' => 'Bewerbung angenommen',
         'role.request_rejected' => 'Bewerbung abgelehnt',

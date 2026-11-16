@@ -23,6 +23,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Hinweise wieder anzeigen (#469):** «Mein Konto» listet weggeklickte und einmalige Hinweise und zeigt sie auf Wunsch
+  wieder an; «Ansichten und Cookies löschen» setzt alles zurück, was der Browser für das Glossary gemerkt hat.
 - **Benutzerverwaltung (#458):** Die Liste zeigt zuerst nur aktive Konten, gesperrte über «Gesperrt» bzw. «Alle». Auf
   Wunsch sind die Konten nach Organisation gruppiert, die Gruppen anfangs eingeklappt.
 

@@ -10,6 +10,7 @@ use App\Access\Sso\MicrosoftLogin;
 use App\Data\PersonalData;
 use App\Enums\InstitutionKind;
 use App\Glossary\TwoFactor;
+use App\Models\OrganizationMember;
 use App\Models\RoleRequest;
 use App\Models\User;
 use App\Models\UserIdentity;
@@ -72,6 +73,8 @@ class AccountController extends Controller
             'verlauf' => History::forUser($user),
             // Als Moderator/in bewerben (#460)
             'moderation' => $this->moderation($user),
+            // ausgeblendete Hinweise wieder anzeigen (#469)
+            'hinweise' => $this->notices($user),
         ]);
     }
 
@@ -89,6 +92,53 @@ class AccountController extends Controller
             'offen' => $open !== null ? ['id' => $open->id, 'am' => $open->created_at?->toDateString(), 'begruendung' => $open->reason] : null,
             'abgelehnt' => $last !== null ? ['am' => $last->decided_at?->toDateString(), 'hinweis' => $last->decision_note] : null,
         ];
+    }
+
+    /**
+     * Hinweise pro Konto (#469): ausgeblendet = true; null = gilt für dieses Konto nicht.
+     *
+     * @return array<string, bool|null>
+     */
+    private function notices(User $user): array
+    {
+        $domain = OrganizationMember::query()->where('user_id', $user->id)->where('joined_via', 'domain')->first();
+
+        return [
+            'moderation' => app(RoleRequests::class)->isModeratorOrMore($user) ? null : $user->moderator_notice_seen_at !== null,
+            'news' => $user->news_answered_at !== null,
+            'domain' => $domain === null ? null : $domain->notice_shown_at !== null,
+            // Kenntnisnahme der Datenschutzerklärung: nur zum Testen, nur mit Recht «system»
+            'datenschutz' => $user->hasPermission('system') ? $user->privacy_notice_version !== null : null,
+        ];
+    }
+
+    /** Ausgeblendete Hinweise wieder anzeigen (#469): einzeln oder alle. */
+    public function resetNotices(Request $request): RedirectResponse
+    {
+        $user = $this->currentUser($request);
+        $which = (string) $request->validate(['hinweis' => ['required', Rule::in(['moderation', 'news', 'domain', 'datenschutz', 'alle'])]])['hinweis'];
+        $all = $which === 'alle';
+        $reset = [];
+        if ($all || $which === 'moderation') {
+            $user->forceFill(['moderator_notice_seen_at' => null]);
+            $reset[] = 'moderation';
+        }
+        if ($all || $which === 'news') {
+            $user->forceFill(['news_answered_at' => null]);
+            $reset[] = 'news';
+        }
+        if (($all || $which === 'datenschutz') && $user->hasPermission('system')) {
+            $user->forceFill(['privacy_notice_version' => null, 'privacy_notice_acknowledged_at' => null]);
+            $reset[] = 'datenschutz';
+        }
+        $user->save();
+        if ($all || $which === 'domain') {
+            OrganizationMember::query()->where('user_id', $user->id)->where('joined_via', 'domain')->update(['notice_shown_at' => null]);
+            $reset[] = 'domain';
+        }
+        Audit::log($user, $user, 'account.notices_reset', ['hinweise' => implode(', ', $reset)]);
+
+        return back()->with('status', $all ? 'Alle Hinweise erscheinen wieder.' : 'Der Hinweis erscheint wieder.');
     }
 
     /** Bewerbung als Moderator/in (#460). */
