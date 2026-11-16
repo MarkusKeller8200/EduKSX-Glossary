@@ -1,4 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { confirmAction } from '@/components/confirm-dialog';
+import { Button } from '@/components/ui/button';
 import HistoryPanel, { type VerlaufEintrag } from '@/components/history-panel';
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +20,8 @@ type Organisation = {
     name: string;
     plattform_id: string | null;
     microsoft_tenant: string | null;
+    domain: string | null;
+    domain_automatisch: boolean;
     angelegt: string | null;
     angelegt_von: string | null;
     mitglieder: Mitglied[];
@@ -70,6 +74,40 @@ export default function OrganizationShow({
                         ['Mandant (ID)', <code key="id">{o.id}</code>],
                         ['Plattform-ID', o.plattform_id ?? '–'],
                         ['Microsoft-Tenant', o.microsoft_tenant ?? '–'],
+                        [
+                            'Domain',
+                            o.domain ? (
+                                <span key="domain">
+                                    <code>@{o.domain}</code>
+                                    {o.domain_automatisch
+                                        ? ' – Konten werden automatisch aufgenommen'
+                                        : ''}{' '}
+                                    {/* Zuordnung aufheben (#462), z. B. bei zu Unrecht beanspruchter Domain */}
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="ml-2"
+                                        onClick={async () => {
+                                            if (
+                                                await confirmAction(
+                                                    `Domain @${o.domain} von «${o.name}» lösen? Die automatische Aufnahme wird ausgeschaltet; bestehende Mitglieder bleiben.`,
+                                                    { confirmLabel: 'Lösen' },
+                                                )
+                                            ) {
+                                                router.delete(
+                                                    `/admin/organisationen/${o.id}/domain`,
+                                                    { preserveScroll: true },
+                                                );
+                                            }
+                                        }}
+                                    >
+                                        Lösen
+                                    </Button>
+                                </span>
+                            ) : (
+                                '–'
+                            ),
+                        ],
                         ['Angelegt', datum(o.angelegt)],
                         ['Angelegt von', o.angelegt_von ?? '–'],
                     ]}

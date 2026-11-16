@@ -90,6 +90,8 @@ Route::middleware(['auth', 'throttle:30,1'])->prefix('organisation')->group(func
     Route::post('/', [OrganizationController::class, 'store'])->name('organization.store');
     Route::put('/', [OrganizationController::class, 'update'])->name('organization.update');
     Route::put('tenant', [OrganizationController::class, 'tenant'])->name('organization.tenant');
+    Route::put('domain', [OrganizationController::class, 'domain'])->name('organization.domain');
+    Route::put('domain/automatisch', [OrganizationController::class, 'domainAutoJoin'])->name('organization.domain.auto');
     Route::post('loeschen', [OrganizationController::class, 'destroy'])->name('organization.destroy');
     Route::post('austreten', [OrganizationController::class, 'leave'])->name('organization.leave');
     Route::post('einladungen', [OrganizationController::class, 'invite'])->middleware('throttle:10,1')->name('organization.invite');
@@ -237,6 +239,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         // Organisationen (#413, #414): Liste und Detail nur lesend
         Route::get('organisationen', [OrganizationAdminController::class, 'index'])->name('admin.organizations');
         Route::get('organisationen/{organization}', [OrganizationAdminController::class, 'show'])->whereUuid('organization')->name('admin.organizations.show');
+        Route::delete('organisationen/{organization}/domain', [OrganizationAdminController::class, 'clearDomain'])->whereUuid('organization')->name('admin.organizations.domain');
         Route::get('rollen', [RoleController::class, 'index'])->name('admin.roles');
         Route::post('rollen', [RoleController::class, 'store'])->name('admin.roles.store');
         Route::put('rollen/{role}', [RoleController::class, 'update'])->whereUuid('role')->name('admin.roles.update');

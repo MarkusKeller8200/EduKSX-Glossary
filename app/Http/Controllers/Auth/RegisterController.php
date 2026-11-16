@@ -99,11 +99,14 @@ class RegisterController extends Controller
             $account->forceFill(['status' => 'active', 'email_verified_at' => now()])->save();
             Audit::log($account, $account, 'account.verified');
             // Einladung an diese Adresse: jetzt Mitglied (#461)
-            $joined = app(OrganizationService::class)->joinOnVerifiedEmail($account, 'Registrierung');
+            $organizations = app(OrganizationService::class);
+            $joined = $organizations->joinOnVerifiedEmail($account, 'Registrierung')
+                // sonst über die Domain der Adresse (#462); Hinweis bei der Anmeldung zählt dann als gezeigt
+                ?? $organizations->joinOnDomain($account);
         }
 
         return redirect('/anmelden')->with('status', 'E-Mail-Adresse bestätigt. Sie können sich jetzt anmelden.'
-            .($joined !== null ? ' Sie sind jetzt Mitglied von «'.$joined->name.'» (Einladung angenommen; verlassen unter «Mein Konto → Meine Organisation»).' : ''));
+            .($joined !== null ? ' Sie sind jetzt Mitglied von «'.$joined->name.'» (verlassen unter «Mein Konto → Meine Organisation»).' : ''));
     }
 
     /** Bestätigungslink senden; ein Ausfall des Mailversands blockiert die Registrierung nicht. */

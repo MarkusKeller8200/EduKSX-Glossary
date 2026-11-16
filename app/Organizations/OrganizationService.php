@@ -9,7 +9,9 @@ use App\Access\RoleManager;
 use App\Enums\MemberRole;
 use App\Enums\MemberStatus;
 use App\Glossary\TwoFactor;
+use App\Mail\DomainMembersJoined;
 use App\Mail\InvitationAccepted;
+use App\Mail\JoinedByDomain;
 use App\Mail\OrganizationInvitationMail;
 use App\Mail\TwoFactorRemoved;
 use App\Models\Organization;
@@ -25,6 +27,7 @@ use App\Models\User;
 use App\Models\UserIdentity;
 use App\Proposals\ProposalService;
 use App\Support\MailSetup;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -132,6 +135,158 @@ final class OrganizationService
             }
         }, ['organization' => $organization->name, 'tenant' => $tenant]);
         $organization->forceFill(['entra_tenant_id' => $tenant])->save();
+    }
+
+    /** Öffentliche Mail-Anbieter: nie als Domain einer Organisation (#462) */
+    public const PUBLIC_DOMAINS = [
+        'gmail.com', 'googlemail.com', 'outlook.com', 'outlook.de', 'hotmail.com', 'hotmail.ch', 'hotmail.de', 'live.com',
+        'live.de', 'msn.com', 'icloud.com', 'me.com', 'mac.com', 'yahoo.com', 'yahoo.de', 'yahoo.fr', 'gmx.ch', 'gmx.net',
+        'gmx.de', 'gmx.at', 'web.de', 'bluewin.ch', 'sunrise.ch', 'hispeed.ch', 'swissonline.ch', 'bluemail.ch',
+        'protonmail.com', 'proton.me', 'pm.me', 'tutanota.com', 'tuta.io', 'aol.com', 'mail.ch', 'hey.com', 'zoho.com',
+    ];
+
+    /** Domain einer Adresse in Kleinbuchstaben */
+    public static function domainOf(string $email): string
+    {
+        return mb_strtolower(trim((string) substr((string) strrchr($email, '@'), 1)));
+    }
+
+    /**
+     * Domain der Organisation setzen bzw. lösen (#462). Gilt als bestätigt, wenn der Org-Admin eine bestätigte Adresse
+     * mit genau dieser Domain hat (Entscheid 15.11.2026); öffentliche Anbieter gesperrt; eine Domain je Organisation.
+     */
+    public function setDomain(User $actor, Organization $organization, bool $set): void
+    {
+        $domain = $set ? self::domainOf($actor->email) : null;
+        $this->guard($actor, null, 'organization.domain', function () use ($actor, $organization, $domain): void {
+            $this->requireAdmin($actor, $organization);
+            if ($domain === null) {
+                return;
+            }
+            if ($actor->email_verified_at === null) {
+                throw new AccessDenied('Zuerst die eigene E-Mail-Adresse bestätigen.');
+            }
+            if ($domain === '' || in_array($domain, self::PUBLIC_DOMAINS, true)) {
+                throw new AccessDenied('Öffentliche Mail-Anbieter können nicht als Domain einer Organisation dienen.');
+            }
+            if (Organization::query()->where('email_domain', $domain)->whereKeyNot($organization->id)->exists()) {
+                throw new AccessDenied('Diese Domain gehört schon zu einer anderen Organisation.');
+            }
+        }, ['organization' => $organization->name, 'domain' => $domain]);
+        $organization->forceFill(['email_domain' => $domain, 'is_domain_auto_join' => $domain !== null && $organization->is_domain_auto_join])->save();
+    }
+
+    /** Domain lösen durch die Administration (#462), z. B. bei zu Unrecht beanspruchter Domain. */
+    public function clearDomainByAdmin(User $actor, Organization $organization): void
+    {
+        Audit::log($actor, null, 'organization.domain_cleared', ['organization' => $organization->name, 'domain' => $organization->email_domain]);
+        $organization->forceFill(['email_domain' => null, 'is_domain_auto_join' => false])->save();
+    }
+
+    /**
+     * Konten mit dieser Domain: bestätigt, aktiv, ohne Organisation.
+     *
+     * @return Builder<User>
+     */
+    private function domainCandidates(string $domain)
+    {
+        return User::query()->where('status', 'active')->whereNotNull('email_verified_at')
+            ->whereRaw('lower(email) like ?', ['%@'.$domain])
+            ->whereNotIn('id', OrganizationMember::query()->select('user_id'));
+    }
+
+    public function countDomainCandidates(Organization $organization): int
+    {
+        return $organization->email_domain === null ? 0 : $this->domainCandidates($organization->email_domain)->count();
+    }
+
+    /**
+     * Automatische Aufnahme ein- bzw. ausschalten (#462). Beim Einschalten werden die bestehenden Konten mit der Domain
+     * aufgenommen; die Org-Admins und die Personen erhalten eine Mail. Liefert die Anzahl aufgenommener Konten.
+     */
+    public function setDomainAutoJoin(User $actor, Organization $organization, bool $on): int
+    {
+        $this->guard($actor, null, 'organization.domain_auto_join', function () use ($actor, $organization, $on): void {
+            $this->requireAdmin($actor, $organization);
+            if ($on && $organization->email_domain === null) {
+                throw new AccessDenied('Zuerst die Domain der Organisation festlegen.');
+            }
+        }, ['organization' => $organization->name, 'an' => $on]);
+        $organization->forceFill(['is_domain_auto_join' => $on])->save();
+        if (! $on) {
+            return 0;
+        }
+        $joined = [];
+        foreach ($this->domainCandidates((string) $organization->email_domain)->get() as $user) {
+            $this->joinByDomain($user, $organization);
+            $joined[] = $user->name;
+        }
+        $this->notifyAdminsOfDomainJoins($organization, $joined);
+
+        return count($joined);
+    }
+
+    /** Neues bzw. eben bestätigtes Konto (#462): Domain mit automatischer Aufnahme → Mitglied, Mails. */
+    public function joinOnDomain(User $user): ?Organization
+    {
+        if (! $user->isActive() || $user->email_verified_at === null || $this->membershipOf($user) !== null) {
+            return null;
+        }
+        $organization = Organization::query()->where('email_domain', self::domainOf($user->email))->where('is_domain_auto_join', true)->first();
+        if ($organization === null) {
+            return null;
+        }
+        $this->joinByDomain($user, $organization);
+        $this->notifyAdminsOfDomainJoins($organization, [$user->name]);
+
+        return $organization;
+    }
+
+    private function joinByDomain(User $user, Organization $organization): void
+    {
+        OrganizationMember::query()->create([
+            'organization_id' => $organization->id, 'user_id' => $user->id,
+            'role' => OrganizationMember::MEMBER, 'status' => 'active', 'joined_via' => 'domain',
+        ]);
+        OrganizationInvitation::query()->whereRaw('lower(email) = ?', [mb_strtolower($user->email)])->delete();
+        Audit::log(null, $user, 'organization.joined', ['organization' => $organization->name, 'via' => 'Domain']);
+        if (MailSetup::configured()) {
+            try {
+                Mail::to($user->email)->send(new JoinedByDomain($organization->name, (string) $organization->email_domain));
+            } catch (Throwable $e) {
+                Log::warning('Mail «In Organisation aufgenommen» fehlgeschlagen', ['exception' => $e::class]);
+            }
+        }
+    }
+
+    /** @param  list<string>  $names */
+    private function notifyAdminsOfDomainJoins(Organization $organization, array $names): void
+    {
+        if ($names === [] || ! MailSetup::configured()) {
+            return;
+        }
+        $admins = $organization->members()->where('role', OrganizationMember::ADMIN)->where('status', 'active')->with('user')->get();
+        foreach ($admins as $admin) {
+            try {
+                Mail::to($admin->user->email)->send(new DomainMembersJoined($organization->name, (string) $organization->email_domain, $names));
+            } catch (Throwable $e) {
+                Log::warning('Mail «Konten der Domain aufgenommen» fehlgeschlagen', ['exception' => $e::class]);
+            }
+        }
+    }
+
+    /**
+     * Hinweis nach der Anmeldung (#462): «Sie wurden in … aufgenommen» – einmal je Mitgliedschaft über die Domain.
+     */
+    public function pendingDomainNotice(User $user): ?string
+    {
+        $member = OrganizationMember::query()->where('user_id', $user->id)->where('joined_via', 'domain')->whereNull('notice_shown_at')->with('organization')->first();
+        if ($member === null) {
+            return null;
+        }
+        $member->forceFill(['notice_shown_at' => now()])->save();
+
+        return $member->organization->name;
     }
 
     /**
@@ -261,7 +416,7 @@ final class OrganizationService
         DB::transaction(function () use ($user, $invitation): void {
             OrganizationMember::query()->create([
                 'organization_id' => $invitation->organization_id, 'user_id' => $user->id,
-                'role' => OrganizationMember::MEMBER, 'status' => 'active',
+                'role' => OrganizationMember::MEMBER, 'status' => 'active', 'joined_via' => 'invitation',
             ]);
             $invitation->delete();
         });
@@ -288,7 +443,7 @@ final class OrganizationService
         DB::transaction(function () use ($user, $invitation): void {
             OrganizationMember::query()->create([
                 'organization_id' => $invitation->organization_id, 'user_id' => $user->id,
-                'role' => OrganizationMember::MEMBER, 'status' => 'active',
+                'role' => OrganizationMember::MEMBER, 'status' => 'active', 'joined_via' => 'registration',
             ]);
             $invitation->delete();
         });

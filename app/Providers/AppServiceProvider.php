@@ -83,6 +83,13 @@ class AppServiceProvider extends ServiceProvider
             if (! $event->user instanceof User || ! app()->bound('session')) {
                 return;
             }
+            // über die Domain aufgenommen (#462): einmal darauf hinweisen
+            $domain = app(OrganizationService::class)->pendingDomainNotice($event->user);
+            if ($domain !== null) {
+                session()->flash('status', "Sie wurden über die Domain Ihrer E-Mail-Adresse in die Organisation «{$domain}» aufgenommen. Austreten unter «Mein Konto → Meine Organisation».");
+
+                return;
+            }
             $names = app(OrganizationService::class)->pendingInvitationNames($event->user);
             if ($names !== []) {
                 session()->flash('status', 'Einladung in die Organisation «'.implode('», «', $names).'» – unter «Mein Konto → Meine Organisation» annehmen oder ablehnen.');
