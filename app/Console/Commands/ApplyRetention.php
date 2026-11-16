@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Access\Audit;
 use App\Access\Permission;
+use App\Access\RoleRequests;
 use App\Http\Idempotency;
 use App\Mail\InactivityNotice;
 use App\Models\Category;
@@ -11,6 +12,7 @@ use App\Models\ImportBatch;
 use App\Models\Organization;
 use App\Models\Proposal;
 use App\Models\Role;
+use App\Models\RoleRequest;
 use App\Models\Source;
 use App\Models\User;
 use App\Proposals\ProposalService;
@@ -108,6 +110,11 @@ class ApplyRetention extends Command
         $failedQuery = DB::table('failed_jobs')->where('failed_at', '<', now()->subDays(30));
         $mails += $dry ? $failedQuery->count() : $failedQuery->delete();
 
+        // 6d. Bewerbungen (#460): abgeschlossene nach 24 Monaten
+        $requests = $dry
+            ? DB::table('role_requests')->where('status', '!=', 'open')->where('decided_at', '<', now()->subMonths(RoleRequest::RETENTION_MONTHS))->count()
+            : RoleRequests::prune();
+
         // 7. Papierkorb (#286): nach der Frist endgültig löschen
         $trashed = 0;
         foreach ([Category::class, Source::class, Organization::class] as $model) {
@@ -123,7 +130,7 @@ class ApplyRetention extends Command
         $prefix = $dry ? 'Würde: ' : '';
         $this->info("{$prefix}{$pending->count()} unbestätigte Registrierungen gelöscht, {$notified} Hinweise gesendet, "
             ."{$deleted} inaktive Konten gelöscht, {$audit} Protokolleinträge und {$imports} Import-Protokolle entfernt, "
-            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$keys} Idempotency-Keys, {$mails} Einträge im Mail-Protokoll, {$trashed} Einträge aus dem Papierkorb.");
+            ."{$proposals} Vorschläge ohne Personenbezug, {$misses} Suchen ohne Treffer, {$keys} Idempotency-Keys, {$mails} Einträge im Mail-Protokoll, {$requests} Bewerbungen, {$trashed} Einträge aus dem Papierkorb.");
 
         return self::SUCCESS;
     }

@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Access\AccessDenied;
 use App\Access\AccountManager;
 use App\Access\Audit;
+use App\Access\RoleRequests;
 use App\Access\Sso\MicrosoftLogin;
 use App\Data\PersonalData;
 use App\Enums\InstitutionKind;
 use App\Glossary\TwoFactor;
+use App\Models\RoleRequest;
 use App\Models\User;
 use App\Models\UserIdentity;
 use App\Support\History;
@@ -68,10 +70,51 @@ class AccountController extends Controller
             'emailAenderbar' => MailSetup::configured(),
             // Verlauf des eigenen Kontos (#417), unten aufklappbar
             'verlauf' => History::forUser($user),
+            // Als Moderator/in bewerben (#460)
+            'moderation' => $this->moderation($user),
         ]);
     }
 
     /** News-Einwilligung (#169): Antwort auf die Frage nach der Anmeldung bzw. Einstellung unter «Mein Konto». */
+    /** @return array<string, mixed> */
+    private function moderation(User $user): array
+    {
+        $requests = app(RoleRequests::class);
+        $open = $requests->openFor($user);
+        $last = RoleRequest::query()->where('user_id', $user->id)->where('status', RoleRequest::REJECTED)->latest('decided_at')->first();
+
+        return [
+            'moderator' => $requests->isModeratorOrMore($user),
+            'fehlt' => $requests->missing($user),
+            'offen' => $open !== null ? ['id' => $open->id, 'am' => $open->created_at?->toDateString(), 'begruendung' => $open->reason] : null,
+            'abgelehnt' => $last !== null ? ['am' => $last->decided_at?->toDateString(), 'hinweis' => $last->decision_note] : null,
+        ];
+    }
+
+    /** Bewerbung als Moderator/in (#460). */
+    public function applyModeration(Request $request): RedirectResponse
+    {
+        $data = $request->validate(['begruendung' => ['required', 'string', 'max:1000']]);
+        try {
+            app(RoleRequests::class)->apply($this->currentUser($request), (string) $data['begruendung']);
+        } catch (AccessDenied $e) {
+            throw ValidationException::withMessages(['begruendung' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Danke! Ihre Bewerbung ist eingegangen; die Administration entscheidet und meldet sich per Mail.');
+    }
+
+    public function withdrawModeration(Request $request, RoleRequest $roleRequest): RedirectResponse
+    {
+        try {
+            app(RoleRequests::class)->withdraw($this->currentUser($request), $roleRequest);
+        } catch (AccessDenied $e) {
+            throw ValidationException::withMessages(['begruendung' => $e->getMessage()]);
+        }
+
+        return back()->with('status', 'Bewerbung zurückgezogen.');
+    }
+
     public function news(Request $request): RedirectResponse
     {
         $user = $this->currentUser($request);

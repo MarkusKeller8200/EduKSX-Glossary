@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Access\RoleRequests;
 use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\Palette;
@@ -37,6 +38,10 @@ class HandleInertiaRequests extends Middleware
                 // einmal nach der Anmeldung fragen, ob News erwünscht sind (#169)
                 'newsFrage' => $user !== null && $user->isActive() && $user->news_answered_at === null,
             ],
+            // Hinweis «Als Moderator/in bewerben» genau einmal (#460); erst beim Anzeigen als gesehen vermerkt
+            'moderatorHinweis' => fn (): ?array => $user !== null && app(RoleRequests::class)->consumeNotice($user)
+                ? ['fehlt' => app(RoleRequests::class)->missing($user)]
+                : null,
             'appVersion' => AppVersion::info(),
             'links' => [
                 // einstellbar (#106); leer = Link ausblenden

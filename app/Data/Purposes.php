@@ -41,8 +41,8 @@ final class Purposes
             'scope' => 'Plattform/intern',
             'subjects' => 'registrierte Personen (Lehrpersonen, Schulverwaltung, Gemeinden, Fachpersonen)',
             'recipients' => 'Verwaltung des Glossary; Mail-Versand (Bestätigung, Hinweise)',
-            'retention' => 'unbestätigt 7 Tage; inaktiv ohne Rolle 24 Monate (Hinweis 30 Tage vorher); auf Wunsch endgültig nach [30 Tagen]',
-            'tables' => ['users', 'user_identities', 'roles', 'user_roles', 'role_permissions'],
+            'retention' => 'unbestätigt 7 Tage; inaktiv ohne Rolle 24 Monate (Hinweis 30 Tage vorher); auf Wunsch endgültig nach [30 Tagen]; Bewerbungen 24 Monate nach dem Entscheid',
+            'tables' => ['users', 'user_identities', 'roles', 'user_roles', 'role_permissions', 'role_requests'],
             'operations' => [],
         ],
         'security_log' => [

@@ -17,6 +17,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Organisation, keine öffentlichen Mail-Anbieter) und können Konten dieser Domain automatisch aufnehmen. Die Personen
   und die Organisations-Admins erhalten eine Mail, austreten ist jederzeit möglich; die Administration kann eine Domain
   lösen.
+- **Als Moderator/in bewerben (#460):** Nach der Anmeldung erscheint einmal ein Hinweis; bewerben geht unter «Mein Konto»
+  mit kurzer Begründung (Voraussetzung: zweiter Faktor und bestätigte E-Mail-Adresse). Admins sehen alle Anfragen unter
+  Administration › Benutzer › Anfragen und nehmen an oder lehnen mit Begründung ab; die Person erhält eine Mail.
 
 ### Geändert
 

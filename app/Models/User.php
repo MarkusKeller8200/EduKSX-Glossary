@@ -40,6 +40,7 @@ use Illuminate\Support\Facades\DB;
  * @property string|null $privacy_notice_version
  * @property bool $has_news_opt_in Einwilligung in News, keine Werbung (#169)
  * @property CarbonImmutable|null $news_answered_at NULL = noch nie gefragt
+ * @property CarbonImmutable|null $moderator_notice_seen_at Hinweis «Als Moderator/in bewerben» gezeigt (#460)
  * @property CarbonImmutable|null $privacy_notice_acknowledged_at
  * @property CarbonImmutable|null $inactivity_notice_sent_at
  * @property bool $has_password false = nur über Anmeldedienst (#45)
@@ -110,6 +111,7 @@ class User extends Authenticatable
             'has_news_opt_in' => 'boolean',
             'is_unified_municipality' => 'boolean',
             'news_answered_at' => 'immutable_datetime',
+            'moderator_notice_seen_at' => 'immutable_datetime',
             'password' => 'hashed',
             'two_factor_secret' => 'encrypted',
             'two_factor_recovery_codes' => 'encrypted:array',
