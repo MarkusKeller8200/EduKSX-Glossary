@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Mail\RoleRequestDecided;
+use App\Mail\RoleRequestSubmitted;
 use App\Models\Role;
 use App\Models\RoleRequest;
 use App\Models\User;
@@ -50,8 +51,12 @@ final class ModeratorBewerbungTest extends TestCase
 
     public function test_bewerben_annehmen_durch_admin(): void
     {
+        $chef = $this->userWithRoles([Role::ADMIN], 'chef@schule.ch', true);
         $this->actingAs($u = $this->bewerber());
         $this->post('/konto/moderation', ['begruendung' => 'Ich kenne die Schulbegriffe gut.'])->assertSessionHasNoErrors();
+        // Mail an die Admins (Entscheid 16.11.2026), ohne Begründung
+        Mail::assertQueued(RoleRequestSubmitted::class, fn (RoleRequestSubmitted $m): bool => $m->hasTo('chef@schule.ch') && $m->applicant === $u->name);
+        Mail::assertNotQueued(RoleRequestSubmitted::class, fn (RoleRequestSubmitted $m): bool => $m->hasTo('lea@schule.ch'));
         $this->post('/konto/moderation', ['begruendung' => 'Nochmals, bitte.'])->assertSessionHasErrors('begruendung');   // eine offene
         $anfrage = RoleRequest::query()->firstOrFail();
 
@@ -59,7 +64,7 @@ final class ModeratorBewerbungTest extends TestCase
         $this->actingAs($this->userWithRoles([Role::MODERATOR], 'mod@schule.ch', true));
         $this->post("/admin/anfragen/{$anfrage->id}/annehmen")->assertForbidden();
 
-        $this->actingAs($admin = $this->userWithRoles([Role::ADMIN], 'chef@schule.ch', true));
+        $this->actingAs($admin = $chef);
         $this->get('/admin')->assertInertia(fn (Assert $p) => $p->where('anfragen', 1));
         $this->get('/admin/anfragen')->assertOk()->assertInertia(fn (Assert $p) => $p->component('admin/role-requests')->has('anfragen', 1));
         $this->post("/admin/anfragen/{$anfrage->id}/annehmen")->assertSessionHasNoErrors();
