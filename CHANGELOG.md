@@ -12,7 +12,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   oder verwerfen) und die zuletzt versendeten Mails – mit Zeit, Art und gekürzter Adresse, ohne Inhalt. Fehlgeschlagene
   Aufträge werden jetzt festgehalten. Einträge werden nach 90 Tagen gelöscht.
 - **Einladung automatisch angenommen (#461):** Wer mit einer eingeladenen Adresse ein Konto anlegt, ist nach dem
-  Bestätigen der Adresse Mitglied der Organisation; der einladende Organisations-Admin erhält einen Hinweis.
+  Bestätigen der Adresse Mitglied der Organisation; der einladende Organisations-Admin erhält einen Hinweis. Offene
+  Einladungen, die so schon erledigt sind, werden auch nachträglich beim Anmelden bzw. beim Öffnen der Organisation
+  bereinigt.
 - **Domain der Organisation (#462):** Organisations-Admins übernehmen die Domain ihrer bestätigten Adresse (eine je
   Organisation, keine öffentlichen Mail-Anbieter) und können Konten dieser Domain automatisch aufnehmen. Die Personen
   und die Organisations-Admins erhalten eine Mail, austreten ist jederzeit möglich; die Administration kann eine Domain

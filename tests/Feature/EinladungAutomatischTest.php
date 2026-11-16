@@ -84,4 +84,23 @@ final class EinladungAutomatischTest extends TestCase
         $this->assertNull(app(OrganizationService::class)->joinOnVerifiedEmail($bestehend, 'Test'));
         $this->assertSame(1, OrganizationInvitation::query()->where('organization_id', $organization->id)->count());
     }
+
+    public function test_nachtraeglich_beim_laden_der_organisation(): void
+    {
+        $admin = $this->userWithRoles([Role::USER], 'admin@schule.ch', true);
+        $organization = app(OrganizationService::class)->create($admin, 'Schule Muster');
+        $this->actingAs($admin)->post('/organisation/einladungen', ['adressen' => 'spaet@schule.ch, schon@schule.ch, alt@schule.ch'])->assertRedirect();
+        $this->travel(5)->seconds();
+
+        // Konto nach der Einladung angelegt und bestätigt, aber ohne Beitritt (z. B. vor dieser Funktion)
+        $spaet = $this->userWithRoles([Role::USER], 'spaet@schule.ch');
+        $spaet->forceFill(['email_verified_at' => now()])->save();
+        // schon Mitglied dieser Organisation
+        $schon = $this->userWithRoles([Role::USER], 'schon@schule.ch');
+        OrganizationMember::query()->create(['organization_id' => $organization->id, 'user_id' => $schon->id, 'role' => 'member', 'status' => 'active']);
+
+        $this->actingAs($admin->fresh())->get('/organisation')->assertOk();
+        $this->assertSame($organization->id, OrganizationMember::query()->where('user_id', $spaet->id)->value('organization_id'));
+        $this->assertSame(['alt@schule.ch'], OrganizationInvitation::query()->pluck('email')->all());   // ohne Konto bleibt offen
+    }
 }

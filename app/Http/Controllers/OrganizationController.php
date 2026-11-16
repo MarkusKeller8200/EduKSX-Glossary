@@ -83,6 +83,10 @@ class OrganizationController extends Controller
             return Inertia::render('organization/show', $props);
         }
 
+        if ($admin) {
+            // Einladungen nachträglich bereinigen (#461): schon Mitglied bzw. inzwischen registriert und bestätigt
+            $this->organizations->settleInvitations($organization);
+        }
         $props['mitglieder'] = $organization->members()->with('user')->orderByRaw("case when role = 'admin' then 0 else 1 end")->get()
             ->sortBy(fn (OrganizationMember $m): string => mb_strtolower($m->user->name))->values()
             ->map(fn (OrganizationMember $m): array => [

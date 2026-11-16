@@ -460,6 +460,35 @@ final class OrganizationService
         return $organization;
     }
 
+    /**
+     * Offene Einladungen nachträglich bereinigen (#461), beim Laden der Organisation: Ist die eingeladene Person schon
+     * Mitglied dieser Organisation, entfällt die Einladung. Hat sie nach der Einladung ein Konto angelegt und die Adresse
+     * bestätigt (und ist in keiner Organisation), wird sie Mitglied – wie beim Bestätigen der Registrierung. Liefert die
+     * Anzahl so angenommener Einladungen.
+     */
+    public function settleInvitations(Organization $organization): int
+    {
+        $accepted = 0;
+        $open = $organization->invitations()->where('expires_at', '>', now())->get();
+        foreach ($open as $invitation) {
+            $user = User::query()->whereRaw('lower(email) = ?', [mb_strtolower($invitation->email)])->first();
+            if ($user === null) {
+                continue;
+            }
+            $membership = $this->membershipOf($user);
+            if ($membership !== null && $membership->organization_id === $organization->id) {
+                $invitation->delete();   // schon Mitglied: Einladung erledigt
+
+                continue;
+            }
+            if ($membership === null && $user->email_verified_at !== null && $this->joinOnVerifiedEmail($user, 'Einladung (nachträglich)') !== null) {
+                $accepted++;
+            }
+        }
+
+        return $accepted;
+    }
+
     public function decline(User $user, OrganizationInvitation $invitation): void
     {
         $this->guard($user, $user, 'organization.declined', fn () => $this->requireOwnInvitation($user, $invitation), ['organization' => $invitation->organization->name]);

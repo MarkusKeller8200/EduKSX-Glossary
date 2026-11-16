@@ -90,6 +90,13 @@ class AppServiceProvider extends ServiceProvider
 
                 return;
             }
+            // Einladung älter als das Konto, Adresse bestätigt (#461): auch nachträglich bei der Anmeldung annehmen
+            $joined = app(OrganizationService::class)->joinOnVerifiedEmail($event->user, 'Anmeldung');
+            if ($joined !== null) {
+                session()->flash('status', "Einladung angenommen: Sie sind jetzt Mitglied von «{$joined->name}». Austreten unter «Mein Konto → Meine Organisation».");
+
+                return;
+            }
             $names = app(OrganizationService::class)->pendingInvitationNames($event->user);
             if ($names !== []) {
                 session()->flash('status', 'Einladung in die Organisation «'.implode('», «', $names).'» – unter «Mein Konto → Meine Organisation» annehmen oder ablehnen.');
