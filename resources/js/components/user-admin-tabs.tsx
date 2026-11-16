@@ -1,10 +1,10 @@
 import { Link } from '@inertiajs/react';
 
-/** Reiter «Benutzer | Organisationen» in der Administration (#413): echte Seiten, damit Links und Zurück funktionieren. */
+/** Reiter «Benutzer | Organisationen | Anfragen» in der Administration (#413, #460): echte Seiten, damit Links und Zurück funktionieren. */
 export default function UserAdminTabs({
     aktiv,
 }: {
-    aktiv: 'benutzer' | 'organisationen';
+    aktiv: 'benutzer' | 'organisationen' | 'anfragen';
 }) {
     const tabs = [
         { key: 'benutzer', label: 'Benutzer', href: '/admin/benutzer' },
@@ -13,6 +13,8 @@ export default function UserAdminTabs({
             label: 'Organisationen',
             href: '/admin/organisationen',
         },
+        // Bewerbungen als Moderator/in (#460)
+        { key: 'anfragen', label: 'Anfragen', href: '/admin/anfragen' },
     ] as const;
 
     return (

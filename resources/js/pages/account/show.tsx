@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { NativeSelect } from '@/components/ui/native-select';
 import { confirmAction } from '@/components/confirm-dialog';
 import ExportMenu from '@/components/export-menu';
@@ -44,6 +45,7 @@ export default function AccountShow({
     microsoft,
     emailAenderbar,
     verlauf,
+    moderation,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
@@ -51,6 +53,7 @@ export default function AccountShow({
     microsoft: boolean;
     emailAenderbar: boolean;
     verlauf: VerlaufEintrag[];
+    moderation: Moderation;
 }) {
     return (
         <>
@@ -108,6 +111,8 @@ export default function AccountShow({
             <Export />
             <MeineVorschlaege />
             <News aktiv={konto.news} seit={konto.news_seit} />
+
+            <Bewerben moderation={moderation} />
 
             <Abschnitt titel="Zweiter Faktor">
                 <p className="text-sm text-muted-foreground">
@@ -834,5 +839,111 @@ function EmailAendern({
                 </p>
             )}
         </Abschnitt>
+    );
+}
+
+type Moderation = {
+    moderator: boolean;
+    fehlt: string[];
+    offen: { id: number; am: string | null; begruendung: string } | null;
+    abgelehnt: { am: string | null; hinweis: string | null } | null;
+};
+
+/** Als Moderator/in bewerben (#460): Voraussetzung zweiter Faktor und bestätigte Adresse; entscheiden nur Admins. */
+function Bewerben({ moderation: m }: { moderation: Moderation }) {
+    const form = useForm({ begruendung: '' });
+    if (m.moderator) {
+        return null;
+    }
+    const submit = (e: FormEvent) => {
+        e.preventDefault();
+        form.post('/konto/moderation', {
+            preserveScroll: true,
+            onSuccess: () => form.reset(),
+        });
+    };
+
+    return (
+        <section
+            id="moderation"
+            className="mt-8 max-w-2xl scroll-mt-24 border-t border-border pt-6"
+        >
+            <h2 className="text-lg font-semibold">
+                Als Moderator/in mithelfen
+            </h2>
+            <p className="mt-3 text-sm text-muted-foreground">
+                Moderatorinnen und Moderatoren prüfen Vorschläge der Community
+                und pflegen Begriffe. Über Bewerbungen entscheidet die
+                Administration; Sie erhalten eine Mail.
+            </p>
+            {m.offen ? (
+                <div className="mt-3 rounded-lg border border-border bg-muted px-3 py-2 text-sm">
+                    <p>Ihre Bewerbung vom {m.offen.am} ist in Prüfung.</p>
+                    <p className="mt-1 whitespace-pre-line text-muted-foreground">
+                        {m.offen.begruendung}
+                    </p>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={async () => {
+                            if (
+                                await confirmAction('Bewerbung zurückziehen?')
+                            ) {
+                                router.delete(
+                                    `/konto/moderation/${m.offen?.id}`,
+                                    { preserveScroll: true },
+                                );
+                            }
+                        }}
+                    >
+                        Zurückziehen
+                    </Button>
+                </div>
+            ) : m.fehlt.length > 0 ? (
+                <p className="mt-3 text-sm">
+                    Zum Bewerben fehlt noch: {m.fehlt.join(', ')}.{' '}
+                    {m.fehlt.includes('zweiter Faktor') ? (
+                        <Link
+                            href="/konto/zwei-faktor"
+                            className="text-link underline underline-offset-4"
+                        >
+                            Zweiten Faktor einrichten
+                        </Link>
+                    ) : null}
+                </p>
+            ) : (
+                <form onSubmit={submit} className="mt-3 grid gap-2">
+                    {m.abgelehnt ? (
+                        <p className="text-sm text-muted-foreground">
+                            Ihre letzte Bewerbung ({m.abgelehnt.am}) wurde nicht
+                            angenommen
+                            {m.abgelehnt.hinweis
+                                ? `: ${m.abgelehnt.hinweis}`
+                                : '.'}
+                        </p>
+                    ) : null}
+                    <Label htmlFor="bewerbung">
+                        Warum möchten Sie mithelfen? (kurz)
+                    </Label>
+                    <Textarea
+                        id="bewerbung"
+                        maxLength={1000}
+                        rows={4}
+                        value={form.data.begruendung}
+                        onChange={(e) =>
+                            form.setData('begruendung', e.target.value)
+                        }
+                        required
+                    />
+                    <InputError message={form.errors.begruendung} />
+                    <div>
+                        <Button type="submit" disabled={form.processing}>
+                            Bewerben
+                        </Button>
+                    </div>
+                </form>
+            )}
+        </section>
     );
 }

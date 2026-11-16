@@ -186,6 +186,21 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `published_by_id` | intern |
 | `created_at` | intern |
 
+## `role_requests`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `user_id` | intern |
+| `role` | intern |
+| `reason` | personenbezogen |
+| `status` | intern |
+| `decided_by_id` | intern |
+| `decided_at` | intern |
+| `decision_note` | personenbezogen |
+| `created_at` | intern |
+| `updated_at` | intern |
+
 ## `mail_log`
 
 | Spalte | Klasse |
@@ -548,6 +563,7 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `privacy_notice_version` | intern |
 | `privacy_notice_acknowledged_at` | personenbezogen |
 | `inactivity_notice_sent_at` | personenbezogen |
+| `moderator_notice_seen_at` | intern |
 | `has_news_opt_in` | personenbezogen |
 | `news_answered_at` | personenbezogen |
 | `created_at` | intern |

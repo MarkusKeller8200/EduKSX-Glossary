@@ -5,6 +5,7 @@ import CookieNotice from '@/components/cookie-notice';
 import UpdateNotice from '@/components/update-notice';
 import InstallApp from '@/components/install-app';
 import SiteFooter from '@/components/site-footer';
+import ModeratorNotice from '@/components/moderator-notice';
 import NewsQuestion from '@/components/news-question';
 import SiteHeader from '@/components/site-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -31,6 +32,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen flex-col bg-background text-foreground">
             <SiteHeader area="website" />
             <NewsQuestion />
+            <ModeratorNotice />
             <UpdateNotice />
             <CookieNotice />
             <InstallApp />

@@ -157,6 +157,19 @@ final class DataClasses
             'published_by_id' => DataClass::Internal,
             'created_at' => DataClass::Internal,
         ],
+        // Bewerbungen als Moderator/in (#460)
+        'role_requests' => [
+            'id' => DataClass::Internal,
+            'user_id' => DataClass::Internal,
+            'role' => DataClass::Internal,
+            'reason' => DataClass::Personal,
+            'status' => DataClass::Internal,
+            'decided_by_id' => DataClass::Internal,
+            'decided_at' => DataClass::Internal,
+            'decision_note' => DataClass::Personal,
+            'created_at' => DataClass::Internal,
+            'updated_at' => DataClass::Internal,
+        ],
         // Mail-Protokoll (#463): Adresse nur maskiert, kein Inhalt; 90 Tage
         'mail_log' => [
             'id' => DataClass::Internal,
@@ -442,6 +455,7 @@ final class DataClasses
             'privacy_notice_version' => DataClass::Internal,
             'privacy_notice_acknowledged_at' => DataClass::Personal,
             'inactivity_notice_sent_at' => DataClass::Personal,
+            'moderator_notice_seen_at' => DataClass::Internal,
             'has_news_opt_in' => DataClass::Personal,
             'news_answered_at' => DataClass::Personal,
             'created_at' => DataClass::Internal,

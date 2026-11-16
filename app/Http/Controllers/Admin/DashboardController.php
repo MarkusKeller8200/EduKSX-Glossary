@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Access\RoleRequests;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\PublicationRelease;
@@ -30,6 +31,8 @@ class DashboardController extends Controller
             ],
             // Neue Version verfügbar (#176): nur für das Recht «system»
             'update' => Gate::allows('system') && UpdateCheck::status()['neu'] ? UpdateCheck::status() : null,
+            // offene Bewerbungen als Moderator/in (#460): nur für «manage-users»
+            'anfragen' => Gate::allows('manage-users') ? RoleRequests::openCount() : 0,
         ]);
     }
 }

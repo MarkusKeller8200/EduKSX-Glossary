@@ -28,6 +28,8 @@ export type SharedData = {
         /** einmal nach der Anmeldung nach News fragen (#169) */
         newsFrage: boolean;
     };
+    /** einmaliger Hinweis «Als Moderator/in bewerben» (#460); null = nicht zeigen */
+    moderatorHinweis: { fehlt: string[] } | null;
     appVersion: AppVersion;
     links: {
         githubRepo: string | null;

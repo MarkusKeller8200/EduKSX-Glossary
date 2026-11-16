@@ -18,11 +18,14 @@ export default function Dashboard({
     admins,
     stats,
     update,
+    anfragen,
 }: {
     admins: number;
     stats: Stats;
     /** neue Version verfügbar (#176), nur mit Recht «system» */
     update: { neueste: string; art: string | null; url: string | null } | null;
+    /** offene Bewerbungen als Moderator/in (#460) */
+    anfragen: number;
 }) {
     const { appVersion, auth } = usePage().props;
 
@@ -51,6 +54,22 @@ export default function Dashboard({
                         className="underline underline-offset-4"
                     >
                         Zu den Updates
+                    </Link>
+                </p>
+            ) : null}
+            {anfragen > 0 ? (
+                <p
+                    role="status"
+                    className="mt-4 rounded-md border border-info/30 bg-info-soft px-3 py-2 text-sm text-info"
+                >
+                    {anfragen === 1
+                        ? '1 offene Bewerbung als Moderator/in.'
+                        : `${anfragen} offene Bewerbungen als Moderator/in.`}{' '}
+                    <Link
+                        href="/admin/anfragen"
+                        className="underline underline-offset-4"
+                    >
+                        Zu den Anfragen
                     </Link>
                 </p>
             ) : null}

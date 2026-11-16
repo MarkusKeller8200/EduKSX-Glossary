@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\ListController;
 use App\Http\Controllers\Admin\OrganizationAdminController;
 use App\Http\Controllers\Admin\ProposalController as AdminProposalController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\RoleRequestController;
 use App\Http\Controllers\Admin\SearchMissController as AdminSearchMissController;
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -163,6 +164,9 @@ Route::middleware('auth')->prefix('konto')->group(function () {
     Route::put('/', [AccountController::class, 'update'])->name('account.update');
     Route::get('meine-daten', [AccountController::class, 'data'])->middleware('throttle:10,1')->name('account.data');
     Route::post('news', [AccountController::class, 'news'])->middleware('throttle:10,1')->name('account.news');
+    // Als Moderator/in bewerben (#460)
+    Route::post('moderation', [AccountController::class, 'applyModeration'])->middleware('throttle:5,1')->name('account.moderation');
+    Route::delete('moderation/{roleRequest}', [AccountController::class, 'withdrawModeration'])->whereNumber('roleRequest')->name('account.moderation.withdraw');
     Route::put('passwort', [AccountController::class, 'password'])->middleware('throttle:10,1')->name('account.password');
     // E-Mail-Adresse ändern mit Bestätigung (#416)
     Route::post('email', [EmailChangeController::class, 'request'])->middleware('throttle:5,1')->name('account.email');
@@ -228,6 +232,10 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     // Benutzer und Rollen (#38): nur mit «manage-users»; Schutzregeln im RoleManager/AccountManager
     Route::middleware('can:manage-users')->group(function () {
         Route::get('benutzer', [UserController::class, 'index'])->name('admin.users');
+        // Bewerbungen als Moderator/in (#460)
+        Route::get('anfragen', [RoleRequestController::class, 'index'])->name('admin.role-requests');
+        Route::post('anfragen/{roleRequest}/annehmen', [RoleRequestController::class, 'accept'])->whereNumber('roleRequest')->name('admin.role-requests.accept');
+        Route::post('anfragen/{roleRequest}/ablehnen', [RoleRequestController::class, 'reject'])->whereNumber('roleRequest')->name('admin.role-requests.reject');
         Route::post('benutzer', [UserController::class, 'store'])->name('admin.users.store');
         Route::get('benutzer/{user}', [UserController::class, 'show'])->whereUuid('user')->name('admin.users.show');
         Route::get('benutzer/{user}/daten', [UserController::class, 'data'])->whereUuid('user')->middleware('throttle:10,1')->name('admin.users.data');
