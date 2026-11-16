@@ -6,6 +6,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+## [0.17.1] – 2026-11-16
+
 ### Neu
 
 - **Mail-Protokoll (#463):** Administration › System zeigt die Warteschlange (wartend, fehlgeschlagen, erneut versuchen
