@@ -28,7 +28,11 @@ final class RoleRequests
         return array_intersect($user->roleKeys(), self::AT_LEAST_MODERATOR) !== [];
     }
 
-    /** Was fehlt zum Bewerben? Leere Liste = alles erfüllt. @return list<string> */
+    /**
+     * Was fehlt zum Bewerben? Leere Liste = alles erfüllt.
+     *
+     * @return list<string>
+     */
     public function missing(User $user): array
     {
         $missing = [];
