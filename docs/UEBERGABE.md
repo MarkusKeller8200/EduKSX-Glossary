@@ -1,6 +1,6 @@
 # Übergabe EduKSX-Glossary
 
-Stand 15.11.2026, 14:30 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument.
+Stand 16.11.2026, 02:30 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument.
 
 Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
 
@@ -53,6 +53,16 @@ Für den nächsten Chat. Antworten auf Deutsch (Schweiz, kein ß).
   ausgerollt mit Bucket `default` (Ops #32, #35).
 - DEC-039 (Einsammeln) beschlossen; Umsetzung im Meilenstein **0.18.0 – Einsammeln** (#434–#436), Stufen 3/4 in
   «Funktionen» (#437, #438). Ebenfalls 0.18.0: #449 Suchen ohne Treffer, #450 Pentest, #451 Datenschutz.
+
+## Meilenstein 0.17.1 – Bugfix (id 22)
+
+- Alles gemergt, Status `_3 Beta-Test`, Release erst nach Freigabe: #454 Begriffe schneller, #456 Hinweis
+  «Handy verloren?», #458 Benutzerverwaltung (Aktive, Gruppierung), #460 Bewerbung Moderator/in (Reiter «Anfragen»),
+  #461 Einladung beim Registrieren annehmen, #462 Domain der Organisation, #463 Mail-Protokoll.
+- Enthält neue Funktionen («Neu» im CHANGELOG) – nach SemVer wäre das 0.18.0; der Projektverantwortliche hat
+  0.17.1 gewählt (Chat 16.11.2026). Beim Release nachfragen.
+- Neu: `QUEUE_FAILED_DRIVER` Vorgabe `database-uuids` (fehlgeschlagene Mails werden festgehalten).
+- Sicherheit: #461 gilt bewusst nicht für neue Konten über Microsoft (E-Mail-Angabe fremder Tenants unzuverlässig).
 
 ## Offen
 
