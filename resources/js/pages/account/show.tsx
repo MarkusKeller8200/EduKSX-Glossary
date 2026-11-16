@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { NativeSelect } from '@/components/ui/native-select';
 import { confirmAction } from '@/components/confirm-dialog';
 import ExportMenu from '@/components/export-menu';
+import NoticesPanel, { type KontoHinweise } from '@/components/notices-panel';
 
 type Konto = {
     first_name: string;
@@ -46,6 +47,7 @@ export default function AccountShow({
     emailAenderbar,
     verlauf,
     moderation,
+    hinweise,
 }: {
     konto: Konto;
     einrichtungen: Record<string, string>;
@@ -54,6 +56,7 @@ export default function AccountShow({
     emailAenderbar: boolean;
     verlauf: VerlaufEintrag[];
     moderation: Moderation;
+    hinweise: KontoHinweise;
 }) {
     return (
         <>
@@ -130,6 +133,8 @@ export default function AccountShow({
                     </Button>
                 </div>
             </Abschnitt>
+
+            <NoticesPanel hinweise={hinweise} />
 
             <Loeschen
                 passwortGesetzt={konto.passwort_gesetzt}
