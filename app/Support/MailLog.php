@@ -33,6 +33,7 @@ final class MailLog
         'DomainMembersJoined' => 'Hinweis: Konten der Domain aufgenommen',
         'JoinedByDomain' => 'Hinweis: in Organisation aufgenommen',
         'RoleRequestDecided' => 'Bewerbung als Moderator/in entschieden',
+        'RoleRequestSubmitted' => 'Hinweis: neue Bewerbung als Moderator/in',
     ];
 
     public static function sent(MessageSent $event): void

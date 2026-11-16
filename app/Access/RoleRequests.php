@@ -3,6 +3,7 @@
 namespace App\Access;
 
 use App\Mail\RoleRequestDecided;
+use App\Mail\RoleRequestSubmitted;
 use App\Models\Role;
 use App\Models\RoleRequest;
 use App\Models\User;
@@ -83,8 +84,27 @@ final class RoleRequests
         $request = new RoleRequest(['role' => Role::MODERATOR, 'reason' => mb_substr($reason, 0, 1000)]);
         $request->forceFill(['user_id' => $user->id, 'status' => RoleRequest::OPEN])->save();
         Audit::log($user, $user, 'role.requested', ['rolle' => 'Moderator']);
+        $this->notifyAdmins($user);
 
         return $request;
+    }
+
+    /** Mail an alle aktiven Konten, die entscheiden dürfen (Recht «manage-users»), Entscheid 16.11.2026. */
+    private function notifyAdmins(User $applicant): void
+    {
+        if (! MailSetup::configured()) {
+            return;
+        }
+        $roleIds = DB::table('role_permissions')->where('permission', 'manage-users')->pluck('role_id');
+        $admins = User::query()->where('status', 'active')->whereKeyNot($applicant->id)
+            ->whereIn('id', DB::table('user_roles')->whereIn('role_id', $roleIds)->select('user_id'))->get();
+        foreach ($admins as $admin) {
+            try {
+                Mail::to($admin->email)->send(new RoleRequestSubmitted($applicant->name));
+            } catch (Throwable $e) {
+                Log::warning('Mail «Neue Bewerbung» fehlgeschlagen', ['exception' => $e::class]);
+            }
+        }
     }
 
     public function withdraw(User $user, RoleRequest $request): void
