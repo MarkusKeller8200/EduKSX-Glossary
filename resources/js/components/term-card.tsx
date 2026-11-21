@@ -106,7 +106,10 @@ export default function TermCard({
                         {!oeffentlich || !isCurrentStatus(b.status) ? (
                             <StatusBadge status={b.status} />
                         ) : null}
-                        <ResearchBadge basis={b.recherche} compact />
+                        {/* ohne Version (Redaktion) bleibt «KI» bei den Labels */}
+                        {!b.version ? (
+                            <ResearchBadge basis={b.recherche} compact />
+                        ) : null}
                         {!oeffentlich && b.revision !== undefined ? (
                             <RevisionBadges
                                 published={b.veroeffentlicht ?? null}
@@ -216,7 +219,10 @@ export default function TermCard({
                     ) : null}
                     {/* Version immer unten rechts (#425) */}
                     {b.version ? (
-                        <span className={b.url ? '' : 'ml-auto'}>
+                        <span
+                            className={`flex items-center gap-1 ${b.url ? '' : 'ml-auto'}`}
+                        >
+                            <ResearchBadge basis={b.recherche} compact />
                             <VersionTag version={b.version} />
                         </span>
                     ) : null}
