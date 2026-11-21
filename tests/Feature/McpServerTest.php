@@ -28,6 +28,13 @@ final class McpServerTest extends TestCase
         return $publish ? $glossary->publish($term, null) : $term;
     }
 
+    /** über die Vorgabe, damit eine gesetzte Umgebungsvariable den Test nicht beeinflusst */
+    private function einschalten(): void
+    {
+        config(['glossary.mcp_enabled' => true]);
+        Settings::flush();
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -41,7 +48,7 @@ final class McpServerTest extends TestCase
 
     public function test_werkzeuge_lesend_und_benannt_nach_standard(): void
     {
-        Settings::set($this->admin(), ['mcp.enabled' => true]);
+        $this->einschalten();
         $tools = collect($this->postJson('/mcp', ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'tools/list'], ['Accept' => 'application/json, text/event-stream', 'MCP-Protocol-Version' => '2025-11-25'])
             ->assertOk()->json('result.tools'));
         $names = $tools->pluck('name')->sort()->values()->all();
@@ -105,7 +112,7 @@ final class McpServerTest extends TestCase
         $init = ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'initialize', 'params' => ['protocolVersion' => '2025-11-25', 'capabilities' => (object) [], 'clientInfo' => ['name' => 'test', 'version' => '1']]];
         $this->postJson('/mcp', $init, ['Accept' => 'application/json, text/event-stream'])->assertNotFound();
 
-        Settings::set($this->admin(), ['mcp.enabled' => true]);
+        $this->einschalten();
         $response = $this->postJson('/mcp', $init, ['Accept' => 'application/json, text/event-stream'])->assertOk();
         $this->assertStringContainsString('EduKSX-Glossary', (string) $response->getContent());
         $this->assertNull($response->headers->get('Set-Cookie'));
