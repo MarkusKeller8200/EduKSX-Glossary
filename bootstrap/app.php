@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\ApiLocale;
 use App\Http\Middleware\AuthenticateServiceToken;
+use App\Http\Middleware\ContentSecurityPolicy;
 use App\Http\Middleware\CountRequests;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
@@ -46,6 +47,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(NoIndexUnlessPublic::class);
 
         $middleware->web(append: [
+            // vollständige CSP mit Nonce, zuerst Report-Only (#397)
+            ContentSecurityPolicy::class,
             EnsureAccountActive::class,
             RequirePrivacyAcknowledgement::class,
             HandleAppearance::class,

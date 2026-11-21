@@ -6,6 +6,7 @@ use App\Access\IdentEvents;
 use App\Access\Permission;
 use App\Database\PostgresSchema;
 use App\Glossary\PublicCache;
+use App\Http\Middleware\ContentSecurityPolicy;
 use App\Metrics\Metrics;
 use App\Models\User;
 use App\Organizations\OrganizationService;
@@ -16,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Database\Events\ConnectionEstablished;
+use Illuminate\Foundation\Http\Events\RequestHandled;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Support\Facades\Date;
@@ -41,6 +43,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // CSP (#397): erst nach den Kopfzeilen von eduksx/core erzwingen bzw. die interne Kopfzeile entfernen
+        Event::listen(RequestHandled::class, fn (RequestHandled $e) => ContentSecurityPolicy::finalize($e->response));
 
         // Rechte aus Rollen (#36, DEC-017): je Recht ein Gate; Prüfung immer serverseitig. Privilegierte Rechte nur
         // mit bestätigtem zweitem Faktor und aktivem Konto (#37, KONZEPT-BENUTZER 5.3); Grundrechte ohne (#110)

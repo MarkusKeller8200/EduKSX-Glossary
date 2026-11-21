@@ -35,6 +35,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Content Security Policy (#397):** Alle Seiten senden zusätzlich eine vollständige Richtlinie mit Nonce für Scripts
+  und Stile sowie Trusted Types, vorerst nur als Bericht (`Content-Security-Policy-Report-Only`, Verstösse unter
+  `/csp-bericht` im Protokoll). Mit `GLOSSARY_CSP_ENFORCE=true` wird sie erzwungen. Turnstile ist als eingebettete
+  Quelle erlaubt.
 - **Einbindung: erste Fundstelle je Ansicht (#474):** `EduksxGlossary.scan(element, { firstOnly: true })` markiert in
   Single-Page-Apps auf jeder Ansicht die erste Fundstelle je Begriff, `EduksxGlossary.reset()` setzt die gemerkten
   Begriffe zurück. Ohne diese Aufrufe bleibt alles wie bisher. Die Browser-Erweiterung erkennt Ansichtswechsel selbst.
