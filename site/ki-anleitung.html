@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mit KI recherchieren – EduKSX-Glossary</title>
+  <!-- Erzeugt mit php artisan glossary:ki-anleitung aus docs/KI-ANLEITUNG.md – nicht von Hand ändern -->
+  <style>
+    body{max-width:52rem;margin:2rem auto;padding:0 1rem;font:16px/1.55 system-ui,sans-serif;color:#1f2933}
+    table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid #d5dbe3;padding:.3rem .5rem;text-align:left;vertical-align:top}
+    pre{background:#f4f6f8;padding:.75rem;overflow:auto;white-space:pre-wrap}code{font-size:.92em}a{color:#0272ad}
+  </style>
+</head>
+<body>
+<p><a href="index.html">← EduKSX-Glossary</a> · <a href="https://glossary.eduksx.ch/mit-ki-recherchieren/vorlage.xlsx">Vorlage (.xlsx)</a></p>
+<h1>Mit KI recherchieren – Begriffe importkompatibel aufbereiten</h1>
+<p>Diese Anleitung hilft, mit einem KI-Assistenten (z. B. Claude, ChatGPT, Copilot) neue Begriffe für das
+EduKSX-Glossary zu recherchieren und so aufzubereiten, dass die Datei <strong>ohne Nacharbeit durch den Excel-Import</strong>
+läuft. Sie richtet sich an alle, die Begriffe beitragen – mit oder ohne Recht für den Import.</p>
+<p>Die Spalten, Werte und Regeln unten im Abschnitt «Format» werden aus dem Code erzeugt
+(<code>php artisan glossary:ki-anleitung</code>) und sind deshalb immer aktuell.</p>
+<h2>1. Ablauf in Kürze</h2>
+<ol>
+<li><strong>Bestand holen:</strong> Die KI (oder du) lädt die bestehenden Begriffe, Kategorien und Herkünfte über die öffentliche
+API (Abschnitt 2). So entstehen keine Doppelungen und keine unbekannten Kategorien.</li>
+<li><strong>Recherchieren und aufbereiten:</strong> Mit dem Prompt aus Abschnitt 5. Ergebnis ist eine Tabelle im Format unten
+(Excel <code>.xlsx</code> oder CSV).</li>
+<li><strong>Vorschau:</strong> In der Administration «Excel-Import» die Datei hochladen und die Vorschau prüfen. Fehler in der Datei
+beheben und erneut hochladen.</li>
+<li><strong>Übernehmen:</strong> Importierte Begriffe sind <strong>Entwürfe</strong> mit dem Badge «KI-unterstützt recherchiert».</li>
+<li><strong>Prüfen und veröffentlichen:</strong> Eine Moderatorin bzw. ein Moderator prüft Inhalt und Quellen, bestätigt mit
+«Als geprüft bestätigen» und veröffentlicht. Erst dann sind die Begriffe öffentlich.</li>
+</ol>
+<p>Ohne Recht für den Import: Begriffe einzeln über «Begriff vorschlagen» einreichen (gleiche Regeln für die Inhalte).</p>
+<h2>2. Vorher prüfen: was es schon gibt</h2>
+<table>
+<thead>
+<tr>
+<th>Was</th>
+<th>Abfrage</th>
+<th>Wozu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bestehende Begriffe</td>
+<td><code>GET https://glossary.eduksx.ch/api/v1/index</code></td>
+<td>Doppelungen erkennen: Abkürzung, Bezeichnung und Aliase vergleichen</td>
+</tr>
+<tr>
+<td>Kategorien</td>
+<td><code>GET https://glossary.eduksx.ch/api/v1/categories</code></td>
+<td>nur vorhandene Labels verwenden (<code>label</code>)</td>
+</tr>
+<tr>
+<td>Herkunft</td>
+<td><code>GET https://glossary.eduksx.ch/api/v1/sources</code></td>
+<td>vorhandene Herkunft verwenden; neue nur bewusst</td>
+</tr>
+<tr>
+<td>Einzelner Begriff</td>
+<td><code>GET https://glossary.eduksx.ch/api/v1/terms/&lt;Code&gt;</code></td>
+<td>bestehenden Begriff ändern: ID übernehmen</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Doppelung:</strong> Gibt es die Abkürzung oder die Bezeichnung (ohne Gross-/Kleinschreibung) schon, keinen neuen Begriff
+anlegen. Stattdessen die Zeile mit der <strong>ID</strong> des bestehenden Begriffs füllen (ändern) oder weglassen.</li>
+<li><strong>Gleiche Abkürzung, andere Bedeutung</strong> (z. B. «SL» für Schulleitung und Schulleiterin): ist erlaubt, die
+Bezeichnung muss sich dann klar unterscheiden.</li>
+<li><strong>Unbekannte Kategorie oder Herkunft:</strong> Der Import lehnt die Zeile ab, ausser beim Import ist «Listen neu anlegen»
+eingeschaltet. Neue Labels deshalb nur, wenn wirklich keine bestehende passt, und in der Antwort der KI ausdrücklich
+aufführen.</li>
+</ul>
+<h2>3. Regeln für die Inhalte</h2>
+<ul>
+<li><strong>Kurzbeschreibung:</strong> ein Satz, rund 110 Zeichen (höchstens 160).</li>
+<li><strong>Beschreibung:</strong> ein bis drei Sätze, sachlich und neutral (kein «du», keine Werbung).</li>
+<li><strong>Schreibweise:</strong> Schweizer Rechtschreibung, <strong>kein ß</strong> (immer «ss»), Anführungszeichen « ».</li>
+<li><strong>Offizielle Bezeichnung vor Abkürzung:</strong> «Bezeichnung offiziell» ist die amtliche bzw. gebräuchliche Langform.</li>
+<li><strong>Englische oder amtliche Zweitnamen</strong> in «Aliase offiziell», <strong>Schreibvarianten</strong> in «Alternative Schreibweisen»,
+<strong>Suchwörter</strong> (Tippfehler, frühere Namen) in «Suchbegriffe» – Mehrfachwerte immer mit «;» trennen.</li>
+<li><strong>Status:</strong> «aktuell» für Begriffe in Gebrauch, «historisch» für abgelöste (mit «Gültig bis»), «zu prüfen», wenn die
+Recherche unsicher ist.</li>
+<li><strong>Recherche:</strong> immer «KI-unterstützt». Nie «geprüft» – das setzt nur ein Mensch nach der Prüfung im Glossary.</li>
+<li><strong>Keine Personendaten:</strong> keine Namen von Personen, keine E-Mail-Adressen, nur öffentliche Quellen.</li>
+</ul>
+<h2>4. Quellen und Urheberrecht</h2>
+<ul>
+<li>Jede Zeile mit <strong>Herkunft</strong> (herausgebende Stelle) und, wenn vorhanden, <strong>URL</strong> der amtlichen Seite.</li>
+<li>Texte <strong>selbst formulieren</strong>, nie aus der Quelle kopieren. Kurze Fachbegriffe und amtliche Bezeichnungen dürfen
+übernommen werden.</li>
+<li><strong>Nutzungsbedingungen der Quelle prüfen.</strong> Die Daten im Glossary stehen unter <strong>CC BY 4.0</strong>: Was importiert wird,
+muss sich unter dieser Lizenz weitergeben lassen. Bei Unklarheit die Quelle in der «Notiz» festhalten und den
+Begriff mit Status «zu prüfen» liefern.</li>
+</ul>
+<h2>5. Prompt zum Kopieren</h2>
+<p>Den folgenden Text in den KI-Assistenten kopieren und das Thema am Ende ergänzen. Assistenten mit Webzugriff laden den
+Bestand selbst; sonst die Antworten der drei Abfragen aus Abschnitt 2 als Datei mitgeben.</p>
+
+<pre><code class="language-text">Du hilfst, Begriffe für das EduKSX-Glossary (Glossar für Schweizer Volksschulen, Schulgemeinden und Gemeinden) zu
+recherchieren und importfertig aufzubereiten.
+
+1. Lade den Bestand: https://glossary.eduksx.ch/api/v1/index (Begriffe), /api/v1/categories (Kategorien) und
+   /api/v1/sources (Herkunft). Verwende nur vorhandene Kategorien und Herkünfte (Feld «label»). Schlage neue nur vor,
+   wenn keine passt, und liste sie am Ende separat auf.
+2. Prüfe jeden Begriff auf Doppelungen (Abkürzung, Bezeichnung, Aliase; ohne Gross-/Kleinschreibung). Doppelte nicht
+   neu anlegen, sondern in einer separaten Liste mit dem vorhandenen Code nennen.
+3. Erstelle eine Tabelle mit genau diesen Spalten in dieser Reihenfolge (erste Zeile = Spaltennamen):
+   ID; Kategorien; Abkürzung offiziell; Aliase offiziell; Alternative Schreibweisen; Bezeichnung offiziell;
+   Kurzbeschreibung; Beschreibung; URL; Notiz; Herkunft; Status; Suchbegriffe; Gültig ab; Gültig bis; Aktiv; Recherche
+   - ID leer lassen (neuer Begriff).
+   - Mehrfachwerte mit «; » trennen. Datum als JJJJ-MM-TT. Aktiv: ja. Status: aktuell, historisch oder zu prüfen.
+   - Recherche: immer «KI-unterstützt».
+   - Kurzbeschreibung ein Satz (rund 110, höchstens 160 Zeichen), Beschreibung 1–3 Sätze, neutral, kein «du».
+   - Schweizer Rechtschreibung, kein ß, Anführungszeichen « ».
+   - Offizielle Bezeichnung als «Bezeichnung offiziell», englische Namen als «Aliase offiziell», Schreibvarianten als
+     «Alternative Schreibweisen».
+   - Herkunft = herausgebende Stelle, URL = amtliche Seite. Texte selbst formulieren, nicht kopieren. In der Notiz die
+     Quelle und das Abrufdatum angeben.
+   - Keine Personendaten, nur öffentliche Quellen. Bei Unsicherheit Status «zu prüfen».
+4. Gib die Tabelle als CSV (Trennzeichen Semikolon, UTF-8) oder als Excel-Datei aus, danach die Listen «Doppelungen»
+   und «Neue Kategorien/Herkünfte».
+
+Thema: &lt;hier das Thema bzw. die Quelle eintragen&gt;
+</code></pre>
+
+<h2>6. Format</h2>
+
+<p>Excel-Format Version 2 (<code>app/Glossary/ExcelFormat.php</code>). Erste Zeile = Spaltennamen genau wie unten;
+Spalten dürfen fehlen (sie bleiben dann unverändert), die Reihenfolge ist frei. Zeilen <strong>ohne ID</strong> sind neue
+Begriffe, Zeilen <strong>mit ID</strong> ändern den Begriff mit dieser ID. Gelöscht wird nie.</p>
+<table>
+<thead>
+<tr>
+<th>Spalte</th>
+<th>Format</th>
+<th>Beispiel</th>
+<th>Pflicht</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ID</td>
+<td>UUID</td>
+<td>0195f6a2-7c1e-7a3b-9b2d-3f4e5a6b7c8d</td>
+<td>automatisch</td>
+</tr>
+<tr>
+<td>Kategorien</td>
+<td>Liste; Excel: Labels mit Strichpunkt</td>
+<td>Personal; Schule</td>
+<td>empfohlen</td>
+</tr>
+<tr>
+<td>Abkürzung offiziell</td>
+<td>Text, höchstens 60 Zeichen</td>
+<td>VSA</td>
+<td>Abkürzung oder Bezeichnung</td>
+</tr>
+<tr>
+<td>Aliase offiziell</td>
+<td>Liste, mit Strichpunkt getrennt</td>
+<td>VSA ZH; Volksschulamt Zürich</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Alternative Schreibweisen</td>
+<td>Liste, mit Strichpunkt getrennt</td>
+<td>V.S.A.</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Bezeichnung offiziell</td>
+<td>Text, höchstens 255 Zeichen</td>
+<td>Volksschulamt</td>
+<td>Abkürzung oder Bezeichnung</td>
+</tr>
+<tr>
+<td>Kurzbeschreibung</td>
+<td>Text, höchstens 160 Zeichen</td>
+<td>Kantonale Fachstelle für die Volksschule</td>
+<td>empfohlen</td>
+</tr>
+<tr>
+<td>Beschreibung</td>
+<td>Text, mehrzeilig</td>
+<td>Das Volksschulamt ist zuständig für …</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>URL</td>
+<td>Adresse mit http:// oder https://</td>
+<td><a href="https://www.zh.ch/vsa">https://www.zh.ch/vsa</a></td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Notiz</td>
+<td>Text, mehrzeilig</td>
+<td>Bezeichnung mit VSA klären</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Herkunft</td>
+<td>Liste; Excel: Labels mit Strichpunkt</td>
+<td>VSA</td>
+<td>empfohlen</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>Excel: aktuell | historisch | zu prüfen; API: current | historical | under_review</td>
+<td>aktuell</td>
+<td>ja (Vorgabe aktuell)</td>
+</tr>
+<tr>
+<td>Suchbegriffe</td>
+<td>Text, Wörter mit Strichpunkt getrennt</td>
+<td>Schulamt; Volksschulbehörde</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Gültig ab</td>
+<td>Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ)</td>
+<td>2026-08-01</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Gültig bis</td>
+<td>Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ)</td>
+<td>2027-07-31</td>
+<td>nein</td>
+</tr>
+<tr>
+<td>Aktiv</td>
+<td>ja | nein</td>
+<td>ja</td>
+<td>ja (Vorgabe ja)</td>
+</tr>
+<tr>
+<td>Recherche</td>
+<td>KI-unterstützt | geprüft | leer</td>
+<td>KI-unterstützt</td>
+<td>nein</td>
+</tr>
+</tbody>
+</table>
+<p>Übersetzungen (freiwillig): «Abkürzung (FR)», «Bezeichnung (FR)», «Kurzbeschreibung (FR)», «Beschreibung (FR)», «Abkürzung (IT)», «Bezeichnung (IT)», «Kurzbeschreibung (IT)», «Beschreibung (IT)», «Abkürzung (EN)», «Bezeichnung (EN)», «Kurzbeschreibung (EN)», «Beschreibung (EN)».</p>
+<ul>
+<li><strong>Mehrfachwerte</strong> («;»): «Kategorien», «Aliase offiziell», «Alternative Schreibweisen», «Herkunft», dazu «Suchbegriffe».</li>
+<li><strong>Status:</strong> aktuell | historisch | zu prüfen (leer = «aktuell»).</li>
+<li><strong>Aktiv:</strong> ja | nein (leer = ja).</li>
+<li><strong>Recherche:</strong> KI-unterstützt (der Import setzt nur diesen Wert; «geprüft» ändert nichts).</li>
+<li><strong>Datum:</strong> JJJJ-MM-TT (auch TT.MM.JJJJ).</li>
+<li><strong>Offizielle Spalten</strong> («Abkürzung offiziell», «Aliase offiziell», «Bezeichnung offiziell») bei bestehenden Begriffen nur mit dem Recht «Offizielle Felder ändern».</li>
+<li>CSV: UTF-8, Trennzeichen Semikolon, gleiche Spaltennamen.</li>
+</ul>
+
+<h2>7. Vorlage und weitere Hilfe</h2>
+<ul>
+<li><strong>Leere Vorlage:</strong> <a href="https://glossary.eduksx.ch/mit-ki-recherchieren/vorlage.xlsx">https://glossary.eduksx.ch/mit-ki-recherchieren/vorlage.xlsx</a> (alle Spalten, inkl. Übersetzungen).</li>
+<li><strong>Alle Felder erklärt:</strong> Hilfe › Felder (<a href="https://glossary.eduksx.ch/hilfe">https://glossary.eduksx.ch/hilfe</a>).</li>
+<li><strong>API:</strong> <a href="https://glossary.eduksx.ch/entwickler">https://glossary.eduksx.ch/entwickler</a>.</li>
+</ul>
+
+</body>
+</html>

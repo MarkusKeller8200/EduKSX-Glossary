@@ -57,6 +57,13 @@ export default function SiteFooter({ narrow }: { narrow: string }) {
                     </Link>
                     {' · '}
                     <Link
+                        href="/mit-ki-recherchieren"
+                        className="text-link underline-offset-4 hover:underline"
+                    >
+                        Mit KI recherchieren
+                    </Link>
+                    {' · '}
+                    <Link
                         href={admin ? '/admin' : '/anmelden'}
                         className="text-link underline-offset-4 hover:underline"
                     >
