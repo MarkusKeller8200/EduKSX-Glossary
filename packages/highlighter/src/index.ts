@@ -4,7 +4,7 @@
  */
 export { Highlighter, MARK_CLASS } from './highlighter';
 export { loadIndex, localStore } from './loader';
-export type { ScanOptions, IndexStore } from './loader';
+export type { IndexStore } from './loader';
 export { Matcher } from './matcher';
 export { CODE_PATTERN, permalink, Tooltip } from './tooltip';
 export type {
@@ -12,4 +12,5 @@ export type {
     IndexEntry,
     IndexResponse,
     Match,
+    ScanOptions,
 } from './types';
