@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\Locale;
 use App\Enums\RelationType;
+use App\Enums\ResearchBasis;
 use App\Enums\TermStatus;
 use App\Glossary\FourEyesRequired;
 use App\Glossary\GlossaryService;
@@ -14,9 +15,11 @@ use App\Models\Source;
 use App\Models\Term;
 use App\Models\TermRevision;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -88,6 +91,8 @@ class TermController extends Controller
                 'herkunft' => $t->sources->map(fn (Source $c): string => $c->displayLabel())->values()->all(),
                 'status' => Term::STATUS[$t->status] ?? $t->status,
                 'aktiv' => $t->is_active,
+                // Recherche (#479): Filter «KI-unterstützt, noch nicht geprüft»
+                'recherche' => $t->research_basis,
                 'revision' => $t->revision,
                 'veroeffentlicht' => $t->publishedRevision?->revision,
                 'entwurf' => $t->hasUnpublishedChanges(),
@@ -137,6 +142,10 @@ class TermController extends Controller
                 'revision' => $term->revision,
                 'veroeffentlicht' => $term->publishedRevision?->revision,
                 'ungespeichert' => $term->hasUnpublishedChanges(),
+                // Recherche (#479): Badge, Datum und prüfende Person (nur in der Redaktion)
+                'recherche' => $term->research_basis,
+                'geprueft_am' => $term->reviewed_at?->toIso8601String(),
+                'geprueft_von' => $term->reviewed_by_id !== null ? User::query()->whereKey($term->reviewed_by_id)->value('name') : null,
                 'zusammengefuehrt_in' => ($target = $term->mergeTarget()) !== null
                     ? ['id' => $target->id, 'titel' => $target->title()]
                     : null,
@@ -156,6 +165,12 @@ class TermController extends Controller
                 })->all(),
             ],
             'verlauf' => array_reverse($history),
+            // Prüfungen der Recherche (#479) aus der Historie: ohne neue Revision
+            'pruefungen' => DB::table('data_changes')->where('subject_type', 'terms')->where('subject_id', $term->id)
+                ->orderByDesc('occurred_at')->limit(50)->get(['occurred_at', 'actor_label', 'changes'])
+                ->filter(fn (object $c): bool => str_contains((string) $c->changes, 'research_basis'))
+                ->map(fn (object $c): array => ['am' => CarbonImmutable::parse((string) $c->occurred_at, 'UTC')->toIso8601String(), 'von' => $c->actor_label])
+                ->values()->all(),
             'labels' => self::LABELS,
             'listen' => $this->lists(),
             'belegstatus' => SourceCheckController::EVIDENCE,
@@ -272,6 +287,17 @@ class TermController extends Controller
         return back()->with('status', $term->published_revision_id === $before ? 'War schon veröffentlicht.' : "Revision {$term->revision} veröffentlicht.");
     }
 
+    /** Recherche als von einem Menschen geprüft bestätigen (#479): ersetzt das Badge «KI-unterstützt». */
+    public function confirmReview(Request $request, Term $term): RedirectResponse
+    {
+        if ($term->merged_into_id !== null) {
+            return back()->withErrors(['recherche' => 'Begriff wurde zusammengeführt.']);
+        }
+        $this->glossary->confirmReview($term, $this->currentUserOrNull($request));
+
+        return back()->with('status', 'Als «Von Mensch geprüft» bestätigt.');
+    }
+
     public function unpublish(Request $request, Term $term): RedirectResponse
     {
         $this->glossary->unpublish($term, $this->currentUserOrNull($request));
@@ -324,7 +350,10 @@ class TermController extends Controller
             'relations' => ['array', 'max:50'],
             'relations.*.type' => ['required', 'string'],
             'relations.*.term_id' => ['required', 'string'],
+            'ki_unterstuetzt' => ['boolean'],
         ]);
+        unset($data['ki_unterstuetzt']);
+        $data['research_basis'] = $request->boolean('ki_unterstuetzt') ? ResearchBasis::AiAssisted->value : null;
         $data['relations'] ??= [];
         $term?->assertLockVersion($request->input('lock_version'));   // optimistisches Sperren (#286)
         $data['categories'] ??= [];
@@ -355,6 +384,7 @@ class TermController extends Controller
                 'search_terms' => '', 'valid_from' => '', 'valid_until' => '', 'is_active' => true,
                 'translations' => $this->translationForm([]),
                 'relations' => [],
+                'ki_unterstuetzt' => false,
                 'lock_version' => 0,
             ];
         }
@@ -378,6 +408,8 @@ class TermController extends Controller
             'is_active' => (bool) $s['is_active'],
             'translations' => $this->translationForm((array) $s['translations']),
             'relations' => array_values((array) $s['relations']),
+            // Recherche (#479): abhaken setzt «KI-unterstützt»; entfernen nur über «Als geprüft bestätigen»
+            'ki_unterstuetzt' => $term->research_basis === ResearchBasis::AiAssisted->value,
             'lock_version' => $term->lock_version,
         ];
     }

@@ -2,8 +2,10 @@
 
 namespace App\Glossary;
 
+use App\Data\DataChanges;
 use App\Enums\Locale;
 use App\Enums\RelationType;
+use App\Enums\ResearchBasis;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\PublicationRelease;
@@ -15,6 +17,7 @@ use App\Models\TermTranslation;
 use App\Models\TermUserOverride;
 use App\Models\User;
 use App\Support\Settings;
+use Carbon\CarbonImmutable;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -95,6 +98,10 @@ final class GlossaryService
             $before = $creating ? null : $this->snapshot($term);
 
             $term->fill(array_intersect_key($values, array_flip($term->getFillable())));
+            // Recherche (#479): «KI-unterstützt» setzt Formular bzw. Import; die Prüfung nur confirmReview()
+            if (($values['research_basis'] ?? null) === ResearchBasis::AiAssisted->value) {
+                $term->research_basis = ResearchBasis::AiAssisted->value;
+            }
             if ($creating) {
                 $term->slug = $this->uniqueSlug($term);
             }
@@ -136,6 +143,27 @@ final class GlossaryService
             ]);
 
             return $term->refresh();
+        });
+    }
+
+    /**
+     * Recherche als von einem Menschen geprüft bestätigen (#479): ersetzt das Badge «KI-unterstützt», setzt Datum und
+     * prüfende Person, ohne neue Revision; Eintrag in der Historie (data_changes).
+     */
+    public function confirmReview(Term $term, ?User $reviewer): Term
+    {
+        return DB::transaction(function () use ($term, $reviewer): Term {
+            $before = ['research_basis' => $term->research_basis, 'reviewed_at' => $term->reviewed_at?->toIso8601String()];
+            $term->research_basis = ResearchBasis::HumanReviewed->value;
+            $term->reviewed_at = CarbonImmutable::now();
+            $term->reviewed_by_id = $reviewer?->id;
+            $term->save();
+            DataChanges::write('terms', $term->id, 'updated', [
+                'research_basis' => ['old' => $before['research_basis'], 'new' => $term->research_basis],
+                'reviewed_at' => ['old' => $before['reviewed_at'], 'new' => $term->reviewed_at->toIso8601String()],
+            ]);
+
+            return $term;
         });
     }
 
@@ -681,6 +709,17 @@ final class GlossaryService
 
         if (array_key_exists('translations', $data)) {
             $values['translations'] = $this->normalizeTranslations($data['translations']);
+        }
+        // Recherche (#479): nur «KI-unterstützt» lässt sich so setzen; «geprüft» und leer ändern nichts
+        if (array_key_exists('research_basis', $data)) {
+            $basis = $data['research_basis'];
+            $case = is_bool($basis) ? ($basis ? ResearchBasis::AiAssisted : null) : ResearchBasis::fromAny((string) $basis);
+            if ($case === null && ! in_array($basis, [null, '', false], true)) {
+                throw new InvalidArgumentException('Recherche «'.(is_scalar($basis) ? $basis : '').'» ist unbekannt (KI-unterstützt oder leer).');
+            }
+            if ($case === ResearchBasis::AiAssisted) {
+                $values['research_basis'] = $case->value;
+            }
         }
 
         if ($creating) {

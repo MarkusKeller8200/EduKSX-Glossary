@@ -9,7 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ListBadge, ListBadges, StatusBadge } from '@/components/tags';
+import {
+    ListBadge,
+    ListBadges,
+    ResearchBadge,
+    StatusBadge,
+} from '@/components/tags';
 import { zurueckOderStart } from '@/lib/navigation';
 
 type Meine = {
@@ -46,6 +51,9 @@ type Begriff = {
     mehrdeutig: boolean;
     verlauf: { revision: number; am: string | null }[];
     permalink: string;
+    // Recherche (#479)
+    recherche: string | null;
+    geprueft_am: string | null;
     // nur angemeldet (DEC-020): persönliche Darstellung des eigenen Kontos
     persoenlich?: boolean;
     gemeinsam?: {
@@ -112,6 +120,10 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     <ListBadges list="herkunft" labels={herkunftLabels} info />
                     <ListBadges list="kategorien" labels={b.kategorien} info />
                     <StatusBadge status={b.status} />
+                    <ResearchBadge
+                        basis={b.recherche}
+                        reviewedOn={b.geprueft_am}
+                    />
                     {b.mehrdeutig ? (
                         <Badge variant="outline">mehrdeutig</Badge>
                     ) : null}
@@ -214,6 +226,14 @@ export default function Term({ begriff: b }: { begriff: Begriff }) {
                     <Feld titel="Status">
                         <StatusBadge status={b.status} />
                     </Feld>
+                    {b.recherche ? (
+                        <Feld titel="Recherche">
+                            <ResearchBadge
+                                basis={b.recherche}
+                                reviewedOn={b.geprueft_am}
+                            />
+                        </Feld>
+                    ) : null}
                     <Feld titel="URL">
                         {b.url ? (
                             <a

@@ -494,6 +494,9 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `created_at` | intern |
 | `updated_at` | intern |
 | `lock_version` | intern |
+| `research_basis` | öffentlich |
+| `reviewed_at` | öffentlich |
+| `reviewed_by_id` | intern |
 
 ## `user_audit`
 

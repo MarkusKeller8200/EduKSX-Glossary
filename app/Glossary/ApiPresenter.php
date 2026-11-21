@@ -30,6 +30,8 @@ final class ApiPresenter
         'alternative_aliases', 'aliases', 'search_terms', 'display_label', 'is_full_term', 'is_ambiguous', 'meaning_count',
         'short_description', 'description', 'url', 'categories', 'sources', 'status', 'is_active', 'valid_from',
         'valid_until', 'translations', 'relations', 'revision', 'published_at', 'updated_at', 'web_url', 'permalink',
+        // Recherche (#479): KI-unterstützt bzw. von Mensch geprüft, ohne Personendaten
+        'research_basis', 'reviewed_at',
     ];
 
     /** Nur mit ?lang= (X1, #282): verlangte und je Feld gelieferte Sprache; steht nach den übrigen Feldern. */
@@ -47,7 +49,7 @@ final class ApiPresenter
      * Vom Gesamtstand abhängige Felder: nur in Liste, Einzelbegriff und Vollstand, nicht im Change-Feed (ein altes
      * Ereignis würde sonst Zahlen eines späteren Stands zeigen).
      */
-    public const CONTEXT_FIELDS = ['is_ambiguous', 'meaning_count', 'relations'];
+    public const CONTEXT_FIELDS = ['is_ambiguous', 'meaning_count', 'relations', 'research_basis', 'reviewed_at'];
 
     /** @var array<string, array{id: string, slug: string, display_label: string}>|null öffentlich sichtbare Begriffe nach ID */
     private ?array $targets = null;
@@ -139,6 +141,10 @@ final class ApiPresenter
         $term['is_ambiguous'] = $display->isAmbiguous($revision->snapshot);
         $term['meaning_count'] = $display->meaningCount($revision->snapshot);
         $term['relations'] = $this->relations($revision->snapshot['relations'] ?? []);
+        // Recherche (#479): Merkmal am Begriff, nicht im Abbild – deshalb nur mit dem aktuellen Stand
+        $research = $this->research()[(string) $revision->snapshot['id']] ?? null;
+        $term['research_basis'] = $research['basis'] ?? null;
+        $term['reviewed_at'] = $research['reviewed_at'] ?? null;
         $ordered = [];
         foreach (self::PUBLIC_TERM_FIELDS as $field) {
             if (array_key_exists($field, $term)) {
@@ -252,11 +258,36 @@ final class ApiPresenter
                     'is_ambiguous' => (bool) $t['is_ambiguous'],
                     'categories' => array_values(array_map(fn (mixed $c): string => is_array($c) ? (string) ($c['label'] ?? '') : '', (array) $t['categories'])),
                     'permalink' => $t['permalink'],
+                    // Badge in Einbindung und Erweiterung (#479)
+                    'research_basis' => $t['research_basis'] ?? null,
                 ];
             }
 
             return $index;
         });
+    }
+
+    /**
+     * Recherche je Begriff-ID (#479), nur Begriffe mit Angabe.
+     *
+     * @return array<string, array{basis: string, reviewed_at: string|null}>
+     */
+    private function research(): array
+    {
+        /** @var array<string, array{basis: string, reviewed_at: string|null}> $research */
+        $research = app(PublicCache::class)->remember('research', function (): array {
+            $out = [];
+            foreach (Term::query()->whereNotNull('research_basis')->get(['id', 'research_basis', 'reviewed_at']) as $term) {
+                $out[(string) $term->id] = [
+                    'basis' => (string) $term->research_basis,
+                    'reviewed_at' => $term->research_basis === 'human_reviewed' ? $term->reviewed_at?->toDateString() : null,
+                ];
+            }
+
+            return $out;
+        });
+
+        return $research;
     }
 
     /**

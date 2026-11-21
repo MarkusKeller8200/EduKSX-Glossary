@@ -7,6 +7,7 @@ use App\Models\CategoryTranslation;
 use App\Models\PublicationRelease;
 use App\Models\Source;
 use App\Models\SourceTranslation;
+use App\Models\Term;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Cache;
  * Zwischenspeicher der öffentlichen Sicht (#137): Startseite, API und Exporte bauen den Stand nicht bei jedem Aufruf
  * aus allen Revisionen neu auf. Der Schlüssel enthält den aktuellen Datenstand (PublicationRelease, ändert bei jeder
  * Veröffentlichung, jedem Rückzug und Zusammenführen) und eine Prüfsumme der Listen Kategorien/Herkunft (Labels,
- * Farben, Übersetzungen). Ändert sich etwas davon, gilt automatisch ein neuer Schlüssel; alte Einträge laufen ab.
+ * Farben, Übersetzungen) und der Recherche-Merkmale (#479). Ändert sich etwas davon, gilt automatisch ein neuer Schlüssel; alte Einträge laufen ab.
  */
 final class PublicCache
 {
@@ -46,6 +47,8 @@ final class PublicCache
             // Übersetzungen der Listen (X1, #282)
             CategoryTranslation::query()->orderBy('id')->get(['category_id', 'locale', 'name', 'label', 'description'])->toArray(),
             SourceTranslation::query()->orderBy('id')->get(['source_id', 'locale', 'name', 'label', 'description'])->toArray(),
+            // Recherche (#479): ändert ohne Veröffentlichung
+            Term::query()->whereNotNull('research_basis')->selectRaw('count(*) as n, max(updated_at) as u, max(reviewed_at) as r')->first()?->toArray(),
         ]));
 
         return $this->keys[$release] = 'glossary.public.'.$release.'.'.substr($lists, 0, 16);

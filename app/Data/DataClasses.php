@@ -398,6 +398,10 @@ final class DataClasses
             'created_at' => DataClass::Internal,
             'updated_at' => DataClass::Internal,
             'lock_version' => DataClass::Internal,
+            // Recherche (#479): Badge öffentlich, die prüfende Person nur intern
+            'research_basis' => DataClass::Public,
+            'reviewed_at' => DataClass::Public,
+            'reviewed_by_id' => DataClass::Internal,
         ],
         'user_audit' => [
             'id' => DataClass::Internal,

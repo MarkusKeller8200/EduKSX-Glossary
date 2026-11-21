@@ -51,6 +51,9 @@ use Illuminate\Support\Str;
  * @property-read Collection<int, TermRevision> $revisions
  * @property-read Collection<int, TermUserOverride> $overrides
  * @property int $lock_version
+ * @property string|null $research_basis Recherche (#479): ai_assisted, human_reviewed oder leer
+ * @property CarbonImmutable|null $reviewed_at letzte Prüfung durch einen Menschen (#479, #436)
+ * @property string|null $reviewed_by_id
  */
 class Term extends Model
 {
@@ -98,6 +101,7 @@ class Term extends Model
             'valid_until' => 'immutable_date',
             'revision' => 'integer',
             'merged_at' => 'immutable_datetime',
+            'reviewed_at' => 'immutable_datetime',
         ];
     }
 

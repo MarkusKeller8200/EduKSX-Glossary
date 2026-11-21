@@ -135,7 +135,7 @@ class ExcelImportTest extends TestCase
 
         $this->assertSame('ID', ExcelFormat::header()[0]);
         // Format Version 2 (DEC-020): ohne eigene Spalten und «Intern genutzt in», mit «Alternative Schreibweisen»
-        $this->assertCount(28, ExcelFormat::header());   // 16 + 12 Übersetzungsspalten (#291)
+        $this->assertCount(29, ExcelFormat::header());   // 16 + Recherche (#479) + 12 Übersetzungsspalten (#291)
         $this->assertContains('Alternative Schreibweisen', ExcelFormat::header());
     }
 

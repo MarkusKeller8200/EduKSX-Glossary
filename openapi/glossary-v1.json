@@ -480,6 +480,19 @@
                             ],
                             "format": "uri",
                             "example": "https://glossary.eduksx.ch/g/7KQ2MX"
+                          },
+                          "research_basis": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "ai_assisted",
+                              "human_reviewed",
+                              null
+                            ],
+                            "description": "Recherche: ai_assisted = mit KI-Unterstützung recherchiert, noch nicht von einem Menschen geprüft (Badge «KI-unterstützt recherchiert»); human_reviewed = von einem Menschen geprüft (Badge «Von Mensch geprüft»); null = ohne Angabe",
+                            "example": "human_reviewed"
                           }
                         }
                       }
@@ -1771,6 +1784,28 @@
             "format": "uri",
             "description": "Kurze, unveränderliche Adresse des Begriffs (/g/{code}); leitet auf die Seite des Begriffs",
             "example": "https://glossary.eduksx.ch/g/7KQ2MX"
+          },
+          "research_basis": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ai_assisted",
+              "human_reviewed",
+              null
+            ],
+            "description": "Recherche: ai_assisted = mit KI-Unterstützung recherchiert, noch nicht von einem Menschen geprüft (Badge «KI-unterstützt recherchiert»); human_reviewed = von einem Menschen geprüft (Badge «Von Mensch geprüft»); null = ohne Angabe",
+            "example": "human_reviewed"
+          },
+          "reviewed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "Datum der Prüfung durch einen Menschen (nur bei human_reviewed), ohne Angaben zur Person",
+            "example": "2026-11-21"
           },
           "language": {
             "type": "object",

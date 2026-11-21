@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import {
     ListBadge,
     ListBadges,
+    ResearchBadge,
     StatusBadge,
     VersionTag,
 } from '@/components/tags';
@@ -43,6 +44,7 @@ type Begriff = {
     suchbegriffe: string;
     version: number;
     veroeffentlichtAm: string | null;
+    recherche?: string | null;
     persoenlich?: boolean;
     organisation?: boolean;
     suche: string;
@@ -406,6 +408,7 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                     {!isCurrentStatus(b.status) ? (
                                         <StatusBadge status={b.status} />
                                     ) : null}
+                                    <ResearchBadge basis={b.recherche} />
                                     <span className="ml-auto flex items-baseline gap-3">
                                         <Labels
                                             titel="Herkunft"

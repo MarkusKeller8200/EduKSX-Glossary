@@ -121,6 +121,17 @@ export default function Terms({
     // Filter Kategorie und Herkunft (#145)
     const [kategorien, setKategorien] = useState<string[]>([]);
     const [herkunft, setHerkunft] = useState<string[]>([]);
+    // Wiedervorlage (#479): KI-unterstützt, noch nicht von einem Menschen geprüft
+    const [nurKi, setNurKi] = useState(
+        () =>
+            typeof window !== 'undefined' &&
+            new URLSearchParams(window.location.search).get('recherche') ===
+                'offen',
+    );
+    const kiOffen = useMemo(
+        () => begriffe.filter((b) => b.recherche === 'ai_assisted').length,
+        [begriffe],
+    );
     const q = suche.trim().toLowerCase();
     // gemerkt (#454): sonst entstehen bei jedem Klick (z. B. Auswahl) neue Gruppen und alle Zeilen neu
     const liste = useMemo(
@@ -134,9 +145,10 @@ export default function Terms({
                     (kategorien.length === 0 ||
                         b.kategorien.some((k) => kategorien.includes(k))) &&
                     (herkunft.length === 0 ||
-                        b.herkunft.some((h) => herkunft.includes(h))),
+                        b.herkunft.some((h) => herkunft.includes(h))) &&
+                    (!nurKi || b.recherche === 'ai_assisted'),
             ),
-        [begriffe, q, kategorien, herkunft],
+        [begriffe, q, kategorien, herkunft, nurKi],
     );
     const alleKategorien = useMemo(
         () => labelsAus(begriffe.flatMap((b) => b.kategorien)),
@@ -319,6 +331,16 @@ export default function Terms({
                     selected={kategorien}
                     onChange={setKategorien}
                 />
+                {kiOffen > 0 || nurKi ? (
+                    <label className="flex items-center gap-2 text-sm">
+                        <input
+                            type="checkbox"
+                            checked={nurKi}
+                            onChange={(e) => setNurKi(e.target.checked)}
+                        />
+                        KI-unterstützt, noch nicht geprüft ({kiOffen})
+                    </label>
+                ) : null}
             </div>
 
             <div className="mt-4">
