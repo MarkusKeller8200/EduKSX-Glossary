@@ -8,7 +8,8 @@ Stand 21.11.2026, abends – «Start nächster Chat»: zuerst `AGENTS.md`, dann 
 1. **Entscheide vom 21.11.2026 abnehmen** (vom Agenten nach Auftrag «nach bestem Ermessen» getroffen, Liste in der
    Übergabe im claude.ai-Projekt und unten unter «Entscheide zum Merken»). Insbesondere DEC-041 Abschnitt 4a
    (Entwicklungs-Sync), DEC-042 (Melden aus der Erweiterung) und die Verschiebungen in 0.19.0.
-2. **Beta 0.18.0-beta.1 auf test prüfen** (Testlisten der Issues #474, #478, #479, #480, #481, #397).
+2. **Beta 0.18.0-beta.1 auf test prüfen** (Testlisten der Issues #474, #478, #479, #480, #481, #397). Der MCP-Server
+   (#261, nach der Beta gemergt) kommt mit der nächsten Beta; auf dev mit `GLOSSARY_MCP=true` testen.
 3. **Einrichtung für den Sync** (siehe unten «Für den Projektverantwortlichen»), sonst lässt sich #478 nicht testen.
 
 ## Projekt
@@ -67,6 +68,10 @@ Stand 21.11.2026, abends – «Start nächster Chat»: zuerst `AGENTS.md`, dann 
 - **#397 CSP:** Report-Only mit Nonce und Trusted Types, Berichte an `/csp-bericht`; `GLOSSARY_CSP_ENFORCE=true`
   erzwingt. Erste Messung lokal: Inline-`<style>` aus Bibliotheken und `innerHTML` (Trusted Types) melden Verstösse.
 - Einbindung und Web-Komponenten 1.1.0.
+- **#261 MCP-Server Phase 1** (nach der Beta, #490): `laravel/mcp` 1.2.1, `/mcp` (Streamable HTTP, ohne Anmeldung,
+  60/min je IP), Werkzeuge `glossary_search_terms`, `glossary_get_term`, `glossary_resolve_abbreviation`,
+  `glossary_explain_text`, `glossary_list_categories`, Ressource unter `/g/{code}`, Prompt; Service `PublicLookup`;
+  Einstellung bzw. `GLOSSARY_MCP` (Vorgabe aus). KONZEPT-MCP O1–O6 wie vorgeschlagen festgelegt. Phase 2 = #491.
 
 ## Entscheide zum Merken
 
@@ -82,7 +87,10 @@ Stand 21.11.2026, abends – «Start nächster Chat»: zuerst `AGENTS.md`, dann 
   **ZU PRÜFEN:** ob die Erweiterung das Sitzungs-Cookie mitschickt (sonst Token-Anmeldung als Folge-Issue).
 - **Badge:** Import setzt höchstens «KI-unterstützt»; «geprüft» nur über die Aktion; Upload im Sync überträgt auch
   «geprüft» (Prüfung auf dev gilt). `reviewed_at` kann das Prüfintervall (#436) mitbenutzen.
-- **KI-Anleitung:** keine Skill-Datei und kein MCP-Werkzeug vorerst (kommt mit #261).
+- **KI-Anleitung:** keine Skill-Datei und kein MCP-Werkzeug vorerst.
+- **MCP (21.11.2026):** O1 ohne Anmeldung; O2 Einstellung, Vorgabe aus, auf glossary.eduksx.ch ein; O3 Schreiben
+  ab Phase 2 (#491); O4 mit `laravel/mcp` 1.2.1 (2026-07-28 unterstützt) begonnen; O5 60/min je IP; O6 allgemein
+  zuerst, Rovo als Integrationstest. #261 in den Meilenstein 0.18.0 genommen.
 - **CSP:** im Glossary statt in Core (Core eingefroren); später nach Core verschieben.
 - Entwicklungs-Sync, Badge, Einladungen, Domain, Moderator-Bewerbung, Impressum: wie in den Konzepten.
 
@@ -103,6 +111,8 @@ Stand 21.11.2026, abends – «Start nächster Chat»: zuerst `AGENTS.md`, dann 
   in der Administration › Einstellungen › Betrieb; auf test und prod je ein Servicekonto mit den Sync-Scopes; auf dev
   unter System › Sync die Gegenstellen erfassen (Ablauf in `DEPLOY.md`).
 - **Melden:** auf prod bei Bedarf Webseiten mit Einbindung eintragen (Einstellungen › Melden).
+- **MCP:** `GLOSSARY_MCP=true` in den Stacks dev, test und prod (bzw. Einstellung «MCP-Server für KI-Assistenten»);
+  danach in Claude `claude mcp add --transport http eduksx-glossary https://glossary-dev.markussx.ch/mcp` testen.
 - Weiterhin: KI-Playbook-Dateien importieren (jetzt mit Spalte «Recherche» = KI-unterstützt möglich); Impressum auf
   prod; «Vollständige Dumps nur mit Passwort» auf test und prod; Mailserver auf prod und danach «Registrierung offen»;
   Mailadressen info@ und datenschutz@eduksx.ch; Chrome-Store-Secrets, danach #399 Edge und #400 Firefox;
