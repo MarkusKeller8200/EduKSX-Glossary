@@ -8,6 +8,8 @@ export type IndexEntry = {
     is_ambiguous: boolean;
     categories: string[];
     permalink: string | null;
+    /** Recherche (#479): ai_assisted, human_reviewed oder fehlt/null */
+    research_basis?: string | null;
 };
 
 export type IndexResponse = {

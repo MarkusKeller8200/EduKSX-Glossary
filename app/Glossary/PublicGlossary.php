@@ -3,6 +3,7 @@
 namespace App\Glossary;
 
 use App\Enums\RelationType;
+use App\Enums\ResearchBasis;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Organization;
@@ -35,7 +36,7 @@ final class PublicGlossary
         'slug', 'code', 'abkuerzung', 'bezeichnung', 'abkuerzung_offiziell', 'bezeichnung_offiziell', 'aliase',
         'aliase_offiziell', 'alternative', 'suchbegriffe', 'kurz',
         'beschreibung', 'url', 'kategorien', 'herkunft', 'status', 'gueltig_ab', 'gueltig_bis', 'revision',
-        'veroeffentlicht', 'andere', 'beziehungen', 'mehrdeutig', 'permalink', 'verlauf',
+        'veroeffentlicht', 'andere', 'beziehungen', 'mehrdeutig', 'permalink', 'recherche', 'geprueft_am', 'verlauf',
     ];
 
     /** Zusätzliche Felder nur für das angemeldete Konto selbst (nie öffentlich). */
@@ -44,7 +45,7 @@ final class PublicGlossary
     /**
      * Kurzform für Liste und Suche.
      *
-     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, code: string, beschreibung: string, url: string, aliase: list<string>, schreibweisen: list<string>, gueltigAb: mixed, gueltigBis: mixed, suchbegriffe: string, version: int, veroeffentlichtAm: string|null, suche: string, persoenlich?: bool, organisation?: bool}>
+     * @return list<array{slug: string, abkuerzung: string, bezeichnung: string, kurz: string, kategorien: list<string>, herkunft: list<string>, status: string, code: string, beschreibung: string, url: string, aliase: list<string>, schreibweisen: list<string>, gueltigAb: mixed, gueltigBis: mixed, suchbegriffe: string, version: int, veroeffentlichtAm: string|null, recherche: string|null, suche: string, persoenlich?: bool, organisation?: bool}>
      */
     public function list(?User $user = null): array
     {
@@ -85,6 +86,8 @@ final class PublicGlossary
                     'version' => (int) ($s['revision_number'] ?? 0),
                     // «Mehr Details» (#428): Datum der Veröffentlichung dieser Version
                     'veroeffentlichtAm' => isset($s['published_on']) ? (string) $s['published_on'] : null,
+                    // Badge «KI-unterstützt recherchiert» bzw. «Von Mensch geprüft» (#479)
+                    'recherche' => isset($s['research_basis']) ? (string) $s['research_basis'] : null,
                     'suche' => mb_strtolower(implode(' ', array_filter([
                         $abk, $name, $kurz, implode(' ', (array) ($s['official_aliases'] ?? [])),
                         implode(' ', (array) ($s['alternative_aliases'] ?? [])), $s['search_terms'] ?? null,
@@ -173,6 +176,9 @@ final class PublicGlossary
             'mehrdeutig' => (new GlossaryDisplay($this->published()))->isAmbiguous($s),
             // kurze, unveränderliche Adresse (#154)
             'permalink' => Permalink::url($term->code),
+            // Recherche (#479): Badge mit Datum der Prüfung, ohne Person
+            'recherche' => $term->research_basis,
+            'geprueft_am' => $term->research_basis === ResearchBasis::HumanReviewed->value ? $term->reviewed_at?->toDateString() : null,
             // Verlauf (#68): nur veröffentlichte Revisionen mit Datum – ohne Personen, Entwürfe oder Inhalte
             'verlauf' => $term->revisions()->whereNotNull('published_at')->reorder('revision', 'desc')->get(['revision', 'published_at'])
                 ->map(fn (TermRevision $r): array => ['revision' => $r->revision, 'am' => $r->published_at?->toDateString()])
@@ -365,15 +371,16 @@ final class PublicGlossary
     {
         // Abbilder je Datenstand zwischengespeichert (#137)
         /** @var list<array<string, mixed>> $snapshots */
-        // «snapshots.v3»: mit Nummer und Datum der Revision (#425, #428); alte Einträge im Zwischenspeicher gelten nicht mehr
-        $snapshots = app(PublicCache::class)->remember('snapshots.v3', function (): array {
+        // «snapshots.v4»: mit Nummer und Datum der Revision (#425, #428) und Recherche (#479); alte Einträge gelten nicht mehr
+        $snapshots = app(PublicCache::class)->remember('snapshots.v4', function (): array {
             $snapshots = [];
             foreach (Term::query()->published()->with('publishedRevision')->get() as $term) {
                 $snapshot = $term->publishedRevision?->snapshot;
                 if ($snapshot !== null && ($snapshot['is_active'] ?? true) === true) {
                     // Permalink-Code gehört zum Begriff, nicht zur Revision (#213)
                     $snapshots[] = $snapshot + ['code' => $term->code, 'revision_number' => $term->publishedRevision->revision,
-                        'published_on' => $term->publishedRevision->published_at?->toDateString()];
+                        'published_on' => $term->publishedRevision->published_at?->toDateString(),
+                        'research_basis' => $term->research_basis];
                 }
             }
 

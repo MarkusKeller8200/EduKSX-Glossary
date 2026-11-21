@@ -3,6 +3,7 @@
 namespace App\Glossary;
 
 use App\Enums\Locale;
+use App\Enums\ResearchBasis;
 use App\Enums\TermStatus;
 use App\Models\Category;
 use App\Models\Source;
@@ -36,6 +37,8 @@ final class ExcelFormat
         'Gültig ab' => 'valid_from',
         'Gültig bis' => 'valid_until',
         'Aktiv' => 'is_active',
+        // Recherche (#479): «KI-unterstützt», «geprüft» oder leer; der Import setzt höchstens «KI-unterstützt»
+        'Recherche' => 'research_basis',
     ];
 
     /** Version des Formats (Version 1 = Intranet mit eigenen Feldern). */
@@ -62,6 +65,8 @@ final class ExcelFormat
         'Abkürzung (FR)', 'Bezeichnung (FR)', 'Kurzbeschreibung (FR)', 'Beschreibung (FR)',
         'Abkürzung (IT)', 'Bezeichnung (IT)', 'Kurzbeschreibung (IT)', 'Beschreibung (IT)',
         'Abkürzung (EN)', 'Bezeichnung (EN)', 'Kurzbeschreibung (EN)', 'Beschreibung (EN)',
+        // Recherche (#479), angehängt: bestehende Auswertungen der Spalten bleiben gültig
+        'Recherche',
     ];
 
     /** Übersetzbare Felder (#282, #291) mit Spaltenname ohne Sprache. */
@@ -122,6 +127,7 @@ final class ExcelFormat
             'Gültig ab' => (string) $term->valid_from?->toDateString(),
             'Gültig bis' => (string) $term->valid_until?->toDateString(),
             'Aktiv' => $term->is_active ? 'ja' : 'nein',
+            'Recherche' => (string) ResearchBasis::tryFrom((string) $term->research_basis)?->label(),
             ...self::translationValues(fn (string $locale, string $field): string => (string) $term->translations->firstWhere('locale', $locale)?->{$field}),
         ];
     }
@@ -178,6 +184,7 @@ final class ExcelFormat
             ...array_values(self::translationValues(
                 fn (string $locale, string $field): string => (string) (((array) (((array) ($term['translations'] ?? []))[$locale] ?? []))[$field] ?? ''),
             )),
+            (string) ResearchBasis::tryFrom((string) ($term['research_basis'] ?? ''))?->label(),
         ];
     }
 
@@ -238,6 +245,8 @@ final class ExcelFormat
             } elseif ($column === 'Status') {
                 $case = $value === '' ? TermStatus::Current : TermStatus::fromAny($value);
                 $value = $case !== null ? $case->label() : $value;
+            } elseif ($column === 'Recherche') {
+                $value = ResearchBasis::fromAny($value)?->label() ?? $value;
             }
             $out[$column] = $value;
         }

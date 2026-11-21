@@ -12,8 +12,22 @@ background:#fff;color:#1f2933;box-shadow:0 6px 24px rgba(15,23,42,.18);font:14px
 .title{font-weight:600}.abbr{color:#0272ad}.text{margin:.2rem 0 0}
 a{color:#0272ad;text-decoration:underline;text-underline-offset:2px}
 .foot{margin-top:.45rem;font-size:12px;color:#5f6b7a}
-@media (prefers-color-scheme:dark){.box{background:#1c2128;color:#e6edf3;border-color:#30363d}.abbr,a{color:#58a6ff}.foot{color:#9aa4af}.item+.item{border-color:#30363d}}
+.badge{display:inline-block;margin-top:.3rem;padding:0 .35rem;border:1px solid #d5dbe3;border-radius:.3rem;font-size:12px;color:#5f6b7a}
+.badge.ok{border-color:#a7f3d0;color:#065f46}
+@media (prefers-color-scheme:dark){.box{background:#1c2128;color:#e6edf3;border-color:#30363d}.abbr,a{color:#58a6ff}.foot,.badge{color:#9aa4af}.item+.item,.badge{border-color:#30363d}.badge.ok{color:#6ee7b7}}
 `;
+
+/** Text des Badges zur Recherche (#479); null ohne Angabe. */
+export function researchLabel(basis: string | null | undefined): string | null {
+    if (basis === 'ai_assisted') {
+        return 'KI-unterstützt recherchiert';
+    }
+    if (basis === 'human_reviewed') {
+        return 'Von Mensch geprüft';
+    }
+
+    return null;
+}
 
 /** Link nur zum Ursprung des Glossary, aus geprüftem Code gebaut (DEC-026, E1). */
 export function permalink(origin: string, code: string | null): string | null {
@@ -127,6 +141,17 @@ export class Tooltip {
             text.className = 'text';
             text.textContent = entry.short_description;
             item.append(text);
+        }
+        // Recherche (#479): nur Text, keine Farbe als einzige Information
+        const research = researchLabel(entry.research_basis);
+        if (research !== null) {
+            const badge = this.doc.createElement('span');
+            badge.className =
+                entry.research_basis === 'human_reviewed'
+                    ? 'badge ok'
+                    : 'badge';
+            badge.textContent = research;
+            item.append(badge);
         }
         const href = permalink(this.origin, entry.code);
         if (href !== null) {

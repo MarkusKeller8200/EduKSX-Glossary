@@ -13,6 +13,7 @@ import {
     isColorName,
     palette,
     stateClasses,
+    statusClasses,
     TERM_STATUS,
     termStatusClasses,
     termStatusValue,
@@ -208,4 +209,48 @@ export function VersionTag({ version }: { version: number | undefined }) {
             V{version}
         </span>
     );
+}
+
+/**
+ * Recherche eines Begriffs (#479): «KI-unterstützt recherchiert» (neutral, mit Hinweis) bzw. «Von Mensch geprüft»
+ * (grün, mit Datum). Ohne Angabe nichts.
+ */
+export function ResearchBadge({
+    basis,
+    reviewedOn,
+}: {
+    basis: string | null | undefined;
+    reviewedOn?: string | null;
+}) {
+    if (basis === 'ai_assisted') {
+        return (
+            <Badge
+                variant="outline"
+                className={palette.slate.badge}
+                title="Mit KI-Unterstützung recherchiert und noch nicht von einem Menschen geprüft"
+            >
+                KI-unterstützt recherchiert
+            </Badge>
+        );
+    }
+    if (basis === 'human_reviewed') {
+        const datum = reviewedOn
+            ? new Date(reviewedOn).toLocaleDateString('de-CH')
+            : null;
+        return (
+            <Badge
+                variant="outline"
+                className={statusClasses.success}
+                title={
+                    datum
+                        ? `Von einem Menschen geprüft am ${datum}`
+                        : 'Von einem Menschen geprüft'
+                }
+            >
+                Von Mensch geprüft{datum ? ` · ${datum}` : ''}
+            </Badge>
+        );
+    }
+
+    return null;
 }

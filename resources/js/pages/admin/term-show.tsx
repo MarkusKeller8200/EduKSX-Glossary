@@ -6,7 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { can } from '@/lib/access';
-import { RevisionBadges, StateBadge, StatusBadge } from '@/components/tags';
+import {
+    ResearchBadge,
+    RevisionBadges,
+    StateBadge,
+    StatusBadge,
+} from '@/components/tags';
 import { stateClasses } from '@/lib/colors';
 import { confirmAction } from '@/components/confirm-dialog';
 
@@ -24,6 +29,9 @@ type Begriff = Record<string, unknown> & {
     herkunft_pruefung: Pruefung[];
     translations: Record<string, Record<string, string>>;
     relations: { type: string; term_id: string }[];
+    recherche: string | null;
+    geprueft_am: string | null;
+    geprueft_von: string | null;
 };
 
 /** Übersetzungen im Arbeitsstand (#282). */
@@ -115,12 +123,14 @@ function datum(iso: string | null): string {
 export default function TermShow({
     begriff: b,
     verlauf,
+    pruefungen = [],
     labels,
     listen,
     belegstatus,
 }: {
     begriff: Begriff;
     verlauf: Eintrag[];
+    pruefungen?: { am: string; von: string | null }[];
     labels: Record<string, string>;
     listen: {
         kategorien: Option[];
@@ -153,6 +163,17 @@ export default function TermShow({
         }
     };
     const darfVeroeffentlichen = can(auth, 'publish');
+    // Recherche bestätigen (#479): ab Moderator/in
+    const darfPruefen = can(auth, 'moderate');
+    const pruefen = async () => {
+        if (
+            await confirmAction(
+                'Inhalt geprüft? Das Badge «KI-unterstützt recherchiert» wird durch «Von Mensch geprüft» ersetzt.',
+            )
+        ) {
+            post(`/admin/begriffe/${b.id}/recherche-geprueft`);
+        }
+    };
     const titel = [b.official_abbreviation, b.official_name]
         .filter(Boolean)
         .join(' – ');
@@ -210,6 +231,15 @@ export default function TermShow({
                             draft={b.ungespeichert}
                         />
                         <StatusBadge status={b.status} />
+                        <ResearchBadge
+                            basis={b.recherche}
+                            reviewedOn={b.geprueft_am}
+                        />
+                        {b.recherche === 'human_reviewed' && b.geprueft_von ? (
+                            <span className="text-muted-foreground">
+                                geprüft von {b.geprueft_von}
+                            </span>
+                        ) : null}
                         {!b.is_active ? (
                             <StateBadge state="inactive">inaktiv</StateBadge>
                         ) : null}
@@ -234,6 +264,15 @@ export default function TermShow({
                                 Bearbeiten
                             </Link>
                         </Button>
+                        {darfPruefen && b.recherche === 'ai_assisted' ? (
+                            <Button
+                                variant="outline"
+                                disabled={sending}
+                                onClick={pruefen}
+                            >
+                                Als geprüft bestätigen
+                            </Button>
+                        ) : null}
                         {b.ungespeichert ? (
                             <Button
                                 disabled={sending}
@@ -410,6 +449,16 @@ export default function TermShow({
             ) : null}
 
             <h2 className="mt-10 text-lg font-semibold">Verlauf</h2>
+            {pruefungen.length > 0 ? (
+                <ul className="mt-3 space-y-1 text-sm">
+                    {pruefungen.map((p) => (
+                        <li key={p.am} className="text-muted-foreground">
+                            Als «Von Mensch geprüft» bestätigt {datum(p.am)}
+                            {p.von ? ` · ${p.von}` : ''}
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
             <ol className="mt-3 space-y-3 text-sm">
                 {verlauf.map((e) => (
                     <li

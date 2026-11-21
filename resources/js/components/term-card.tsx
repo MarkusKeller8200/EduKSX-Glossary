@@ -3,6 +3,7 @@ import { ExternalLink, Link2, Maximize2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
     ListBadge,
+    ResearchBadge,
     RevisionBadges,
     StateBadge,
     StatusBadge,
@@ -29,6 +30,8 @@ export type TermCardData = {
     status: string;
     /** Version als Tag «V1» (#425) */
     version?: number;
+    /** Recherche (#479) */
+    recherche?: string | null;
     /** nur Administration */
     aktiv?: boolean;
     revision?: number;
@@ -103,6 +106,7 @@ export default function TermCard({
                         {!oeffentlich || !isCurrentStatus(b.status) ? (
                             <StatusBadge status={b.status} />
                         ) : null}
+                        <ResearchBadge basis={b.recherche} />
                         {!oeffentlich && b.revision !== undefined ? (
                             <RevisionBadges
                                 published={b.veroeffentlicht ?? null}

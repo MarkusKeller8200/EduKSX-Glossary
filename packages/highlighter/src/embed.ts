@@ -12,7 +12,7 @@
 import { Highlighter, loadIndex, MARK_CLASS } from './index';
 import type { HighlightOptions, IndexEntry } from './types';
 
-const EMBED_VERSION = '1.0.0';
+const EMBED_VERSION = '1.1.0';
 
 type Api = {
     version: string;

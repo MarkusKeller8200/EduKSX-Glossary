@@ -28,6 +28,7 @@ type Werte = {
     is_active: boolean;
     translations: Record<Sprache, Uebersetzung>;
     relations: Beziehung[];
+    ki_unterstuetzt: boolean;
     lock_version: number;
 };
 
@@ -309,6 +310,19 @@ export default function TermForm({
                         />
                         <Label htmlFor="is_active">
                             Aktiv (auf Website und API anzeigen)
+                        </Label>
+                    </div>
+                    <div className="flex items-center gap-2 self-end pb-2 sm:col-span-2">
+                        <Checkbox
+                            id="ki_unterstuetzt"
+                            checked={form.data.ki_unterstuetzt}
+                            onCheckedChange={(v) =>
+                                form.setData('ki_unterstuetzt', v === true)
+                            }
+                        />
+                        <Label htmlFor="ki_unterstuetzt">
+                            Mit KI-Unterstützung recherchiert (Badge, bis ein
+                            Mensch den Begriff prüft)
                         </Label>
                     </div>
                 </fieldset>
