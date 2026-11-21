@@ -43,6 +43,8 @@ final class Settings
         'dump.require_password' => ['gruppe' => 'Betrieb', 'label' => 'Vollständige Dumps nur mit Passwort', 'hinweis' => 'Administration › System und glossary:dump verlangen ein Passwort (AES-256).', 'typ' => 'bool', 'env' => 'GLOSSARY_DUMP_REQUIRE_PASSWORD'],
         'metrics.token' => ['gruppe' => 'Betrieb', 'label' => 'Token für die Metriken (/metrics)', 'hinweis' => 'Prometheus ruft /metrics mit «Authorization: Bearer <Token>» ab. Ohne Token sind die Metriken aus.', 'typ' => 'secret', 'env' => 'GLOSSARY_METRICS_TOKEN'],
         'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
+        // Entwicklungs-Sync (#478, DEC-041 A12): Rolle dieser Instanz
+        'sync.role' => ['gruppe' => 'Betrieb', 'label' => 'Rolle im Entwicklungs-Sync', 'hinweis' => '«Master» = öffentliches Glossary (prod), «Test» = Testumgebung, «Entwicklung» = dev (nicht mit APP_ENV=production), «Instanz» = selbst gehostet ohne Entwicklungs-Sync.', 'typ' => 'choice', 'optionen' => ['instance' => 'Instanz', 'master' => 'Master', 'test' => 'Test', 'development' => 'Entwicklung'], 'env' => 'GLOSSARY_SYNC_ROLE'],
         // Impressum (#411): je Instanz; leer zeigt die Seite einen Hinweis für die Betreiber
         'imprint.operator' => ['gruppe' => 'Impressum', 'label' => 'Betreiber', 'hinweis' => 'Name der Person oder Organisation, die diese Instanz betreibt, z. B. «Muster Schule, Schulverwaltung».', 'typ' => 'text', 'max' => 150, 'env' => 'GLOSSARY_IMPRESSUM_BETREIBER'],
         'imprint.address' => ['gruppe' => 'Impressum', 'label' => 'Postadresse', 'hinweis' => 'Strasse, PLZ und Ort.', 'typ' => 'text', 'max' => 200, 'env' => 'GLOSSARY_IMPRESSUM_ADRESSE'],
@@ -75,6 +77,7 @@ final class Settings
             'links.source_url' => (string) config('glossary.source_url', ''),
             'dump.require_password' => (bool) config('glossary.dump_require_password', false),
             'metrics.token' => (string) config('glossary.metrics_token', ''),
+            'sync.role' => (string) config('glossary.sync_role', 'instance'),
             'imprint.operator' => (string) config('glossary.imprint.operator', ''),
             'imprint.address' => (string) config('glossary.imprint.address', ''),
             'imprint.email' => (string) config('glossary.imprint.email', ''),
@@ -187,6 +190,10 @@ final class Settings
                 continue;
             }
             $clean[$key] = self::validate($key, $value);
+            // Rolle «Entwicklung» nie in production (#478, DEC-041 A12)
+            if ($key === 'sync.role' && $clean[$key] === 'development' && app()->environment('production')) {
+                throw new InvalidArgumentException('«Entwicklung» ist mit APP_ENV=production nicht erlaubt.');
+            }
         }
         $changed = [];
         DB::transaction(function () use ($actor, $clean, &$changed): void {

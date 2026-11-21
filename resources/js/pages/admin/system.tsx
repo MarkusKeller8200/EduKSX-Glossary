@@ -92,6 +92,14 @@ export default function System({
         <>
             <Head title="System" />
             <h1 className="text-3xl font-semibold tracking-tight">System</h1>
+            <p className="mt-2 text-sm">
+                <a
+                    href="/admin/system/sync"
+                    className="text-link underline-offset-4 hover:underline"
+                >
+                    Entwicklungs-Sync (dev, test, prod) →
+                </a>
+            </p>
 
             <section className="mt-6">
                 <h2 className="text-lg font-semibold">Konfiguration</h2>

@@ -308,6 +308,23 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `created_at` | intern |
 | `updated_at` | intern |
 
+## `sync_peers`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `name` | intern |
+| `url` | intern |
+| `token` | geheim |
+| `remote_role` | intern |
+| `base` | intern |
+| `last_pulled_at` | intern |
+| `last_pushed_at` | intern |
+| `last_result` | intern |
+| `created_by_id` | intern |
+| `created_at` | intern |
+| `updated_at` | intern |
+
 ## `settings`
 
 | Spalte | Klasse |
