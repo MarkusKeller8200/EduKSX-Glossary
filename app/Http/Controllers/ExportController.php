@@ -6,6 +6,7 @@ use App\Glossary\ApiPresenter;
 use App\Glossary\ExcelFormat;
 use App\Glossary\PrintRow;
 use App\Glossary\TermExport;
+use App\Statistics\Usage;
 use App\Support\Download;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
@@ -22,6 +23,7 @@ class ExportController extends Controller
     {
         $data = self::validateSelection($request);
         $table = $export->published($data['keys'], $data['umfang']);
+        Usage::hit('web', 'export', $data['format'], $request);   // #495
 
         return $export->response($table, $data['format'], 'glossary-'.date('Y-m-d'), true);
     }
@@ -51,10 +53,13 @@ class ExportController extends Controller
 
         // Zeilen für den PDF-Export (#112): Druckansicht im Browser
         if ($request->query('format') === 'json') {
+            Usage::hit('web', 'export', 'pdf', $request);   // #495
+
             return response()->json(['zeilen' => array_map(fn (array $t): array => PrintRow::fromPublic($t), $terms)])
                 ->header('Cache-Control', 'private, no-store');
         }
 
+        Usage::hit('web', 'export', $request->query('format') === 'csv' ? 'csv' : 'xlsx', $request);   // #495
         $rows = array_map(fn (array $term): array => ExcelFormat::publicRow($term), $terms);
         $name = 'glossary-veroeffentlicht-'.date('Y-m-d');
 

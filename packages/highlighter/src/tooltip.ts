@@ -31,9 +31,14 @@ export function researchLabel(basis: string | null | undefined): string | null {
 }
 
 /** Link nur zum Ursprung des Glossary, aus geprüftem Code gebaut (DEC-026, E1). */
-export function permalink(origin: string, code: string | null): string | null {
+export function permalink(
+    origin: string,
+    code: string | null,
+    via?: 'erweiterung' | 'einbindung',
+): string | null {
+    // «via» nur im Link, für die Statistik ohne Cookies (#495)
     return code !== null && CODE_PATTERN.test(code)
-        ? `${origin.replace(/\/+$/, '')}/g/${code}`
+        ? `${origin.replace(/\/+$/, '')}/g/${code}${via ? `?via=${via}` : ''}`
         : null;
 }
 
@@ -58,6 +63,7 @@ export class Tooltip {
         private readonly doc: Document,
         private readonly origin: string,
         private readonly onReport?: (entry: IndexEntry) => void,
+        private readonly via?: 'erweiterung' | 'einbindung',
     ) {}
 
     bind(target: HTMLElement, entries: IndexEntry[]): void {
@@ -155,7 +161,7 @@ export class Tooltip {
             badge.textContent = research;
             item.append(badge);
         }
-        const href = permalink(this.origin, entry.code);
+        const href = permalink(this.origin, entry.code, this.via);
         if (href !== null) {
             const link = this.doc.createElement('a');
             link.href = href;

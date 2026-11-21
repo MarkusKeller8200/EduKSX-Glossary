@@ -32,6 +32,8 @@ export type HighlightOptions = {
     releaseDetached?: boolean;
     /** «Erklärung falsch?» in der Erklärbox (#480); ohne Angabe kein Knopf. */
     onReport?: (entry: IndexEntry) => void;
+    /** Herkunft der Links «Im Glossary öffnen» für die Statistik ohne Cookies (#495) */
+    via?: 'erweiterung' | 'einbindung';
     /** Höchstens so viele Markierungen je Durchgang (Leistung). */
     maxMatches?: number;
     /** Nur Begriffe dieser Kategorien (Labels); leer = alle. */

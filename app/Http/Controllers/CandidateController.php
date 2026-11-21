@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Candidates\CandidateService;
 use App\Models\User;
+use App\Statistics\Usage;
 use App\Support\Settings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,6 +65,8 @@ class CandidateController extends Controller
         } catch (InvalidArgumentException $e) {
             return response()->json(['detail' => $e->getMessage()], 422);
         }
+
+        Usage::hit((string) $request->attributes->get('candidate_channel', 'extension'), 'report', '', $request);   // #495
 
         // gesperrte Wörter ohne Hinweis verwerfen (kein Rückschluss auf die Sperrliste)
         return response()->json([

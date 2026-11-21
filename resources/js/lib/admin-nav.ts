@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+    BarChart3,
     BookOpen,
     Code2,
     ClipboardCheck,
@@ -55,6 +56,12 @@ export const ADMIN_NAV: {
         label: 'Kandidaten',
         recht: 'edit-terms',
         icon: Flag,
+    },
+    {
+        href: '/admin/statistik',
+        label: 'Statistik',
+        recht: 'edit-terms',
+        icon: BarChart3,
     },
     {
         href: '/admin/suchen-ohne-treffer',

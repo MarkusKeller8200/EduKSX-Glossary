@@ -116,6 +116,17 @@ final class Purposes
             'tables' => ['term_candidates'],
             'operations' => [],
         ],
+        // Statistik ohne Cookies (#495)
+        'statistics' => [
+            'purpose' => 'Nutzung des Verzeichnisses verstehen (welche Begriffe gebraucht werden, über welchen Kanal), ohne Personenbezug',
+            'basis' => 'Auftrag des Betreibers; nur Tageszähler, keine Cookies, keine IP-Adressen, keine Wiedererkennung',
+            'scope' => 'Plattform/intern',
+            'subjects' => 'keine (nur Zähler je Tag, Kanal und Begriff)',
+            'recipients' => 'Redaktion (Recht «edit-terms»)',
+            'retention' => '25 Monate',
+            'tables' => ['usage_counts'],
+            'operations' => [],
+        ],
         // Mail-Protokoll (#463)
         'mail_log' => [
             'purpose' => 'Nachweis und Fehlersuche beim Mailversand',

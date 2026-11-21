@@ -25,6 +25,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Gegenstelle seit dem letzten Holen geändert, verlangt der Sync zuerst «Holen»; Konflikte werden nie überschrieben.
   Rolle je Umgebung (`GLOSSARY_SYNC_ROLE`: Master, Test, Entwicklung), neue Scopes `glossary:sync.read`, `.write` und
   `.publish`.
+- **Statistik ohne Cookies (#495):** Administration › Statistik zeigt pro Tag, wie oft Begriffe aufgerufen werden –
+  getrennt nach Website, Browser-Erweiterung, Einbindung, API und MCP –, die meistgenutzten Begriffe, die geschätzten
+  aktiven Installationen der Erweiterung und die Webseiten mit Einbindung. Gespeichert werden nur Tageszähler: keine
+  Cookies, keine IP-Adressen, keine Wiedererkennung; der Cookie-Hinweis bleibt unverändert. Einbindung und
+  Web-Komponenten 1.1.1.
 - **MCP-Server für KI-Assistenten (#261):** Unter `/mcp` lesen Assistenten wie Claude, ChatGPT, Copilot oder Rovo
   veröffentlichte Begriffe: suchen, Begriff abrufen, Abkürzung auflösen, Abkürzungen in einem Text erklären sowie
   Kategorien und Herkunft – mit Permalink und Lizenzhinweis, ohne Anmeldung (60 Anfragen pro Minute). Texte zum

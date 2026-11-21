@@ -10,7 +10,7 @@
 
 import { openReportDialog, sendReport } from './report';
 
-const UI_VERSION = '1.1.0';
+const UI_VERSION = '1.1.1';
 
 type Term = {
     abbreviation: string | null;
@@ -145,7 +145,8 @@ class GlossarySearch extends HTMLElement {
         for (const t of terms) {
             const li = document.createElement('li');
             const a = document.createElement('a');
-            a.href = t.web_url;
+            // Kanal für die Statistik ohne Cookies (#495), nur im Link
+            a.href = `${t.web_url}?via=einbindung`;
             a.target = '_blank';
             a.rel = 'noopener';
             a.textContent = t.abbreviation

@@ -10,6 +10,7 @@ use App\Glossary\PublicGlossary;
 use App\Models\Role;
 use App\Models\Term;
 use App\Models\User;
+use App\Statistics\Usage;
 use App\Support\AppVersion;
 use App\Support\DataModel;
 use App\Support\Download;
@@ -46,6 +47,9 @@ class PageController extends Controller
 
             return redirect("/begriffe/{$target->slug}", 301);
         }
+        // Statistik ohne Cookies (#495): Website bzw. aus Erweiterung/Einbindung geöffnet (?via=)
+        $channel = Usage::viaChannel($request);
+        Usage::hit($channel, $channel === 'web' ? 'term_view' : 'term_open', (string) ($term['code'] ?? $slug), $request);
 
         return $this->personal(Inertia::render('term', ['begriff' => $term])->toResponse($request), $user);
     }
@@ -54,7 +58,7 @@ class PageController extends Controller
      * Permalink /g/{code} (#154, DEC-026): leitet auf die Seite des Begriffs; zusammengeführte Begriffe auf den
      * verbleibenden. Nur veröffentlichte, öffentlich sichtbare Begriffe; sonst 404.
      */
-    public function permalink(string $code, PublicGlossary $glossary): RedirectResponse
+    public function permalink(Request $request, string $code, PublicGlossary $glossary): RedirectResponse
     {
         $normalized = Permalink::normalize($code);
         $term = $normalized === null ? null : Term::query()->where('code', $normalized)->first();
@@ -63,7 +67,10 @@ class PageController extends Controller
         }
         abort_if($term === null || $glossary->find($term->slug) === null, 404);
 
-        return redirect("/begriffe/{$term->slug}", 302);
+        // Kanal für die Statistik weitergeben (#495)
+        $via = in_array($request->query('via'), ['erweiterung', 'einbindung'], true) ? '?via='.$request->query('via') : '';
+
+        return redirect("/begriffe/{$term->slug}{$via}", 302);
     }
 
     /** Angemeldet enthält die Antwort die persönliche Darstellung (DEC-020): nie zwischenspeichern. */

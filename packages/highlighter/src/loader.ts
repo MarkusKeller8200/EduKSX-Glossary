@@ -43,6 +43,8 @@ export async function loadIndex(
     origin: string,
     store: IndexStore = localStore,
     fetcher: typeof fetch = fetch,
+    /** Kanal für die Statistik ohne Cookies (#495): nur als Parameter, nichts wird gespeichert */
+    client?: 'extension' | 'embed',
 ): Promise<IndexResponse> {
     const base = origin.replace(/\/+$/, '');
     let cached: Cached | null = null;
@@ -63,10 +65,13 @@ export async function loadIndex(
         if (cached?.etag) {
             headers['If-None-Match'] = cached.etag;
         }
-        const response = await fetcher(`${base}/api/v1/index`, {
-            headers,
-            credentials: 'omit',
-        });
+        const response = await fetcher(
+            `${base}/api/v1/index${client ? `?client=${client}` : ''}`,
+            {
+                headers,
+                credentials: 'omit',
+            },
+        );
         if (response.status === 304 && cached !== null) {
             await store.set(KEY, JSON.stringify({ ...cached, at: Date.now() }));
 

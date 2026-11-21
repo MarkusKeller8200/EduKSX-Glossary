@@ -90,6 +90,9 @@ return [
     // Content Security Policy (#397): zuerst nur melden (Report-Only), mit true zusätzlich erzwingen
     'csp_enforce' => (bool) env('GLOSSARY_CSP_ENFORCE', false),
 
+    // Statistik ohne Cookies (#495): Tageszähler; false schaltet das Zählen ab
+    'usage_enabled' => (bool) env('GLOSSARY_STATISTIK', true),
+
     // MCP-Server (#261, DEC-029 O2): Vorgabe aus, auf glossary.eduksx.ch eingeschaltet
     'mcp_enabled' => (bool) env('GLOSSARY_MCP', false),
 
