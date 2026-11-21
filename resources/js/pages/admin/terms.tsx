@@ -3,6 +3,7 @@ import { Pencil } from 'lucide-react';
 import { useMemo, useState, type KeyboardEvent, lazy, Suspense } from 'react';
 import {
     ListBadges,
+    ResearchBadge,
     RevisionBadges,
     StateBadge,
     StatusBadge,
@@ -490,6 +491,16 @@ export default function Terms({
                             cell: (b) => <StatusBadge status={b.status} />,
                         },
                         {
+                            id: 'recherche',
+                            header: 'KI',
+                            width: 60,
+                            sortValue: (b) =>
+                                b.recherche === 'ai_assisted' ? 1 : 0,
+                            cell: (b) => (
+                                <ResearchBadge basis={b.recherche} compact />
+                            ),
+                        },
+                        {
                             id: 'veroeffentlicht',
                             header: 'Veröffentlicht',
                             width: 150,
@@ -559,6 +570,7 @@ const SORTIERUNG = [
     { id: 'herkunft', label: 'Herkunft' },
     { id: 'kategorien', label: 'Kategorien' },
     { id: 'status', label: 'Status' },
+    { id: 'recherche', label: 'KI' },
     { id: 'veroeffentlicht', label: 'Veröffentlicht' },
     { id: 'geaendert', label: 'Geändert' },
 ];

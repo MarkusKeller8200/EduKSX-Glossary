@@ -9,8 +9,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 ### Neu
 
 - **Badge zur Recherche (#479):** Begriffe, die mit KI-Unterstützung recherchiert wurden, zeigen «KI-unterstützt
-  recherchiert» auf der Begriffsseite, in der Liste, in der Einbindung und in der Browser-Erweiterung. Moderator/innen
-  bestätigen mit «Als geprüft bestätigen»; danach steht «Von Mensch geprüft» mit Datum. Neue Spalte «Recherche» im
+  recherchiert» auf der Begriffsseite, in der Einbindung und in der Browser-Erweiterung, in Liste, Tabelle und Kacheln
+  kurz «KI». Moderator/innen bestätigen mit «Als geprüft bestätigen»; danach steht auf der Begriffsseite «Von Mensch
+  geprüft» mit Datum, in Liste, Tabelle und Kacheln entfällt das Label. Neue Spalte «Recherche» im
   Excel (der Import setzt höchstens «KI-unterstützt»), Filter «KI-unterstützt, noch nicht geprüft» in der Redaktion,
   API mit `research_basis` und `reviewed_at`. Einbindung 1.1.0.
 - **Mit KI recherchieren (#481):** Neue Seite mit Anleitung, Prompt zum Kopieren und leerer Vorlage, damit mit einem

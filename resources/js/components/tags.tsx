@@ -218,20 +218,29 @@ export function VersionTag({ version }: { version: number | undefined }) {
 export function ResearchBadge({
     basis,
     reviewedOn,
+    compact = false,
 }: {
     basis: string | null | undefined;
     reviewedOn?: string | null;
+    /** Liste, Tabelle, Kacheln: nur «KI»; geprüfte Begriffe ohne Label (Entscheid 21.11.2026) */
+    compact?: boolean;
 }) {
     if (basis === 'ai_assisted') {
+        const hinweis =
+            'Mit KI-Unterstützung recherchiert und noch nicht von einem Menschen geprüft';
         return (
             <Badge
                 variant="outline"
                 className={palette.slate.badge}
-                title="Mit KI-Unterstützung recherchiert und noch nicht von einem Menschen geprüft"
+                title={hinweis}
+                aria-label={compact ? hinweis : undefined}
             >
-                KI-unterstützt recherchiert
+                {compact ? 'KI' : 'KI-unterstützt recherchiert'}
             </Badge>
         );
+    }
+    if (compact) {
+        return null;
     }
     if (basis === 'human_reviewed') {
         const datum = reviewedOn
