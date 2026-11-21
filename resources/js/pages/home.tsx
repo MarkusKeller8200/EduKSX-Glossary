@@ -408,17 +408,19 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                     {!isCurrentStatus(b.status) ? (
                                         <StatusBadge status={b.status} />
                                     ) : null}
-                                    <ResearchBadge
-                                        basis={b.recherche}
-                                        compact
-                                    />
                                     <span className="ml-auto flex items-baseline gap-3">
                                         <Labels
                                             titel="Herkunft"
                                             list="herkunft"
                                             labels={b.herkunft}
                                         />
-                                        <VersionTag version={b.version} />
+                                        <span className="flex items-baseline gap-1">
+                                            <ResearchBadge
+                                                basis={b.recherche}
+                                                compact
+                                            />
+                                            <VersionTag version={b.version} />
+                                        </span>
                                     </span>
                                 </span>
                                 {b.kurz ? (

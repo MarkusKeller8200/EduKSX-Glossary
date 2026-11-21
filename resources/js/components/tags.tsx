@@ -228,14 +228,22 @@ export function ResearchBadge({
     if (basis === 'ai_assisted') {
         const hinweis =
             'Mit KI-Unterstützung recherchiert und noch nicht von einem Menschen geprüft';
-        return (
+        return compact ? (
+            // gleiche Grösse wie der Tag «V1» und links daneben (Wunsch 21.11.2026)
+            <span
+                className="inline-flex shrink-0 items-center rounded border border-border px-1.5 py-0.5 font-mono text-[0.7rem] leading-none text-muted-foreground"
+                title={hinweis}
+                aria-label={hinweis}
+            >
+                KI
+            </span>
+        ) : (
             <Badge
                 variant="outline"
                 className={palette.slate.badge}
                 title={hinweis}
-                aria-label={compact ? hinweis : undefined}
             >
-                {compact ? 'KI' : 'KI-unterstützt recherchiert'}
+                KI-unterstützt recherchiert
             </Badge>
         );
     }
