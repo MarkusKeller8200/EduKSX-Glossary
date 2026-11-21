@@ -17,6 +17,7 @@ use App\Models\Source;
 use App\Models\User;
 use App\Proposals\ProposalService;
 use App\Search\SearchMisses;
+use App\Statistics\Usage;
 use App\Support\MailLog;
 use App\Support\MailSetup;
 use App\Support\Settings;
@@ -106,6 +107,11 @@ class ApplyRetention extends Command
         $candidateQuery = DB::table('term_candidates')->where('status', '!=', 'new')->where('decided_at', '<', now()->subMonths($proposalMonths))
             ->where(fn ($q) => $q->whereNotNull('comments')->orWhereNotNull('reported_by_id'));
         $keys += $dry ? $candidateQuery->count() : $candidateQuery->update(['comments' => null, 'reported_by_id' => null]);
+
+        // 6b''. Statistik (#495): Tageszähler nach 25 Monaten
+        $keys += $dry
+            ? DB::table('usage_counts')->where('day', '<', now()->subMonths(Usage::RETENTION_MONTHS)->toDateString())->count()
+            : Usage::prune();
 
         // 6c. Mail-Protokoll (#463): 90 Tage
         $mails = $dry

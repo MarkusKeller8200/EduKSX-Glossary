@@ -43,6 +43,7 @@ async function run(): Promise<void> {
         firstOnly: reply.settings.firstOnly,
         // Ansichtswechsel ohne Neuladen (#474): abgelöste Markierungen geben den Begriff wieder frei
         releaseDetached: true,
+        via: 'erweiterung',
         // «Erklärung falsch?» (#480): Melde-Dialog wie im Kontextmenü
         onReport: (entry) =>
             void report(entry.abbreviation ?? entry.name ?? '', entry.code),

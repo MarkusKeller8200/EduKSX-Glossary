@@ -59,7 +59,12 @@ export class Highlighter {
                 this.byCode.set(e.code, e);
             }
         }
-        this.tooltip = new Tooltip(doc, options.origin, options.onReport);
+        this.tooltip = new Tooltip(
+            doc,
+            options.origin,
+            options.onReport,
+            options.via,
+        );
         this.injectStyle();
     }
 

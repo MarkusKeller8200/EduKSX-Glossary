@@ -71,6 +71,10 @@ describe('permalink', () => {
         expect(permalink(ORIGIN, '../x')).toBeNull();
         expect(permalink(ORIGIN, 'javascript:alert(1)')).toBeNull();
         expect(permalink(ORIGIN, null)).toBeNull();
+        // Statistik ohne Cookies (#495): Kanal nur als Parameter im Link
+        expect(permalink(ORIGIN, '7KQ2MX', 'erweiterung')).toBe(
+            `${ORIGIN}/g/7KQ2MX?via=erweiterung`,
+        );
     });
 });
 
@@ -206,5 +210,23 @@ describe('loadIndex', () => {
         memory.set('gls-index-v1', JSON.stringify(raw));
         expect((await loadIndex(ORIGIN, store, fetcher)).release).toBe(1);
         expect(calls).toBe(2);
+    });
+
+    it('nennt den Kanal für die Statistik nur als Parameter (#495)', async () => {
+        const urls: string[] = [];
+        const fetcher = (async (url: string) => {
+            urls.push(url);
+
+            return new Response(JSON.stringify({ release: 1, terms: [] }), {
+                status: 200,
+            });
+        }) as typeof fetch;
+        const store = { get: async () => null, set: async () => undefined };
+        await loadIndex(ORIGIN, store, fetcher, 'extension');
+        await loadIndex(ORIGIN, store, fetcher);
+        expect(urls).toEqual([
+            `${ORIGIN}/api/v1/index?client=extension`,
+            `${ORIGIN}/api/v1/index`,
+        ]);
     });
 });

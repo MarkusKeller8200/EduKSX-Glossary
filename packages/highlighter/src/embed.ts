@@ -14,13 +14,14 @@
 import {
     Highlighter,
     loadIndex,
+    localStore,
     MARK_CLASS,
     openReportDialog,
     sendReport,
 } from './index';
 import type { HighlightOptions, IndexEntry, ScanOptions } from './types';
 
-const EMBED_VERSION = '1.1.0';
+const EMBED_VERSION = '1.1.1';
 
 type Api = {
     version: string;
@@ -61,6 +62,7 @@ const reportTerm = (entry: IndexEntry): void => {
 
 const options: HighlightOptions = {
     origin,
+    via: 'einbindung',
     onReport: report ? reportTerm : undefined,
     names: flag(data.names),
     firstOnly: flag(data.firstOnly),
@@ -98,7 +100,7 @@ class GlossaryTerm extends HTMLElement {
 }
 
 async function start(): Promise<void> {
-    const index = await loadIndex(origin);
+    const index = await loadIndex(origin, localStore, fetch, 'embed');
     const highlighter = new Highlighter(index.terms, options);
     resolveReady(highlighter);
     const scope = data.scope ?? 'main, article, [data-glossary]';

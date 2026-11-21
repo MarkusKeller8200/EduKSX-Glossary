@@ -539,6 +539,17 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `reviewed_at` | öffentlich |
 | `reviewed_by_id` | intern |
 
+## `usage_counts`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `day` | intern |
+| `channel` | intern |
+| `metric` | intern |
+| `subject` | intern |
+| `count` | intern |
+
 ## `user_audit`
 
 | Spalte | Klasse |

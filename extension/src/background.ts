@@ -163,7 +163,12 @@ chrome.runtime.onMessage.addListener(
                     respond({
                         ok: true,
                         settings,
-                        index: await loadIndex(settings.origin, store),
+                        index: await loadIndex(
+                            settings.origin,
+                            store,
+                            fetch,
+                            'extension',
+                        ),
                     });
                 } catch (error) {
                     respond({ ok: false, error: String(error) });

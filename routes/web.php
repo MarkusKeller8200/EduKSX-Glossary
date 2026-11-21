@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\SearchMissController as AdminSearchMissController
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SourceCheckController;
+use App\Http\Controllers\Admin\StatisticsController;
 use App\Http\Controllers\Admin\SyncController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
@@ -220,6 +221,8 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::patch('begriffe/{term}/feld', [TermController::class, 'updateField'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.field');
     Route::post('begriffe/{term}/veroeffentlichen', [TermController::class, 'publishOne'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.publish-one');
     Route::post('begriffe/{term}/wiederherstellen', [TermController::class, 'restore'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.restore');
+    // Statistik ohne Cookies (#495)
+    Route::get('statistik', StatisticsController::class)->middleware('can:edit-terms')->name('admin.statistics');
     // Kandidaten aus Erweiterung und Einbindung (#480, DEC-042 M10)
     Route::get('kandidaten', [CandidateAdminController::class, 'index'])->middleware('can:edit-terms')->name('admin.candidates');
     Route::post('kandidaten/{candidate}/entscheid', [CandidateAdminController::class, 'decide'])->whereUuid('candidate')->middleware('can:edit-terms')->name('admin.candidates.decide');

@@ -440,6 +440,15 @@ final class DataClasses
             'reviewed_at' => DataClass::Public,
             'reviewed_by_id' => DataClass::Internal,
         ],
+        // Statistik ohne Cookies (#495): Tageszähler ohne Personenbezug
+        'usage_counts' => [
+            'id' => DataClass::Internal,
+            'day' => DataClass::Internal,
+            'channel' => DataClass::Internal,
+            'metric' => DataClass::Internal,
+            'subject' => DataClass::Internal,
+            'count' => DataClass::Internal,
+        ],
         'user_audit' => [
             'id' => DataClass::Internal,
             'event_id' => DataClass::Internal,

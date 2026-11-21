@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Search\SearchMisses;
+use App\Statistics\Usage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -13,6 +14,7 @@ class SearchMissController extends Controller
     {
         $data = $request->validate(['q' => ['required', 'string', 'max:200']]);
         SearchMisses::record((string) $data['q']);
+        Usage::hit('web', 'search_miss', '', $request);   // nur der Zähler (#495)
 
         return response()->noContent();
     }
