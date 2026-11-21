@@ -121,3 +121,21 @@ Zum Ausprobieren von Stufe 1, **ohne Datenbankänderung**:
 
 Testen: Branch lokal starten (DEPLOY.md, Abschnitt 1) und als Konto mit Recht `edit-terms` unter
 `/admin/einsammeln` einen Elternbrief oder eine Seite des Volksschulamts einfügen.
+
+## 9. Melden aus Erweiterung und Einbindung (DEC-042, #480, beschlossen 21.11.2026)
+
+Kanal E4 vorgezogen nach 0.18.0. Grundlage ist der Entscheid aus dem Chat vom 21.11.2026: anonymes Melden ist erlaubt,
+weil alles zuerst moderiert wird; ein Killswitch sperrt nur das anonyme Melden; angemeldete Personen dürfen immer.
+
+| Nr. | Frage                               | Entscheid                                                                                                                                                                                                                                                               |
+| --- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M1  | Was entsteht?                       | nur ein **Kandidat** (Tabelle `term_candidates`, Schema nach Abschnitt 5 bzw. #435), nie ein Begriff oder Vorschlag mit Text. Arten «fehlt» (neues Wort) und «falsch» (Erklärung eines bekannten Begriffs, mit Code)                                                    |
+| M2  | Was wird übertragen?                | das Wort (höchstens 80 Zeichen), optional ein Kommentar (höchstens 500 Zeichen) und die Adresse der Seite **ohne Abfrageparameter und Anker**; nie Seitentext                                                                                                           |
+| M3  | Schnittstelle                       | `POST /erweiterung/kandidaten` und `GET /erweiterung/ich` (Sitzung erkennen), nur JSON (erzwingt die Vorabprüfung des Browsers). Dass nur die Erweiterung sie nutzt, lässt sich nicht garantieren; den Schutz tragen Moderation, Abruflimit, Sperrliste und Killswitch  |
+| M4  | Herkunft (CORS)                     | erlaubt sind die Erweiterungen (`chrome-extension://…`, `moz-extension://…`, `extension://…`) und die in der Administration eingetragenen Webseiten für die Einbindung (Vorgabe: keine). Andere Webseiten werden vom Browser blockiert                                  |
+| M5  | Abruflimit                          | anonym 5 je Stunde und 20 je Tag je IP-Bereich (/24 bzw. /48), dazu 200 je Tag insgesamt; angemeldet 60 je Stunde. Duplikate (gleiches Wort, gleiche Art, Status «neu») erhöhen nur den Zähler                                                                          |
+| M6  | Anmeldung erkennen                  | mit der bestehenden Sitzung (`credentials: include`). **ZU PRÜFEN im Beta-Test:** ob der Browser das Sitzungs-Cookie aus der Erweiterung mitschickt (SameSite, Firefox). Falls nicht, folgt «In der Erweiterung anmelden» mit Token (Scope `propose`) als eigenes Issue |
+| M7  | Killswitch                          | Einstellung «Anonymes Melden aus Erweiterung und Einbindung» (Vorgabe ein); aus → anonym 403 mit Hinweis «Zurzeit nur angemeldet möglich», angemeldet weiterhin möglich. Sperrliste für Wörter (Einstellung, mit Komma)                                                 |
+| M8  | Menschennachweis                    | vorerst keiner (Turnstile o. Ä. erst, wenn der Killswitch nicht reicht)                                                                                                                                                                                                 |
+| M9  | Datenschutz                         | IP-Adresse nie gespeichert; für das Abruflimit nur ein gekürzter, gehashter Bereich im Zwischenspeicher. Kandidaten ohne Personenbezug; mit Konto nur die Verknüpfung (Löschfrist wie Vorschläge)                                                                       |
+| M10 | Sichtung bis zur Seite «Einsammeln» | Administration › **Kandidaten** (Recht `edit-terms`): neu, Zähler, Art, Adresse; «Als Entwurf anlegen» (öffnet das Formular vorausgefüllt) oder «Verwerfen»; Alias und weitere Kanäle folgen mit #435                                                                   |
