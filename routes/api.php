@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\OrganizationApiController;
 use App\Http\Controllers\Api\ProposalApiController;
 use App\Http\Controllers\Api\ServiceController;
 use App\Http\Controllers\Api\StatusController;
+use App\Http\Controllers\Api\SyncApiController;
 use App\Http\Middleware\ApiLocale;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +31,13 @@ Route::prefix('v1')->middleware([ApiLocale::class, 'throttle:api'])->group(funct
     Route::get('org/terms/{id_or_slug}', [OrganizationApiController::class, 'term'])->where('id_or_slug', '[A-Za-z0-9-]+')->middleware('service.token:glossary:terms.read')->name('api.v1.org.term');
     Route::delete('proposals/{id}', [ProposalApiController::class, 'destroy'])->where('id', '[0-9A-Za-z-]+')->middleware(['service.token:glossary:proposals.create', 'throttle:30,1'])->name('api.v1.proposals.destroy');
     Route::get('proposals/{id}', [ProposalApiController::class, 'show'])->where('id', '[0-9A-Za-z-]+')->middleware('service.token:glossary:proposals.read')->name('api.v1.proposals.show');
+});
+
+// Entwicklungs-Sync zwischen dev, test und prod (#478, DEC-041 4a): intern, nicht Teil der öffentlichen API v1
+Route::prefix('sync')->middleware(['throttle:10,1'])->group(function () {
+    Route::get('state', [SyncApiController::class, 'state'])->middleware('service.token')->name('api.sync.state');
+    Route::get('dump', [SyncApiController::class, 'dump'])->middleware('service.token:glossary:sync.read')->name('api.sync.dump');
+    Route::post('upload', [SyncApiController::class, 'upload'])->middleware('service.token:glossary:sync.write')->name('api.sync.upload');
 });
 
 // Maschinenlesbare Beschreibung (OpenAPI 3.1) als YAML und JSON

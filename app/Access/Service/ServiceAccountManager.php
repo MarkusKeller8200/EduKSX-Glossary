@@ -34,6 +34,10 @@ final class ServiceAccountManager
         'glossary:proposals.create' => 'Vorschläge einreichen (landen in der Moderation, nie direkt öffentlich)',
         'glossary:proposals.read' => 'Eigene Vorschläge und ihren Stand lesen',
         'glossary:terms.read' => 'Begriffe in der Darstellung der eigenen Organisation lesen (nur Organisations-Admins)',
+        // Entwicklungs-Sync (#478, DEC-041 4a): nur zwischen den eigenen Umgebungen dev, test und prod
+        'glossary:sync.read' => 'Entwicklungs-Sync: Stand vergleichen und anonymisierten Dump holen (ohne Konten)',
+        'glossary:sync.write' => 'Entwicklungs-Sync: Begriffe und Listen als Entwurf hochladen',
+        'glossary:sync.publish' => 'Entwicklungs-Sync: hochgeladene Begriffe direkt veröffentlichen',
     ];
 
     /** Scopes bis 0.13 → neue Namen; gespeicherte alte Namen gelten weiter (#323). */
@@ -47,6 +51,9 @@ final class ServiceAccountManager
         'glossary:proposals.create' => 'propose',
         'glossary:proposals.read' => 'propose',
         'glossary:terms.read' => null,
+        'glossary:sync.read' => 'system',
+        'glossary:sync.write' => 'edit-terms',
+        'glossary:sync.publish' => 'publish',
     ];
 
     /** Scope der Organisations-Sicht (#148): Die Organisation kommt aus dem Servicekonto. */
@@ -270,6 +277,16 @@ final class ServiceAccountManager
     }
 
     /** @param  array<mixed>|null  $details */
+    /**
+     * Nutzung eines Tokens protokollieren (z. B. Entwicklungs-Sync, #478).
+     *
+     * @param  array<mixed>  $details
+     */
+    public function logUse(ServiceAccountToken $token, string $action, array $details, string $result = 'ok'): void
+    {
+        $this->log(null, $token->account, $token, $action, $details, $result);
+    }
+
     private function log(?User $actor, ?ServiceAccount $account, ?ServiceAccountToken $token, string $action, ?array $details, string $result = 'ok'): void
     {
         ServiceAccountAudit::query()->create([

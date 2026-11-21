@@ -33,7 +33,7 @@ final class DumpRestore
     public const ACCOUNT_TABLES = ['users', 'user_identities', 'user_roles', 'roles', 'role_permissions', 'sessions', 'password_reset_tokens'];
 
     /** Spalten mit Werten, die mit APP_KEY verschlüsselt sind */
-    private const ENCRYPTED = ['users' => ['two_factor_secret', 'two_factor_recovery_codes']];
+    private const ENCRYPTED = ['users' => ['two_factor_secret', 'two_factor_recovery_codes'], 'sync_peers' => ['token']];
 
     private ?Encrypter $source = null;
 
@@ -67,6 +67,23 @@ final class DumpRestore
     public static function runKeepingAccounts(DumpArchive $dump, Connection $db): array
     {
         $restore = new self($dump, $db, self::ACCOUNT_TABLES);
+        $tables = $restore->check(null);
+
+        return ['tables' => $restore->load($tables), 'dropped' => $restore->dropped];
+    }
+
+    /**
+     * Holen im Entwicklungs-Sync (#478, DEC-041 A13): wie «Konten behalten», dazu bleiben weitere Tabellen der
+     * Instanz unverändert (Einstellungen, Servicekonten, Gegenstellen).
+     *
+     * @param  list<string>  $keep  zusätzliche Tabellen, die unverändert bleiben
+     * @return array{tables: array<string, int>, dropped: array<string, int>}
+     *
+     * @throws RuntimeException
+     */
+    public static function runKeeping(DumpArchive $dump, Connection $db, array $keep): array
+    {
+        $restore = new self($dump, $db, array_values(array_unique([...self::ACCOUNT_TABLES, ...$keep])));
         $tables = $restore->check(null);
 
         return ['tables' => $restore->load($tables), 'dropped' => $restore->dropped];
@@ -251,8 +268,17 @@ final class DumpRestore
             } else {
                 // offene, aufgeschobene Prüfungen zuerst ausführen – sonst lässt PostgreSQL kein TRUNCATE zu
                 $this->db->statement('set constraints all immediate');
-                // mit behaltenen Tabellen ohne cascade: ein Verweis von dort bricht ab, statt sie mitzuleeren
-                $this->db->statement('truncate '.implode(', ', array_map(fn (string $t): string => '"'.$t.'"', $clear)).' restart identity'.($this->keep === [] ? ' cascade' : ''));
+                // mit behaltenen Tabellen ohne cascade: ein Verweis von dort bricht ab, statt sie mitzuleeren. Tabellen,
+                // auf die behaltene Tabellen verweisen (z. B. Organisationen der Servicekonten, #478), lassen sich nicht
+                // leeren – sie werden gelöscht (Regeln der Verweise wie unter SQLite)
+                $referenced = $this->referencedByKept($clear);
+                $truncate = array_values(array_diff($clear, $referenced));
+                if ($truncate !== []) {
+                    $this->db->statement('truncate '.implode(', ', array_map(fn (string $t): string => '"'.$t.'"', $truncate)).' restart identity'.($this->keep === [] ? ' cascade' : ''));
+                }
+                foreach ($referenced as $table) {
+                    $this->db->table($table)->delete();
+                }
             }
 
             // Zeilen, die entfallen, nur beim ersten Lesen zählen (Tabellen in einem Kreis liest der Lader zweimal)
@@ -284,6 +310,29 @@ final class DumpRestore
         });
 
         return $counts;
+    }
+
+    /**
+     * Zu leerende Tabellen, auf die eine behaltene Tabelle verweist.
+     *
+     * @param  list<string>  $clear
+     * @return list<string>
+     */
+    private function referencedByKept(array $clear): array
+    {
+        $out = [];
+        foreach ($this->keep as $table) {
+            if (! $this->db->getSchemaBuilder()->hasTable($table)) {
+                continue;
+            }
+            foreach ($this->db->getSchemaBuilder()->getForeignKeys($table) as $fk) {
+                if (in_array($fk['foreign_table'], $clear, true)) {
+                    $out[] = (string) $fk['foreign_table'];
+                }
+            }
+        }
+
+        return array_values(array_unique($out));
     }
 
     /** Zeilen der Tabelle, die wegen fehlender Konten entfallen sind (gezählt im Lader) */

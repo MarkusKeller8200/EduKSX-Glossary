@@ -251,6 +251,21 @@ final class DataClasses
             'created_at' => DataClass::Internal,
             'updated_at' => DataClass::Internal,
         ],
+        // Entwicklungs-Sync (#478): Gegenstellen; Token verschlüsselt, nie angezeigt
+        'sync_peers' => [
+            'id' => DataClass::Internal,
+            'name' => DataClass::Internal,
+            'url' => DataClass::Internal,
+            'token' => DataClass::Secret,
+            'remote_role' => DataClass::Internal,
+            'base' => DataClass::Internal,
+            'last_pulled_at' => DataClass::Internal,
+            'last_pushed_at' => DataClass::Internal,
+            'last_result' => DataClass::Internal,
+            'created_by_id' => DataClass::Internal,
+            'created_at' => DataClass::Internal,
+            'updated_at' => DataClass::Internal,
+        ],
         'settings' => [
             'key' => DataClass::Internal,
             'value' => DataClass::Internal,

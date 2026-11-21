@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\SearchMissController as AdminSearchMissController
 use App\Http\Controllers\Admin\ServiceAccountController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\SourceCheckController;
+use App\Http\Controllers\Admin\SyncController;
 use App\Http\Controllers\Admin\SystemController;
 use App\Http\Controllers\Admin\TermController;
 use App\Http\Controllers\Admin\TrashController;
@@ -290,6 +291,13 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     // System (#40): nur Developer (Recht «system»)
     Route::middleware('can:system')->group(function () {
         Route::get('system', [SystemController::class, 'index'])->name('admin.system');
+        // Entwicklungs-Sync (#478): Gegenstellen, Holen, Vergleichen, Hochladen
+        Route::get('system/sync', [SyncController::class, 'index'])->name('admin.sync');
+        Route::post('system/sync/gegenstellen', [SyncController::class, 'store'])->middleware('throttle:10,1')->name('admin.sync.store');
+        Route::delete('system/sync/gegenstellen/{peer}', [SyncController::class, 'destroy'])->whereUuid('peer')->name('admin.sync.destroy');
+        Route::get('system/sync/gegenstellen/{peer}', [SyncController::class, 'compare'])->whereUuid('peer')->middleware('throttle:20,1')->name('admin.sync.compare');
+        Route::post('system/sync/gegenstellen/{peer}/holen', [SyncController::class, 'pull'])->whereUuid('peer')->middleware('throttle:3,10')->name('admin.sync.pull');
+        Route::post('system/sync/gegenstellen/{peer}/hochladen', [SyncController::class, 'upload'])->whereUuid('peer')->middleware('throttle:10,10')->name('admin.sync.upload');
         // Papierkorb (#286): wiederherstellen nur Developer
         Route::get('papierkorb', [TrashController::class, 'index'])->name('admin.trash');
         Route::post('papierkorb/{kind}/{id}/wiederherstellen', [TrashController::class, 'restore'])->whereIn('kind', ['kategorien', 'herkunft', 'organisationen'])->name('admin.trash.restore');

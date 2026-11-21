@@ -187,6 +187,23 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
   `stacks/produktion/glossary`).
 - Alle Umgebungsvariablen mit Standardwerten und Werten je Umgebung: [docs/UMGEBUNGSVARIABLEN.md](docs/UMGEBUNGSVARIABLEN.md).
 
+### Entwicklungs-Sync einrichten (#478, DEC-041 4a)
+
+Inhalte auf dev pflegen und nach test und prod hochladen; «Holen» bringt dev bzw. test auf den Stand der Gegenstelle
+(ohne Konten, anonymisiert).
+
+1. **Rolle je Umgebung:** `GLOSSARY_SYNC_ROLE=development` (dev), `test` (test), `master` (prod) – oder in der
+   Administration › Einstellungen › Betrieb «Rolle im Entwicklungs-Sync».
+2. **Servicekonto auf test und prod** (Administration › Servicekonten, als Developer): Scopes `glossary:sync.read` und
+   `glossary:sync.write`, für «direkt veröffentlichen» zusätzlich `glossary:sync.publish`. Token kopieren (nur einmal
+   sichtbar).
+3. **Gegenstellen auf dev** (Administration › System › Sync): «prod» `https://glossary.eduksx.ch` und «test»
+   `https://glossary-test.eduksx.ch` mit dem jeweiligen Token. Auf test die Gegenstelle «prod» für test ↔ prod.
+4. **Ablauf:** auf dev zuerst von prod holen; vor dem ersten Hochladen nach test einmal von test holen (legt die Basis
+   für die Konfliktprüfung fest) und danach wieder von prod. Hat sich die Gegenstelle seither geändert, verlangt dev
+   zuerst «Holen».
+5. Sicherungen vor dem Holen liegen in `storage/app/backups/sync/` (werden nicht automatisch gelöscht).
+
 ## dev auf Hostinger mit Benutzer `deploy` (#209)
 
 Hostinger ist der Entwicklungsserver (dev) unter `glossary-dev.markussx.ch` (DEC-035); test läuft auf `test-01`, prod auf

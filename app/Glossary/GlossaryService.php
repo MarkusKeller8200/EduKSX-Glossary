@@ -94,6 +94,13 @@ final class GlossaryService
                 }
                 $term->id = $id;
             }
+            // Permalink-Code aus dem Entwicklungs-Sync (#478, A18): übernehmen, wenn gültig und frei
+            if ($creating && isset($data['code']) && is_string($data['code'])) {
+                $code = Permalink::normalize($data['code']);
+                if ($code !== null && ! Term::query()->where('code', $code)->exists()) {
+                    $term->code = $code;
+                }
+            }
 
             $before = $creating ? null : $this->snapshot($term);
 

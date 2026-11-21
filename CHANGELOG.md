@@ -17,6 +17,13 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   KI-Assistenten recherchierte Begriffe ohne Nacharbeit durch den Excel-Import laufen (Bestand über die API prüfen,
   Regeln für Inhalte und Quellen, Recherche «KI-unterstützt»). Auch als Markdown und auf GitHub Pages; Spalten und Werte
   kommen aus dem Code.
+- **Entwicklungs-Sync dev ↔ test ↔ prod (#478):** Administration › System › Sync mit Gegenstellen (Adresse und Token
+  eines Servicekontos dort). «Holen» übernimmt alle Inhalte der Gegenstelle ohne Konten, mit anonymisierten
+  Personendaten und vorheriger Sicherung; Einstellungen, Servicekonten und Gegenstellen bleiben. «Hochladen» schickt
+  neue und geänderte Begriffe, Kategorien und Herkünfte als Entwurf oder direkt veröffentlicht. Hat sich die
+  Gegenstelle seit dem letzten Holen geändert, verlangt der Sync zuerst «Holen»; Konflikte werden nie überschrieben.
+  Rolle je Umgebung (`GLOSSARY_SYNC_ROLE`: Master, Test, Entwicklung), neue Scopes `glossary:sync.read`, `.write` und
+  `.publish`.
 
 ### Geändert
 

@@ -101,8 +101,8 @@ final class Purposes
             'scope' => 'Plattform/intern',
             'subjects' => 'Person, die importiert (als Bezeichnung); sonst keine',
             'recipients' => 'Redaktion und Verwaltung des Glossary',
-            'retention' => 'Import-Protokoll 12 Monate; Suchen ohne Treffer 90 Tage nach dem letzten Auftreten; Einstellungen dauerhaft',
-            'tables' => ['settings', 'import_batches', 'search_misses'],
+            'retention' => 'Import-Protokoll 12 Monate; Suchen ohne Treffer 90 Tage nach dem letzten Auftreten; Einstellungen und Gegenstellen des Entwicklungs-Syncs dauerhaft',
+            'tables' => ['settings', 'import_batches', 'search_misses', 'sync_peers'],
             'operations' => [],
         ],
         // Mail-Protokoll (#463)

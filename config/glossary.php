@@ -86,6 +86,9 @@ return [
     'dump_password' => env('GLOSSARY_DUMP_PASSWORD', ''),
     // Sicherungen auf dev mit Wiederherstellung in der Administration (#355) – nur auf dev einschalten
     'dev_backups' => (bool) env('GLOSSARY_DEV_BACKUPS', false),
+
+    // Entwicklungs-Sync (#478): master, test, development oder instance (Vorgabe)
+    'sync_role' => (string) env('GLOSSARY_SYNC_ROLE', 'instance'),
     // Metriken für Prometheus unter /metrics (#192); leer = aus
     'metrics_token' => env('GLOSSARY_METRICS_TOKEN', ''),
 ];
