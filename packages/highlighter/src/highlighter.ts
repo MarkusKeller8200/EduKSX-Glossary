@@ -1,6 +1,6 @@
 import { Matcher } from './matcher';
 import { Tooltip } from './tooltip';
-import type { HighlightOptions, IndexEntry } from './types';
+import type { HighlightOptions, IndexEntry, ScanOptions } from './types';
 
 /** Markierte Stelle; data-gls-codes enthält die Codes (mehrdeutig: mehrere, mit Komma). */
 export const MARK_CLASS = 'gls-term';
@@ -41,7 +41,8 @@ export class Highlighter {
 
     private readonly tooltip: Tooltip;
 
-    private readonly seen = new Set<string>();
+    /** Bereits markierte Begriffe (firstOnly) mit ihrer Markierung, um abgelöste wieder freizugeben (#474). */
+    private readonly seen = new Map<string, Element>();
 
     private observer: MutationObserver | null = null;
 
@@ -67,9 +68,18 @@ export class Highlighter {
         return this.byCode.get(code.toUpperCase());
     }
 
-    /** Bereich durchsuchen und Treffer markieren; gibt die Anzahl neuer Markierungen zurück. */
-    scan(root: Node): number {
+    /**
+     * Bereich durchsuchen und Treffer markieren; gibt die Anzahl neuer Markierungen zurück. Mit
+     * `{ firstOnly: true }` gilt «nur erste Fundstelle» je Durchgang (Ansicht) statt für die ganze Seite (#474).
+     */
+    scan(root: Node, scanOptions: ScanOptions = {}): number {
         const max = this.options.maxMatches ?? 300;
+        const seen =
+            scanOptions.firstOnly === true
+                ? new Map<string, Element>()
+                : this.options.firstOnly
+                  ? this.seen
+                  : null;
         const before = this.marks;
         const texts: Text[] = [];
         const walker = this.doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -85,10 +95,15 @@ export class Highlighter {
             if (this.marks >= max) {
                 break;
             }
-            this.mark(text, max);
+            this.mark(text, max, seen);
         }
 
         return this.marks - before;
+    }
+
+    /** Gemerkte Begriffe für «nur erste Fundstelle» vergessen, z. B. bei einem Ansichtswechsel (#474). */
+    reset(): void {
+        this.seen.clear();
     }
 
     /** Nachgeladene Inhalte ebenfalls durchsuchen (mit kurzer Verzögerung). */
@@ -170,16 +185,29 @@ export class Highlighter {
         return false;
     }
 
-    private mark(text: Text, max: number): void {
+    private mark(
+        text: Text,
+        max: number,
+        seen: Map<string, Element> | null,
+    ): void {
         const value = text.nodeValue ?? '';
         let matches = this.matcher.find(value);
-        if (this.options.firstOnly) {
+        const keys = new Map<(typeof matches)[number], string>();
+        if (seen !== null) {
+            const inThisText = new Set<string>();
             matches = matches.filter((m) => {
                 const key = m.entries.map((e) => e.code).join(',');
-                if (this.seen.has(key)) {
+                const previous = seen.get(key);
+                const free =
+                    previous === undefined ||
+                    (this.options.releaseDetached === true &&
+                        seen === this.seen &&
+                        !previous.isConnected);
+                if (!free || inThisText.has(key)) {
                     return false;
                 }
-                this.seen.add(key);
+                inThisText.add(key);
+                keys.set(m, key);
 
                 return true;
             });
@@ -203,6 +231,10 @@ export class Highlighter {
                 .filter(Boolean)
                 .join(',');
             this.tooltip.bind(span, m.entries);
+            const key = keys.get(m);
+            if (seen !== null && key !== undefined) {
+                seen.set(key, span);
+            }
             fragment.append(span);
             at = m.end;
             this.marks++;

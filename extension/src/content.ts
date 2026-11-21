@@ -39,6 +39,8 @@ async function run(): Promise<void> {
         origin: reply.settings.origin,
         names: reply.settings.names,
         firstOnly: reply.settings.firstOnly,
+        // Ansichtswechsel ohne Neuladen (#474): abgelöste Markierungen geben den Begriff wieder frei
+        releaseDetached: true,
     });
     window.__eduksxGlossary = highlighter;
     highlighter.scan(document.body);

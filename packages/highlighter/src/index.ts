@@ -12,4 +12,5 @@ export type {
     IndexEntry,
     IndexResponse,
     Match,
+    ScanOptions,
 } from './types';

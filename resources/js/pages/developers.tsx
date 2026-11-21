@@ -142,6 +142,14 @@ export default function Developers({
                     Einzelne Bereiche schliessen Sie mit{' '}
                     <code>data-glossary-ignore</code> aus. Nach dem Nachladen
                     eigener Inhalte: <code>EduksxGlossary.scan(element)</code>.
+                    Single-Page-Apps mit «nur erste Fundstelle» rufen nach jedem
+                    Ansichtswechsel{' '}
+                    <code>
+                        EduksxGlossary.scan(element, {'{'} firstOnly: true {'}'}
+                        )
+                    </code>{' '}
+                    auf (erste Fundstelle je Ansicht) oder vorher{' '}
+                    <code>EduksxGlossary.reset()</code>.
                 </p>
             </Abschnitt>
 
