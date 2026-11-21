@@ -276,7 +276,6 @@ final class ServiceAccountManager
         $this->log($actor, $account, $token, $action, $details);
     }
 
-    /** @param  array<mixed>|null  $details */
     /**
      * Nutzung eines Tokens protokollieren (z. B. Entwicklungs-Sync, #478).
      *
@@ -287,6 +286,7 @@ final class ServiceAccountManager
         $this->log(null, $token->account, $token, $action, $details, $result);
     }
 
+    /** @param  array<mixed>|null  $details */
     private function log(?User $actor, ?ServiceAccount $account, ?ServiceAccountToken $token, string $action, ?array $details, string $result = 'ok'): void
     {
         ServiceAccountAudit::query()->create([
