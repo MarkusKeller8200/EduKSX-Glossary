@@ -106,7 +106,7 @@ export default function TermCard({
                         {!oeffentlich || !isCurrentStatus(b.status) ? (
                             <StatusBadge status={b.status} />
                         ) : null}
-                        <ResearchBadge basis={b.recherche} />
+                        <ResearchBadge basis={b.recherche} compact />
                         {!oeffentlich && b.revision !== undefined ? (
                             <RevisionBadges
                                 published={b.veroeffentlicht ?? null}

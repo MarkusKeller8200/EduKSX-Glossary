@@ -408,7 +408,10 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                     {!isCurrentStatus(b.status) ? (
                                         <StatusBadge status={b.status} />
                                     ) : null}
-                                    <ResearchBadge basis={b.recherche} />
+                                    <ResearchBadge
+                                        basis={b.recherche}
+                                        compact
+                                    />
                                     <span className="ml-auto flex items-baseline gap-3">
                                         <Labels
                                             titel="Herkunft"
@@ -547,6 +550,19 @@ export default function Home({ begriffe }: { begriffe: Begriff[] }) {
                                 width: 110,
                                 sortValue: (b) => b.status,
                                 cell: (b) => <StatusBadge status={b.status} />,
+                            },
+                            {
+                                id: 'recherche',
+                                header: 'KI',
+                                width: 60,
+                                sortValue: (b) =>
+                                    b.recherche === 'ai_assisted' ? 1 : 0,
+                                cell: (b) => (
+                                    <ResearchBadge
+                                        basis={b.recherche}
+                                        compact
+                                    />
+                                ),
                             },
                             {
                                 id: 'version',
