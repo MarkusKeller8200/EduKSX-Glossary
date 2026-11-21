@@ -5,6 +5,8 @@
  */
 import { loadIndex } from '../../packages/highlighter/src/loader';
 import type { IndexStore } from '../../packages/highlighter/src/loader';
+import { sendReport } from '../../packages/highlighter/src/report';
+import type { ReportPayload } from '../../packages/highlighter/src/report';
 import { getSettings, originOf, saveSettings } from './settings';
 
 const SCRIPT_ID = 'gls-content';
@@ -71,7 +73,75 @@ async function updateSites(
     await syncSites();
 }
 
-chrome.runtime.onInstalled.addListener(() => void syncSites());
+const MENU_ID = 'gls-report';
+
+/** Kontextmenü «An EduKSX-Glossary senden» (#480): nur für markierten Text. */
+function createMenu(): void {
+    chrome.contextMenus.removeAll(() => {
+        chrome.contextMenus.create({
+            id: MENU_ID,
+            title: 'An EduKSX-Glossary senden',
+            contexts: ['selection'],
+        });
+    });
+}
+
+/** Wer bin ich im Glossary (Sitzung des Browsers)? Ohne Antwort: anonym. */
+async function whoAmI(origin: string): Promise<{
+    angemeldet: boolean;
+    name: string | null;
+    anonym: boolean;
+    anmelden: string;
+}> {
+    try {
+        const res = await fetch(`${origin}/erweiterung/ich`, {
+            credentials: 'include',
+            headers: { Accept: 'application/json' },
+        });
+        if (res.ok) {
+            return (await res.json()) as {
+                angemeldet: boolean;
+                name: string | null;
+                anonym: boolean;
+                anmelden: string;
+            };
+        }
+    } catch {
+        // offline o. Ä.: anonym weiter
+    }
+
+    return {
+        angemeldet: false,
+        name: null,
+        anonym: true,
+        anmelden: `${origin}/anmelden`,
+    };
+}
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId !== MENU_ID || tab?.id === undefined) {
+        return;
+    }
+    const tabId = tab.id;
+    void (async () => {
+        // nur der markierte Text, gekürzt; die Seite selbst wird nicht gelesen (activeTab durch den Klick)
+        await chrome.scripting.executeScript({
+            target: { tabId },
+            files: ['report.js'],
+        });
+        await chrome.tabs.sendMessage(tabId, {
+            type: 'report-open',
+            word: (info.selectionText ?? '').slice(0, 200),
+            kind: 'fehlt',
+        });
+    })();
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+    void syncSites();
+    createMenu();
+});
+chrome.runtime.onStartup.addListener(createMenu);
 chrome.runtime.onStartup.addListener(() => void syncSites());
 chrome.permissions.onAdded.addListener(
     (p) => void updateSites(p.origins, true),
@@ -97,6 +167,35 @@ chrome.runtime.onMessage.addListener(
                     });
                 } catch (error) {
                     respond({ ok: false, error: String(error) });
+                }
+            })();
+
+            return true;
+        }
+        // Begriff melden (#480): Anmeldung erkennen und senden mit der Sitzung des Browsers
+        if (message.type === 'report-me') {
+            void (async () => {
+                respond(await whoAmI((await getSettings()).origin));
+            })();
+
+            return true;
+        }
+        if (message.type === 'report-send') {
+            void (async () => {
+                const { origin } = await getSettings();
+                try {
+                    respond(
+                        await sendReport(
+                            origin,
+                            (message as { payload: ReportPayload }).payload,
+                            'include',
+                        ),
+                    );
+                } catch {
+                    respond({
+                        ok: false,
+                        text: 'Senden nicht möglich – bitte später nochmals.',
+                    });
                 }
             })();
 

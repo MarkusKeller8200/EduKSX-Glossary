@@ -30,6 +30,8 @@ export type HighlightOptions = {
      * Single-Page-Apps). Vorgabe aus (Verhalten wie 1.0.0); die Browser-Erweiterung schaltet es ein.
      */
     releaseDetached?: boolean;
+    /** «Erklärung falsch?» in der Erklärbox (#480); ohne Angabe kein Knopf. */
+    onReport?: (entry: IndexEntry) => void;
     /** Höchstens so viele Markierungen je Durchgang (Leistung). */
     maxMatches?: number;
     /** Nur Begriffe dieser Kategorien (Labels); leer = alle. */

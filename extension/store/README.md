@@ -72,7 +72,8 @@ mit `public/embed/v1/glossary.js` und dem Index lokal ausliefern, dann `node scr
 
 ### Datenschutzangaben
 
-**Einziger Zweck** (Chrome «Single purpose»): Begriffe und Abkürzungen auf Webseiten erkennen und erklären.
+**Einziger Zweck** (Chrome «Single purpose»): Begriffe und Abkürzungen auf Webseiten erkennen und erklären; fehlende
+bzw. falsch erklärte Begriffe dem Glossary melden.
 
 **Begründung der Berechtigungen:**
 
@@ -81,13 +82,19 @@ mit `public/embed/v1/glossary.js` und dem Index lokal ausliefern, dann `node scr
 | `storage`                            | Einstellungen und den zwischengespeicherten Index der Begriffe speichern                                    |
 | `activeTab`                          | Nur nach einem Klick im Menü die aktuelle Seite durchsuchen, ohne dauernde Berechtigung                     |
 | `scripting`                          | Das Script zum Hervorheben in die Seite laden, die der Nutzer gewählt hat                                   |
+| `contextMenus`                       | Eintrag «An EduKSX-Glossary senden» für markierten Text (Begriff melden, #480)                              |
 | Host `https://glossary.eduksx.ch/*`  | Öffentlichen Index der Begriffe laden (`/api/v1/index`)                                                     |
 | optional `https://*/*`, `http://*/*` | Nur wenn der Nutzer «Auf dieser Website immer» wählt, und dann nur für diese Website; jederzeit widerrufbar |
 
 **Remote Code:** nein, alles ist im Paket gebündelt (Manifest V3).
 
-**Datennutzung** (Chrome «Data usage», Edge sinngemäss): Es werden **keine** Daten erhoben, also nichts ankreuzen. Die
-Bestätigungen (kein Verkauf an Dritte, keine Nutzung ausserhalb des Zwecks, keine Kreditwürdigkeit) bestätigen.
+**Datennutzung** (Chrome «Data usage», Edge sinngemäss): Beim Hervorheben werden **keine** Daten erhoben. Nur wenn der
+Nutzer ausdrücklich «An EduKSX-Glossary senden» bzw. «Erklärung falsch?» wählt und im Dialog bestätigt, gehen das
+markierte Wort, ein freiwilliger Kommentar und die Adresse der Seite ohne Abfrage an glossary.eduksx.ch (#480). **ZU
+PRÜFEN vor dem Einreichen:** in Chrome «Website content» (markierter Text) und «Web history» (Adresse der Seite)
+ankreuzen; in Firefox `data_collection_permissions` um `optional: ["websiteContent", "websiteActivity"]` ergänzen
+und vor dem ersten Senden um Zustimmung bitten. Die Bestätigungen (kein Verkauf an Dritte, keine Nutzung ausserhalb
+des Zwecks, keine Kreditwürdigkeit) bestätigen.
 
 **Firefox:** Das Manifest erklärt `data_collection_permissions: { required: ["none"] }`, gilt ab Firefox 140. Für die
 Prüfung gilt: Quellcode im Repository, Build mit `npm ci && node scripts/build-extension.mjs` (Node 22). Dieser Hinweis

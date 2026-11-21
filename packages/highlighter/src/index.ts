@@ -6,6 +6,19 @@ export { Highlighter, MARK_CLASS } from './highlighter';
 export { loadIndex, localStore } from './loader';
 export type { IndexStore } from './loader';
 export { Matcher } from './matcher';
+export {
+    cleanAddress,
+    cleanWord,
+    openReportDialog,
+    payloadOf,
+    sendReport,
+} from './report';
+export type {
+    ReportKind,
+    ReportOptions,
+    ReportPayload,
+    ReportResult,
+} from './report';
 export { CODE_PATTERN, permalink, Tooltip } from './tooltip';
 export type {
     HighlightOptions,

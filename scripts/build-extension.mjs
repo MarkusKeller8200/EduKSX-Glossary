@@ -43,7 +43,7 @@ if (appVersion !== numeric) {
 rmSync(dist, { recursive: true, force: true });
 mkdirSync(dist, { recursive: true });
 
-for (const name of ['background', 'content', 'popup']) {
+for (const name of ['background', 'content', 'popup', 'report']) {
     const result = await build({
         input: resolve(src, `src/${name}.ts`),
         write: false,

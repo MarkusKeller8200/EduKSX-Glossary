@@ -8,7 +8,9 @@
  * (/.well-known/eduksx-module.json, Feld «ui») nennt dieses Script und die Kachel «term-search».
  */
 
-const UI_VERSION = '1.0.0';
+import { openReportDialog, sendReport } from './report';
+
+const UI_VERSION = '1.1.0';
 
 type Term = {
     abbreviation: string | null;
@@ -33,6 +35,7 @@ a:hover, a:focus { text-decoration: underline; }
 .kurz { display: block; font-size: .875rem; opacity: .8; margin-top: .125rem; }
 .hinweis { font-size: .875rem; opacity: .75; margin: .5rem 0 0; }
 .quelle { font-size: .75rem; opacity: .6; margin-top: .5rem; }
+.melden { font: inherit; font-size: .875rem; padding: 0; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; }
 `;
 
 /** <glossary-search>: Suche im Glossary mit Trefferliste; Treffer öffnen die Begriffsseite. */
@@ -123,6 +126,22 @@ class GlossarySearch extends HTMLElement {
             terms.length === 0
                 ? 'Kein Begriff gefunden.'
                 : `${terms.length} Begriff${terms.length === 1 ? '' : 'e'} gefunden.`;
+        // «Fehlt im Glossary» (#480): nur mit Attribut report, gemeldet wird nur das Suchwort
+        if (terms.length === 0 && this.hasAttribute('report')) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'melden';
+            button.textContent = 'Fehlt im Glossary? Melden';
+            const word = this.input.value;
+            button.addEventListener('click', () =>
+                openReportDialog(document, {
+                    word,
+                    kind: 'fehlt',
+                    send: (payload) => sendReport(this.origin, payload),
+                }),
+            );
+            this.status.append(' ', button);
+        }
         for (const t of terms) {
             const li = document.createElement('li');
             const a = document.createElement('a');

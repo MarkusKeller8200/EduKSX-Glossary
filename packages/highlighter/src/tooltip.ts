@@ -14,6 +14,7 @@ a{color:#0272ad;text-decoration:underline;text-underline-offset:2px}
 .foot{margin-top:.45rem;font-size:12px;color:#5f6b7a}
 .badge{display:inline-block;margin-top:.3rem;padding:0 .35rem;border:1px solid #d5dbe3;border-radius:.3rem;font-size:12px;color:#5f6b7a}
 .badge.ok{border-color:#a7f3d0;color:#065f46}
+.report{margin-left:.6rem;padding:0;border:0;background:none;color:#5f6b7a;font:inherit;font-size:12px;text-decoration:underline;cursor:pointer}
 @media (prefers-color-scheme:dark){.box{background:#1c2128;color:#e6edf3;border-color:#30363d}.abbr,a{color:#58a6ff}.foot,.badge{color:#9aa4af}.item+.item,.badge{border-color:#30363d}.badge.ok{color:#6ee7b7}}
 `;
 
@@ -56,6 +57,7 @@ export class Tooltip {
     constructor(
         private readonly doc: Document,
         private readonly origin: string,
+        private readonly onReport?: (entry: IndexEntry) => void,
     ) {}
 
     bind(target: HTMLElement, entries: IndexEntry[]): void {
@@ -162,6 +164,18 @@ export class Tooltip {
             link.textContent = 'Im Glossary öffnen';
             const p = this.doc.createElement('div');
             p.append(link);
+            // «Erklärung falsch?» (#480): nur das Wort und der Code werden gemeldet
+            if (this.onReport !== undefined) {
+                const report = this.doc.createElement('button');
+                report.type = 'button';
+                report.className = 'report';
+                report.textContent = 'Erklärung falsch?';
+                report.addEventListener('click', () => {
+                    this.hide();
+                    this.onReport?.(entry);
+                });
+                p.append(report);
+            }
             item.append(p);
         }
 
