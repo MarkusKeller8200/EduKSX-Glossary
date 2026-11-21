@@ -29,6 +29,8 @@ type Werte = {
     translations: Record<Sprache, Uebersetzung>;
     relations: Beziehung[];
     ki_unterstuetzt: boolean;
+    /** aus einem Kandidaten (#480) */
+    kandidat?: string;
     lock_version: number;
 };
 

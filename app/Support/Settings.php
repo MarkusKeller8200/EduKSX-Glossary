@@ -45,6 +45,10 @@ final class Settings
         'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
         // Entwicklungs-Sync (#478, DEC-041 A12): Rolle dieser Instanz
         'sync.role' => ['gruppe' => 'Betrieb', 'label' => 'Rolle im Entwicklungs-Sync', 'hinweis' => '«Master» = öffentliches Glossary (prod), «Test» = Testumgebung, «Entwicklung» = dev (nicht mit APP_ENV=production), «Instanz» = selbst gehostet ohne Entwicklungs-Sync.', 'typ' => 'choice', 'optionen' => ['instance' => 'Instanz', 'master' => 'Master', 'test' => 'Test', 'development' => 'Entwicklung'], 'env' => 'GLOSSARY_SYNC_ROLE'],
+        // Melden aus Erweiterung und Einbindung (#480, DEC-042 M4, M7)
+        'candidates.anonymous' => ['gruppe' => 'Melden', 'label' => 'Anonymes Melden aus Erweiterung und Einbindung', 'hinweis' => 'Killswitch: aus = nur angemeldete Personen melden fehlende Begriffe bzw. falsche Erklärungen. Alles landet zuerst bei der Redaktion (Kandidaten).', 'typ' => 'bool'],
+        'candidates.blocklist' => ['gruppe' => 'Melden', 'label' => 'Gesperrte Wörter', 'hinweis' => 'Mit Komma getrennt; solche Meldungen werden ohne Fehlermeldung verworfen.', 'typ' => 'text', 'max' => 2000],
+        'candidates.origins' => ['gruppe' => 'Melden', 'label' => 'Webseiten mit Einbindung, die melden dürfen', 'hinweis' => 'Ursprünge mit https://, mit Komma getrennt (z. B. https://www.schule.ch). Die Browser-Erweiterung darf immer.', 'typ' => 'text', 'max' => 2000],
         // Impressum (#411): je Instanz; leer zeigt die Seite einen Hinweis für die Betreiber
         'imprint.operator' => ['gruppe' => 'Impressum', 'label' => 'Betreiber', 'hinweis' => 'Name der Person oder Organisation, die diese Instanz betreibt, z. B. «Muster Schule, Schulverwaltung».', 'typ' => 'text', 'max' => 150, 'env' => 'GLOSSARY_IMPRESSUM_BETREIBER'],
         'imprint.address' => ['gruppe' => 'Impressum', 'label' => 'Postadresse', 'hinweis' => 'Strasse, PLZ und Ort.', 'typ' => 'text', 'max' => 200, 'env' => 'GLOSSARY_IMPRESSUM_ADRESSE'],
@@ -78,6 +82,9 @@ final class Settings
             'dump.require_password' => (bool) config('glossary.dump_require_password', false),
             'metrics.token' => (string) config('glossary.metrics_token', ''),
             'sync.role' => (string) config('glossary.sync_role', 'instance'),
+            'candidates.anonymous' => true,
+            'candidates.blocklist' => '',
+            'candidates.origins' => '',
             'imprint.operator' => (string) config('glossary.imprint.operator', ''),
             'imprint.address' => (string) config('glossary.imprint.address', ''),
             'imprint.email' => (string) config('glossary.imprint.email', ''),

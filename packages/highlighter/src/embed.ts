@@ -7,10 +7,17 @@
  *
  * Optionen (data-…): scope (CSS-Selektor, Vorgabe «main, article, [data-glossary]»; «none» = nur <glossary-term>),
  * names, first-only, categories (Labels mit Komma), max, observe. Single-Page-Apps: nach einem Ansichtswechsel
- * `EduksxGlossary.scan(element, { firstOnly: true })` bzw. zuerst `EduksxGlossary.reset()` aufrufen (#474). Keine Cookies, kein Tracking; Daten aus dem
+ * `EduksxGlossary.scan(element, { firstOnly: true })` bzw. zuerst `EduksxGlossary.reset()` aufrufen (#474).
+ * Mit data-report="true": «Erklärung falsch?» in der Erklärbox und `EduksxGlossary.report(wort)` (#480). Keine Cookies, kein Tracking; Daten aus dem
  * öffentlichen Index, Suche nur im Browser.
  */
-import { Highlighter, loadIndex, MARK_CLASS } from './index';
+import {
+    Highlighter,
+    loadIndex,
+    MARK_CLASS,
+    openReportDialog,
+    sendReport,
+} from './index';
 import type { HighlightOptions, IndexEntry, ScanOptions } from './types';
 
 const EMBED_VERSION = '1.1.0';
@@ -22,6 +29,8 @@ type Api = {
     scan: (root: Element, options?: ScanOptions) => Promise<number>;
     /** Gemerkte Begriffe für «nur erste Fundstelle» vergessen (Ansichtswechsel, #474). */
     reset: () => Promise<void>;
+    /** Dialog «Fehlt im Glossary» für ein Wort öffnen (#480, mit data-report="true"). */
+    report: (word: string) => void;
 };
 
 declare global {
@@ -38,8 +47,21 @@ const origin =
 const flag = (v: string | undefined): boolean =>
     v === '' || v === 'true' || v === '1';
 
+// «Erklärung falsch?» und «Fehlt im Glossary» (#480): nur mit data-report="true"; die Webseite muss in der
+// Administration des Glossary eingetragen sein, sonst blockiert der Browser das Senden (CORS)
+const report = flag(data.report);
+const reportTerm = (entry: IndexEntry): void => {
+    openReportDialog(document, {
+        word: entry.abbreviation ?? entry.name ?? '',
+        kind: 'falsch',
+        code: entry.code,
+        send: (payload) => sendReport(origin, payload),
+    });
+};
+
 const options: HighlightOptions = {
     origin,
+    onReport: report ? reportTerm : undefined,
     names: flag(data.names),
     firstOnly: flag(data.firstOnly),
     maxMatches: data.max ? Number(data.max) : 300,
@@ -101,6 +123,13 @@ window.EduksxGlossary = {
     scan: async (root: Element, scanOptions?: ScanOptions) =>
         (await ready).scan(root, scanOptions),
     reset: async () => (await ready).reset(),
+    report: (word: string) => {
+        openReportDialog(document, {
+            word,
+            kind: 'fehlt',
+            send: (payload) => sendReport(origin, payload),
+        });
+    },
 };
 
 const run = (): void => {

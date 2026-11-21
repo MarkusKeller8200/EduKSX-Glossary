@@ -102,6 +102,11 @@ class ApplyRetention extends Command
             ? DB::table('api_idempotency_keys')->where('created_at', '<', now()->subHours(Idempotency::HOURS))->count()
             : Idempotency::prune();
 
+        // 6b'. Kandidaten (#480, DEC-042 M9): nach dem Entscheid wie Vorschläge ohne Kommentare und Verknüpfung
+        $candidateQuery = DB::table('term_candidates')->where('status', '!=', 'new')->where('decided_at', '<', now()->subMonths($proposalMonths))
+            ->where(fn ($q) => $q->whereNotNull('comments')->orWhereNotNull('reported_by_id'));
+        $keys += $dry ? $candidateQuery->count() : $candidateQuery->update(['comments' => null, 'reported_by_id' => null]);
+
         // 6c. Mail-Protokoll (#463): 90 Tage
         $mails = $dry
             ? DB::table('mail_log')->where('created_at', '<', now()->subDays(MailLog::RETENTION_DAYS))->count()

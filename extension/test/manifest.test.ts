@@ -23,8 +23,10 @@ const manifest = JSON.parse(
 describe('Manifest der Browser-Erweiterung (#153)', () => {
     it('ist Manifest V3 mit minimalen Berechtigungen', () => {
         expect(manifest.manifest_version).toBe(3);
+        // contextMenus (#480): «An EduKSX-Glossary senden» für markierten Text
         expect(manifest.permissions.sort()).toEqual([
             'activeTab',
+            'contextMenus',
             'scripting',
             'storage',
         ]);

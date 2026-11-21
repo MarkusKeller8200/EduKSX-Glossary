@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountDeletionController;
+use App\Http\Controllers\Admin\CandidateAdminController;
 use App\Http\Controllers\Admin\CurationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DevBackupController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\TwoFactorResetController;
+use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\EmailChangeController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MetricsController;
@@ -38,7 +40,9 @@ use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProposalController;
 use App\Http\Controllers\SearchEngineController;
 use App\Http\Controllers\SearchMissController;
+use App\Http\Middleware\AllowCandidateOrigins;
 use App\Http\Middleware\RequireTwoFactor;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 
 // Öffentlich: nur lesen (PUB-01)
@@ -56,6 +60,13 @@ Route::get('impressum', [PageController::class, 'imprint'])->name('imprint');
 Route::get('hilfe', [PageController::class, 'help'])->name('help');
 // Einbindung für Entwickler (#155, DEC-026)
 Route::get('entwickler', [PageController::class, 'developers'])->name('developers');
+// Begriff melden aus Browser-Erweiterung und Einbindung (#480, DEC-042): CORS nur für Erweiterungen und eingetragene
+// Webseiten, nur JSON (Vorabprüfung des Browsers statt CSRF-Token)
+Route::prefix('erweiterung')->middleware([AllowCandidateOrigins::class, 'throttle:60,1'])->group(function () {
+    Route::match(['GET', 'OPTIONS'], 'ich', [CandidateController::class, 'me'])->name('candidates.me');
+    Route::match(['POST', 'OPTIONS'], 'kandidaten', [CandidateController::class, 'store'])
+        ->withoutMiddleware(PreventRequestForgery::class)->name('candidates.store');
+});
 // Mit KI recherchieren (#481): Anleitung, Markdown und leere Vorlage
 Route::get('mit-ki-recherchieren', [PageController::class, 'aiGuide'])->name('ai-guide');
 Route::get('mit-ki-recherchieren.md', [PageController::class, 'aiGuideMarkdown'])->name('ai-guide.markdown');
@@ -206,6 +217,9 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::patch('begriffe/{term}/feld', [TermController::class, 'updateField'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.field');
     Route::post('begriffe/{term}/veroeffentlichen', [TermController::class, 'publishOne'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.publish-one');
     Route::post('begriffe/{term}/wiederherstellen', [TermController::class, 'restore'])->whereUuid('term')->middleware('can:edit-terms')->name('admin.terms.restore');
+    // Kandidaten aus Erweiterung und Einbindung (#480, DEC-042 M10)
+    Route::get('kandidaten', [CandidateAdminController::class, 'index'])->middleware('can:edit-terms')->name('admin.candidates');
+    Route::post('kandidaten/{candidate}/entscheid', [CandidateAdminController::class, 'decide'])->whereUuid('candidate')->middleware('can:edit-terms')->name('admin.candidates.decide');
     // Recherche bestätigen (#479): ab Moderator/in (Recht «Vorschläge prüfen»), zweiter Faktor über /admin
     Route::post('begriffe/{term}/recherche-geprueft', [TermController::class, 'confirmReview'])->whereUuid('term')->middleware('can:moderate')->name('admin.terms.review');
     Route::post('begriffe/{term}/zurueckziehen', [TermController::class, 'unpublish'])->whereUuid('term')->middleware('can:publish')->name('admin.terms.unpublish');

@@ -59,6 +59,18 @@ async function init(): Promise<void> {
             : 'Nicht mehr automatisch aktiv.';
     });
 
+    // Anmeldung im Glossary erkennen (#480): nur Anzeige, ohne Personendaten ausser dem Community-Namen
+    void (
+        chrome.runtime.sendMessage({ type: 'report-me' }) as Promise<{
+            angemeldet: boolean;
+            name: string | null;
+        }>
+    ).then((me) => {
+        $('account').textContent = me.angemeldet
+            ? `Im Glossary angemeldet als ${me.name ?? 'Konto'}.`
+            : 'Im Glossary nicht angemeldet – Meldungen gehen anonym.';
+    });
+
     for (const key of ['names', 'firstOnly'] as const) {
         $<HTMLInputElement>(key).addEventListener('change', async (e) => {
             await saveSettings({

@@ -377,6 +377,30 @@ und intern, sonst nur «changed». Abbilder (Revisionen) enthalten nur Felder de
 | `alias_type` | öffentlich |
 | `locale` | öffentlich |
 
+## `term_candidates`
+
+| Spalte | Klasse |
+| --- | --- |
+| `id` | intern |
+| `word` | intern |
+| `normalized` | intern |
+| `kind` | intern |
+| `channel` | intern |
+| `term_id` | intern |
+| `count` | intern |
+| `first_url` | intern |
+| `last_url` | intern |
+| `comments` | personenbezogen |
+| `status` | intern |
+| `reason` | intern |
+| `result_term_id` | intern |
+| `reported_by_id` | intern |
+| `decided_by_id` | intern |
+| `decided_at` | intern |
+| `last_seen_at` | intern |
+| `created_at` | intern |
+| `updated_at` | intern |
+
 ## `term_categories`
 
 | Spalte | Klasse |

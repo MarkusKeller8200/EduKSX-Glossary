@@ -24,6 +24,14 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Gegenstelle seit dem letzten Holen geändert, verlangt der Sync zuerst «Holen»; Konflikte werden nie überschrieben.
   Rolle je Umgebung (`GLOSSARY_SYNC_ROLE`: Master, Test, Entwicklung), neue Scopes `glossary:sync.read`, `.write` und
   `.publish`.
+- **Begriff melden aus Erweiterung und Einbindung (#480):** In der Browser-Erweiterung ein Wort markieren und mit
+  Rechtsklick «An EduKSX-Glossary senden»; in der Erklärbox «Erklärung falsch?». Vor dem Senden zeigt ein Dialog, was
+  übertragen wird (nur Wort, freiwilliger Kommentar und Adresse der Seite ohne Abfrage). Geht auch ohne Anmeldung;
+  angemeldete Personen erkennt die Erweiterung. Alles landet als Kandidat in der neuen Seite Administration ›
+  Kandidaten (als Entwurf anlegen, erledigt, verwerfen) – nichts wird ohne Redaktion sichtbar. Schutz durch Abruflimit,
+  Sperrliste und einen Schalter, der nur das anonyme Melden sperrt. Für Webseiten mit Einbindung: `data-report="true"`
+  bzw. `<glossary-search report>`, wenn die Webseite in den Einstellungen eingetragen ist (Einbindung 1.1.0,
+  Web-Komponenten 1.1.0).
 
 ### Geändert
 

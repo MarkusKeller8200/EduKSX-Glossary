@@ -5,6 +5,7 @@ import {
     ClipboardCheck,
     Copy,
     FileUp,
+    Flag,
     KeyRound,
     LayoutDashboard,
     MessageSquarePlus,
@@ -48,6 +49,12 @@ export const ADMIN_NAV: {
         label: 'Einsammeln',
         recht: 'edit-terms',
         icon: Sparkles,
+    },
+    {
+        href: '/admin/kandidaten',
+        label: 'Kandidaten',
+        recht: 'edit-terms',
+        icon: Flag,
     },
     {
         href: '/admin/suchen-ohne-treffer',

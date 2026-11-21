@@ -19,7 +19,7 @@
             "32": "icons/icon-32.png"
         }
     },
-    "permissions": ["storage", "activeTab", "scripting"],
+    "permissions": ["storage", "activeTab", "scripting", "contextMenus"],
     "host_permissions": ["https://glossary.eduksx.ch/*"],
     "optional_host_permissions": ["https://*/*", "http://*/*"],
     "background": {

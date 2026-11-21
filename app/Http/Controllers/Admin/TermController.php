@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Candidates\CandidateService;
 use App\Enums\Locale;
 use App\Enums\RelationType;
 use App\Enums\ResearchBasis;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
+use App\Models\TermCandidate;
 use App\Models\TermRevision;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -187,6 +189,11 @@ class TermController extends Controller
                 $werte[$field] = mb_substr(trim($value), 0, $max);
             }
         }
+        // aus einem Kandidaten (#480): nach dem Speichern als übernommen markieren
+        $kandidat = $request->query('kandidat');
+        if (is_string($kandidat) && TermCandidate::query()->whereKey($kandidat)->where('status', 'new')->exists()) {
+            $werte['kandidat'] = $kandidat;
+        }
 
         return Inertia::render('admin/term-form', [
             'begriff' => null,
@@ -199,6 +206,11 @@ class TermController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $term = $this->save($request, null);
+        $kandidat = $request->input('kandidat');
+        $user = $this->currentUserOrNull($request);
+        if (is_string($kandidat) && $user !== null && ($candidate = TermCandidate::query()->whereKey($kandidat)->where('status', 'new')->first()) !== null) {
+            app(CandidateService::class)->decide($candidate, 'accepted', null, $user, $term);
+        }
 
         return redirect("/admin/begriffe/{$term->id}")->with('status', 'Begriff angelegt (Entwurf).');
     }

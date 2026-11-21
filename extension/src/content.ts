@@ -3,6 +3,8 @@
  * die Hervorhebung wieder aus. Der Seitentext wird nur hier im Browser durchsucht.
  */
 import { Highlighter } from '../../packages/highlighter/src/highlighter';
+import { openReportDialog } from '../../packages/highlighter/src/report';
+import type { ReportResult } from '../../packages/highlighter/src/report';
 import type { IndexResponse } from '../../packages/highlighter/src/types';
 import type { Settings } from './settings';
 
@@ -41,10 +43,36 @@ async function run(): Promise<void> {
         firstOnly: reply.settings.firstOnly,
         // Ansichtswechsel ohne Neuladen (#474): abgelöste Markierungen geben den Begriff wieder frei
         releaseDetached: true,
+        // «Erklärung falsch?» (#480): Melde-Dialog wie im Kontextmenü
+        onReport: (entry) =>
+            void report(entry.abbreviation ?? entry.name ?? '', entry.code),
     });
     window.__eduksxGlossary = highlighter;
     highlighter.scan(document.body);
     highlighter.observe(document.body);
+}
+
+/** Melde-Dialog im selben Script öffnen (Anmeldung erkennt der Hintergrund). */
+async function report(word: string, code: string | null): Promise<void> {
+    const me = (await chrome.runtime.sendMessage({ type: 'report-me' })) as {
+        angemeldet: boolean;
+        name: string | null;
+        anonym: boolean;
+        anmelden: string;
+    };
+    openReportDialog(document, {
+        word,
+        kind: 'falsch',
+        code,
+        account: me.angemeldet ? (me.name ?? 'angemeldet') : null,
+        anonymous: me.anonym,
+        loginUrl: me.anmelden,
+        send: async (payload) =>
+            (await chrome.runtime.sendMessage({
+                type: 'report-send',
+                payload,
+            })) as ReportResult,
+    });
 }
 
 void run();

@@ -105,6 +105,17 @@ final class Purposes
             'tables' => ['settings', 'import_batches', 'search_misses', 'sync_peers'],
             'operations' => [],
         ],
+        // Kandidaten aus Erweiterung und Einbindung (#480, DEC-042)
+        'candidates' => [
+            'purpose' => 'Fehlende Begriffe und falsche Erklärungen melden (Erweiterung, Einbindung), Sichtung durch die Redaktion',
+            'basis' => 'Auftrag des Betreibers (Verzeichnis pflegen); Meldung freiwillig, auch ohne Konto',
+            'scope' => 'global',
+            'subjects' => 'meldende Person nur, wenn angemeldet (Verknüpfung mit dem Konto); Kommentare können Angaben enthalten',
+            'recipients' => 'Redaktion (Recht «edit-terms»)',
+            'retention' => '[Kommentare und Verknüpfung mit dem Konto nach dem Entscheid wie Vorschläge (Vorgabe 24 Monate)]; das Wort selbst dauerhaft (damit Verworfenes nicht wiederkommt)',
+            'tables' => ['term_candidates'],
+            'operations' => [],
+        ],
         // Mail-Protokoll (#463)
         'mail_log' => [
             'purpose' => 'Nachweis und Fehlersuche beim Mailversand',
