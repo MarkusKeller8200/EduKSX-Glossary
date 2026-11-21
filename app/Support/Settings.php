@@ -45,6 +45,8 @@ final class Settings
         'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
         // Entwicklungs-Sync (#478, DEC-041 A12): Rolle dieser Instanz
         'sync.role' => ['gruppe' => 'Betrieb', 'label' => 'Rolle im Entwicklungs-Sync', 'hinweis' => '«Master» = öffentliches Glossary (prod), «Test» = Testumgebung, «Entwicklung» = dev (nicht mit APP_ENV=production), «Instanz» = selbst gehostet ohne Entwicklungs-Sync.', 'typ' => 'choice', 'optionen' => ['instance' => 'Instanz', 'master' => 'Master', 'test' => 'Test', 'development' => 'Entwicklung'], 'env' => 'GLOSSARY_SYNC_ROLE'],
+        // MCP-Server (#261, DEC-029 O2): öffentlich lesen für KI-Assistenten unter /mcp
+        'mcp.enabled' => ['gruppe' => 'Schnittstellen', 'label' => 'MCP-Server für KI-Assistenten', 'hinweis' => 'Assistenten wie Claude, ChatGPT, Copilot oder Rovo lesen veröffentlichte Begriffe unter /mcp (ohne Anmeldung, 60 Anfragen pro Minute und IP-Adresse). Eingaben werden nicht gespeichert.', 'typ' => 'bool', 'env' => 'GLOSSARY_MCP'],
         // Melden aus Erweiterung und Einbindung (#480, DEC-042 M4, M7)
         'candidates.anonymous' => ['gruppe' => 'Melden', 'label' => 'Anonymes Melden aus Erweiterung und Einbindung', 'hinweis' => 'Killswitch: aus = nur angemeldete Personen melden fehlende Begriffe bzw. falsche Erklärungen. Alles landet zuerst bei der Redaktion (Kandidaten).', 'typ' => 'bool'],
         'candidates.blocklist' => ['gruppe' => 'Melden', 'label' => 'Gesperrte Wörter', 'hinweis' => 'Mit Komma getrennt; solche Meldungen werden ohne Fehlermeldung verworfen.', 'typ' => 'text', 'max' => 2000],
@@ -83,6 +85,7 @@ final class Settings
             'metrics.token' => (string) config('glossary.metrics_token', ''),
             'sync.role' => (string) config('glossary.sync_role', 'instance'),
             'candidates.anonymous' => true,
+            'mcp.enabled' => (bool) config('glossary.mcp_enabled', false),
             'candidates.blocklist' => '',
             'candidates.origins' => '',
             'imprint.operator' => (string) config('glossary.imprint.operator', ''),

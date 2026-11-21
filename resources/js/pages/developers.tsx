@@ -54,7 +54,9 @@ export default function Developers({
     datenmodell,
     diagramm,
     erweiterung,
+    mcp = null,
 }: {
+    mcp?: string | null;
     origin: string;
     einbindung: Einbindung | null;
     datenmodell: Tabelle[];
@@ -273,6 +275,43 @@ export default function Developers({
                     Erweiterung in den Stores erhältlich ist.
                 </p>
             </Abschnitt>
+
+            {mcp ? (
+                <Abschnitt titel="5. KI-Assistenten (MCP)">
+                    <p className="text-sm text-muted-foreground">
+                        Assistenten wie Claude, ChatGPT, Copilot oder Rovo lesen
+                        veröffentlichte Begriffe über das Model Context Protocol
+                        (Streamable HTTP, ohne Anmeldung, 60 Anfragen pro
+                        Minute). Werkzeuge: <code>glossary_search_terms</code>,{' '}
+                        <code>glossary_get_term</code>,{' '}
+                        <code>glossary_resolve_abbreviation</code>,{' '}
+                        <code>glossary_explain_text</code>,{' '}
+                        <code>glossary_list_categories</code>. Texte, die ein
+                        Assistent zum Erklären schickt, werden nicht
+                        gespeichert.
+                    </p>
+                    <p className="mt-3 text-sm font-medium">Claude Code</p>
+                    <Code
+                        text={`claude mcp add --transport http eduksx-glossary ${mcp}`}
+                    />
+                    <p className="mt-3 text-sm font-medium">
+                        Claude Desktop, Cursor, VS Code u. a. (JSON)
+                    </p>
+                    <Code
+                        text={`{
+  "mcpServers": {
+    "eduksx-glossary": { "type": "http", "url": "${mcp}" }
+  }
+}`}
+                    />
+                    <p className="mt-3 text-sm text-muted-foreground">
+                        In claude.ai bzw. ChatGPT als eigenen Konnektor mit der
+                        Adresse <code>{mcp}</code> hinzufügen. Rovo (Atlassian):
+                        als MCP-Server im Rovo-Studio – noch nicht mit einem
+                        Integrationstest bestätigt.
+                    </p>
+                </Abschnitt>
+            ) : null}
 
             <Abschnitt titel="Datenmodell">
                 <p className="text-sm text-muted-foreground">

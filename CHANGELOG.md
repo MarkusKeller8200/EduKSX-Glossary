@@ -24,6 +24,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Gegenstelle seit dem letzten Holen geändert, verlangt der Sync zuerst «Holen»; Konflikte werden nie überschrieben.
   Rolle je Umgebung (`GLOSSARY_SYNC_ROLE`: Master, Test, Entwicklung), neue Scopes `glossary:sync.read`, `.write` und
   `.publish`.
+- **MCP-Server für KI-Assistenten (#261):** Unter `/mcp` lesen Assistenten wie Claude, ChatGPT, Copilot oder Rovo
+  veröffentlichte Begriffe: suchen, Begriff abrufen, Abkürzung auflösen, Abkürzungen in einem Text erklären sowie
+  Kategorien und Herkunft – mit Permalink und Lizenzhinweis, ohne Anmeldung (60 Anfragen pro Minute). Texte zum
+  Erklären werden nicht gespeichert. Einschalten in den Einstellungen bzw. mit `GLOSSARY_MCP`; Anleitung auf der
+  Entwicklerseite.
 - **Begriff melden aus Erweiterung und Einbindung (#480):** In der Browser-Erweiterung ein Wort markieren und mit
   Rechtsklick «An EduKSX-Glossary senden»; in der Erklärbox «Erklärung falsch?». Vor dem Senden zeigt ein Dialog, was
   übertragen wird (nur Wort, freiwilliger Kommentar und Adresse der Seite ohne Abfrage). Geht auch ohne Anmeldung;

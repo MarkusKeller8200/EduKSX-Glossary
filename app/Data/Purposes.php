@@ -23,7 +23,7 @@ final class Purposes
             'basis' => 'Auftrag des Betreibers (Verzeichnis für Schulen und Gemeinden); veröffentlichte Daten unter CC BY 4.0',
             'scope' => 'global',
             'subjects' => 'keine (Fachdaten); im Journal Redaktion als Bezeichnung',
-            'recipients' => 'öffentlich (Website, API, Change-Feed, Exporte, GitHub Pages)',
+            'recipients' => 'öffentlich (Website, API, Change-Feed, Exporte, GitHub Pages, MCP-Server für KI-Assistenten)',
             'retention' => 'dauerhaft; Begriffe werden zurückgezogen statt gelöscht; Personenbezug im Journal bei Kontolöschung entfernt',
             'tables' => [
                 'terms', 'term_aliases', 'term_categories', 'term_sources', 'term_translations', 'term_relations',
