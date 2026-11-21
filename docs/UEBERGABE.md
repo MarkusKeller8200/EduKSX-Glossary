@@ -67,14 +67,14 @@ Antworten auf Deutsch (Schweiz, kein ß).
 - Einladung automatisch annehmen (#461) gilt bewusst **nicht** für neue Konten über Microsoft (E-Mail-Angabe fremder
   Tenants unzuverlässig, «nOAuth»); bestehende Konten nehmen Einladungen weiterhin selbst an.
 - Moderator/in bewerben (#460): Voraussetzung zweiter Faktor und bestätigte Adresse; entscheiden nur Admins.
-- Einsammeln (DEC-039) beschlossen, Umsetzung nach der öffentlichen Beta (Meilenstein 0.18.0).
+- Einsammeln (DEC-039) beschlossen, Umsetzung nach der öffentlichen Beta (Meilenstein 0.19.0).
 - Impressum: Markus Keller (MarKusSXCH), Einzelperson, Ohrenberg 13, 8465 Rudolfingen, info@eduksx.ch,
   datenschutz@eduksx.ch, kein Handelsregister, Inhalt: die Community. Eintrag in der Administration
   (Einstellungen › Impressum), nicht in der Umgebung.
 
 ## Offen
 
-- **Meilenstein 0.18.0 – Einsammeln** (id 21), alle triage: #434 Stufe 1 (Seite «Einsammeln»), #435 Kandidaten,
+- **Meilenstein 0.19.0 – Einsammeln** (id 21), alle triage: #434 Stufe 1 (Seite «Einsammeln»), #435 Kandidaten,
   #436 Prüfintervall, #449 Suchen ohne Treffer ohne Personendaten, #450 Pentest gegen test-01, #451 Datenschutz
   fertigstellen. In «Funktionen»: #437 (Stufe 3), #438 (Stufe 4). Kein Bugfix-Meilenstein offen.
 - Entwurfs-PR **#380** (Abgleich mit dem Master, DEC-041) wartet auf Durchsicht – nicht umsetzen vor Freigabe.
