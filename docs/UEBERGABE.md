@@ -1,6 +1,6 @@
 # Übergabe EduKSX-Glossary
 
-Stand 21.11.2026, abends – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument, danach
+Stand 22.11.2026 – «Start nächster Chat»: zuerst `AGENTS.md`, dann dieses Dokument, danach
 `docs/PROJEKTSTAND.md`. Antworten auf Deutsch (Schweiz, kein ß).
 
 ## Zuerst klären
@@ -10,6 +10,11 @@ Stand 21.11.2026, abends – «Start nächster Chat»: zuerst `AGENTS.md`, dann 
    (Entwicklungs-Sync), DEC-042 (Melden aus der Erweiterung) und die Verschiebungen in 0.19.0.
 2. **Beta 0.18.0-beta.1 auf test prüfen** (Testlisten der Issues #474, #478, #479, #480, #481, #397). Der MCP-Server
    (#261, nach der Beta gemergt) kommt mit der nächsten Beta; auf dev mit `GLOSSARY_MCP=true` testen.
+   Ebenso nach der Beta gemergt: KI-Label in Liste und Kachel (#493, #494) und die **Statistik ohne Cookies** (#495,
+   Administration › Statistik; Tageszähler je Kanal Website/Erweiterung/Einbindung/API/MCP, Tabelle `usage_counts`,
+   keine IP, keine Cookies, Löschung nach 25 Monaten, abschaltbar mit `GLOSSARY_STATISTIK=false`). Die Erweiterung
+   zählt nur Index-Abruf (≈ aktive Installationen) und «Im Glossary öffnen», nicht die gelesenen Tooltips.
+   Die Erweiterung muss für `?client=`/`?via=` neu gebaut werden (nächstes Release-ZIP).
 3. **Einrichtung für den Sync** (siehe unten «Für den Projektverantwortlichen»), sonst lässt sich #478 nicht testen.
 
 ## Projekt
