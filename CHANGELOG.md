@@ -13,6 +13,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   bestätigen mit «Als geprüft bestätigen»; danach steht «Von Mensch geprüft» mit Datum. Neue Spalte «Recherche» im
   Excel (der Import setzt höchstens «KI-unterstützt»), Filter «KI-unterstützt, noch nicht geprüft» in der Redaktion,
   API mit `research_basis` und `reviewed_at`. Einbindung 1.1.0.
+- **Mit KI recherchieren (#481):** Neue Seite mit Anleitung, Prompt zum Kopieren und leerer Vorlage, damit mit einem
+  KI-Assistenten recherchierte Begriffe ohne Nacharbeit durch den Excel-Import laufen (Bestand über die API prüfen,
+  Regeln für Inhalte und Quellen, Recherche «KI-unterstützt»). Auch als Markdown und auf GitHub Pages; Spalten und Werte
+  kommen aus dem Code.
 
 ## [0.17.1] – 2026-11-16
 

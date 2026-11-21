@@ -55,6 +55,10 @@ Route::get('impressum', [PageController::class, 'imprint'])->name('imprint');
 Route::get('hilfe', [PageController::class, 'help'])->name('help');
 // Einbindung für Entwickler (#155, DEC-026)
 Route::get('entwickler', [PageController::class, 'developers'])->name('developers');
+// Mit KI recherchieren (#481): Anleitung, Markdown und leere Vorlage
+Route::get('mit-ki-recherchieren', [PageController::class, 'aiGuide'])->name('ai-guide');
+Route::get('mit-ki-recherchieren.md', [PageController::class, 'aiGuideMarkdown'])->name('ai-guide.markdown');
+Route::get('mit-ki-recherchieren/vorlage.xlsx', [PageController::class, 'aiTemplate'])->middleware('throttle:20,1')->name('ai-guide.template');
 Route::get('entwickler/datenmodell.sql', [PageController::class, 'schemaSql'])->middleware('throttle:20,1')->name('developers.schema');
 // Datenschutzerklärung (#42); Kenntnisnahme für angemeldete Konten
 Route::get('datenschutz', [PrivacyController::class, 'show'])->name('privacy');

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\AiGuide;
+use App\Glossary\ExcelFormat;
 use App\Glossary\FieldGuide;
 use App\Glossary\Permalink;
 use App\Glossary\PublicGlossary;
@@ -10,9 +12,11 @@ use App\Models\Term;
 use App\Models\User;
 use App\Support\AppVersion;
 use App\Support\DataModel;
+use App\Support\Download;
 use App\Support\Settings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -73,6 +77,30 @@ class PageController extends Controller
     }
 
     /** Für Entwickler (#155): Einbindung per Script oder <glossary-term>, Daten per API. */
+    /** Mit KI recherchieren (#481): Anleitung aus docs/KI-ANLEITUNG.md, Prompt zum Kopieren, Vorlage. */
+    public function aiGuide(): Response
+    {
+        $markdown = (string) @file_get_contents(base_path(AiGuide::PATH));
+
+        return Inertia::render('ki-anleitung', [
+            // eigene Datei; HTML darin wird entfernt, unsichere Links nicht zugelassen
+            'html' => (string) Str::markdown($markdown, ['html_input' => 'strip', 'allow_unsafe_links' => false]),
+            'prompt' => AiGuide::prompt($markdown),
+        ]);
+    }
+
+    /** Leere Vorlage mit allen Spalten des Excel-Formats (#481). */
+    public function aiTemplate(): SymfonyResponse
+    {
+        return Download::table('xlsx', ExcelFormat::header(), [], 'glossary-vorlage');
+    }
+
+    /** Anleitung als Markdown zum Weitergeben an einen KI-Assistenten (#481). */
+    public function aiGuideMarkdown(): SymfonyResponse
+    {
+        return response((string) @file_get_contents(base_path(AiGuide::PATH)), 200, ['Content-Type' => 'text/markdown; charset=UTF-8']);
+    }
+
     public function developers(DataModel $model): Response
     {
         $manifest = json_decode((string) @file_get_contents(public_path('embed/manifest.json')), true);
