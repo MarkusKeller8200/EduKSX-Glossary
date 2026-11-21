@@ -23,12 +23,12 @@ Ohne Recht für den Import: Begriffe einzeln über «Begriff vorschlagen» einre
 
 ## 2. Vorher prüfen: was es schon gibt
 
-| Was                 | Abfrage                                              | Wozu                                                                |
-| ------------------- | ---------------------------------------------------- | ------------------------------------------------------------------- |
-| Bestehende Begriffe | `GET https://glossary.eduksx.ch/api/v1/index`        | Doppelungen erkennen: Abkürzung, Bezeichnung und Aliase vergleichen |
-| Kategorien          | `GET https://glossary.eduksx.ch/api/v1/categories`   | nur vorhandene Labels verwenden (`label`)                           |
-| Herkunft            | `GET https://glossary.eduksx.ch/api/v1/sources`      | vorhandene Herkunft verwenden; neue nur bewusst                     |
-| Einzelner Begriff   | `GET https://glossary.eduksx.ch/api/v1/terms/<Code>` | bestehenden Begriff ändern: ID übernehmen                           |
+| Was                | Abfrage                                                  | Wozu                                                                 |
+| ------------------ | -------------------------------------------------------- | -------------------------------------------------------------------- |
+| Bestehende Begriffe | `GET https://glossary.eduksx.ch/api/v1/index`           | Doppelungen erkennen: Abkürzung, Bezeichnung und Aliase vergleichen  |
+| Kategorien         | `GET https://glossary.eduksx.ch/api/v1/categories`       | nur vorhandene Labels verwenden (`label`)                            |
+| Herkunft           | `GET https://glossary.eduksx.ch/api/v1/sources`          | vorhandene Herkunft verwenden; neue nur bewusst                      |
+| Einzelner Begriff  | `GET https://glossary.eduksx.ch/api/v1/terms/<Code>`     | bestehenden Begriff ändern: ID übernehmen                            |
 
 - **Doppelung:** Gibt es die Abkürzung oder die Bezeichnung (ohne Gross-/Kleinschreibung) schon, keinen neuen Begriff
   anlegen. Stattdessen die Zeile mit der **ID** des bestehenden Begriffs füllen (ändern) oder weglassen.
@@ -66,7 +66,6 @@ Den folgenden Text in den KI-Assistenten kopieren und das Thema am Ende ergänze
 Bestand selbst; sonst die Antworten der drei Abfragen aus Abschnitt 2 als Datei mitgeben.
 
 <!-- prompt:anfang -->
-
 ```text
 Du hilfst, Begriffe für das EduKSX-Glossary (Glossar für Schweizer Volksschulen, Schulgemeinden und Gemeinden) zu
 recherchieren und importfertig aufzubereiten.
@@ -94,36 +93,34 @@ recherchieren und importfertig aufzubereiten.
 
 Thema: <hier das Thema bzw. die Quelle eintragen>
 ```
-
 <!-- prompt:ende -->
 
 ## 6. Format
 
 <!-- generiert:anfang -->
-
 Excel-Format Version 2 (`app/Glossary/ExcelFormat.php`). Erste Zeile = Spaltennamen genau wie unten;
 Spalten dürfen fehlen (sie bleiben dann unverändert), die Reihenfolge ist frei. Zeilen **ohne ID** sind neue
 Begriffe, Zeilen **mit ID** ändern den Begriff mit dieser ID. Gelöscht wird nie.
 
-| Spalte                    | Format                                                                                | Beispiel                                 | Pflicht                    |
-| ------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------- | -------------------------- |
-| ID                        | UUID                                                                                  | 0195f6a2-7c1e-7a3b-9b2d-3f4e5a6b7c8d     | automatisch                |
-| Kategorien                | Liste; Excel: Labels mit Strichpunkt                                                  | Personal; Schule                         | empfohlen                  |
-| Abkürzung offiziell       | Text, höchstens 60 Zeichen                                                            | VSA                                      | Abkürzung oder Bezeichnung |
-| Aliase offiziell          | Liste, mit Strichpunkt getrennt                                                       | VSA ZH; Volksschulamt Zürich             | nein                       |
-| Alternative Schreibweisen | Liste, mit Strichpunkt getrennt                                                       | V.S.A.                                   | nein                       |
-| Bezeichnung offiziell     | Text, höchstens 255 Zeichen                                                           | Volksschulamt                            | Abkürzung oder Bezeichnung |
-| Kurzbeschreibung          | Text, höchstens 160 Zeichen                                                           | Kantonale Fachstelle für die Volksschule | empfohlen                  |
-| Beschreibung              | Text, mehrzeilig                                                                      | Das Volksschulamt ist zuständig für …    | nein                       |
-| URL                       | Adresse mit http:// oder https://                                                     | https://www.zh.ch/vsa                    | nein                       |
-| Notiz                     | Text, mehrzeilig                                                                      | Bezeichnung mit VSA klären               | nein                       |
-| Herkunft                  | Liste; Excel: Labels mit Strichpunkt                                                  | VSA                                      | empfohlen                  |
-| Status                    | Excel: aktuell \| historisch \| zu prüfen; API: current \| historical \| under_review | aktuell                                  | ja (Vorgabe aktuell)       |
-| Suchbegriffe              | Text, Wörter mit Strichpunkt getrennt                                                 | Schulamt; Volksschulbehörde              | nein                       |
-| Gültig ab                 | Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ)                                              | 2026-08-01                               | nein                       |
-| Gültig bis                | Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ)                                              | 2027-07-31                               | nein                       |
-| Aktiv                     | ja \| nein                                                                            | ja                                       | ja (Vorgabe ja)            |
-| Recherche                 | KI-unterstützt \| geprüft \| leer                                                     | KI-unterstützt                           | nein                       |
+| Spalte | Format | Beispiel | Pflicht |
+| --- | --- | --- | --- |
+| ID | UUID | 0195f6a2-7c1e-7a3b-9b2d-3f4e5a6b7c8d | automatisch |
+| Kategorien | Liste; Excel: Labels mit Strichpunkt | Personal; Schule | empfohlen |
+| Abkürzung offiziell | Text, höchstens 60 Zeichen | VSA | Abkürzung oder Bezeichnung |
+| Aliase offiziell | Liste, mit Strichpunkt getrennt | VSA ZH; Volksschulamt Zürich | nein |
+| Alternative Schreibweisen | Liste, mit Strichpunkt getrennt | V.S.A. | nein |
+| Bezeichnung offiziell | Text, höchstens 255 Zeichen | Volksschulamt | Abkürzung oder Bezeichnung |
+| Kurzbeschreibung | Text, höchstens 160 Zeichen | Kantonale Fachstelle für die Volksschule | empfohlen |
+| Beschreibung | Text, mehrzeilig | Das Volksschulamt ist zuständig für … | nein |
+| URL | Adresse mit http:// oder https:// | https://www.zh.ch/vsa | nein |
+| Notiz | Text, mehrzeilig | Bezeichnung mit VSA klären | nein |
+| Herkunft | Liste; Excel: Labels mit Strichpunkt | VSA | empfohlen |
+| Status | Excel: aktuell \| historisch \| zu prüfen; API: current \| historical \| under_review | aktuell | ja (Vorgabe aktuell) |
+| Suchbegriffe | Text, Wörter mit Strichpunkt getrennt | Schulamt; Volksschulbehörde | nein |
+| Gültig ab | Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ) | 2026-08-01 | nein |
+| Gültig bis | Datum JJJJ-MM-TT (Excel auch TT.MM.JJJJ) | 2027-07-31 | nein |
+| Aktiv | ja \| nein | ja | ja (Vorgabe ja) |
+| Recherche | KI-unterstützt \| geprüft \| leer | KI-unterstützt | nein |
 
 Übersetzungen (freiwillig): «Abkürzung (FR)», «Bezeichnung (FR)», «Kurzbeschreibung (FR)», «Beschreibung (FR)», «Abkürzung (IT)», «Bezeichnung (IT)», «Kurzbeschreibung (IT)», «Beschreibung (IT)», «Abkürzung (EN)», «Bezeichnung (EN)», «Kurzbeschreibung (EN)», «Beschreibung (EN)».
 
@@ -134,7 +131,6 @@ Begriffe, Zeilen **mit ID** ändern den Begriff mit dieser ID. Gelöscht wird ni
 - **Datum:** JJJJ-MM-TT (auch TT.MM.JJJJ).
 - **Offizielle Spalten** («Abkürzung offiziell», «Aliase offiziell», «Bezeichnung offiziell») bei bestehenden Begriffen nur mit dem Recht «Offizielle Felder ändern».
 - CSV: UTF-8, Trennzeichen Semikolon, gleiche Spaltennamen.
-
 <!-- generiert:ende -->
 
 ## 7. Vorlage und weitere Hilfe

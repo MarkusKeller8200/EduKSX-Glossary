@@ -89,6 +89,8 @@ export default defineConfig({
             // aus dem Code erzeugt (php artisan glossary:datenklassen, #276)
             'docs/DATENKLASSEN.md',
             'docs/DATENSCHUTZ-VERZEICHNIS.md',
+            // Abschnitt «Format» aus dem Code erzeugt (php artisan glossary:ki-anleitung, #481)
+            'docs/KI-ANLEITUNG.md',
             // gebautes Script zur Einbindung (#155), Hash für SRI muss gleich bleiben
             'public/embed/**',
             'public/ui/**',
