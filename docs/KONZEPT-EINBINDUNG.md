@@ -61,7 +61,11 @@ Eine TypeScript-Bibliothek, gemeinsam für Erweiterung und Einbindung (eigener O
   exakter Gross-/Kleinschreibung und an Wortgrenzen (`SL`, nicht «sl» in «Slogan»), Bezeichnungen ohne
   Gross-/Kleinschreibung; längster Treffer zuerst (Aho-Corasick bzw. ein sortierter regulärer Ausdruck).
 - **Leistung:** in Abschnitten über `requestIdleCallback`, `MutationObserver` mit Verzögerung für nachgeladene
-  Inhalte, Obergrenze je Seite (z. B. 300 Treffer), Option «nur erste Fundstelle je Begriff».
+  Inhalte, Obergrenze je Seite (z. B. 300 Treffer), Option «nur erste Fundstelle je Begriff». In Single-Page-Apps
+  gilt sie je Ansicht: `EduksxGlossary.scan(element, { firstOnly: true })` (erste Fundstelle innerhalb dieses
+  Bereichs) bzw. `EduksxGlossary.reset()` beim Ansichtswechsel; ohne diese Aufrufe wie in 1.0.0 je Seitenlebensdauer.
+  Die Browser-Erweiterung gibt Begriffe wieder frei, deren Markierung nicht mehr im Dokument ist (#474, Einbindung
+  1.1.0).
 - **Hervorhebung:** fein gepunktete Unterstreichung in der Textfarbe, kein Hintergrund, keine Änderung des Layouts;
   `<span>` um den Treffer, Stil in einem Shadow DOM bzw. mit eindeutigem Präfix.
 - **Erklärbox:** bei Hover **und** Tastaturfokus (WCAG 2.1: auch per Tab erreichbar, mit Esc schliessbar, bleibt

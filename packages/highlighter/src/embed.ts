@@ -6,18 +6,22 @@
  *   <glossary-term code="7KQ2MX">SL</glossary-term>
  *
  * Optionen (data-…): scope (CSS-Selektor, Vorgabe «main, article, [data-glossary]»; «none» = nur <glossary-term>),
- * names, first-only, categories (Labels mit Komma), max, observe. Keine Cookies, kein Tracking; Daten aus dem
+ * names, first-only, categories (Labels mit Komma), max, observe. Single-Page-Apps: nach einem Ansichtswechsel
+ * `EduksxGlossary.scan(element, { firstOnly: true })` bzw. zuerst `EduksxGlossary.reset()` aufrufen (#474). Keine Cookies, kein Tracking; Daten aus dem
  * öffentlichen Index, Suche nur im Browser.
  */
 import { Highlighter, loadIndex, MARK_CLASS } from './index';
-import type { HighlightOptions, IndexEntry } from './types';
+import type { HighlightOptions, IndexEntry, ScanOptions } from './types';
 
 const EMBED_VERSION = '1.1.0';
 
 type Api = {
     version: string;
     ready: Promise<Highlighter>;
-    scan: (root: Element) => Promise<number>;
+    /** Bereich durchsuchen; `{ firstOnly: true }` = erste Fundstelle je Begriff in diesem Bereich (#474). */
+    scan: (root: Element, options?: ScanOptions) => Promise<number>;
+    /** Gemerkte Begriffe für «nur erste Fundstelle» vergessen (Ansichtswechsel, #474). */
+    reset: () => Promise<void>;
 };
 
 declare global {
@@ -94,7 +98,9 @@ if (!customElements.get('glossary-term')) {
 window.EduksxGlossary = {
     version: EMBED_VERSION,
     ready,
-    scan: async (root: Element) => (await ready).scan(root),
+    scan: async (root: Element, scanOptions?: ScanOptions) =>
+        (await ready).scan(root, scanOptions),
+    reset: async () => (await ready).reset(),
 };
 
 const run = (): void => {

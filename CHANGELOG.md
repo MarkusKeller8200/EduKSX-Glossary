@@ -14,6 +14,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   Excel (der Import setzt höchstens «KI-unterstützt»), Filter «KI-unterstützt, noch nicht geprüft» in der Redaktion,
   API mit `research_basis` und `reviewed_at`. Einbindung 1.1.0.
 
+### Geändert
+
+- **Einbindung: erste Fundstelle je Ansicht (#474):** `EduksxGlossary.scan(element, { firstOnly: true })` markiert in
+  Single-Page-Apps auf jeder Ansicht die erste Fundstelle je Begriff, `EduksxGlossary.reset()` setzt die gemerkten
+  Begriffe zurück. Ohne diese Aufrufe bleibt alles wie bisher. Die Browser-Erweiterung erkennt Ansichtswechsel selbst.
+
 ## [0.17.1] – 2026-11-16
 
 ### Neu

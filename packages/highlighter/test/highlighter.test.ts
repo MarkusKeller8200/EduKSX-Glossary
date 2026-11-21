@@ -121,6 +121,59 @@ describe('Highlighter', () => {
     });
 });
 
+describe('Erste Fundstelle je Ansicht (#474)', () => {
+    const ansicht = (html: string): HTMLElement => {
+        document.body.innerHTML = `<main id="app">${html}</main>`;
+
+        return document.getElementById('app') as HTMLElement;
+    };
+
+    it('ohne neue Option wie 1.0.0: zweite Ansicht bleibt leer', () => {
+        const h = new Highlighter(ENTRIES, { origin: ORIGIN, firstOnly: true });
+        expect(h.scan(ansicht('<p>SL und LP</p>'))).toBe(2);
+        expect(h.scan(ansicht('<p>SL und LP</p>'))).toBe(0);
+        h.destroy();
+    });
+
+    it('scan mit firstOnly je Aufruf markiert jede Ansicht, je Begriff einmal', () => {
+        const h = new Highlighter(ENTRIES, { origin: ORIGIN, firstOnly: true });
+        expect(
+            h.scan(ansicht('<p>SL SL</p><p>SL LP</p>'), { firstOnly: true }),
+        ).toBe(2);
+        expect(h.scan(ansicht('<p>SL und SL</p>'), { firstOnly: true })).toBe(
+            1,
+        );
+        expect(document.querySelectorAll(`.${MARK_CLASS}`)).toHaveLength(1);
+        h.destroy();
+    });
+
+    it('reset gibt die Begriffe wieder frei', () => {
+        const h = new Highlighter(ENTRIES, { origin: ORIGIN, firstOnly: true });
+        expect(h.scan(ansicht('<p>SL</p>'))).toBe(1);
+        h.reset();
+        expect(h.scan(ansicht('<p>SL SL</p>'))).toBe(1);
+        h.destroy();
+    });
+
+    it('releaseDetached (Erweiterung): abgelöste Markierung gibt den Begriff frei', () => {
+        const h = new Highlighter(ENTRIES, {
+            origin: ORIGIN,
+            firstOnly: true,
+            releaseDetached: true,
+        });
+        const app = ansicht('<p>SL</p>');
+        expect(h.scan(app)).toBe(1);
+        // gleiche Ansicht: bleibt bei einer Markierung
+        const p = document.createElement('p');
+        p.textContent = 'SL nochmals';
+        app.append(p);
+        expect(h.scan(p)).toBe(0);
+        // neue Ansicht ersetzt den Inhalt
+        expect(h.scan(ansicht('<p>SL SL</p>'))).toBe(1);
+        h.destroy();
+    });
+});
+
 describe('loadIndex', () => {
     it('nutzt ETag und den gespeicherten Stand', async () => {
         const memory = new Map<string, string>();

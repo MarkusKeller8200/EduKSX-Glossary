@@ -25,10 +25,21 @@ export type HighlightOptions = {
     names?: boolean;
     /** Je Begriff nur die erste Fundstelle markieren. */
     firstOnly?: boolean;
+    /**
+     * Mit firstOnly (#474): Begriffe wieder freigeben, deren Markierung nicht mehr im Dokument ist (Ansichtswechsel in
+     * Single-Page-Apps). Vorgabe aus (Verhalten wie 1.0.0); die Browser-Erweiterung schaltet es ein.
+     */
+    releaseDetached?: boolean;
     /** Höchstens so viele Markierungen je Durchgang (Leistung). */
     maxMatches?: number;
     /** Nur Begriffe dieser Kategorien (Labels); leer = alle. */
     categories?: string[];
+};
+
+/** Optionen eines einzelnen Durchgangs (#474). */
+export type ScanOptions = {
+    /** Erste Fundstelle je Begriff innerhalb dieses Durchgangs (Ansicht), unabhängig von früheren Durchgängen. */
+    firstOnly?: boolean;
 };
 
 /** Ein Treffer im Text: Position und alle passenden Einträge (mehrdeutig = mehrere). */
