@@ -29,6 +29,7 @@ use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\TwoFactorResetController;
 use App\Http\Controllers\CandidateController;
+use App\Http\Controllers\CspReportController;
 use App\Http\Controllers\EmailChangeController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MetricsController;
@@ -67,6 +68,8 @@ Route::prefix('erweiterung')->middleware([AllowCandidateOrigins::class, 'throttl
     Route::match(['POST', 'OPTIONS'], 'kandidaten', [CandidateController::class, 'store'])
         ->withoutMiddleware(PreventRequestForgery::class)->name('candidates.store');
 });
+// Verstösse gegen die Content Security Policy (#397), ohne CSRF-Token (der Browser schickt sie selbst)
+Route::post('csp-bericht', CspReportController::class)->withoutMiddleware(PreventRequestForgery::class)->middleware('throttle:30,1')->name('csp.report');
 // Mit KI recherchieren (#481): Anleitung, Markdown und leere Vorlage
 Route::get('mit-ki-recherchieren', [PageController::class, 'aiGuide'])->name('ai-guide');
 Route::get('mit-ki-recherchieren.md', [PageController::class, 'aiGuideMarkdown'])->name('ai-guide.markdown');

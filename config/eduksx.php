@@ -95,7 +95,8 @@ return [
     | Sicherheitskopfzeilen (API-Standard C6, Plattform §6). frame-src ergänzen nur, wenn das Modul etwas einbettet.
     */
     'security_headers' => [
-        'frame_src' => ["'self'"],
+        // Turnstile (Registrierung) bettet ein iframe von Cloudflare ein (#397)
+        'frame_src' => ["'self'", 'https://challenges.cloudflare.com'],
         'hsts' => 'max-age=31536000; includeSubDomains',
     ],
 

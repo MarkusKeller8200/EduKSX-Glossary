@@ -87,6 +87,9 @@ return [
     // Sicherungen auf dev mit Wiederherstellung in der Administration (#355) – nur auf dev einschalten
     'dev_backups' => (bool) env('GLOSSARY_DEV_BACKUPS', false),
 
+    // Content Security Policy (#397): zuerst nur melden (Report-Only), mit true zusätzlich erzwingen
+    'csp_enforce' => (bool) env('GLOSSARY_CSP_ENFORCE', false),
+
     // Entwicklungs-Sync (#478): master, test, development oder instance (Vorgabe)
     'sync_role' => (string) env('GLOSSARY_SYNC_ROLE', 'instance'),
     // Metriken für Prometheus unter /metrics (#192); leer = aus

@@ -7,7 +7,7 @@
         <meta name="description" content="EduKSX-Glossary – Begriffe und Abkürzungen für Schweizer Volksschulen, Schulgemeinden und Gemeinden.">
 
         {{-- Systemvorgabe hell/dunkel sofort anwenden (wie im Intranet) --}}
-        <script>
+        <script nonce="{{ Vite::cspNonce() }}">
             (function() {
                 const appearance = '{{ $appearance ?? "system" }}';
                 if (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -17,7 +17,7 @@
         </script>
 
         {{-- Hintergrund passend zu resources/css/app.css (CI: surface hell/dunkel) --}}
-        <style>
+        <style nonce="{{ Vite::cspNonce() }}">
             html { background-color: #ffffff; }
             html.dark { background-color: #151b24; }
         </style>
