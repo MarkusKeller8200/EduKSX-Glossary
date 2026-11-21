@@ -90,6 +90,9 @@ return [
     // Content Security Policy (#397): zuerst nur melden (Report-Only), mit true zusätzlich erzwingen
     'csp_enforce' => (bool) env('GLOSSARY_CSP_ENFORCE', false),
 
+    // MCP-Server (#261, DEC-029 O2): Vorgabe aus, auf glossary.eduksx.ch eingeschaltet
+    'mcp_enabled' => (bool) env('GLOSSARY_MCP', false),
+
     // Entwicklungs-Sync (#478): master, test, development oder instance (Vorgabe)
     'sync_role' => (string) env('GLOSSARY_SYNC_ROLE', 'instance'),
     // Metriken für Prometheus unter /metrics (#192); leer = aus

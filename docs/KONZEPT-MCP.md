@@ -1,7 +1,9 @@
 # Konzept: MCP-Server
 
 **Abgenommen** am 07.11.2026, aus Konzept V1.2 (Abschnitt 8b) und MCP_READINESS. Entscheide DEC-008 und DEC-011.
-**Ergänzt** am 12.11.2026 um die Umsetzung (DEC-029, abgenommen am 13.11.2026 – Abschnitt «Umsetzung» unten, #261). Die offenen Entscheide O1–O6 sind **OFFEN** und werden vor der Umsetzung geklärt.
+**Ergänzt** am 12.11.2026 um die Umsetzung (DEC-029, abgenommen am 13.11.2026 – Abschnitt «Umsetzung» unten, #261). Die
+Entscheide O1–O6 sind am 21.11.2026 **wie vorgeschlagen** festgelegt (Auftrag «mit der MCP-Task beginnen», zur Abnahme
+vorgelegt); Phase 1 ist umgesetzt.
 
 ## Beschlossen
 
@@ -60,11 +62,23 @@ Assistent (Claude, ChatGPT, Copilot, Rovo) kann geprüfte Glossar-Einträge abfr
 
 ### Offene Entscheide
 
-| Nr. | Frage                                                                                                                                | Vorschlag                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| O1  | Phase 1 ohne Anmeldung (wie die Lese-API) oder nur mit Token?                                                                        | ohne Anmeldung, mit Begrenzer                                       |
-| O2  | MCP auch in selbst gehosteten Instanzen?                                                                                             | ja, Einstellung, Vorgabe aus                                        |
-| O3  | Schreibwerkzeuge (Vorschläge) über MCP – ab Phase 2 oder gar nicht?                                                                  | ab Phase 2, nur Servicekonten mit Scope `glossary:proposals.create` |
-| O4  | Protokollstand: auf 2026-07-28 in `laravel/mcp` warten oder mit 2025-11-25 beginnen?                                                 | vor der Umsetzung Paketstand prüfen                                 |
-| O5  | Begrenzer ohne Anmeldung (Anfragen pro Minute)?                                                                                      | 60 pro Minute und IP-Adresse                                        |
-| O6  | Rovo zuerst (ursprüngliches Ziel) oder allgemeine Assistenten zuerst? Rovo braucht laut «Offen» oben einen eigenen Integrationstest. | allgemein zuerst, Rovo als Integrationstest                         |
+| Nr. | Frage                                                                                                                                | Entscheid (21.11.2026)                                                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| O1  | Phase 1 ohne Anmeldung (wie die Lese-API) oder nur mit Token?                                                                        | ohne Anmeldung, mit Begrenzer                                                                              |
+| O2  | MCP auch in selbst gehosteten Instanzen?                                                                                             | ja, Einstellung «MCP-Server für KI-Assistenten» (`GLOSSARY_MCP`), Vorgabe aus; auf glossary.eduksx.ch ein  |
+| O3  | Schreibwerkzeuge (Vorschläge) über MCP – ab Phase 2 oder gar nicht?                                                                  | ab Phase 2, nur Servicekonten mit Scope `glossary:proposals.create`                                        |
+| O4  | Protokollstand: auf 2026-07-28 in `laravel/mcp` warten oder mit 2025-11-25 beginnen?                                                 | `laravel/mcp` 1.2.1 unterstützt 2026-07-28 und ältere Stände (Aushandlung mit dem Client) – damit beginnen |
+| O5  | Begrenzer ohne Anmeldung (Anfragen pro Minute)?                                                                                      | 60 pro Minute und IP-Adresse                                                                               |
+| O6  | Rovo zuerst (ursprüngliches Ziel) oder allgemeine Assistenten zuerst? Rovo braucht laut «Offen» oben einen eigenen Integrationstest. | allgemein zuerst, Rovo als Integrationstest                                                                |
+
+### Umsetzung Phase 1 (#261, 21.11.2026)
+
+- `app/Mcp/GlossaryServer.php` unter `/mcp` (`routes/ai.php`), Werkzeuge `glossary_search_terms`, `glossary_get_term`,
+  `glossary_resolve_abbreviation`, `glossary_explain_text`, `glossary_list_categories` (alle `readOnlyHint`), Ressource
+  `glossary_term` unter dem Permalink `/g/{code}`, Prompt `glossary_explain_text`.
+- Alle über `App\Glossary\PublicLookup` und `ApiPresenter` (nur veröffentlichte Felder der API v1, mit Lizenz); Text
+  und strukturierte Ausgabe; Hinweis bei «KI-unterstützt, noch nicht geprüft» (#479).
+- Keine Sitzung, kein Cookie; Eingaben werden nicht protokolliert; Begrenzer `mcp` 60/min je IP; Einstellung schaltet
+  ab (404).
+- Entwicklerseite Abschnitt «KI-Assistenten (MCP)» mit Konfiguration für Claude Code, Claude Desktop und Konnektoren.
+- Offen: Prüfung mit dem MCP Inspector auf dev, Integrationstest Rovo; Phase 2 (Token, Vorschläge) als eigene Issues.

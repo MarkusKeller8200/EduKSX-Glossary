@@ -16,6 +16,7 @@
         "eduksx/core": "^0.2.1",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.17",
+        "laravel/mcp": "^1.2",
         "laravel/socialite": "^5.31",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",

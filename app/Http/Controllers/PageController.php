@@ -107,6 +107,8 @@ class PageController extends Controller
 
         return Inertia::render('developers', [
             'origin' => rtrim(url('/'), '/'),
+            // MCP-Server (#261): nur anzeigen, wenn eingeschaltet
+            'mcp' => Settings::bool('mcp.enabled') ? url('/mcp') : null,
             'einbindung' => is_array($manifest) ? [
                 'version' => (string) ($manifest['version'] ?? ''),
                 'datei' => (string) ($manifest['file'] ?? ''),

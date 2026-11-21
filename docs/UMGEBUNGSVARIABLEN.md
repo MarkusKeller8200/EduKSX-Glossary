@@ -30,6 +30,7 @@ werden sie in der `.env` des Servers, wirksam nach `docker compose up -d`.
 | `GLOSSARY_PRIVACY_DRAFT`       | `true`                         | `true`                        | `false`, sobald die Datenschutzerklärung final ist |
 | `GLOSSARY_DEV_BACKUPS`         | `true`                         | `false`                       | `false`                                            |
 | `GLOSSARY_SYNC_ROLE`           | `development`                  | `test`                        | `master`                                           |
+| `GLOSSARY_MCP`                 | `true`                         | `true`                        | `true`                                             |
 | `GLOSSARY_SUCHMASCHINEN`       | `false`                        | `false`                       | `true`                                             |
 | ★🔒 `APP_KEY` / `APP_KEY_FILE` | eigener Schlüssel              | eigener Schlüssel             | eigener Schlüssel, nie teilen                      |
 
