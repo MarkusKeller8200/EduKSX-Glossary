@@ -5,9 +5,10 @@
     "license": "AGPL-3.0-or-later",
     "type": "module",
     "scripts": {
-        "build": "vp build",
-        "build:ssr": "vp build && vp build --ssr",
-        "dev": "vp dev",
+        "icons": "node scripts/eduksx-icons.mjs",
+        "build": "node scripts/eduksx-icons.mjs && vp build",
+        "build:ssr": "node scripts/eduksx-icons.mjs && vp build && vp build --ssr",
+        "dev": "node scripts/eduksx-icons.mjs && vp dev",
         "check": "vp check",
         "check:fix": "vp check --fix",
         "types:check": "tsc --noEmit",
@@ -15,6 +16,7 @@
         "build:embed": "node scripts/build-embed.mjs"
     },
     "dependencies": {
+        "@eduksx/ui": "github:MarkusKeller8200/EduKSX-UI",
         "@inertiajs/react": "^3.0.0",
         "@inertiajs/vite": "^3.0.0",
         "@radix-ui/react-avatar": "^1.1.3",

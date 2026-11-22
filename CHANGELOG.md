@@ -8,6 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Icons nur noch aus EduKSX-UI (22.11.2026):** neue Abhängigkeit `@eduksx/ui` (Repo EduKSX-UI, MIT). `public/icon.svg`
+  und `public/favicon.svg` erzeugt `scripts/eduksx-icons.mjs` vor `build`/`dev` aus dem Paket (nicht mehr im Repo);
+  `GlossaryIcon` nutzt `EduksxIcon`; die Icons der Browser-Erweiterung kommen beim Bauen aus dem Paket; die
+  Produktseite (`site/`) verweist direkt auf EduKSX-UI.
+
 - **Farbwerte wie EduKSX-UI (EduKSX-UI #16):** Feldrahmen `--input` hell `#8a94a6`, dunkel `#6b7a90` (mind. 3 : 1 zur
   Fläche, WCAG 1.4.11; neues Prüfpaar im ContrastTest). `--brand`, `--brand-accent`, `--brand-ink` entfernt; die Farbe
   «brand» der Palette nutzt für Punkt, Balken und Symbol `--brand-orange`.

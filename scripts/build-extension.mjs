@@ -58,7 +58,20 @@ writeFileSync(
 for (const file of ['popup.html', 'popup.css']) {
     cpSync(resolve(src, file), resolve(dist, file));
 }
-cpSync(resolve(src, 'icons'), resolve(dist, 'icons'), { recursive: true });
+// Icons aus @eduksx/ui (einzige Quelle: Repo EduKSX-UI); der Browser skaliert auf die Grösse im Manifest
+const eduksxPng = resolve(root, 'node_modules/@eduksx/ui/icons/png');
+mkdirSync(resolve(dist, 'icons'), { recursive: true });
+for (const [n, quelle] of [
+    [16, 32],
+    [32, 32],
+    [48, 64],
+    [128, 192],
+]) {
+    cpSync(
+        resolve(eduksxPng, String(quelle), 'eduksx-glossary-tile-dark.png'),
+        resolve(dist, 'icons', `icon-${n}.png`),
+    );
+}
 // Erweiterung und Kern «glossary-highlighter» unter MIT (Bibliothek, DEC-040), nicht die AGPL der App
 cpSync(resolve(root, 'packages/highlighter/LICENSE'), resolve(dist, 'LICENSE'));
 
