@@ -6,11 +6,11 @@
  */
 export const palette = {
     brand: {
-        // Glossary: --brand ist Orange (Schrift nur 2.36 : 1) – darum Blau aus --info (4.68 : 1 / 5.87 : 1)
+        // Punkt, Balken, Symbol in Markenorange (--brand-orange); Schrift Blau aus --info, weil Orange als Schrift nur 2.36 : 1 erreicht
         badge: 'border-info/30 bg-info-soft text-info',
-        dot: 'bg-brand',
-        bar: 'border-l-brand',
-        icon: 'text-brand',
+        dot: 'bg-brand-orange',
+        bar: 'border-l-brand-orange',
+        icon: 'text-brand-orange',
         panel: 'bg-info-soft text-info hover:bg-info-soft/70',
     },
     slate: {

@@ -29,14 +29,11 @@
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
 
-    --color-brand: var(--brand);
     --color-brand-violet: var(--brand-violet);
     --color-brand-orange: var(--brand-orange);
     --color-brand-blue: var(--brand-blue);
     --color-brand-neutral: var(--brand-neutral);
     --color-link: var(--link);
-    --color-brand-accent: var(--brand-accent);
-    --color-brand-ink: var(--brand-ink);
     --color-success: var(--success);
     --color-success-soft: var(--success-soft);
     --color-warning: var(--warning);
@@ -105,9 +102,6 @@
     --brand-orange: #ff8a00;
     --brand-blue: #007ebb;
     --brand-neutral: #222222;
-    --brand: #ff8a00;
-    --brand-accent: #007ebb;
-    --brand-ink: #222222;
 
     --background: #ffffff;
     --foreground: #222222;
@@ -135,7 +129,8 @@
     /* Links und Fokus: funktionales Blau (5.23 : 1); #007ebb liegt mit 4.47 : 1 knapp unter AA */
     --link: #0272ad;
     --border: #e2e8f0;
-    --input: #cbd5e1;
+    /* Feldrahmen mind. 3 : 1 zur Fläche (WCAG 1.4.11), Wert wie EduKSX-UI tokens.json (#16 dort) */
+    --input: #8a94a6;
     --ring: #0272ad;
     --chart-1: #ff8a00;
     --chart-2: #007ebb;
@@ -162,9 +157,6 @@
     --brand-orange: #ff8a00;
     --brand-blue: #32b8f2;
     --brand-neutral: #f2f5f8;
-    --brand: #ff8a00;
-    --brand-accent: #32b8f2;
-    --brand-ink: #f2f5f8;
 
     --background: #151b24;
     --foreground: #f2f5f8;
@@ -190,7 +182,7 @@
     --info-soft: #12324a;
     --link: #32b8f2;
     --border: #2d3746;
-    --input: #3a4556;
+    --input: #6b7a90;
     --ring: #32b8f2;
     --chart-1: #ff8a00;
     --chart-2: #32b8f2;

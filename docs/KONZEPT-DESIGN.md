@@ -118,7 +118,7 @@ Ansicht, Farbschema, Person mit Rolle bzw. «Gast», Anmelden/Abmelden.
   (Text ≥ 4.5 : 1, Linien und Fokus ≥ 3 : 1); die PR-Vorlage enthält die Punkte Wortmarke, Segmentfarben,
   hell/dunkel, Kontrast und Palette.
 - **Farbkonzept (#77, #91, #92):** Palette aus dem Intranet (`resources/js/lib/colors.ts`). Abweichung: Der Eintrag
-  `brand` nutzt hier `--info` (Blau), weil `--brand` im Glossary Orange ist und als Schrift nur 2.36 : 1 erreicht.
+  `brand` nutzt hier `--info` (Blau), weil das Markenorange (`--brand-orange`) als Schrift nur 2.36 : 1 erreicht.
   Status: aktuell grün, zu prüfen orange (Warnung), historisch grau; veröffentlicht «V<Revision>» blau, Entwurf
   orange, zusammengeführt violett.
 - **CI-Farben in der Farbwahl (#107):** «Violett (CI)», «Orange (CI)», «Blau (CI)» zusätzlich zur Palette. Violett und
