@@ -22,8 +22,8 @@ node scripts/build-extension.mjs   # → extension/dist und extension/eduksx-glo
 ```
 
 Die Version kommt aus `VERSION` (App-Version, nur X.Y.Z; der Zusatz einer Beta steht in `version_name`). Die Version in
-`extension/manifest.json` ist nur ein Platzhalter. Die Icons sind aus `public/icon.svg` erzeugt
-(`rsvg-convert -w <n> -h <n> public/icon.svg -o extension/icons/icon-<n>.png`).
+`extension/manifest.json` ist nur ein Platzhalter. Die Icons kommen beim Bauen aus `@eduksx/ui`
+(`icons/png/<grösse>/eduksx-glossary-tile-dark.png`, Repo EduKSX-UI); das Repo hält keine eigenen Kopien.
 
 **Herunterladen (#385):** Der Workflow `extension.yml` hängt die ZIP an jedes neue GitHub-Release
 (`eduksx-glossary-extension-<Version>.zip` und `eduksx-glossary-extension.zip`); die Seite «Für Entwickler» verlinkt

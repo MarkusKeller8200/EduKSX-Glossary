@@ -54,3 +54,7 @@ yarn-error.log
 /license-report.md
 /extension/dist
 /extension/*.zip
+
+# EduKSX-Icons kommen aus @eduksx/ui (scripts/eduksx-icons.mjs)
+/public/icon.svg
+/public/favicon.svg
