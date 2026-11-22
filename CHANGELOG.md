@@ -6,6 +6,12 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ## [Unveröffentlicht]
 
+### Geändert
+
+- **Farbwerte wie EduKSX-UI (EduKSX-UI #16):** Feldrahmen `--input` hell `#8a94a6`, dunkel `#6b7a90` (mind. 3 : 1 zur
+  Fläche, WCAG 1.4.11; neues Prüfpaar im ContrastTest). `--brand`, `--brand-accent`, `--brand-ink` entfernt; die Farbe
+  «brand» der Palette nutzt für Punkt, Balken und Symbol `--brand-orange`.
+
 ### Neu
 
 - **Badge zur Recherche (#479):** Begriffe, die mit KI-Unterstützung recherchiert wurden, zeigen «KI-unterstützt

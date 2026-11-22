@@ -31,6 +31,7 @@ class ContrastTest extends TestCase
         ['info', 'info-soft', 4.5],
         // Linien und Fokus
         ['ring', 'background', 3.0],
+        ['input', 'background', 3.0],
         ['term-underline', 'background', 3.0],
     ];
 
