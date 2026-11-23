@@ -23,10 +23,10 @@ final class GlossaryImporter
     public function __construct(private readonly GlossaryService $glossary) {}
 
     /**
-     * @param  array<int, array<string, string>>  $rows  Zeilen mit Spaltennamen (SpreadsheetReader); Schlüssel = Zeilennummer − 2
      * Je Zeile der Vorschau zusätzlich `werte` (alle Spalten der Datei nach dem Import bzw. bei Fehlern wie in der
      * Datei) und `vorher` (bisheriger Stand), für «alle Felder anzeigen» und «Werte überschreiben» (#505).
      *
+     * @param  array<int, array<string, string>>  $rows  Zeilen mit Spaltennamen (SpreadsheetReader); Schlüssel = Zeilennummer − 2
      * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>, werte: array<string, string>, vorher: array<string, string>}>, neu: int, geaendert: int, fehler: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
      */
     public function run(array $rows, bool $createLists, ?User $user, bool $canEditOfficial, bool $dryRun): array
