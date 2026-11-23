@@ -181,6 +181,35 @@ class ExcelImportTest extends TestCase
         $this->assertSame('human_reviewed', $sl->refresh()->research_basis);
     }
 
+    public function test_zeile_ohne_id_wird_bestehendem_begriff_zugeordnet(): void
+    {
+        $vikariat = ['ID' => '', 'Abkürzung offiziell' => '', 'Bezeichnung offiziell' => 'Vikariat', 'Kurzbeschreibung' => 'Befristete Stellvertretung.'];
+        $this->post('/admin/import/'.$this->token($this->preview([$this->row($vikariat)])));
+        $this->assertSame(1, Term::query()->where('official_name', 'Vikariat')->count());
+
+        // zweimal dieselbe Datei: nichts neu
+        $this->preview([$this->row($vikariat)])
+            ->assertInertia(fn (Assert $page) => $page->where('neu', 0)->where('geaendert', 0));
+
+        // geändert (andere Schreibweise der Bezeichnung): demselben Begriff zugeordnet
+        $this->preview([$this->row(['Kurzbeschreibung' => 'Neu beschrieben.', 'Bezeichnung offiziell' => 'VIKARIAT'] + $vikariat)])
+            ->assertInertia(fn (Assert $page) => $page->where('neu', 0)->where('geaendert', 1)
+                ->where('plan.0.meldungen.0', 'Bestehendem Begriff zugeordnet (gleiche Abkürzung und Bezeichnung).'));
+
+        // gleiche Bezeichnung, andere Abkürzung: neu
+        $this->preview([$this->row(['Abkürzung offiziell' => 'VIK'] + $vikariat)])
+            ->assertInertia(fn (Assert $page) => $page->where('neu', 1));
+    }
+
+    public function test_mehrdeutige_zuordnung_ist_fehler(): void
+    {
+        $glossary = app(GlossaryService::class);
+        $glossary->save(null, ['official_abbreviation' => 'AG', 'official_name' => 'Arbeitsgruppe'], null, true);
+        $glossary->save(null, ['official_abbreviation' => 'AG', 'official_name' => 'Arbeitsgruppe'], null, true);
+        $this->preview([$this->row(['ID' => '', 'Abkürzung offiziell' => 'AG', 'Bezeichnung offiziell' => 'Arbeitsgruppe'])])
+            ->assertInertia(fn (Assert $page) => $page->where('fehler', 1)->where('neu', 0));
+    }
+
     public function test_unbekannte_kategorie_ist_fehler_oder_wird_angelegt(): void
     {
         $row = $this->row(['Kategorien' => 'Personal; Recht']);

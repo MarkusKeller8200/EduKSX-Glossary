@@ -22,6 +22,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
@@ -263,7 +264,7 @@ class ExcelController extends Controller
             $ids = array_values(array_filter(array_map(fn (array $r): string => trim($r['ID'] ?? ''), $rows)));
             $known = $ids === [] ? [] : array_flip(Term::query()->whereIn('id', array_filter($ids, fn (string $id): bool => Str::isUuid($id)))->pluck('id')->all());
             foreach ($rows as $n => $row) {
-                if (trim($row['Recherche'] ?? '') === '' && ! isset($known[trim($row['ID'] ?? '')])) {
+                if (trim($row['Recherche'] ?? '') === '' && ! isset($known[trim($row['ID'] ?? '')]) && ! self::existsByName($row)) {
                     $rows[$n]['Recherche'] = ResearchBasis::AiAssisted->label();
                 }
             }
@@ -289,6 +290,23 @@ class ExcelController extends Controller
         }
 
         return $rows;
+    }
+
+    /**
+     * Zeile ohne ID, die über Abkürzung und Bezeichnung einem bestehenden Begriff zugeordnet wird (#510).
+     *
+     * @param  array<string, string>  $row
+     */
+    private static function existsByName(array $row): bool
+    {
+        if (trim($row['ID'] ?? '') !== '') {
+            return false;
+        }
+        try {
+            return GlossaryImporter::matchExisting(ExcelFormat::data($row)) !== null;
+        } catch (InvalidArgumentException) {
+            return true;   // mehrdeutig: jedenfalls kein neuer Begriff
+        }
     }
 
     private function official(): bool
