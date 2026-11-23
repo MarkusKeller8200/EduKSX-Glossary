@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Access\Service\ServiceAccountManager;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\ServiceAccountToken;
+use App\Models\Source;
+use App\Models\Term;
 use App\Support\DatabaseDump;
 use App\Sync\ContentState;
 use App\Sync\SyncRole;
@@ -49,7 +52,42 @@ class SyncApiController extends Controller
         return response()->download($file, 'glossary-sync.zip', ['Content-Type' => 'application/zip', 'Cache-Control' => 'no-store'])->deleteFileAfterSend();
     }
 
-    /** POST /api/sync/upload – Begriffe und Listen als Entwurf bzw. veröffentlicht (Scope glossary:sync.write). */
+    /**
+     * POST /api/sync/items – einzelne Begriffe und Listeneinträge vollständig lesen (Scope glossary:sync.read), für
+     * den Sync pro Datensatz in Richtung «von dort nach hier» (#503). Begriffe mit Revision und Veröffentlichung.
+     */
+    public function items(Request $request, ContentState $state): JsonResponse
+    {
+        $token = $this->token($request);
+        $this->requireSource();
+        if (! $token->account->hasScope('glossary:sync.read')) {
+            throw ProblemException::common(403, 'forbidden', 'Scope «glossary:sync.read» nötig.');
+        }
+        $data = $request->validate([
+            'terms' => ['array', 'max:2000'],
+            'terms.*' => ['uuid'],
+            'categories' => ['array', 'max:500'],
+            'categories.*' => ['string', 'max:60'],
+            'sources' => ['array', 'max:500'],
+            'sources.*' => ['string', 'max:60'],
+        ]);
+        $terms = [];
+        $ids = array_values(array_map('strval', (array) ($data['terms'] ?? [])));
+        foreach (Term::query()->current()->whereIn('id', $ids)->with(['categories', 'sources', 'aliases', 'translations', 'termRelations', 'publishedRevision'])->get() as $term) {
+            $published = $term->publishedRevision !== null && (int) $term->publishedRevision->revision === (int) $term->revision;
+            $terms[] = ['term' => $state->term($term), 'revision' => (int) $term->revision, 'published' => $published];
+        }
+        $lists = [];
+        foreach (['categories' => Category::class, 'sources' => Source::class] as $list => $model) {
+            $all = $state->listItems($model);
+            $lists[$list] = array_values(array_intersect_key($all, array_flip(array_map('strval', (array) ($data[$list] ?? [])))));
+        }
+        $this->accounts->logUse($token, 'sync.items', ['terms' => count($terms), 'categories' => count($lists['categories']), 'sources' => count($lists['sources'])]);
+
+        return response()->json(['terms' => $terms, ...$lists])->header('Cache-Control', 'no-store');
+    }
+
+    /** POST /api/sync/upload – Begriffe und Listen anlegen bzw. nachführen, je Begriff Entwurf oder veröffentlicht (Scope glossary:sync.write). */
     public function upload(Request $request, UploadReceiver $receiver): JsonResponse
     {
         $token = $this->token($request);
@@ -60,6 +98,7 @@ class SyncApiController extends Controller
             'terms.*.base_revision' => ['nullable', 'integer', 'min:0'],
             'terms.*.term' => ['required', 'array'],
             'terms.*.term.id' => ['required', 'uuid'],
+            'terms.*.publish' => ['boolean'],
             'categories' => ['array', 'max:500'],
             'categories.*' => ['array'],
             'sources' => ['array', 'max:500'],
@@ -72,7 +111,7 @@ class SyncApiController extends Controller
             throw ProblemException::common(403, 'forbidden', 'Für «direkt veröffentlichen» fehlt der Scope «glossary:sync.publish».');
         }
         /** @var array{terms?: list<array{base_revision: int|null, term: array<string, mixed>}>, categories?: list<array<string, mixed>>, sources?: list<array<string, mixed>>} $data */
-        $result = $receiver->receive($data, 'Sync ('.$token->account->name.')', $publish);
+        $result = $receiver->receive($data, 'Sync ('.$token->account->name.')', $publish, $token->account->hasScope('glossary:sync.publish'));
         $count = fn (string $s): int => count(array_filter($result['terms'], fn (array $r): bool => str_starts_with($r['status'], $s)));
         $this->accounts->logUse($token, 'sync.upload', [
             'terms' => count($result['terms']), 'created' => $count('created'), 'updated' => $count('updated'),

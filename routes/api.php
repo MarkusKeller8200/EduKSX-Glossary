@@ -35,10 +35,12 @@ Route::prefix('v1')->middleware([ApiLocale::class, 'throttle:api', CountUsage::c
 });
 
 // Entwicklungs-Sync zwischen dev, test und prod (#478, DEC-041 4a): intern, nicht Teil der öffentlichen API v1
-Route::prefix('sync')->middleware(['throttle:10,1'])->group(function () {
-    Route::get('state', [SyncApiController::class, 'state'])->middleware('service.token')->name('api.sync.state');
-    Route::get('dump', [SyncApiController::class, 'dump'])->middleware('service.token:glossary:sync.read')->name('api.sync.dump');
-    Route::post('upload', [SyncApiController::class, 'upload'])->middleware('service.token:glossary:sync.write')->name('api.sync.upload');
+Route::prefix('sync')->group(function () {
+    // Vergleich und Detailansicht pro Datensatz (#503) brauchen mehr Abrufe als Dump und Hochladen
+    Route::get('state', [SyncApiController::class, 'state'])->middleware(['throttle:60,1', 'service.token'])->name('api.sync.state');
+    Route::post('items', [SyncApiController::class, 'items'])->middleware(['throttle:60,1', 'service.token:glossary:sync.read'])->name('api.sync.items');
+    Route::get('dump', [SyncApiController::class, 'dump'])->middleware(['throttle:10,1', 'service.token:glossary:sync.read'])->name('api.sync.dump');
+    Route::post('upload', [SyncApiController::class, 'upload'])->middleware(['throttle:10,1', 'service.token:glossary:sync.write'])->name('api.sync.upload');
 });
 
 // Maschinenlesbare Beschreibung (OpenAPI 3.1) als YAML und JSON

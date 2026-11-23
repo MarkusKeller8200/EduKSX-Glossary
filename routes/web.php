@@ -317,7 +317,8 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
         Route::delete('system/sync/gegenstellen/{peer}', [SyncController::class, 'destroy'])->whereUuid('peer')->name('admin.sync.destroy');
         Route::get('system/sync/gegenstellen/{peer}', [SyncController::class, 'compare'])->whereUuid('peer')->middleware('throttle:20,1')->name('admin.sync.compare');
         Route::post('system/sync/gegenstellen/{peer}/holen', [SyncController::class, 'pull'])->whereUuid('peer')->middleware('throttle:3,10')->name('admin.sync.pull');
-        Route::post('system/sync/gegenstellen/{peer}/hochladen', [SyncController::class, 'upload'])->whereUuid('peer')->middleware('throttle:10,10')->name('admin.sync.upload');
+        Route::post('system/sync/gegenstellen/{peer}/synchronisieren', [SyncController::class, 'synchronize'])->whereUuid('peer')->middleware('throttle:10,10')->name('admin.sync.synchronize');
+        Route::get('system/sync/gegenstellen/{peer}/eintrag', [SyncController::class, 'detail'])->whereUuid('peer')->middleware('throttle:60,1')->name('admin.sync.detail');
         // Papierkorb (#286): wiederherstellen nur Developer
         Route::get('papierkorb', [TrashController::class, 'index'])->name('admin.trash');
         Route::post('papierkorb/{kind}/{id}/wiederherstellen', [TrashController::class, 'restore'])->whereIn('kind', ['kategorien', 'herkunft', 'organisationen'])->name('admin.trash.restore');

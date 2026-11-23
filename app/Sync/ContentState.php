@@ -6,6 +6,8 @@ use App\Glossary\GlossaryService;
 use App\Models\Category;
 use App\Models\Source;
 use App\Models\Term;
+use App\Models\TermRevision;
+use Carbon\CarbonImmutable;
 
 /**
  * Inhalte im Entwicklungs-Sync (#478, DEC-041 A15–A17): Abbild je Begriff bzw. Listeneintrag und dessen Prüfsumme.
@@ -20,19 +22,48 @@ final class ContentState
     public function __construct(private readonly GlossaryService $glossary) {}
 
     /**
-     * Stand dieser Instanz: Begriffe (Revision und Prüfsumme) und Listen (Prüfsumme je Schlüssel).
+     * Stand dieser Instanz (#503): Begriffe mit Revision, Prüfsumme, Zeitpunkt der letzten inhaltlichen Änderung
+     * (Revision) und ob der Arbeitsstand veröffentlicht ist; Listen mit Prüfsumme und Zeitpunkt der Änderung.
      *
-     * @return array{terms: array<string, array{0: int, 1: string}>, categories: array<string, string>, sources: array<string, string>}
+     * @return array{terms: array<string, array{0: int, 1: string, 2: string|null, 3: bool}>, categories: array<string, array{0: string, 1: string|null}>, sources: array<string, array{0: string, 1: string|null}>}
      */
     public function state(): array
     {
+        $all = Term::query()->current()->with(['categories', 'sources', 'aliases', 'translations', 'termRelations'])->get();
+        // Zeitpunkt und ID der jeweils aktuellen Revision in einer Abfrage
+        $revisions = [];
+        foreach ($all->chunk(500) as $chunk) {
+            foreach (TermRevision::query()->whereIn('term_id', $chunk->pluck('id')->all())->get(['id', 'term_id', 'revision', 'created_at']) as $r) {
+                $revisions[$r->term_id.':'.$r->revision] = $r;
+            }
+        }
         $terms = [];
-        foreach (Term::query()->current()->with(['categories', 'sources', 'aliases', 'translations', 'termRelations'])->get() as $term) {
-            $terms[(string) $term->id] = [(int) $term->revision, self::hash($this->term($term))];
+        foreach ($all as $term) {
+            $current = $revisions[$term->id.':'.$term->revision] ?? null;
+            $terms[(string) $term->id] = [
+                (int) $term->revision,
+                self::hash($this->term($term)),
+                ($current !== null ? $current->created_at : $term->updated_at)?->toIso8601String(),
+                $current !== null && $term->published_revision_id === $current->id,
+            ];
         }
         ksort($terms);
 
         return ['terms' => $terms, 'categories' => $this->lists(Category::class), 'sources' => $this->lists(Source::class)];
+    }
+
+    /** Prüfsumme aus einem Eintrag des Stands bzw. der Basis (Begriff: [Revision, Prüfsumme, …], Liste: [Prüfsumme, …] oder Text). */
+    public static function hashOf(mixed $entry, bool $term): ?string
+    {
+        if ($entry === null) {
+            return null;
+        }
+        if (! is_array($entry)) {
+            return (string) $entry;
+        }
+        $value = $term ? ($entry[1] ?? null) : ($entry[0] ?? null);
+
+        return $value === null ? null : (string) $value;
     }
 
     /**
@@ -81,11 +112,18 @@ final class ContentState
 
     /**
      * @param  class-string<Category|Source>  $model
-     * @return array<string, string>
+     * @return array<string, array{0: string, 1: string|null}>
      */
     private function lists(string $model): array
     {
-        return array_map(fn (array $row): string => self::hash($row), $this->listItems($model));
+        $times = $model::query()->pluck('updated_at', 'key');
+        $out = [];
+        foreach ($this->listItems($model) as $key => $row) {
+            $time = $times[$key] ?? null;
+            $out[$key] = [self::hash($row), $time === null ? null : CarbonImmutable::parse((string) $time)->toIso8601String()];
+        }
+
+        return $out;
     }
 
     /** Schlüssel rekursiv sortieren (Listen bleiben in ihrer Reihenfolge). */

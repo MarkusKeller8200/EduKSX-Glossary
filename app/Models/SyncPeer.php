@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $url
  * @property string $token verschlüsselt (APP_KEY), nie angezeigt
  * @property string|null $remote_role
- * @property array{terms?: array<string, array{0: int, 1: string}>, categories?: array<string, string>, sources?: array<string, string>}|null $base
+ * @property array<string, array<string, mixed>>|null $base Prüfsummen je Datensatz nach dem letzten Sync (Format wie der Stand, ältere Einträge auch [Revision, Prüfsumme] bzw. Prüfsumme)
  * @property CarbonImmutable|null $last_pulled_at
  * @property CarbonImmutable|null $last_pushed_at
  * @property string|null $last_result

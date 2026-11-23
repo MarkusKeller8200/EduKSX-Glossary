@@ -189,22 +189,24 @@ Versuche (3 Versuche, Abstand 1 bzw. 5 Minuten). Fehlgeschlagene Aufträge zeigt
 
 ### Entwicklungs-Sync einrichten (#478, DEC-041 4a)
 
-Inhalte auf dev pflegen und nach test und prod hochladen; «Holen» bringt dev bzw. test auf den Stand der Gegenstelle
-(ohne Konten, anonymisiert).
+Inhalte auf dev pflegen und mit test und prod synchronisieren: Vergleichstabelle, Richtung pro Datensatz, ein Klick
+synchronisiert in beide Richtungen (#503). «Ganze Instanz ersetzen» bringt dev bzw. test komplett auf den Stand der
+Gegenstelle (ohne Konten, anonymisiert).
 
 1. **Rolle je Umgebung:** `GLOSSARY_SYNC_ROLE=development` (dev), `test` (test), `master` (prod) – oder in der
    Administration › Einstellungen › Betrieb «Rolle im Entwicklungs-Sync».
    dev braucht dafür `APP_ENV=staging` in `/docker/glossary/.env` (das Image setzt `production`; Entscheid
    23.11.2026). Sichere Cookies bleiben über `SESSION_SECURE_COOKIE=true` aus `compose.yaml` aktiv.
 2. **Servicekonto auf test und prod** (Administration › Servicekonten, als Developer): Scopes `glossary:sync.read` und
-   `glossary:sync.write`, für «direkt veröffentlichen» zusätzlich `glossary:sync.publish`. Token kopieren (nur einmal
+   `glossary:sync.write`, damit veröffentlichte Begriffe veröffentlicht ankommen zusätzlich `glossary:sync.publish`. Token kopieren (nur einmal
    sichtbar).
 3. **Gegenstellen auf dev** (Administration › System › Sync): «prod» `https://glossary.eduksx.ch` und «test»
    `https://glossary-test.eduksx.ch` mit dem jeweiligen Token. Auf test die Gegenstelle «prod» für test ↔ prod.
-4. **Ablauf:** auf dev zuerst von prod holen; vor dem ersten Hochladen nach test einmal von test holen (legt die Basis
-   für die Konfliktprüfung fest) und danach wieder von prod. Hat sich die Gegenstelle seither geändert, verlangt dev
-   zuerst «Holen».
-5. Sicherungen vor dem Holen liegen in `storage/app/backups/sync/` (werden nicht automatisch gelöscht).
+4. **Ablauf:** auf dev die Gegenstelle öffnen (Vergleich), Richtung je Zeile prüfen (← übernehmen, – überspringen,
+   → senden; vorgeschlagen wird der jüngere Stand, Konflikte sind rot) und «Synchronisieren». Gelöscht wird nie;
+   Begriffe kommen mit dem Status der Quelle an, veröffentlicht nur mit `glossary:sync.publish` auf der Gegenstelle.
+5. Sicherungen vor dem Übernehmen bzw. Ersetzen liegen in `storage/app/backups/sync/` (werden nicht automatisch
+   gelöscht).
 
 ## dev auf Hostinger mit Benutzer `deploy` (#209)
 

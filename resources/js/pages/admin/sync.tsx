@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
@@ -18,30 +18,71 @@ type Gegenstelle = {
     ergebnis: string | null;
 };
 
-type Eintrag = { id: string; title: string; state: string };
-type Listeneintrag = {
-    list: string;
-    key: string;
+type Seite = {
+    at: string | null;
+    published: boolean | null;
+    revision: number | null;
+} | null;
+
+type Richtung = 'push' | 'pull' | 'skip';
+
+type Zeile = {
+    type: 'term' | 'categories' | 'sources';
+    id: string;
     title: string;
     state: string;
+    here: Seite;
+    there: Seite;
+    direction: Richtung;
+    synced_before: boolean;
 };
 
 type Vergleich =
     | {
           role: string;
+          push: boolean;
+          pull: boolean;
           publish: boolean;
-          upload: boolean;
-          blocked: boolean;
-          terms: Eintrag[];
-          lists: Listeneintrag[];
+          rows: Zeile[];
       }
     | { fehler: string };
 
 const ZUSTAND: Record<string, string> = {
-    new: 'neu hier',
-    local: 'hier geändert',
-    remote: 'dort geändert – zuerst holen',
-    conflict: 'Konflikt – zuerst holen',
+    only_here: 'nur hier',
+    only_there: 'nur dort',
+    changed_here: 'hier geändert',
+    changed_there: 'dort geändert',
+    conflict: 'Konflikt',
+    different: 'unterschiedlich',
+};
+
+const FILTER: { wert: string; label: string; passt: (z: Zeile) => boolean }[] =
+    [
+        { wert: 'alle', label: 'Alle', passt: () => true },
+        {
+            wert: 'neu',
+            label: 'Neu',
+            passt: (z) => ['only_here', 'only_there'].includes(z.state),
+        },
+        {
+            wert: 'geaendert',
+            label: 'Geändert',
+            passt: (z) =>
+                ['changed_here', 'changed_there', 'different'].includes(
+                    z.state,
+                ),
+        },
+        {
+            wert: 'konflikt',
+            label: 'Konflikte',
+            passt: (z) => z.state === 'conflict',
+        },
+    ];
+
+const TYP: Record<Zeile['type'], string> = {
+    term: 'Begriff',
+    categories: 'Kategorie',
+    sources: 'Herkunft',
 };
 
 const ROLLE: Record<string, string> = {
@@ -60,19 +101,17 @@ function datum(iso: string | null): string {
         : '–';
 }
 
-/** Entwicklungs-Sync (#478): Gegenstellen, Holen, Vergleichen und Hochladen. */
+/** Entwicklungs-Sync (#478, #503): Gegenstellen, Vergleichstabelle, Synchronisieren pro Datensatz, Ersetzen. */
 export default function Sync({
     rolle,
-    darfHolen,
-    darfHochladen,
+    darfSync,
     passwortNoetig,
     gegenstellen,
     aktiv,
     vergleich,
 }: {
     rolle: { wert: string; label: string; quelle: string };
-    darfHolen: boolean;
-    darfHochladen: boolean;
+    darfSync: boolean;
     passwortNoetig: boolean;
     gegenstellen: Gegenstelle[];
     aktiv: string | null;
@@ -103,10 +142,10 @@ export default function Sync({
                 Entwicklungs-Sync
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-                Inhalte auf dev pflegen und nach test und prod hochladen;
-                «Holen» bringt diese Instanz auf den Stand der Gegenstelle (ohne
-                Konten, Personendaten anonymisiert; Einstellungen, Servicekonten
-                und Gegenstellen bleiben).
+                Beide Seiten vergleichen, pro Begriff bzw. Listeneintrag die
+                Richtung wählen und synchronisieren: Fehlendes wird angelegt,
+                Unterschiedliches aktualisiert (neue Revision), gelöscht wird
+                nie. Konten und Personendaten werden nie übertragen.
             </p>
             <p className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                 Rolle dieser Instanz:{' '}
@@ -116,11 +155,11 @@ export default function Sync({
                     <code>GLOSSARY_SYNC_ROLE</code>)
                 </span>
             </p>
-            {!darfHolen ? (
+            {!darfSync ? (
                 <p className="mt-2 text-sm text-muted-foreground">
-                    Als «{rolle.label}» holt diese Instanz nicht und lädt nicht
-                    hoch. Sie kann Gegenstelle für dev bzw. test sein
-                    (Servicekonto mit den Scopes «glossary:sync.…»).
+                    Als «{rolle.label}» startet diese Instanz keinen Sync. Sie
+                    kann Gegenstelle für dev bzw. test sein (Servicekonto mit
+                    den Scopes «glossary:sync.…»).
                 </p>
             ) : null}
 
@@ -172,8 +211,8 @@ export default function Sync({
                                     </Button>
                                 </div>
                                 <p className="mt-1 text-muted-foreground">
-                                    Geholt {datum(g.geholt)} · hochgeladen{' '}
-                                    {datum(g.hochgeladen)}
+                                    Zuletzt übernommen {datum(g.geholt)} ·
+                                    gesendet {datum(g.hochgeladen)}
                                     {g.ergebnis ? ` · ${g.ergebnis}` : ''}
                                 </p>
                             </li>
@@ -239,8 +278,7 @@ export default function Sync({
                 <GegenstelleDetail
                     peer={peer}
                     vergleich={vergleich}
-                    darfHolen={darfHolen}
-                    darfHochladen={darfHochladen}
+                    darfSync={darfSync}
                     passwortNoetig={passwortNoetig}
                     eigeneRolle={rolle.wert}
                     errors={errors}
@@ -250,49 +288,264 @@ export default function Sync({
     );
 }
 
+const schluessel = (z: Pick<Zeile, 'type' | 'id'>) => `${z.type}:${z.id}`;
+
+function Zeitpunkt({ seite }: { seite: Seite }) {
+    if (seite === null) {
+        return <span className="text-muted-foreground">fehlt</span>;
+    }
+    return (
+        <span className="whitespace-nowrap">
+            {datum(seite.at)}
+            {seite.published === null ? null : (
+                <span className="ml-1 text-xs text-muted-foreground">
+                    {seite.published ? 'veröffentlicht' : 'Entwurf'}
+                </span>
+            )}
+        </span>
+    );
+}
+
+function RichtungWahl({
+    wert,
+    push,
+    pull,
+    zeile,
+    peerName,
+    onChange,
+}: {
+    wert: Richtung;
+    push: boolean;
+    pull: boolean;
+    zeile: Zeile;
+    peerName: string;
+    onChange: (r: Richtung) => void;
+}) {
+    const optionen: {
+        r: Richtung;
+        zeichen: string;
+        titel: string;
+        erlaubt: boolean;
+    }[] = [
+        {
+            r: 'pull',
+            zeichen: '←',
+            titel: `von «${peerName}» übernehmen`,
+            erlaubt: pull && zeile.there !== null,
+        },
+        { r: 'skip', zeichen: '–', titel: 'überspringen', erlaubt: true },
+        {
+            r: 'push',
+            zeichen: '→',
+            titel: `nach «${peerName}» senden`,
+            erlaubt: push && zeile.here !== null,
+        },
+    ];
+    return (
+        <div
+            role="radiogroup"
+            aria-label={`Richtung für ${zeile.title}`}
+            className="inline-flex overflow-hidden rounded-md border border-border"
+        >
+            {optionen.map((o) => (
+                <button
+                    key={o.r}
+                    type="button"
+                    role="radio"
+                    aria-checked={wert === o.r}
+                    aria-label={o.titel}
+                    title={o.titel}
+                    disabled={!o.erlaubt}
+                    onClick={() => onChange(o.r)}
+                    className={`min-w-9 px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-30 ${
+                        wert === o.r
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-muted'
+                    }`}
+                >
+                    {o.zeichen}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+type Fassungen = {
+    here: Record<string, unknown> | null;
+    there: Record<string, unknown> | null;
+};
+
+function wert(v: unknown): string {
+    if (v === null || v === undefined || v === '') {
+        return '–';
+    }
+    return typeof v === 'string' ? v : JSON.stringify(v, null, 1);
+}
+
+function Unterschiede({
+    peerId,
+    peerName,
+    zeile,
+}: {
+    peerId: string;
+    peerName: string;
+    zeile: Zeile;
+}) {
+    const [daten, setDaten] = useState<Fassungen | null>(null);
+    const [fehler, setFehler] = useState<string | null>(null);
+    useEffect(() => {
+        let aktiv = true;
+        fetch(
+            `/admin/system/sync/gegenstellen/${peerId}/eintrag?typ=${encodeURIComponent(zeile.type)}&id=${encodeURIComponent(zeile.id)}`,
+            { headers: { Accept: 'application/json' } },
+        )
+            .then(async (r) => {
+                const json = (await r.json()) as Fassungen & {
+                    fehler?: string;
+                };
+                if (!aktiv) {
+                    return;
+                }
+                if (!r.ok || json.fehler) {
+                    setFehler(json.fehler ?? 'Nicht abrufbar.');
+                } else {
+                    setDaten(json);
+                }
+            })
+            .catch(() => aktiv && setFehler('Nicht abrufbar.'));
+        return () => {
+            aktiv = false;
+        };
+    }, [peerId, zeile.type, zeile.id]);
+
+    if (fehler) {
+        return <p className="text-sm text-destructive">{fehler}</p>;
+    }
+    if (daten === null) {
+        return <p className="text-sm text-muted-foreground">Lädt …</p>;
+    }
+    const felder = [
+        ...new Set([
+            ...Object.keys(daten.here ?? {}),
+            ...Object.keys(daten.there ?? {}),
+        ]),
+    ]
+        .filter(
+            (f) =>
+                JSON.stringify(daten.here?.[f] ?? null) !==
+                JSON.stringify(daten.there?.[f] ?? null),
+        )
+        .sort();
+    if (felder.length === 0) {
+        return (
+            <p className="text-sm text-muted-foreground">
+                Keine Unterschiede in den Feldern.
+            </p>
+        );
+    }
+    return (
+        <table className="w-full text-xs">
+            <thead className="text-left">
+                <tr>
+                    <th className="py-1 pr-3 font-medium">Feld</th>
+                    <th className="py-1 pr-3 font-medium">hier</th>
+                    <th className="py-1 font-medium">«{peerName}»</th>
+                </tr>
+            </thead>
+            <tbody>
+                {felder.map((f) => (
+                    <tr key={f} className="border-t border-border align-top">
+                        <td className="py-1 pr-3 font-mono">{f}</td>
+                        <td className="py-1 pr-3 break-words whitespace-pre-wrap">
+                            {wert(daten.here?.[f])}
+                        </td>
+                        <td className="py-1 break-words whitespace-pre-wrap">
+                            {wert(daten.there?.[f])}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
 function GegenstelleDetail({
     peer,
     vergleich,
-    darfHolen,
-    darfHochladen,
+    darfSync,
     passwortNoetig,
     eigeneRolle,
     errors,
 }: {
     peer: Gegenstelle;
     vergleich: Vergleich | null;
-    darfHolen: boolean;
-    darfHochladen: boolean;
+    darfSync: boolean;
     passwortNoetig: boolean;
     eigeneRolle: string;
     errors: Record<string, string>;
 }) {
-    const holen = useForm({ bestaetigung: '', passwort: '' });
-    const [auswahl, setAuswahl] = useState<Set<string>>(new Set());
-    const [veroeffentlichen, setVeroeffentlichen] = useState(false);
-    const [sending, setSending] = useState(false);
     const ok =
         vergleich !== null && !('fehler' in vergleich) ? vergleich : null;
-    const bereit = useMemo(
+    const vorgabe = useMemo(
         () =>
-            ok
-                ? ok.terms.filter((t) => ['new', 'local'].includes(t.state))
-                : [],
+            Object.fromEntries(
+                (ok?.rows ?? []).map((z) => [schluessel(z), z.direction]),
+            ) as Record<string, Richtung>,
         [ok],
     );
-    const listenBereit = ok
-        ? ok.lists.filter((l) => ['new', 'local'].includes(l.state))
-        : [];
-    const hochladen = () => {
+    const [richtung, setRichtung] = useState<Record<string, Richtung>>(vorgabe);
+    useEffect(() => setRichtung(vorgabe), [vorgabe]);
+    const [filter, setFilter] = useState('alle');
+    const [offen, setOffen] = useState<string | null>(null);
+    const [passwort, setPasswort] = useState('');
+    const [sending, setSending] = useState(false);
+    const holen = useForm({ bestaetigung: '', passwort: '' });
+
+    const zeilen = ok?.rows ?? [];
+    const sichtbar = zeilen.filter(
+        FILTER.find((f) => f.wert === filter)?.passt ?? (() => true),
+    );
+    const gewaehlt = zeilen.filter(
+        (z) => (richtung[schluessel(z)] ?? 'skip') !== 'skip',
+    );
+    const nachDort = gewaehlt.filter(
+        (z) => richtung[schluessel(z)] === 'push',
+    ).length;
+    const vonDort = gewaehlt.length - nachDort;
+    const alle = (r: Richtung) =>
+        setRichtung((alt) => {
+            const n = { ...alt };
+            for (const z of sichtbar) {
+                const erlaubt =
+                    r === 'skip' ||
+                    (r === 'push' && ok?.push && z.here !== null) ||
+                    (r === 'pull' && ok?.pull && z.there !== null);
+                if (erlaubt) {
+                    n[schluessel(z)] = r;
+                }
+            }
+            return n;
+        });
+    const synchronisieren = async () => {
+        if (
+            !(await confirmAction(
+                `${nachDort} nach «${peer.name}» senden und ${vonDort} von «${peer.name}» übernehmen? Fehlendes wird angelegt, Unterschiedliches als neue Revision aktualisiert; gelöscht wird nichts.${vonDort > 0 ? ' Vor dem Übernehmen wird hier automatisch gesichert.' : ''}`,
+            ))
+        ) {
+            return;
+        }
         setSending(true);
         router.post(
-            `/admin/system/sync/gegenstellen/${peer.id}/hochladen`,
-            { ids: [...auswahl], veroeffentlichen },
+            `/admin/system/sync/gegenstellen/${peer.id}/synchronisieren`,
             {
-                preserveScroll: true,
-                onFinish: () => setSending(false),
-                onSuccess: () => setAuswahl(new Set()),
+                eintraege: gewaehlt.map((z) => ({
+                    typ: z.type,
+                    id: z.id,
+                    richtung: richtung[schluessel(z)],
+                })),
+                passwort,
             },
+            { preserveScroll: true, onFinish: () => setSending(false) },
         );
     };
 
@@ -300,64 +553,7 @@ function GegenstelleDetail({
         <section className="mt-10">
             <h2 className="text-lg font-semibold">«{peer.name}»</h2>
 
-            {darfHolen ? (
-                <form
-                    className="mt-3 grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-3"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        holen.post(
-                            `/admin/system/sync/gegenstellen/${peer.id}/holen`,
-                        );
-                    }}
-                >
-                    <p className="text-sm sm:col-span-3">
-                        <strong>Holen</strong> ersetzt alle Inhalte dieser
-                        Instanz durch den Stand von «{peer.name}» (vorher
-                        automatische Sicherung). Konten, Einstellungen,
-                        Servicekonten und Gegenstellen bleiben.
-                        {eigeneRolle === 'test'
-                            ? ' Achtung: Holen ersetzt den Stand der laufenden Beta-Prüfung auf test.'
-                            : ''}
-                    </p>
-                    <div>
-                        <Label htmlFor="bestaetigung">
-                            Zur Bestätigung «HOLEN» eingeben
-                        </Label>
-                        <Input
-                            id="bestaetigung"
-                            value={holen.data.bestaetigung}
-                            onChange={(e) =>
-                                holen.setData('bestaetigung', e.target.value)
-                            }
-                        />
-                        <InputError message={holen.errors.bestaetigung} />
-                    </div>
-                    {passwortNoetig ? (
-                        <div>
-                            <Label htmlFor="passwort">
-                                Passwort für die Sicherung
-                            </Label>
-                            <Input
-                                id="passwort"
-                                type="password"
-                                value={holen.data.passwort}
-                                onChange={(e) =>
-                                    holen.setData('passwort', e.target.value)
-                                }
-                            />
-                            <InputError message={holen.errors.passwort} />
-                        </div>
-                    ) : null}
-                    <div className="flex items-end">
-                        <Button type="submit" disabled={holen.processing}>
-                            {holen.processing ? 'Holt …' : 'Holen'}
-                        </Button>
-                    </div>
-                    <InputError message={errors.holen} />
-                </form>
-            ) : null}
-
-            <h3 className="mt-6 font-semibold">Vergleich</h3>
+            <h3 className="mt-4 font-semibold">Vergleich</h3>
             {vergleich === null ? (
                 <p className="mt-2 text-sm text-muted-foreground">
                     Seite neu laden, um zu vergleichen.
@@ -373,129 +569,376 @@ function GegenstelleDetail({
                         <Badge variant="outline">
                             {ROLLE[vergleich.role] ?? vergleich.role}
                         </Badge>{' '}
-                        {vergleich.terms.length === 0 &&
-                        vergleich.lists.length === 0
+                        {zeilen.length === 0
                             ? 'Alles gleich.'
-                            : `${vergleich.terms.length} Begriffe und ${vergleich.lists.length} Listeneinträge unterscheiden sich.`}
+                            : `${zeilen.length} Datensätze unterscheiden sich.`}
                     </p>
-                    {vergleich.blocked ? (
+                    {darfSync && !vergleich.push && !vergleich.pull ? (
                         <p className="mt-2 rounded-md border border-warning/40 bg-warning-soft p-3 text-sm">
-                            Die Gegenstelle hat sich seit dem letzten Holen bzw.
-                            Hochladen geändert. Zuerst «Holen», dann hochladen –
-                            sonst würden Änderungen dort überschrieben.
+                            Mit «{peer.name}» ist kein Sync möglich: Dort muss
+                            die Rolle passen (von dev aus «Test» oder «Master»,
+                            von test aus «Master») und das Servicekonto die
+                            Scopes «glossary:sync.read» bzw.
+                            «glossary:sync.write» haben.
+                        </p>
+                    ) : darfSync && !vergleich.push ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Senden nach «{peer.name}» ist nicht möglich (Rolle
+                            dort oder Scope «glossary:sync.write» fehlt).
+                        </p>
+                    ) : darfSync && !vergleich.pull ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Übernehmen von «{peer.name}» ist nicht möglich
+                            (Rolle dort oder Scope «glossary:sync.read» fehlt).
                         </p>
                     ) : null}
-                    <ul className="mt-3 space-y-1 text-sm">
-                        {vergleich.terms.map((t) => {
-                            const waehlbar =
-                                darfHochladen &&
-                                vergleich.upload &&
-                                !vergleich.blocked &&
-                                ['new', 'local'].includes(t.state);
-                            return (
-                                <li
-                                    key={t.id}
-                                    className="flex items-center gap-2"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        aria-label={`${t.title} hochladen`}
-                                        disabled={!waehlbar}
-                                        checked={auswahl.has(t.id)}
-                                        onChange={(e) =>
-                                            setAuswahl((alt) => {
-                                                const n = new Set(alt);
-                                                if (e.target.checked) {
-                                                    n.add(t.id);
-                                                } else {
-                                                    n.delete(t.id);
-                                                }
-                                                return n;
-                                            })
-                                        }
-                                    />
-                                    <span>{t.title}</span>
-                                    <span className="text-muted-foreground">
-                                        {ZUSTAND[t.state] ?? t.state}
-                                    </span>
-                                </li>
-                            );
-                        })}
-                        {vergleich.lists.map((l) => (
-                            <li
-                                key={`${l.list}-${l.key}`}
-                                className="text-muted-foreground"
-                            >
-                                {l.list === 'categories'
-                                    ? 'Kategorie'
-                                    : 'Herkunft'}{' '}
-                                «{l.title}»: {ZUSTAND[l.state] ?? l.state}
-                            </li>
-                        ))}
-                    </ul>
-                    {darfHochladen &&
-                    vergleich.upload &&
-                    !vergleich.blocked &&
-                    (bereit.length > 0 || listenBereit.length > 0) ? (
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                    setAuswahl(new Set(bereit.map((b) => b.id)))
-                                }
-                            >
-                                Alle bereit wählen ({bereit.length})
-                            </Button>
-                            <label className="flex items-center gap-2 text-sm">
-                                <input
-                                    type="radio"
-                                    name="art"
-                                    checked={!veroeffentlichen}
-                                    onChange={() => setVeroeffentlichen(false)}
-                                />
-                                als Entwurf
-                            </label>
-                            <label
-                                className={`flex items-center gap-2 text-sm ${vergleich.publish ? '' : 'text-muted-foreground'}`}
-                                title={
-                                    vergleich.publish
-                                        ? undefined
-                                        : 'Token ohne Scope «glossary:sync.publish»'
-                                }
-                            >
-                                <input
-                                    type="radio"
-                                    name="art"
-                                    disabled={!vergleich.publish}
-                                    checked={veroeffentlichen}
-                                    onChange={() => setVeroeffentlichen(true)}
-                                />
-                                direkt veröffentlichen
-                            </label>
-                            <Button
-                                disabled={
-                                    sending ||
-                                    (auswahl.size === 0 &&
-                                        listenBereit.length === 0)
-                                }
-                                onClick={async () => {
-                                    if (
-                                        await confirmAction(
-                                            `${auswahl.size} Begriffe${listenBereit.length > 0 ? ` und ${listenBereit.length} Listeneinträge` : ''} nach «${peer.name}» hochladen${veroeffentlichen ? ' und veröffentlichen' : ' (Entwurf)'}?`,
-                                        )
-                                    ) {
-                                        hochladen();
-                                    }
-                                }}
-                            >
-                                Hochladen
-                            </Button>
-                        </div>
+                    {darfSync && vergleich.push && !vergleich.publish ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                            Ohne Scope «glossary:sync.publish» kommen Begriffe
+                            dort als Entwurf an, auch wenn sie hier
+                            veröffentlicht sind.
+                        </p>
                     ) : null}
-                    <InputError message={errors.hochladen} />
+
+                    {zeilen.length > 0 ? (
+                        <>
+                            <div className="mt-4 flex flex-wrap items-center gap-2">
+                                {FILTER.map((f) => (
+                                    <Button
+                                        key={f.wert}
+                                        size="sm"
+                                        variant={
+                                            filter === f.wert
+                                                ? 'default'
+                                                : 'outline'
+                                        }
+                                        aria-pressed={filter === f.wert}
+                                        onClick={() => setFilter(f.wert)}
+                                    >
+                                        {f.label} (
+                                        {zeilen.filter(f.passt).length})
+                                    </Button>
+                                ))}
+                                {darfSync ? (
+                                    <span className="ml-auto flex flex-wrap gap-2">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={!vergleich.pull}
+                                            onClick={() => alle('pull')}
+                                        >
+                                            Alle ←
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => alle('skip')}
+                                        >
+                                            Alle –
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            disabled={!vergleich.push}
+                                            onClick={() => alle('push')}
+                                        >
+                                            Alle →
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() => setRichtung(vorgabe)}
+                                        >
+                                            Vorgabe
+                                        </Button>
+                                    </span>
+                                ) : null}
+                            </div>
+                            <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+                                <table className="w-full text-sm">
+                                    <thead className="bg-muted text-left">
+                                        <tr>
+                                            <th className="px-3 py-2 font-medium">
+                                                Datensatz
+                                            </th>
+                                            <th className="px-3 py-2 font-medium">
+                                                Zustand
+                                            </th>
+                                            <th className="px-3 py-2 font-medium">
+                                                hier geändert
+                                            </th>
+                                            <th className="px-3 py-2 text-center font-medium">
+                                                Richtung
+                                            </th>
+                                            <th className="px-3 py-2 font-medium">
+                                                «{peer.name}» geändert
+                                            </th>
+                                            <th className="px-3 py-2">
+                                                <span className="sr-only">
+                                                    Details
+                                                </span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {sichtbar.map((z) => {
+                                            const k = schluessel(z);
+                                            return (
+                                                <Fragment key={k}>
+                                                    <tr
+                                                        className={`border-t border-border align-middle ${z.state === 'conflict' ? 'bg-destructive/10' : ''}`}
+                                                    >
+                                                        <td className="px-3 py-2">
+                                                            {z.type !==
+                                                            'term' ? (
+                                                                <span className="mr-1 text-xs text-muted-foreground">
+                                                                    {
+                                                                        TYP[
+                                                                            z
+                                                                                .type
+                                                                        ]
+                                                                    }
+                                                                </span>
+                                                            ) : null}
+                                                            <span translate="no">
+                                                                {z.title}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-3 py-2 whitespace-nowrap">
+                                                            <span
+                                                                className={
+                                                                    z.state ===
+                                                                    'conflict'
+                                                                        ? 'font-medium text-destructive'
+                                                                        : ''
+                                                                }
+                                                            >
+                                                                {ZUSTAND[
+                                                                    z.state
+                                                                ] ?? z.state}
+                                                            </span>
+                                                            {z.synced_before &&
+                                                            [
+                                                                'only_here',
+                                                                'only_there',
+                                                            ].includes(
+                                                                z.state,
+                                                            ) ? (
+                                                                <span className="block text-xs text-muted-foreground">
+                                                                    war schon
+                                                                    synchronisiert
+                                                                    – auf der
+                                                                    anderen
+                                                                    Seite
+                                                                    gelöscht?
+                                                                </span>
+                                                            ) : null}
+                                                        </td>
+                                                        <td className="px-3 py-2">
+                                                            <Zeitpunkt
+                                                                seite={z.here}
+                                                            />
+                                                        </td>
+                                                        <td className="px-3 py-2 text-center">
+                                                            {darfSync ? (
+                                                                <RichtungWahl
+                                                                    wert={
+                                                                        richtung[
+                                                                            k
+                                                                        ] ??
+                                                                        'skip'
+                                                                    }
+                                                                    push={
+                                                                        vergleich.push
+                                                                    }
+                                                                    pull={
+                                                                        vergleich.pull
+                                                                    }
+                                                                    zeile={z}
+                                                                    peerName={
+                                                                        peer.name
+                                                                    }
+                                                                    onChange={(
+                                                                        r,
+                                                                    ) =>
+                                                                        setRichtung(
+                                                                            (
+                                                                                alt,
+                                                                            ) => ({
+                                                                                ...alt,
+                                                                                [k]: r,
+                                                                            }),
+                                                                        )
+                                                                    }
+                                                                />
+                                                            ) : null}
+                                                        </td>
+                                                        <td className="px-3 py-2">
+                                                            <Zeitpunkt
+                                                                seite={z.there}
+                                                            />
+                                                        </td>
+                                                        <td className="px-3 py-2 text-right">
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                aria-expanded={
+                                                                    offen === k
+                                                                }
+                                                                onClick={() =>
+                                                                    setOffen(
+                                                                        offen ===
+                                                                            k
+                                                                            ? null
+                                                                            : k,
+                                                                    )
+                                                                }
+                                                            >
+                                                                {offen === k
+                                                                    ? 'Schliessen'
+                                                                    : 'Unterschiede'}
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                    {offen === k ? (
+                                                        <tr className="border-t border-border bg-muted/40">
+                                                            <td
+                                                                colSpan={6}
+                                                                className="px-3 py-3"
+                                                            >
+                                                                <Unterschiede
+                                                                    peerId={
+                                                                        peer.id
+                                                                    }
+                                                                    peerName={
+                                                                        peer.name
+                                                                    }
+                                                                    zeile={z}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    ) : null}
+                                                </Fragment>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {darfSync && (vergleich.push || vergleich.pull) ? (
+                                <div className="mt-4 flex flex-wrap items-end gap-3">
+                                    {vonDort > 0 && passwortNoetig ? (
+                                        <div>
+                                            <Label htmlFor="sync-passwort">
+                                                Passwort für die Sicherung
+                                            </Label>
+                                            <Input
+                                                id="sync-passwort"
+                                                type="password"
+                                                value={passwort}
+                                                onChange={(e) =>
+                                                    setPasswort(e.target.value)
+                                                }
+                                            />
+                                            <InputError
+                                                message={errors.passwort}
+                                            />
+                                        </div>
+                                    ) : null}
+                                    <p className="text-sm text-muted-foreground">
+                                        {nachDort} → nach «{peer.name}»,{' '}
+                                        {vonDort} ← von «{peer.name}»
+                                    </p>
+                                    <Button
+                                        disabled={
+                                            sending || gewaehlt.length === 0
+                                        }
+                                        onClick={synchronisieren}
+                                    >
+                                        {sending
+                                            ? 'Synchronisiert …'
+                                            : 'Synchronisieren'}
+                                    </Button>
+                                </div>
+                            ) : null}
+                            <InputError message={errors.sync} />
+                        </>
+                    ) : null}
                 </>
             )}
+
+            {darfSync ? (
+                <details className="mt-10 rounded-lg border border-border p-4">
+                    <summary className="cursor-pointer text-sm font-medium">
+                        Ganze Instanz ersetzen
+                    </summary>
+                    <form
+                        className="mt-3 grid gap-3 sm:grid-cols-3"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            holen.post(
+                                `/admin/system/sync/gegenstellen/${peer.id}/holen`,
+                            );
+                        }}
+                    >
+                        <p className="text-sm sm:col-span-3">
+                            <strong>Ersetzen</strong> löscht alle Inhalte dieser
+                            Instanz und übernimmt den ganzen Stand von «
+                            {peer.name}» (vorher automatische Sicherung).
+                            Konten, Einstellungen, Servicekonten und
+                            Gegenstellen bleiben. Für den Alltag den Sync oben
+                            verwenden.
+                            {eigeneRolle === 'test'
+                                ? ' Achtung: Ersetzen ersetzt den Stand der laufenden Beta-Prüfung auf test.'
+                                : ''}
+                        </p>
+                        <div>
+                            <Label htmlFor="bestaetigung">
+                                Zur Bestätigung «HOLEN» eingeben
+                            </Label>
+                            <Input
+                                id="bestaetigung"
+                                value={holen.data.bestaetigung}
+                                onChange={(e) =>
+                                    holen.setData(
+                                        'bestaetigung',
+                                        e.target.value,
+                                    )
+                                }
+                            />
+                            <InputError message={holen.errors.bestaetigung} />
+                        </div>
+                        {passwortNoetig ? (
+                            <div>
+                                <Label htmlFor="passwort">
+                                    Passwort für die Sicherung
+                                </Label>
+                                <Input
+                                    id="passwort"
+                                    type="password"
+                                    value={holen.data.passwort}
+                                    onChange={(e) =>
+                                        holen.setData(
+                                            'passwort',
+                                            e.target.value,
+                                        )
+                                    }
+                                />
+                                <InputError message={holen.errors.passwort} />
+                            </div>
+                        ) : null}
+                        <div className="flex items-end">
+                            <Button
+                                type="submit"
+                                variant="destructive"
+                                disabled={holen.processing}
+                            >
+                                {holen.processing ? 'Ersetzt …' : 'Ersetzen'}
+                            </Button>
+                        </div>
+                        <InputError message={errors.holen} />
+                    </form>
+                </details>
+            ) : null}
         </section>
     );
 }

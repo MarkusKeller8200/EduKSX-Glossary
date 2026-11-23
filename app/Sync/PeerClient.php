@@ -34,9 +34,9 @@ final class PeerClient
     }
 
     /**
-     * Stand der Gegenstelle mit ihrer Rolle und den Scopes des Tokens.
+     * Stand der Gegenstelle mit ihrer Rolle und den Scopes des Tokens (Format wie {@see ContentState::state()}).
      *
-     * @return array{role: string, scopes: list<string>, terms: array<string, array{0: int, 1: string}>, categories: array<string, string>, sources: array<string, string>}
+     * @return array{role: string, scopes: list<string>, terms: array<string, array{0: int, 1: string, 2: string|null, 3: bool}>, categories: array<string, array{0: string, 1: string|null}>, sources: array<string, array{0: string, 1: string|null}>}
      */
     public function state(): array
     {
@@ -45,14 +45,42 @@ final class PeerClient
         if (! in_array($role, SyncRole::ALL, true)) {
             throw new RuntimeException('Gegenstelle meldet keine gültige Rolle.');
         }
+        $list = fn (mixed $v): array => is_array($v)
+            ? [(string) ($v[0] ?? ''), isset($v[1]) ? (string) $v[1] : null]
+            : [(string) $v, null];
 
         return [
             'role' => $role,
             'scopes' => array_values(array_map('strval', (array) ($json['scopes'] ?? []))),
-            'terms' => array_map(fn (mixed $v): array => [(int) ((array) $v)[0], (string) ((array) $v)[1]], (array) ($json['terms'] ?? [])),
-            'categories' => array_map('strval', (array) ($json['categories'] ?? [])),
-            'sources' => array_map('strval', (array) ($json['sources'] ?? [])),
+            'terms' => array_map(function (mixed $v): array {
+                $v = (array) $v;
+
+                return [(int) ($v[0] ?? 0), (string) ($v[1] ?? ''), isset($v[2]) ? (string) $v[2] : null, (bool) ($v[3] ?? false)];
+            }, (array) ($json['terms'] ?? [])),
+            'categories' => array_map($list, (array) ($json['categories'] ?? [])),
+            'sources' => array_map($list, (array) ($json['sources'] ?? [])),
         ];
+    }
+
+    /**
+     * Einzelne Datensätze der Gegenstelle vollständig lesen (#503).
+     *
+     * @param  array{terms?: list<string>, categories?: list<string>, sources?: list<string>}  $wanted
+     * @return array{terms: list<array{term: array<string, mixed>, revision: int, published: bool}>, categories: list<array<string, mixed>>, sources: list<array<string, mixed>>}
+     */
+    public function items(array $wanted): array
+    {
+        $json = $this->json($this->request()->timeout(120)->post($this->url('/api/sync/items'), $wanted));
+        $terms = [];
+        foreach ((array) ($json['terms'] ?? []) as $t) {
+            $t = (array) $t;
+            if (is_array($t['term'] ?? null)) {
+                $terms[] = ['term' => (array) $t['term'], 'revision' => (int) ($t['revision'] ?? 0), 'published' => (bool) ($t['published'] ?? false)];
+            }
+        }
+        $lists = fn (string $k): array => array_values(array_filter(array_map(fn (mixed $i): array => (array) $i, (array) ($json[$k] ?? [])), fn (array $i): bool => isset($i['key'])));
+
+        return ['terms' => $terms, 'categories' => $lists('categories'), 'sources' => $lists('sources')];
     }
 
     /** Anonymisierten Dump in die Datei $target laden. */
