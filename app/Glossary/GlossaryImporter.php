@@ -23,8 +23,11 @@ final class GlossaryImporter
     public function __construct(private readonly GlossaryService $glossary) {}
 
     /**
-     * @param  list<array<string, string>>  $rows  Zeilen mit Spaltennamen (SpreadsheetReader)
-     * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>}>, neu: int, geaendert: int, fehler: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
+     * Je Zeile der Vorschau zusätzlich `werte` (alle Spalten der Datei nach dem Import bzw. bei Fehlern wie in der
+     * Datei) und `vorher` (bisheriger Stand), für «alle Felder anzeigen» und «Werte überschreiben» (#505).
+     *
+     * @param  array<int, array<string, string>>  $rows  Zeilen mit Spaltennamen (SpreadsheetReader); Schlüssel = Zeilennummer − 2
+     * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>, werte: array<string, string>, vorher: array<string, string>}>, neu: int, geaendert: int, fehler: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
      */
     public function run(array $rows, bool $createLists, ?User $user, bool $canEditOfficial, bool $dryRun): array
     {
@@ -47,7 +50,7 @@ final class GlossaryImporter
                         throw new InvalidArgumentException('Unbekannt: '.implode(', ', $missing).' (beim Import neu anlegen lassen oder zuerst die Liste ergänzen).');
                     }
 
-                    $result = DB::transaction(function () use ($data, $id, $user, $canEditOfficial, &$created): array {
+                    $result = DB::transaction(function () use ($data, $id, $row, $user, $canEditOfficial, &$created): array {
                         foreach ($this->createMissingLists($data) as $list => $names) {
                             $created[$list] = [...$created[$list], ...$names];
                         }
@@ -77,18 +80,16 @@ final class GlossaryImporter
                             $changes = array_filter($changes, fn (string $v): bool => $v !== '');
                         }
 
-                        return [$term === null ? 'neu' : 'geaendert', $changes, $saved->id];
+                        return [$term === null ? 'neu' : 'geaendert', $changes, $saved->id, array_intersect_key($after, ExcelFormat::normalize($row)), $before];
                     });
-                    [$art, $changes, $savedId] = $result;
+                    [$art, $changes, $savedId, $values, $previous] = $result;
                     $messages = [];
                     if ($art === 'geaendert' && $changes === []) {
                         continue;   // unverändert → nicht anzeigen
                     }
-                    $plan[] = ['zeile' => $line, 'art' => $art, 'id' => $savedId, 'titel' => $titel, 'meldungen' => $messages, 'aenderungen' => $changes];
-                } catch (OfficialFieldLocked $e) {
-                    $plan[] = ['zeile' => $line, 'art' => 'fehler', 'id' => $id, 'titel' => $titel, 'meldungen' => [$e->getMessage()], 'aenderungen' => []];
-                } catch (InvalidArgumentException $e) {
-                    $plan[] = ['zeile' => $line, 'art' => 'fehler', 'id' => $id, 'titel' => $titel, 'meldungen' => [$e->getMessage()], 'aenderungen' => []];
+                    $plan[] = ['zeile' => $line, 'art' => $art, 'id' => $savedId, 'titel' => $titel, 'meldungen' => $messages, 'aenderungen' => $changes, 'werte' => $values, 'vorher' => $previous];
+                } catch (OfficialFieldLocked|InvalidArgumentException $e) {
+                    $plan[] = ['zeile' => $line, 'art' => 'fehler', 'id' => $id, 'titel' => $titel, 'meldungen' => [$e->getMessage()], 'aenderungen' => [], 'werte' => ExcelFormat::normalize($row), 'vorher' => []];
                 }
             }
             $dryRun ? DB::rollBack() : DB::commit();

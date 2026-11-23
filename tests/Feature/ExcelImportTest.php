@@ -107,6 +107,57 @@ class ExcelImportTest extends TestCase
                 ->where('plan.0.aenderungen', ['Kurzbeschreibung' => 'Führt die Schule.']));
     }
 
+    public function test_vorschau_zeigt_alle_werte_und_bisherigen_stand(): void
+    {
+        $this->post('/admin/import/'.$this->token($this->preview([$this->row()])));
+
+        $this->preview([$this->row(['Kurzbeschreibung' => 'Führt die Schule.'])])
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('plan.0.werte.Bezeichnung offiziell', 'Schulleitung')
+                ->where('plan.0.werte.Kurzbeschreibung', 'Führt die Schule.')
+                ->where('plan.0.vorher.Kurzbeschreibung', 'Leitet die Schule.')
+                ->where('auswahl', null));
+    }
+
+    public function test_zeilen_abwaehlen_felder_abwaehlen_und_werte_ueberschreiben(): void
+    {
+        $this->post('/admin/import/'.$this->token($this->preview([$this->row()])));
+        $rows = [
+            $this->row(['Kurzbeschreibung' => 'Führt die Schule.', 'Notiz' => 'neu']),                          // Zeile 2
+            $this->row(['ID' => '', 'Abkürzung offiziell' => 'LP', 'Bezeichnung offiziell' => 'Lehrperson']),   // Zeile 3
+            $this->row(['ID' => '', 'Abkürzung offiziell' => 'SSA', 'Bezeichnung offiziell' => 'Schulsozialarbeit', 'URL' => 'https://example.org']),   // Zeile 4
+        ];
+        $token = $this->token($this->preview($rows));
+
+        $this->post("/admin/import/{$token}", ['zeilen' => [
+            '2' => ['aus' => false, 'felder_aus' => ['Kurzbeschreibung'], 'werte' => []],            // bisheriger Wert bleibt
+            '3' => ['aus' => true, 'felder_aus' => [], 'werte' => []],                               // nicht importieren
+            '4' => ['aus' => false, 'felder_aus' => ['URL'], 'werte' => ['Kurzbeschreibung' => 'Von Hand.']],
+        ]])->assertRedirect('/admin/begriffe');
+
+        $sl = Term::query()->findOrFail(self::INTRANET_ID);
+        $this->assertSame('Leitet die Schule.', $sl->short_description);
+        $this->assertSame('neu', $sl->note);
+        $this->assertFalse(Term::query()->where('official_abbreviation', 'LP')->exists());
+        $ssa = Term::query()->where('official_abbreviation', 'SSA')->firstOrFail();
+        $this->assertSame('Von Hand.', $ssa->short_description);
+        $this->assertNull($ssa->url);
+    }
+
+    public function test_erneut_pruefen_mit_ueberschriebenen_werten(): void
+    {
+        $token = $this->token($this->preview([$this->row(['Status' => 'gibt es nicht'])]));
+        $this->post("/admin/import/{$token}/pruefen", ['zeilen' => ['2' => ['aus' => false, 'felder_aus' => [], 'werte' => ['Status' => 'aktuell']]]])
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->component('admin/import-preview')
+                ->where('token', $token)->where('fehler', 0)->where('neu', 1)
+                ->where('auswahl.2.werte.Status', 'aktuell'));
+        $this->assertSame(0, Term::query()->count());   // nichts gespeichert, Vorschau bleibt gültig
+        $this->post("/admin/import/{$token}", ['zeilen' => ['2' => ['aus' => false, 'felder_aus' => [], 'werte' => ['Status' => 'aktuell']]]])
+            ->assertRedirect('/admin/begriffe');
+        $this->assertSame(1, Term::query()->count());
+    }
+
     public function test_unbekannte_kategorie_ist_fehler_oder_wird_angelegt(): void
     {
         $row = $this->row(['Kategorien' => 'Personal; Recht']);

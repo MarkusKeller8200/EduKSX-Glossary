@@ -124,12 +124,34 @@ class ExcelController extends Controller
             'listen_anlegen' => $createLists,
             'datei' => mb_substr($file->getClientOriginalName(), 0, 255),
             'format' => ExcelFormat::VERSION,
+            'fehlende' => array_values($unknown),
         ], now()->addMinutes(30));
 
         return Inertia::render('admin/import-preview', [
             'token' => $token,
             'datei' => $file->getClientOriginalName(),
             'fehlendeSpalten' => array_values($unknown),
+            'auswahl' => null,
+            ...$result,
+        ]);
+    }
+
+    /**
+     * Vorschau mit überschriebenen Werten erneut prüfen (#505): dieselbe Datei, darin die geänderten Werte; gespeichert
+     * wird nichts. Abgewählte Zeilen und Felder bleiben in der Vorschau sichtbar und wirken erst beim Übernehmen.
+     */
+    public function check(Request $request, string $token): Response
+    {
+        $cached = $this->cached($request, $token, false);
+        $choice = $this->choice($request);
+        $rows = self::applyChoice($cached['rows'], $choice, false);
+        $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $this->currentUserOrNull($request), $this->official(), dryRun: true);
+
+        return Inertia::render('admin/import-preview', [
+            'token' => $token,
+            'datei' => (string) ($cached['datei'] ?? 'Datei'),
+            'fehlendeSpalten' => (array) ($cached['fehlende'] ?? []),
+            'auswahl' => $choice === [] ? null : $choice,
             ...$result,
         ]);
     }
@@ -137,11 +159,10 @@ class ExcelController extends Controller
     /** Vorschau übernehmen: dieselben Zeilen nochmals, diesmal gespeichert. Fehlerhafte Zeilen werden übersprungen. */
     public function apply(Request $request, string $token): RedirectResponse
     {
-        $cached = Cache::pull(self::CACHE.$token);
-        abort_if(! is_array($cached) || ($cached['user'] ?? null) !== $this->currentUserOrNull($request)?->id, 404);
-
-        /** @var list<array<string, string>> $rows */
-        $rows = $cached['rows'];
+        $choice = $this->choice($request);
+        $cached = $this->cached($request, $token, true);
+        // Auswahl (#505): abgewählte Zeilen weglassen, abgewählte Felder nicht übernehmen, überschriebene Werte einsetzen
+        $rows = self::applyChoice($cached['rows'], $choice, true);
         $user = $this->currentUserOrNull($request);
         $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $user, $this->official(), dryRun: false);
 
@@ -164,6 +185,93 @@ class ExcelController extends Controller
         ]);
 
         return redirect('/admin/begriffe')->with('status', "Import: {$result['neu']} neu, {$result['geaendert']} geändert, {$result['fehler']} übersprungen. Neue Begriffe sind Entwürfe.");
+    }
+
+    /**
+     * Zwischengespeicherte Vorschau dieser Person.
+     *
+     * @return array{rows: list<array<string, string>>, listen_anlegen: bool, datei?: string, format?: int, fehlende?: list<string>}
+     */
+    private function cached(Request $request, string $token, bool $pull): array
+    {
+        $cached = $pull ? Cache::pull(self::CACHE.$token) : Cache::get(self::CACHE.$token);
+        abort_if(! is_array($cached) || ($cached['user'] ?? null) !== $this->currentUserOrNull($request)?->id, 404);
+
+        /** @var array{rows: list<array<string, string>>, listen_anlegen: bool, datei?: string, format?: int, fehlende?: list<string>} $cached */
+        return $cached;
+    }
+
+    /**
+     * Auswahl aus der Vorschau (#505): je Zeilennummer der Datei abgewählt, abgewählte Spalten und überschriebene Werte.
+     *
+     * @return array<int, array{aus: bool, felder_aus: list<string>, werte: array<string, string>}>
+     */
+    private function choice(Request $request): array
+    {
+        $request->validate([
+            'zeilen' => ['nullable', 'array', 'max:5000'],
+            'zeilen.*.aus' => ['nullable', 'boolean'],
+            'zeilen.*.felder_aus' => ['nullable', 'array', 'max:100'],
+            'zeilen.*.felder_aus.*' => ['string', 'max:100'],
+            'zeilen.*.werte' => ['nullable', 'array', 'max:100'],
+            'zeilen.*.werte.*' => ['nullable', 'string', 'max:20000'],
+        ]);
+        $columns = array_flip(array_diff(ExcelFormat::header(), ['ID']));
+        $out = [];
+        foreach ((array) $request->input('zeilen', []) as $line => $c) {
+            if (! is_numeric($line) || (int) $line < 2 || ! is_array($c)) {
+                continue;
+            }
+            $values = [];
+            foreach ((array) ($c['werte'] ?? []) as $column => $value) {
+                if (isset($columns[(string) $column])) {
+                    $values[(string) $column] = (string) ($value ?? '');
+                }
+            }
+            $entry = [
+                'aus' => (bool) ($c['aus'] ?? false),
+                'felder_aus' => array_values(array_filter(array_map('strval', (array) ($c['felder_aus'] ?? [])), fn (string $f): bool => isset($columns[$f]))),
+                'werte' => $values,
+            ];
+            if ($entry['aus'] || $entry['felder_aus'] !== [] || $entry['werte'] !== []) {
+                $out[(int) $line] = $entry;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Auswahl auf die Zeilen der Datei anwenden. Abgewählte Spalten fehlen danach in der Zeile: bei bestehenden
+     * Begriffen bleibt der Wert, bei neuen bleibt das Feld leer. Die Schlüssel (Zeilennummer − 2) bleiben erhalten.
+     *
+     * @param  list<array<string, string>>  $rows
+     * @param  array<int, array{aus: bool, felder_aus: list<string>, werte: array<string, string>}>  $choice
+     * @return array<int, array<string, string>>
+     */
+    public static function applyChoice(array $rows, array $choice, bool $final): array
+    {
+        foreach ($choice as $line => $c) {
+            $n = $line - 2;
+            if (! isset($rows[$n])) {
+                continue;
+            }
+            if ($final && $c['aus']) {
+                unset($rows[$n]);
+
+                continue;
+            }
+            foreach ($c['werte'] as $column => $value) {
+                $rows[$n][$column] = $value;
+            }
+            if ($final) {
+                foreach ($c['felder_aus'] as $column) {
+                    unset($rows[$n][$column]);
+                }
+            }
+        }
+
+        return $rows;
     }
 
     private function official(): bool

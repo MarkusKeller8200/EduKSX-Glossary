@@ -342,6 +342,7 @@ Route::middleware(['auth', 'can:administer', RequireTwoFactor::class])->prefix('
     Route::middleware('can:import')->group(function () {
         Route::get('import', [ExcelController::class, 'create'])->name('admin.import');
         Route::post('import', [ExcelController::class, 'preview'])->middleware('throttle:20,1')->name('admin.import.preview');
+        Route::post('import/{token}/pruefen', [ExcelController::class, 'check'])->whereUuid('token')->middleware('throttle:30,1')->name('admin.import.check');
         Route::post('import/{token}', [ExcelController::class, 'apply'])->whereUuid('token')->name('admin.import.apply');
     });
 });
