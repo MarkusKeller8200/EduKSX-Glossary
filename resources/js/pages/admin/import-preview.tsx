@@ -121,6 +121,8 @@ export default function ImportPreview({
             ),
     );
     const [ungeprueft, setUngeprueft] = useState(false);
+    // nur ein Feld zugleich bearbeiten (viele Eingabefelder auf einmal blockieren den Browser)
+    const [offenesFeld, setOffenesFeld] = useState<string | null>(null);
     const neueListen = [...listen.Kategorien, ...listen.Herkunft];
 
     const importierbar = plan.filter((p) => p.art !== 'fehler');
@@ -305,20 +307,59 @@ export default function ImportPreview({
                                                     (geaendert ||
                                                         p.art === 'fehler' ||
                                                         alleFelder) ? (
-                                                        <Textarea
-                                                            aria-label={`${f} für ${p.titel}`}
-                                                            className="min-h-8 py-1 text-xs md:text-xs"
-                                                            rows={1}
-                                                            value={wert(p, f)}
-                                                            onChange={(e) =>
-                                                                setzeWert(
-                                                                    p.zeile,
+                                                        offenesFeld ===
+                                                        `${p.zeile}:${f}` ? (
+                                                            <Textarea
+                                                                autoFocus
+                                                                aria-label={`${f} für ${p.titel}`}
+                                                                className="[field-sizing:fixed] min-h-16 w-full py-1 text-xs md:text-xs"
+                                                                rows={3}
+                                                                value={wert(
+                                                                    p,
                                                                     f,
-                                                                    e.target
-                                                                        .value,
-                                                                )
-                                                            }
-                                                        />
+                                                                )}
+                                                                onChange={(e) =>
+                                                                    setzeWert(
+                                                                        p.zeile,
+                                                                        f,
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                onBlur={() =>
+                                                                    setOffenesFeld(
+                                                                        null,
+                                                                    )
+                                                                }
+                                                                onKeyDown={(
+                                                                    e,
+                                                                ) => {
+                                                                    if (
+                                                                        e.key ===
+                                                                        'Escape'
+                                                                    ) {
+                                                                        setOffenesFeld(
+                                                                            null,
+                                                                        );
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                title="Wert ändern"
+                                                                aria-label={`${f} für ${p.titel} ändern`}
+                                                                onClick={() =>
+                                                                    setOffenesFeld(
+                                                                        `${p.zeile}:${f}`,
+                                                                    )
+                                                                }
+                                                                className={`w-full rounded-sm border border-dashed border-border px-1 text-left hover:bg-muted ${werte[p.zeile]?.[f] !== undefined ? 'bg-warning-soft' : ''}`}
+                                                            >
+                                                                {wert(p, f) ||
+                                                                    '–'}
+                                                            </button>
+                                                        )
                                                     ) : (
                                                         wert(p, f) || '–'
                                                     )}
@@ -342,7 +383,7 @@ export default function ImportPreview({
             },
         ],
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [aus, felderAus, werte, alleFelder, detail, bearbeiten],
+        [aus, felderAus, werte, alleFelder, detail, bearbeiten, offenesFeld],
     );
 
     return (
@@ -420,7 +461,7 @@ export default function ImportPreview({
                 <Schalter
                     id="werte-ueberschreiben"
                     label="Werte überschreiben"
-                    hinweis="Werte vor dem Import von Hand ändern"
+                    hinweis="Wert anklicken, um ihn vor dem Import zu ändern"
                     checked={bearbeiten}
                     onChange={setBearbeiten}
                 />
