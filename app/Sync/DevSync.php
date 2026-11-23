@@ -149,6 +149,7 @@ final class DevSync
             throw new RuntimeException('Von «'.SyncRole::label($remote['role']).'» darf diese Instanz («'.SyncRole::label(SyncRole::current()).'») nicht übernehmen, oder dem Token fehlt «glossary:sync.read».');
         }
 
+        /** @var array{pushed: int, pulled: int, conflicts: list<string>, errors: list<string>, messages: list<string>, backup: string|null} $summary */
         $summary = ['pushed' => 0, 'pulled' => 0, 'conflicts' => [], 'errors' => [], 'messages' => [], 'backup' => null];
         $titles = Term::query()->whereIn('id', [...$push['terms'], ...$pull['terms']])->get()->mapWithKeys(fn (Term $t): array => [$t->id => $t->title()]);
         $collect = function (array $response, string $direction) use (&$summary, $titles): void {
@@ -212,6 +213,7 @@ final class DevSync
             .($summary['conflicts'] !== [] ? ', '.count($summary['conflicts']).' Konflikte' : '')
             .($summary['errors'] !== [] ? ', '.count($summary['errors']).' Fehler' : '').'.';
         $peer->save();
+        /** @var array{pushed: int, pulled: int, conflicts: list<string>, errors: list<string>, messages: list<string>, backup: string|null} $summary */
         Audit::log($actor, null, 'sync.synchronized', ['peer' => $peer->name, 'role' => $remote['role'], 'pushed' => $summary['pushed'],
             'pulled' => $summary['pulled'], 'conflicts' => count($summary['conflicts']), 'errors' => count($summary['errors']), 'backup' => $summary['backup']]);
 

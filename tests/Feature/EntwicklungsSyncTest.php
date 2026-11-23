@@ -245,7 +245,7 @@ final class EntwicklungsSyncTest extends TestCase
         $this->assertTrue($json['terms'][0]['published']);
         $this->assertCount(4, $this->getJson('/api/sync/state', ['Authorization' => "Bearer {$token}"])->json('terms.'.$term->id));
 
-        $write = $this->token(['glossary:sync.write']);
+        $write = $this->token(['glossary:sync.write', 'glossary:sync.publish']);   // ohne sync.read
         $this->postJson('/api/sync/items', ['terms' => [$term->id]], ['Authorization' => "Bearer {$write}"])->assertForbidden();
         $this->role('development');
         $this->postJson('/api/sync/items', ['terms' => [$term->id]], ['Authorization' => "Bearer {$token}"])->assertForbidden();

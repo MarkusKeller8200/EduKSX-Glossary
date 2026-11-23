@@ -43,7 +43,7 @@ final class ContentState
             $terms[(string) $term->id] = [
                 (int) $term->revision,
                 self::hash($this->term($term)),
-                ($current?->created_at ?? $term->updated_at)?->toIso8601String(),
+                ($current !== null ? $current->created_at : $term->updated_at)?->toIso8601String(),
                 $current !== null && $term->published_revision_id === $current->id,
             ];
         }
