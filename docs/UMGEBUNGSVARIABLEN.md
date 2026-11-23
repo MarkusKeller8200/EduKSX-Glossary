@@ -30,6 +30,7 @@ werden sie in der `.env` des Servers, wirksam nach `docker compose up -d`.
 | `GLOSSARY_PRIVACY_DRAFT`       | `true`                         | `true`                        | `false`, sobald die Datenschutzerklärung final ist |
 | `GLOSSARY_DEV_BACKUPS`         | `true`                         | `false`                       | `false`                                            |
 | `GLOSSARY_SYNC_ROLE`           | `development`                  | `test`                        | `master`                                           |
+| `APP_ENV`                      | `staging` (#478, 23.11.2026)   | `production` (Image)          | `production` (Image)                               |
 | `GLOSSARY_MCP`                 | `true`                         | `true`                        | `true`                                             |
 | `GLOSSARY_STATISTIK`           | `true`                         | `true`                        | `true` (Tageszähler ohne Cookies; `false` = aus)   |
 | `GLOSSARY_SUCHMASCHINEN`       | `false`                        | `false`                       | `true`                                             |
