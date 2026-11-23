@@ -235,10 +235,12 @@ export default function ImportPreview({
             {
                 id: 'art',
                 header: 'Art',
-                width: 110,
+                width: 150,
+                minWidth: 150,
                 sortValue: (p: Zeile) => p.art,
                 cell: (p: Zeile) => (
                     <Badge
+                        className="max-w-full whitespace-normal"
                         variant={
                             p.art === 'fehler'
                                 ? 'destructive'
