@@ -27,7 +27,7 @@ final class GlossaryImporter
      * Datei) und `vorher` (bisheriger Stand), für «alle Felder anzeigen» und «Werte überschreiben» (#505).
      *
      * @param  array<int, array<string, string>>  $rows  Zeilen mit Spaltennamen (SpreadsheetReader); Schlüssel = Zeilennummer − 2
-     * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>, werte: array<string, string>, vorher: array<string, string>}>, neu: int, geaendert: int, fehler: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
+     * @return array{plan: list<array{zeile: int, art: string, id: string, titel: string, meldungen: list<string>, aenderungen: array<string, string>, werte: array<string, string>, vorher: array<string, string>}>, neu: int, geaendert: int, fehler: int, vorhanden: int, listen: array{Kategorien: list<string>, Herkunft: list<string>}}
      */
     public function run(array $rows, bool $createLists, ?User $user, bool $canEditOfficial, bool $dryRun): array
     {
@@ -87,7 +87,7 @@ final class GlossaryImporter
                     [$art, $changes, $savedId, $values, $previous, $matched] = $result;
                     $messages = $matched ? ['Bestehendem Begriff zugeordnet (gleiche Abkürzung und Bezeichnung).'] : [];
                     if ($art === 'geaendert' && $changes === []) {
-                        continue;   // unverändert → nicht anzeigen
+                        $art = 'vorhanden';   // unverändert (#514): anzeigen als «existiert bereits», nicht gewählt
                     }
                     $plan[] = ['zeile' => $line, 'art' => $art, 'id' => $savedId, 'titel' => $titel, 'meldungen' => $messages, 'aenderungen' => $changes, 'werte' => $values, 'vorher' => $previous];
                 } catch (OfficialFieldLocked|InvalidArgumentException $e) {
@@ -107,6 +107,7 @@ final class GlossaryImporter
             'neu' => $count('neu'),
             'geaendert' => $count('geaendert'),
             'fehler' => $count('fehler'),
+            'vorhanden' => $count('vorhanden'),
             'listen' => ['Kategorien' => array_values(array_unique($created['Kategorien'])), 'Herkunft' => array_values(array_unique($created['Herkunft']))],
         ];
     }

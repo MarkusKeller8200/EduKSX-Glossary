@@ -8,7 +8,7 @@ import DataGrid from '@/components/data-grid';
 
 type Zeile = {
     zeile: number;
-    art: 'neu' | 'geaendert' | 'fehler';
+    art: 'neu' | 'geaendert' | 'fehler' | 'vorhanden';
     id: string;
     titel: string;
     meldungen: string[];
@@ -22,7 +22,12 @@ type Auswahl = Record<
     { aus: boolean; felder_aus: string[]; werte: Record<string, string> }
 >;
 
-const ART = { neu: 'neu', geaendert: 'geändert', fehler: 'Fehler' } as const;
+const ART = {
+    neu: 'neu',
+    geaendert: 'geändert',
+    fehler: 'Fehler',
+    vorhanden: 'existiert bereits',
+} as const;
 
 function Schalter({
     id,
@@ -73,6 +78,7 @@ export default function ImportPreview({
     neu,
     geaendert,
     fehler,
+    vorhanden,
     listen,
     fehlendeSpalten,
     auswahl,
@@ -84,6 +90,7 @@ export default function ImportPreview({
     neu: number;
     geaendert: number;
     fehler: number;
+    vorhanden: number;
     listen: { Kategorien: string[]; Herkunft: string[] };
     fehlendeSpalten: string[];
     auswahl: Auswahl | null;
@@ -97,12 +104,17 @@ export default function ImportPreview({
     const [bearbeiten, setBearbeiten] = useState(
         Object.values(auswahl ?? {}).some((a) => Object.keys(a.werte).length),
     );
+    // unveränderte Zeilen (#514) sind anfangs nicht gewählt
     const [aus, setAus] = useState<Set<number>>(
         () =>
             new Set(
-                Object.entries(auswahl ?? {})
-                    .filter(([, a]) => a.aus)
-                    .map(([z]) => Number(z)),
+                auswahl
+                    ? Object.entries(auswahl)
+                          .filter(([, a]) => a.aus)
+                          .map(([z]) => Number(z))
+                    : plan
+                          .filter((p) => p.art === 'vorhanden')
+                          .map((p) => p.zeile),
             ),
     );
     const [felderAus, setFelderAus] = useState<Record<number, string[]>>(() =>
@@ -130,7 +142,11 @@ export default function ImportPreview({
     const importierbar = plan.filter((p) => p.art !== 'fehler');
     const gewaehlt = importierbar.filter((p) => !aus.has(p.zeile));
     const gewaehltNeu = gewaehlt.filter((p) => p.art === 'neu').length;
-    const gewaehltGeaendert = gewaehlt.length - gewaehltNeu;
+    const gewaehltGeaendert = gewaehlt.filter(
+        (p) =>
+            p.art === 'geaendert' ||
+            (p.art === 'vorhanden' && werte[p.zeile] !== undefined),
+    ).length;
 
     const payload = (): Auswahl => {
         const out: Auswahl = {};
@@ -228,7 +244,9 @@ export default function ImportPreview({
                                 ? 'destructive'
                                 : p.art === 'neu'
                                   ? 'default'
-                                  : 'secondary'
+                                  : p.art === 'vorhanden'
+                                    ? 'outline'
+                                    : 'secondary'
                         }
                     >
                         {ART[p.art]}
@@ -263,6 +281,11 @@ export default function ImportPreview({
                                         <li key={m}>{m}</li>
                                     ))}
                                 </ul>
+                            ) : null}
+                            {liste.length === 0 && p.art === 'vorhanden' ? (
+                                <p className="text-xs text-muted-foreground">
+                                    Keine Änderungen gegenüber dem Bestand.
+                                </p>
                             ) : null}
                             {liste.length > 0 ? (
                                 <dl
@@ -417,10 +440,10 @@ export default function ImportPreview({
                 </div>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-                {datei}: {neu} neu, {geaendert} geändert, {fehler} Fehler –
-                gewählt {gewaehltNeu} neu und {gewaehltGeaendert} geändert.
-                Unveränderte Zeilen werden nicht angezeigt. Es wird nie etwas
-                gelöscht.
+                {datei}: {neu} neu, {geaendert} geändert, {vorhanden} existiert
+                bereits, {fehler} Fehler – gewählt {gewaehltNeu} neu und{' '}
+                {gewaehltGeaendert} geändert. Unveränderte Zeilen sind nicht
+                gewählt. Es wird nie etwas gelöscht.
             </p>
 
             {fehlendeSpalten.length > 0 ? (
@@ -490,7 +513,15 @@ export default function ImportPreview({
                     <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => setAus(new Set())}
+                        onClick={() =>
+                            setAus(
+                                new Set(
+                                    plan
+                                        .filter((p) => p.art === 'vorhanden')
+                                        .map((p) => p.zeile),
+                                ),
+                            )
+                        }
                     >
                         Alle wählen
                     </Button>

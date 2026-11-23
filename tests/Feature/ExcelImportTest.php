@@ -95,7 +95,8 @@ class ExcelImportTest extends TestCase
         $this->post('/admin/import/'.$this->token($this->preview([$this->row()])));
 
         $this->preview([$this->row()])
-            ->assertInertia(fn (Assert $page) => $page->where('neu', 0)->where('geaendert', 0)->where('plan', []));
+            ->assertInertia(fn (Assert $page) => $page->where('neu', 0)->where('geaendert', 0)->where('vorhanden', 1)
+                ->where('plan.0.art', 'vorhanden'));   // #514: angezeigt, nicht gewählt
     }
 
     public function test_aenderung_wird_angezeigt(): void
