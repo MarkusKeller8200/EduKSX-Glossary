@@ -35,9 +35,9 @@ final class ServiceAccountManager
         'glossary:proposals.read' => 'Eigene Vorschläge und ihren Stand lesen',
         'glossary:terms.read' => 'Begriffe in der Darstellung der eigenen Organisation lesen (nur Organisations-Admins)',
         // Entwicklungs-Sync (#478, DEC-041 4a): nur zwischen den eigenen Umgebungen dev, test und prod
-        'glossary:sync.read' => 'Entwicklungs-Sync: Stand vergleichen und anonymisierten Dump holen (ohne Konten)',
-        'glossary:sync.write' => 'Entwicklungs-Sync: Begriffe und Listen als Entwurf hochladen',
-        'glossary:sync.publish' => 'Entwicklungs-Sync: hochgeladene Begriffe direkt veröffentlichen',
+        'glossary:sync.read' => 'Entwicklungs-Sync: Stand vergleichen, Datensätze lesen und anonymisierten Dump holen (ohne Konten)',
+        'glossary:sync.write' => 'Entwicklungs-Sync: Begriffe und Listen anlegen und nachführen (als Entwurf)',
+        'glossary:sync.publish' => 'Entwicklungs-Sync: Begriffe veröffentlichen, wenn sie auf der Quelle veröffentlicht sind',
     ];
 
     /** Scopes bis 0.13 → neue Namen; gespeicherte alte Namen gelten weiter (#323). */

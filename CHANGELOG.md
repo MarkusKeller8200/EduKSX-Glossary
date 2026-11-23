@@ -29,13 +29,14 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
   KI-Assistenten recherchierte Begriffe ohne Nacharbeit durch den Excel-Import laufen (Bestand über die API prüfen,
   Regeln für Inhalte und Quellen, Recherche «KI-unterstützt»). Auch als Markdown und auf GitHub Pages; Spalten und Werte
   kommen aus dem Code.
-- **Entwicklungs-Sync dev ↔ test ↔ prod (#478):** Administration › System › Sync mit Gegenstellen (Adresse und Token
-  eines Servicekontos dort). «Holen» übernimmt alle Inhalte der Gegenstelle ohne Konten, mit anonymisierten
-  Personendaten und vorheriger Sicherung; Einstellungen, Servicekonten und Gegenstellen bleiben. «Hochladen» schickt
-  neue und geänderte Begriffe, Kategorien und Herkünfte als Entwurf oder direkt veröffentlicht. Hat sich die
-  Gegenstelle seit dem letzten Holen geändert, verlangt der Sync zuerst «Holen»; Konflikte werden nie überschrieben.
-  Rolle je Umgebung (`GLOSSARY_SYNC_ROLE`: Master, Test, Entwicklung), neue Scopes `glossary:sync.read`, `.write` und
-  `.publish`.
+- **Entwicklungs-Sync dev ↔ test ↔ prod (#478, #503):** Administration › System › Sync mit Gegenstellen (Adresse
+  und Token eines Servicekontos dort). Der Vergleich liest beide Seiten und zeigt pro Begriff, Kategorie und Herkunft
+  den Zustand (nur hier, nur dort, hier bzw. dort geändert, Konflikt) mit den Änderungszeitpunkten beider Seiten und
+  den Unterschieden je Feld. Die Richtung ist pro Zeile wählbar, vorgeschlagen wird der jüngere Stand; «Synchronisieren»
+  legt Fehlendes an und aktualisiert Unterschiedliches als neue Revision in beide Richtungen, mit dem Status der Quelle
+  (veröffentlicht nur mit dem Recht dazu), ohne je zu löschen. «Ganze Instanz ersetzen» übernimmt den ganzen Stand
+  der Gegenstelle ohne Konten, mit anonymisierten Personendaten und vorheriger Sicherung. Rolle je Umgebung
+  (`GLOSSARY_SYNC_ROLE`: Master, Test, Entwicklung), Scopes `glossary:sync.read`, `.write` und `.publish`.
 - **Statistik ohne Cookies (#495):** Administration › Statistik zeigt pro Tag, wie oft Begriffe aufgerufen werden –
   getrennt nach Website, Browser-Erweiterung, Einbindung, API und MCP –, die meistgenutzten Begriffe, die geschätzten
   aktiven Installationen der Erweiterung und die Webseiten mit Einbindung. Gespeichert werden nur Tageszähler: keine

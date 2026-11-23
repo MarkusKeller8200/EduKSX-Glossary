@@ -10,6 +10,7 @@ use App\Support\Settings;
 use App\Sync\DevSync;
 use App\Sync\PeerClient;
 use App\Sync\SyncRole;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -19,7 +20,8 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Administration › System › Sync (#478, DEC-041 A20): Gegenstellen erfassen, holen, vergleichen und hochladen.
+ * Administration › System › Sync (#478, #503, DEC-041 A20): Gegenstellen erfassen, vergleichen, pro Datensatz
+ * synchronisieren und die ganze Instanz ersetzen («Holen»).
  * Nur mit Recht «system» (Developer).
  */
 class SyncController extends Controller
@@ -31,7 +33,7 @@ class SyncController extends Controller
         return $this->page();
     }
 
-    /** Vergleich mit einer Gegenstelle: was bereit zum Hochladen ist, was zuerst geholt werden muss. */
+    /** Vergleichstabelle mit einer Gegenstelle (#503). */
     public function compare(SyncPeer $peer): Response
     {
         try {
@@ -94,32 +96,58 @@ class SyncController extends Controller
         return redirect("/admin/system/sync/gegenstellen/{$peer->id}")->with('status', "Von «{$peer->name}» geholt: {$result['rows']} Zeilen. Sicherung vorher: {$result['backup']}.");
     }
 
-    public function upload(Request $request, SyncPeer $peer): RedirectResponse
+    /** Gewählte Datensätze in der gewählten Richtung synchronisieren (#503). */
+    public function synchronize(Request $request, SyncPeer $peer): RedirectResponse
     {
         $user = $this->currentUser($request);
         $data = $request->validate([
-            'ids' => ['array', 'max:2000'],
-            'ids.*' => ['uuid'],
-            'veroeffentlichen' => ['boolean'],
-        ]);
+            'eintraege' => ['required', 'array', 'max:5000'],
+            'eintraege.*.typ' => ['required', 'in:term,categories,sources'],
+            'eintraege.*.id' => ['required', 'string', 'max:64'],
+            'eintraege.*.richtung' => ['required', 'in:push,pull'],
+            'passwort' => ['nullable', 'string', 'max:200'],
+        ], ['eintraege.required' => 'Keine Zeile zum Synchronisieren gewählt.']);
+        $choices = array_values(array_map(fn (array $e): array => ['type' => (string) $e['typ'], 'id' => (string) $e['id'], 'direction' => (string) $e['richtung']], $data['eintraege']));
+        $password = (string) ($data['passwort'] ?? '');
+        $pulls = count(array_filter($choices, fn (array $c): bool => $c['direction'] === 'pull'));
+        if ($pulls > 0 && $password === '' && DatabaseDump::passwordRequired()) {
+            throw ValidationException::withMessages(['passwort' => 'Für die Sicherung vor dem Übernehmen ist ein Passwort vorgeschrieben.']);
+        }
         try {
-            $r = $this->sync->upload($peer, array_values($data['ids'] ?? []), (bool) ($data['veroeffentlichen'] ?? false), $user);
+            $r = $this->sync->sync($peer, $choices, $user, $password === '' ? null : $password);
         } catch (RuntimeException $e) {
-            return back()->withErrors(['hochladen' => PeerClient::describe($e)]);
+            return back()->withErrors(['sync' => PeerClient::describe($e)]);
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withErrors(['hochladen' => PeerClient::describe($e)]);
+            return back()->withErrors(['sync' => PeerClient::describe($e)]);
         }
-        $text = "Nach «{$peer->name}» hochgeladen: {$r['created']} neu, {$r['updated']} geändert";
+        $text = "Synchronisiert: {$r['pushed']} nach «{$peer->name}», {$r['pulled']} von «{$peer->name}» übernommen";
         if ($r['conflicts'] !== []) {
-            $text .= ', '.count($r['conflicts']).' als Konflikt abgelehnt (zuerst holen)';
+            $text .= '. Inzwischen geändert und darum nicht überschrieben: '.implode(', ', array_slice($r['conflicts'], 0, 5)).(count($r['conflicts']) > 5 ? ' …' : '').' – neu vergleichen';
         }
         if ($r['errors'] !== []) {
             $text .= '. Fehler: '.implode('; ', array_slice($r['errors'], 0, 5));
         }
+        if ($r['messages'] !== []) {
+            $text .= '. '.implode(' ', array_slice($r['messages'], 0, 5));
+        }
+        if ($r['backup'] !== null) {
+            $text .= '. Sicherung vorher: '.$r['backup'];
+        }
 
-        return back()->with('status', $text.($r['messages'] !== [] ? '. '.implode(' ', array_slice($r['messages'], 0, 5)) : '').'.');
+        return redirect("/admin/system/sync/gegenstellen/{$peer->id}")->with('status', $text.'.');
+    }
+
+    /** Beide Fassungen eines Datensatzes für die Detailansicht der Vergleichstabelle (#503). */
+    public function detail(Request $request, SyncPeer $peer): JsonResponse
+    {
+        $data = $request->validate(['typ' => ['required', 'in:term,categories,sources'], 'id' => ['required', 'string', 'max:64']]);
+        try {
+            return response()->json($this->sync->detail($peer, (string) $data['typ'], (string) $data['id']));
+        } catch (Throwable $e) {
+            return response()->json(['fehler' => PeerClient::describe($e)], 502);
+        }
     }
 
     /** @param  array<string, mixed>|null  $vergleich */
@@ -129,8 +157,7 @@ class SyncController extends Controller
 
         return Inertia::render('admin/sync', [
             'rolle' => ['wert' => $role, 'label' => SyncRole::label($role), 'quelle' => Settings::source('sync.role')],
-            'darfHolen' => in_array($role, [SyncRole::DEVELOPMENT, SyncRole::TEST], true),
-            'darfHochladen' => in_array($role, [SyncRole::DEVELOPMENT, SyncRole::TEST], true),
+            'darfSync' => in_array($role, [SyncRole::DEVELOPMENT, SyncRole::TEST], true),
             'passwortNoetig' => DatabaseDump::passwordRequired(),
             'gegenstellen' => SyncPeer::query()->orderBy('name')->get()->map(fn (SyncPeer $p): array => [
                 'id' => $p->id, 'name' => $p->name, 'url' => $p->url, 'rolle' => $p->remote_role !== null ? SyncRole::label($p->remote_role) : null,

@@ -194,63 +194,152 @@ final class EntwicklungsSyncTest extends TestCase
         app(DevSync::class)->pull($peer, $this->admin());
     }
 
-    public function test_vergleich_und_hochladen_mit_basis(): void
+    /** Gegenstelle als Http-Fake: Stand, Datensätze und Hochladen gegen eine zweite «Instanz» in Arrays. */
+    private function fakeRemote(string $role, array $scopes, array &$remote, ?array &$uploaded = null, array $items = []): void
     {
-        $this->role('development');
-        $a = $this->begriff('AA');
-        $b = $this->begriff('BB');
-        $state = app(ContentState::class);
-        $remote = $state->state();
-        $peer = SyncPeer::query()->create(['name' => 'test', 'url' => 'https://test.example', 'token' => 'glossary_sa_abc']);
-        $peer->base = ['terms' => $remote['terms'], 'categories' => $remote['categories'], 'sources' => $remote['sources']];
-        $peer->save();
-
-        // auf dev: AA geändert, CC neu
-        app(GlossaryService::class)->save($a, ['short_description' => 'neu auf dev'], null, true);
-        $c = $this->begriff('CC');
-        $uploaded = null;
-        Http::fake(function (HttpRequest $request) use ($remote, &$uploaded) {
+        Http::fake(function (HttpRequest $request) use ($role, $scopes, &$remote, &$uploaded, $items) {
             if (str_ends_with($request->url(), '/api/sync/state')) {
-                return Http::response(['role' => 'test', 'scopes' => ['glossary:sync.write'], ...$remote]);
+                return Http::response(['role' => $role, 'scopes' => $scopes, ...$remote]);
+            }
+            if (str_ends_with($request->url(), '/api/sync/items')) {
+                $ids = (array) ($request->data()['terms'] ?? []);
+
+                return Http::response(['terms' => array_values(array_filter($items, fn (array $t): bool => in_array($t['term']['id'], $ids, true))), 'categories' => [], 'sources' => []]);
             }
             $uploaded = $request->data();
+            $result = [];
+            foreach ($request->data()['terms'] as $t) {
+                $hash = ContentState::hash($t['term']);
+                $remote['terms'][$t['term']['id']] = [9, $hash, now()->toIso8601String(), (bool) ($t['publish'] ?? false)];
+                $result[] = ['id' => $t['term']['id'], 'status' => $t['base_revision'] === null ? 'created' : 'updated', 'revision' => 9, 'hash' => $hash, 'code' => null, 'message' => null];
+            }
 
-            return Http::response(['terms' => array_map(fn (array $t): array => ['id' => $t['term']['id'], 'status' => $t['base_revision'] === null ? 'created' : 'updated', 'revision' => 9, 'hash' => 'h-'.$t['term']['id'], 'code' => null, 'message' => null], $request->data()['terms']), 'categories' => [], 'sources' => []]);
+            return Http::response(['terms' => $result, 'categories' => [], 'sources' => []]);
         });
+    }
+
+    public function test_zustand_und_vorgeschlagene_richtung(): void
+    {
+        $this->assertSame('only_here', DevSync::classify('a', null, null));
+        $this->assertSame('only_there', DevSync::classify(null, 'b', null));
+        $this->assertSame('changed_here', DevSync::classify('a2', 'a', 'a'));
+        $this->assertSame('changed_there', DevSync::classify('a', 'a2', 'a'));
+        $this->assertSame('conflict', DevSync::classify('a2', 'a3', 'a'));
+        $this->assertSame('different', DevSync::classify('a', 'b', null));
+
+        $this->assertSame('push', DevSync::suggest('only_here', null, null, true, true));
+        $this->assertSame('pull', DevSync::suggest('only_there', null, null, true, true));
+        $this->assertSame('skip', DevSync::suggest('only_there', null, null, true, false));
+        // Konflikt bzw. unterschiedlich: der jüngere Stand gewinnt
+        $this->assertSame('pull', DevSync::suggest('conflict', '2026-11-20T10:00:00+00:00', '2026-11-21T10:00:00+00:00', true, true));
+        $this->assertSame('push', DevSync::suggest('different', '2026-11-22T10:00:00+00:00', '2026-11-21T10:00:00+00:00', true, true));
+    }
+
+    public function test_datensaetze_lesen_nur_mit_scope_und_als_quelle(): void
+    {
+        $this->role('test');
+        $term = $this->begriff('AA');
+        $token = $this->token(['glossary:sync.read']);
+        $json = $this->postJson('/api/sync/items', ['terms' => [$term->id]], ['Authorization' => "Bearer {$token}"])->assertOk()->json();
+        $this->assertSame($term->id, $json['terms'][0]['term']['id']);
+        $this->assertTrue($json['terms'][0]['published']);
+        $this->assertCount(4, $this->getJson('/api/sync/state', ['Authorization' => "Bearer {$token}"])->json('terms.'.$term->id));
+
+        $write = $this->token(['glossary:sync.write']);
+        $this->postJson('/api/sync/items', ['terms' => [$term->id]], ['Authorization' => "Bearer {$write}"])->assertForbidden();
+        $this->role('development');
+        $this->postJson('/api/sync/items', ['terms' => [$term->id]], ['Authorization' => "Bearer {$token}"])->assertForbidden();
+    }
+
+    public function test_status_wie_auf_der_quelle_ohne_recht_als_entwurf(): void
+    {
+        $this->role('test');
+        $new = app(ContentState::class)->term($this->begriff('XX', false));
+        Term::query()->delete();
+        $token = $this->token(['glossary:sync.write']);
+        $result = $this->postJson('/api/sync/upload', ['terms' => [['base_revision' => null, 'term' => $new, 'publish' => true]]], ['Authorization' => "Bearer {$token}"])
+            ->assertOk()->json('terms');
+        $this->assertSame('created', $result[0]['status']);
+        $this->assertStringContainsString('Entwurf', (string) $result[0]['message']);
+        $this->assertNull(Term::query()->findOrFail($new['id'])->published_revision_id);
+    }
+
+    public function test_vergleich_und_sync_in_beide_richtungen(): void
+    {
+        $this->role('development');
+        $state = app(ContentState::class);
+        $a = $this->begriff('AA');
+        $common = $state->state();
+
+        // dort: AA unverändert, BB nur dort (veröffentlicht); hier: CC nur hier
+        $b = $this->begriff('BB');
+        $bItem = ['term' => $state->term($b), 'revision' => (int) $b->revision, 'published' => true];
+        $remote = $state->state();
+        Term::query()->whereKey($b->id)->delete();
+        $c = $this->begriff('CC');
+        $peer = SyncPeer::query()->create(['name' => 'test', 'url' => 'https://test.example', 'token' => 'glossary_sa_abc']);
+        $peer->base = ['terms' => $common['terms'], 'categories' => $common['categories'], 'sources' => $common['sources']];
+        $peer->save();
+        $uploaded = null;
+        $this->fakeRemote('test', ['glossary:sync.read', 'glossary:sync.write'], $remote, $uploaded, [$bItem]);
 
         $sync = app(DevSync::class);
         $compare = $sync->compare($peer);
-        $this->assertFalse($compare['blocked']);
-        $states = array_column($compare['terms'], 'state', 'id');
-        $this->assertSame(['local', 'new'], [$states[$a->id], $states[$c->id]]);
-        $this->assertArrayNotHasKey($b->id, $states);
+        $this->assertTrue($compare['push'] && $compare['pull']);
+        $rows = collect($compare['rows'])->keyBy('id');
+        $this->assertSame(['only_here', 'push'], [$rows[$c->id]['state'], $rows[$c->id]['direction']]);
+        $this->assertSame(['only_there', 'pull'], [$rows[$b->id]['state'], $rows[$b->id]['direction']]);
+        $this->assertSame('BB – Begriff BB', $rows[$b->id]['title']);   // Titel von dort
+        $this->assertFalse($rows->has($a->id));
 
-        $summary = $sync->upload($peer, [$a->id, $c->id], false, $this->admin());
-        $this->assertSame([1, 1], [$summary['created'], $summary['updated']]);
-        $this->assertFalse($uploaded['publish']);
-        $this->assertSame($remote['terms'][$a->id][0], collect($uploaded['terms'])->firstWhere('term.id', $a->id)['base_revision']);
-        $this->assertSame([9, 'h-'.$c->id], $peer->refresh()->base['terms'][$c->id]);
+        $summary = $sync->sync($peer, [
+            ['type' => 'term', 'id' => $c->id, 'direction' => 'push'],
+            ['type' => 'term', 'id' => $b->id, 'direction' => 'pull'],
+        ], $this->admin());
+        $this->assertSame([1, 1], [$summary['pushed'], $summary['pulled']]);
+        $this->assertNotNull($summary['backup']);
+        $this->assertTrue($uploaded['terms'][0]['publish']);   // hier veröffentlicht → dort veröffentlichen
+        $pulled = Term::query()->findOrFail($b->id);
+        $this->assertNotNull($pulled->published_revision_id);   // Status wie auf der Quelle
+        $this->assertSame([], $sync->compare($peer->refresh())['rows']);
+        $this->assertArrayHasKey($c->id, $peer->base['terms']);
     }
 
-    public function test_geaendertes_ziel_verlangt_zuerst_holen(): void
+    public function test_konflikt_wird_markiert_und_nichts_geloescht(): void
     {
         $this->role('development');
-        $a = $this->begriff('AA');
         $state = app(ContentState::class);
+        $a = $this->begriff('AA');
         $base = $state->state();
         $peer = SyncPeer::query()->create(['name' => 'prod', 'url' => 'https://prod.example', 'token' => 'glossary_sa_abc']);
         $peer->base = ['terms' => $base['terms'], 'categories' => $base['categories'], 'sources' => $base['sources']];
         $peer->save();
         $remote = $base;
-        $remote['terms'][$a->id] = [5, 'auf-prod-geaendert'];
-        Http::fake(['prod.example/api/sync/state' => Http::response(['role' => 'master', 'scopes' => ['glossary:sync.write'], ...$remote])]);
+        $remote['terms'][$a->id] = [5, 'auf-prod-geaendert', now()->addHour()->toIso8601String(), true];
         app(GlossaryService::class)->save($a, ['short_description' => 'dev'], null, true);
+        $this->fakeRemote('master', ['glossary:sync.read', 'glossary:sync.write'], $remote);
 
+        $row = app(DevSync::class)->compare($peer)['rows'][0];
+        $this->assertSame('conflict', $row['state']);
+        $this->assertSame('pull', $row['direction']);   // dort jünger
+
+        // «überspringen» bzw. gleiche Zeilen: nichts zu tun
+        $this->expectExceptionMessage('Nichts zu synchronisieren');
+        app(DevSync::class)->sync($peer, [['type' => 'term', 'id' => $a->id, 'direction' => 'skip']], $this->admin());
+    }
+
+    public function test_prod_sendet_nie(): void
+    {
+        $this->role('master');
+        $a = $this->begriff('AA');
+        $remote = ['terms' => [], 'categories' => [], 'sources' => []];
+        $peer = SyncPeer::query()->create(['name' => 'dev', 'url' => 'https://dev.example', 'token' => 'glossary_sa_abc']);
+        $this->fakeRemote('development', ['glossary:sync.read', 'glossary:sync.write'], $remote);
         $compare = app(DevSync::class)->compare($peer);
-        $this->assertTrue($compare['blocked']);
-        $this->assertSame('conflict', $compare['terms'][0]['state']);
-        $this->expectExceptionMessage('zuerst «Holen»');
-        app(DevSync::class)->upload($peer, [$a->id], false, $this->admin());
+        $this->assertFalse($compare['push']);
+        $this->assertSame('skip', $compare['rows'][0]['direction']);
+        $this->expectException(RuntimeException::class);
+        app(DevSync::class)->sync($peer, [['type' => 'term', 'id' => $a->id, 'direction' => 'push']], $this->admin());
     }
 
     public function test_administration_nur_mit_recht_system_und_token_nie_sichtbar(): void

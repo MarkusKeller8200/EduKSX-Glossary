@@ -22,10 +22,13 @@ final class UploadReceiver
     public function __construct(private readonly GlossaryService $glossary, private readonly ContentState $state) {}
 
     /**
-     * @param  array{terms?: list<array{base_revision: int|null, term: array<string, mixed>}>, categories?: list<array<string, mixed>>, sources?: list<array<string, mixed>>}  $upload
+     * Je Begriff kann `publish` verlangt werden (#503: Status wie auf der Quelle); veröffentlicht wird nur, wenn
+     * `$mayPublish` gilt, sonst bleibt er Entwurf (mit Hinweis). `$publish` veröffentlicht alle (bisheriger Ablauf).
+     *
+     * @param  array{terms?: list<array{base_revision: int|null, term: array<string, mixed>, publish?: bool}>, categories?: list<array<string, mixed>>, sources?: list<array<string, mixed>>}  $upload
      * @return array{terms: list<array{id: string, status: string, revision: int|null, hash: string|null, code: string|null, message: string|null}>, categories: array<string, string>, sources: array<string, string>}
      */
-    public function receive(array $upload, string $label, bool $publish): array
+    public function receive(array $upload, string $label, bool $publish, bool $mayPublish = true): array
     {
         $lists = DB::transaction(fn (): array => [
             'categories' => $this->lists(Category::class, $upload['categories'] ?? []),
@@ -52,12 +55,21 @@ final class UploadReceiver
                 $results[$n] = $this->term(['base_revision' => $results[$n]['revision'], 'term' => $items[$n]['term']], $label, false, $results[$n]['status']);
             }
         }
-        if ($publish) {
-            foreach ($results as $n => $r) {
-                if (in_array($r['status'], ['created', 'updated'], true) && ($term = Term::query()->find($r['id'])) !== null) {
-                    $this->glossary->publish($term, null);
-                    $results[$n]['status'] .= '+published';
-                }
+        foreach ($results as $n => $r) {
+            $wanted = $publish || (bool) ($items[$n]['publish'] ?? false);
+            if (! $wanted || ! in_array($r['status'], ['created', 'updated', 'unchanged'], true) || ($term = Term::query()->find($r['id'])) === null) {
+                continue;
+            }
+            if (! $mayPublish) {
+                $results[$n]['message'] = trim(($r['message'] ?? '').' Als Entwurf übernommen (Recht zum Veröffentlichen fehlt).');
+
+                continue;
+            }
+            $before = $term->published_revision_id;
+            $term = $this->glossary->publish($term, null);
+            if ($term->published_revision_id !== $before) {
+                $results[$n]['status'] .= '+published';
+                $results[$n]['hash'] = ContentState::hash($this->state->term($term));
             }
         }
 
