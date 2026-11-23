@@ -158,6 +158,29 @@ class ExcelImportTest extends TestCase
         $this->assertSame(1, Term::query()->count());
     }
 
+    public function test_ganze_liste_als_ki_unterstuetzt_markieren(): void
+    {
+        // bestehender, geprüfter Begriff wird nicht zurückgestuft
+        $this->post('/admin/import/'.$this->token($this->preview([$this->row()])));
+        $sl = Term::query()->findOrFail(self::INTRANET_ID);
+        $sl->forceFill(['research_basis' => 'human_reviewed'])->save();
+
+        $rows = [
+            $this->row(['Kurzbeschreibung' => 'Führt die Schule.']),
+            $this->row(['ID' => '', 'Abkürzung offiziell' => 'LP', 'Bezeichnung offiziell' => 'Lehrperson']),
+        ];
+        $token = $this->token($this->preview($rows));
+        $this->post("/admin/import/{$token}/pruefen", ['ki' => true])
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('ki', true)
+                ->where('plan.1.aenderungen.Recherche', 'KI-unterstützt')
+                ->missing('plan.0.aenderungen.Recherche'));
+        $this->post("/admin/import/{$token}", ['ki' => true])->assertRedirect('/admin/begriffe');
+
+        $this->assertSame('ai_assisted', Term::query()->where('official_abbreviation', 'LP')->firstOrFail()->research_basis);
+        $this->assertSame('human_reviewed', $sl->refresh()->research_basis);
+    }
+
     public function test_unbekannte_kategorie_ist_fehler_oder_wird_angelegt(): void
     {
         $row = $this->row(['Kategorien' => 'Personal; Recht']);
