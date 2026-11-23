@@ -194,6 +194,8 @@ Inhalte auf dev pflegen und nach test und prod hochladen; «Holen» bringt dev b
 
 1. **Rolle je Umgebung:** `GLOSSARY_SYNC_ROLE=development` (dev), `test` (test), `master` (prod) – oder in der
    Administration › Einstellungen › Betrieb «Rolle im Entwicklungs-Sync».
+   dev braucht dafür `APP_ENV=staging` in `/docker/glossary/.env` (das Image setzt `production`; Entscheid
+   23.11.2026). Sichere Cookies bleiben über `SESSION_SECURE_COOKIE=true` aus `compose.yaml` aktiv.
 2. **Servicekonto auf test und prod** (Administration › Servicekonten, als Developer): Scopes `glossary:sync.read` und
    `glossary:sync.write`, für «direkt veröffentlichen» zusätzlich `glossary:sync.publish`. Token kopieren (nur einmal
    sichtbar).
