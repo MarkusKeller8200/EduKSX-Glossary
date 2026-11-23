@@ -8,10 +8,11 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
-- **Excel-Import prüfen (#505):** Einzelne Zeilen lassen sich abwählen («alle wählen» / «keine»), Bezeichnung und
+- **Excel-Import prüfen (#505, #508):** Einzelne Zeilen lassen sich abwählen («alle wählen» / «keine»), Bezeichnung und
   Inhalt stehen sauber ausgerichtet untereinander. Neue Schalter: «Alle importierbaren Felder anzeigen» (auch leere und
   unveränderte, bei Änderungen mit dem bisherigen Wert), «Detailauswahl» (einzelne Felder nicht importieren) und «Werte
-  überschreiben» (Werte vor dem Import ändern, mit «Erneut prüfen»); alle standardmässig aus.
+  überschreiben» (Wert anklicken und vor dem Import ändern, mit «Erneut prüfen») sowie «Alle als KI-unterstützt
+  recherchiert markieren» (#508, für neue Begriffe ohne Angabe in «Recherche»); alle standardmässig aus.
 - **Icons nur noch aus EduKSX-UI (22.11.2026):** neue Abhängigkeit `@eduksx/ui` (Repo EduKSX-UI, MIT). `public/icon.svg`
   und `public/favicon.svg` erzeugt `scripts/eduksx-icons.mjs` vor `build`/`dev` aus dem Paket (nicht mehr im Repo);
   `GlossaryIcon` nutzt `EduksxIcon`; die Icons der Browser-Erweiterung kommen beim Bauen aus dem Paket; die

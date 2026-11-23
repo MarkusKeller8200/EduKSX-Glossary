@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\ResearchBasis;
 use App\Glossary\ExcelFormat;
 use App\Glossary\GlossaryImporter;
 use App\Glossary\Journal;
@@ -132,6 +133,7 @@ class ExcelController extends Controller
             'datei' => $file->getClientOriginalName(),
             'fehlendeSpalten' => array_values($unknown),
             'auswahl' => null,
+            'ki' => false,
             ...$result,
         ]);
     }
@@ -144,14 +146,16 @@ class ExcelController extends Controller
     {
         $cached = $this->cached($request, $token, false);
         $choice = $this->choice($request);
-        $rows = self::applyChoice($cached['rows'], $choice, false);
+        $ai = $request->boolean('ki');
+        $rows = self::applyChoice($cached['rows'], $choice, false, $ai);
         $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $this->currentUserOrNull($request), $this->official(), dryRun: true);
 
         return Inertia::render('admin/import-preview', [
             'token' => $token,
             'datei' => (string) ($cached['datei'] ?? 'Datei'),
-            'fehlendeSpalten' => (array) ($cached['fehlende'] ?? []),
+            'fehlendeSpalten' => array_values(array_filter((array) ($cached['fehlende'] ?? []), fn (string $c): bool => ! ($ai && $c === 'Recherche'))),
             'auswahl' => $choice === [] ? null : $choice,
+            'ki' => $ai,
             ...$result,
         ]);
     }
@@ -162,7 +166,7 @@ class ExcelController extends Controller
         $choice = $this->choice($request);
         $cached = $this->cached($request, $token, true);
         // Auswahl (#505): abgewählte Zeilen weglassen, abgewählte Felder nicht übernehmen, überschriebene Werte einsetzen
-        $rows = self::applyChoice($cached['rows'], $choice, true);
+        $rows = self::applyChoice($cached['rows'], $choice, true, $request->boolean('ki'));
         $user = $this->currentUserOrNull($request);
         $result = $this->importer->run($rows, (bool) $cached['listen_anlegen'], $user, $this->official(), dryRun: false);
 
@@ -215,6 +219,7 @@ class ExcelController extends Controller
             'zeilen.*.felder_aus.*' => ['string', 'max:100'],
             'zeilen.*.werte' => ['nullable', 'array', 'max:100'],
             'zeilen.*.werte.*' => ['nullable', 'string', 'max:20000'],
+            'ki' => ['nullable', 'boolean'],
         ]);
         $columns = array_flip(array_diff(ExcelFormat::header(), ['ID']));
         $out = [];
@@ -244,13 +249,25 @@ class ExcelController extends Controller
     /**
      * Auswahl auf die Zeilen der Datei anwenden. Abgewählte Spalten fehlen danach in der Zeile: bei bestehenden
      * Begriffen bleibt der Wert, bei neuen bleibt das Feld leer. Die Schlüssel (Zeilennummer − 2) bleiben erhalten.
+     * `$ai` (#508): neue Begriffe ohne Angabe in «Recherche» gelten als «KI-unterstützt» (vor der Auswahl je Zeile,
+     * damit die Detailauswahl es wieder abwählen kann); bestehende Begriffe bleiben, wie sie sind.
      *
      * @param  list<array<string, string>>  $rows
      * @param  array<int, array{aus: bool, felder_aus: list<string>, werte: array<string, string>}>  $choice
      * @return array<int, array<string, string>>
      */
-    public static function applyChoice(array $rows, array $choice, bool $final): array
+    public static function applyChoice(array $rows, array $choice, bool $final, bool $ai = false): array
     {
+        if ($ai) {
+            // nur neue Begriffe: bestehende (womöglich schon geprüfte) werden nicht zurückgestuft
+            $ids = array_values(array_filter(array_map(fn (array $r): string => trim($r['ID'] ?? ''), $rows)));
+            $known = $ids === [] ? [] : array_flip(Term::query()->whereIn('id', array_filter($ids, fn (string $id): bool => Str::isUuid($id)))->pluck('id')->all());
+            foreach ($rows as $n => $row) {
+                if (trim($row['Recherche'] ?? '') === '' && ! isset($known[trim($row['ID'] ?? '')])) {
+                    $rows[$n]['Recherche'] = ResearchBasis::AiAssisted->label();
+                }
+            }
+        }
         foreach ($choice as $line => $c) {
             $n = $line - 2;
             if (! isset($rows[$n])) {

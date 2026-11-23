@@ -76,6 +76,7 @@ export default function ImportPreview({
     listen,
     fehlendeSpalten,
     auswahl,
+    ki,
 }: {
     token: string;
     datei: string;
@@ -86,6 +87,7 @@ export default function ImportPreview({
     listen: { Kategorien: string[]; Herkunft: string[] };
     fehlendeSpalten: string[];
     auswahl: Auswahl | null;
+    ki: boolean;
 }) {
     const [sending, setSending] = useState(false);
     const [alleFelder, setAlleFelder] = useState(false);
@@ -402,7 +404,7 @@ export default function ImportPreview({
                             setSending(true);
                             router.post(
                                 `/admin/import/${token}`,
-                                { zeilen: payload() },
+                                { zeilen: payload(), ki },
                                 { onFinish: () => setSending(false) },
                             );
                         }}
@@ -452,6 +454,25 @@ export default function ImportPreview({
                     onChange={setAlleFelder}
                 />
                 <Schalter
+                    id="ki-markieren"
+                    label="Alle als KI-unterstützt recherchiert markieren"
+                    hinweis="neue Begriffe ohne Angabe in «Recherche»"
+                    checked={ki}
+                    onChange={(v) => {
+                        setSending(true);
+                        router.post(
+                            `/admin/import/${token}/pruefen`,
+                            { zeilen: payload(), ki: v },
+                            {
+                                preserveScroll: true,
+                                preserveState: true,
+                                onSuccess: () => setUngeprueft(false),
+                                onFinish: () => setSending(false),
+                            },
+                        );
+                    }}
+                />
+                <Schalter
                     id="detailauswahl"
                     label="Detailauswahl"
                     hinweis="einzelne Felder nicht importieren"
@@ -491,9 +512,10 @@ export default function ImportPreview({
                                 setSending(true);
                                 router.post(
                                     `/admin/import/${token}/pruefen`,
-                                    { zeilen: payload() },
+                                    { zeilen: payload(), ki },
                                     {
                                         preserveScroll: true,
+                                        preserveState: true,
                                         onSuccess: () => setUngeprueft(false),
                                         onFinish: () => setSending(false),
                                     },
