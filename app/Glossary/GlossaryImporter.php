@@ -54,7 +54,9 @@ final class GlossaryImporter
                         foreach ($this->createMissingLists($data) as $list => $names) {
                             $created[$list] = [...$created[$list], ...$names];
                         }
-                        $term = $id !== '' ? Term::query()->find($id) : null;
+                        // ohne ID (#510): gleicher Begriff über Abkürzung und Bezeichnung, sonst neu
+                        $term = $id !== '' ? Term::query()->find($id) : self::matchExisting($data);
+                        $matched = $id === '' && $term !== null;
                         if ($term?->merged_into_id !== null) {
                             $target = $term->mergeTarget();
                             throw new InvalidArgumentException('Begriff wurde zusammengeführt in «'.($target?->title() ?? '').'» (ID '.($target->id ?? $term->merged_into_id).') – Zeile mit dieser ID anpassen.');
@@ -80,10 +82,10 @@ final class GlossaryImporter
                             $changes = array_filter($changes, fn (string $v): bool => $v !== '');
                         }
 
-                        return [$term === null ? 'neu' : 'geaendert', $changes, $saved->id, array_intersect_key($after, ExcelFormat::normalize($row)), $before];
+                        return [$term === null ? 'neu' : 'geaendert', $changes, $saved->id, array_intersect_key($after, ExcelFormat::normalize($row)), $before, $matched];
                     });
-                    [$art, $changes, $savedId, $values, $previous] = $result;
-                    $messages = [];
+                    [$art, $changes, $savedId, $values, $previous, $matched] = $result;
+                    $messages = $matched ? ['Bestehendem Begriff zugeordnet (gleiche Abkürzung und Bezeichnung).'] : [];
                     if ($art === 'geaendert' && $changes === []) {
                         continue;   // unverändert → nicht anzeigen
                     }
@@ -107,6 +109,37 @@ final class GlossaryImporter
             'fehler' => $count('fehler'),
             'listen' => ['Kategorien' => array_values(array_unique($created['Kategorien'])), 'Herkunft' => array_values(array_unique($created['Herkunft']))],
         ];
+    }
+
+    /**
+     * Bestehender Begriff mit gleicher offizieller Abkürzung und Bezeichnung (#510; Gross/Klein und Leerzeichen egal).
+     * Null, wenn keiner passt oder die Datei beide Spalten nicht hat; mehrere Treffer sind ein Fehler.
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function matchExisting(array $data): ?Term
+    {
+        if (! array_key_exists('official_name', $data) || ! array_key_exists('official_abbreviation', $data)) {
+            return null;
+        }
+        $norm = fn (mixed $v): string => mb_strtolower(trim((string) preg_replace('/\s+/u', ' ', (string) $v)));
+        $name = $norm($data['official_name']);
+        $abbr = $norm($data['official_abbreviation']);
+        if ($name === '' && $abbr === '') {
+            return null;
+        }
+        // Vergleich in PHP (mb_strtolower), da lower() in SQLite nur ASCII kennt; nur die zwei Spalten laden
+        $hits = Term::query()->current()
+            ->get(['id', 'official_name', 'official_abbreviation'])
+            ->filter(fn (Term $t): bool => $norm($t->official_name) === $name && $norm($t->official_abbreviation) === $abbr)
+            ->values();
+        if ($hits->count() > 1) {
+            throw new InvalidArgumentException('Mehrere bestehende Begriffe mit dieser Abkürzung und Bezeichnung – in der Spalte «ID» angeben, welcher gemeint ist.');
+        }
+
+        return $hits->isEmpty() ? null : Term::query()->find($hits->first()->id);
     }
 
     /**
