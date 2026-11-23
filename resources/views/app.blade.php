@@ -38,7 +38,9 @@
             <title>{{ config('app.name', 'EduKSX-Glossary') }}</title>
         </x-inertia::head>
     </head>
-    <body class="font-sans antialiased">
+    {{-- Die Browser-Erweiterung bzw. Einbindung markiert im Glossary selbst nichts (#505): fremde Änderungen am DOM
+         bringen React beim Neuzeichnen zum Absturz (removeChild) – auf jeder Instanz, nicht nur glossary.eduksx.ch --}}
+    <body class="font-sans antialiased" data-glossary-ignore>
         <x-inertia::app />
     </body>
 </html>
