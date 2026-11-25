@@ -65,7 +65,7 @@ jobs:
         if: steps.release.outputs.skip != 'true'
         uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '26'
 
       - name: Erweiterung bauen und anhängen
         if: steps.release.outputs.skip != 'true'
@@ -108,7 +108,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '26'
 
       - uses: actions/download-artifact@v8
         with:
