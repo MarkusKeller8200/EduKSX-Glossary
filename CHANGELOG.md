@@ -9,6 +9,8 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 ### Geändert
 
 - **Stack (#518):** PHP 8.5, CI mit Node 26 und PostgreSQL 18 (EduKSX-Architektur KONZEPT-STACK ST2).
+- **`@eduksx/ui` (#518):** Bezug über das gebaute Paket am Release (`eduksx-ui-0.1.0.tgz`) statt als git-Abhängigkeit;
+  npm 11 (Node 26) führt `prepare` mit `ignore-scripts=true` nicht mehr aus (EduKSX-UI #62).
 
 ### Geändert
 
