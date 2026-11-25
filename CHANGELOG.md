@@ -8,6 +8,10 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Stack (#518):** PHP 8.5, CI mit Node 26 und PostgreSQL 18 (EduKSX-Architektur KONZEPT-STACK ST2).
+
+### Geändert
+
 - **Excel-Import prüfen (#505, #508, #510, #514):** Einzelne Zeilen lassen sich abwählen («alle wählen» / «keine»), Bezeichnung und
   Inhalt stehen sauber ausgerichtet untereinander. Neue Schalter: «Alle importierbaren Felder anzeigen» (auch leere und
   unveränderte, bei Änderungen mit dem bisherigen Wert), «Detailauswahl» (einzelne Felder nicht importieren) und «Werte

@@ -2,7 +2,7 @@
 # Build: Composer + Node bauen Abhängigkeiten und Frontend; Laufzeit: PHP 8.4 + Apache.
 
 # ---------- Build ----------
-FROM php:8.4-cli AS build
+FROM php:8.5-cli AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip \
@@ -32,7 +32,7 @@ RUN composer dump-autoload --no-dev --optimize --classmap-authoritative \
     && rm -rf node_modules tests
 
 # ---------- Laufzeit ----------
-FROM php:8.4-apache AS app
+FROM php:8.5-apache AS app
 
 # zip: Excel-Dateien (.xlsx) für Import/Export; sqlite3: Sicherung der Datenbank (.backup); libpq/pdo_pgsql:
 # PostgreSQL (#191, #357)
