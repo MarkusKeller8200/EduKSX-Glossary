@@ -9,8 +9,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY --from=node:22-bookworm-slim /usr/local/bin/node /usr/local/bin/node
-COPY --from=node:22-bookworm-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=node:26-trixie-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:26-trixie-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
 RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
     && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
 
@@ -42,7 +42,7 @@ FROM php:8.5-apache AS app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libzip-dev libpq-dev sqlite3 \
     && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install opcache zip pdo_pgsql \
+    && docker-php-ext-install zip pdo_pgsql \
     && a2enmod rewrite headers \
     && sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf \
     && printf '%s\n' \
