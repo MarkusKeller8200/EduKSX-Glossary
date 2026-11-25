@@ -50,7 +50,7 @@ lineare_historie = "auto"         # keine Merge-Commits auf dem Standard-Branch;
 
 [sponsoring]
 # Nur bei öffentlichen Repositorys: erzeugt .github/FUNDING.yml und docs/UNTERSTUETZEN.md. Leer = nicht anzeigen.
-github = ""                       # GitHub-Benutzer mit GitHub Sponsors (Profil muss freigeschaltet sein)
+github = "MarkusKeller8200"       # GitHub-Benutzer mit GitHub Sponsors (Profil muss freigeschaltet sein)
 buy_me_a_coffee = ""              # Benutzername bei buymeacoffee.com
 ko_fi = "markussxch"                        # Benutzername bei ko-fi.com
 liberapay = ""                    # Benutzername bei liberapay.com
