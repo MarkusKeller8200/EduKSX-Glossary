@@ -12,8 +12,10 @@ use App\Models\User;
 use App\Organizations\OrganizationService;
 use App\Support\MailLog;
 use App\Support\MailSettings;
+use App\Support\Settings;
 use App\Support\Turnstile;
 use Carbon\CarbonImmutable;
+use EduKSX\Core\Settings\Settings as CoreSettings;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -38,6 +40,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // je Anfrage eine Instanz: Schlüssel des Zwischenspeichers nur einmal berechnen (#137)
         $this->app->scoped(PublicCache::class);
+        // Einstellungen über den Baustein von eduksx/core (#523): Definitionen des Glossary anmelden
+        $this->app->afterResolving(CoreSettings::class, fn (CoreSettings $settings) => Settings::register($settings));
 
         // Mail-Versand aus der Administration (#219): erst übernehmen, wenn Mail gebraucht wird
         $this->app->afterResolving('mail.manager', fn () => MailSettings::apply());

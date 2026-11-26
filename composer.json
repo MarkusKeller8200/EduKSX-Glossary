@@ -13,7 +13,7 @@
     ],
     "require": {
         "php": "^8.5",
-        "eduksx/core": "^0.3.0",
+        "eduksx/core": "^0.4.0",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.17",
         "laravel/mcp": "^1.2",

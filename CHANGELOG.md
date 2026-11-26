@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Einstellungen über eduksx/core 0.4 (#523):** Die Einstellungen laufen über den Baustein von Core (Vorrang
+  Umgebung → Administration → Vorgabe unverändert). Änderungen stehen zusätzlich in der Historie `data_changes`; das
+  Protokoll in der Administration zeigt sie wie bisher. «GitHub-Repository» ist ein Text mit Muster «Besitzer/Repository».
 - **Protokoll nach eduksx/core 0.3 (#521):** Im Image (`LOG_FORMAT=json`) schreibt `stderr` das Format von Core: Zeit
   in UTC, `request_id`, `trace_id` (W3C traceparent), Modul und Version; Personendaten werden maskiert. Befristetes
   Debug je Organisation (`php artisan eduksx:debug`) und Protokollpaket für den Support stehen damit bereit.
