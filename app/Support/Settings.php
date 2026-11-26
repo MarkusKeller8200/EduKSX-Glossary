@@ -4,64 +4,67 @@ namespace App\Support;
 
 use App\Access\Audit;
 use App\Models\User;
-use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Crypt;
+use EduKSX\Core\Settings\Settings as CoreSettings;
+use EduKSX\Core\Settings\SettingSource;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 /**
  * Allgemeine Einstellungen (#106, Entscheid 08.11.2026): Werte, die in der Administration einstellbar sind. Vorgabe
  * aus der Konfiguration bzw. .env; gespeichert werden nur Abweichungen (Tabelle settings). Ändern nur mit Recht
- * «settings» (systemkritisch), jede Änderung im Protokoll. Geheimnisse, Build-Angaben und die Version der
- * Datenschutzerklärung bleiben ausserhalb.
+ * «settings» (systemkritisch). Geheimnisse, Build-Angaben und die Version der Datenschutzerklärung bleiben ausserhalb.
+ *
+ * Seit #523 nutzt das Glossary den Baustein von eduksx/core (`EduKSX\Core\Settings\Settings`, KONZEPT-STACK ST5):
+ * Vorrang Umgebung → Administration → Vorgabe, Historie in `data_changes`. Diese Klasse bleibt die Schnittstelle im
+ * Glossary und schreibt jede Änderung zusätzlich als «settings.changed» ins Audit (Ansicht in der Administration).
  */
 final class Settings
 {
     /**
-     * Schlüssel → Definition (Gruppe, Bezeichnung, Hinweis, Typ, Grenzen).
+     * Schlüssel → Definition (Gruppe, Bezeichnung, Hinweis, Typ, Grenzen) im Format von eduksx/core
+     * (`SettingDefinition`); «Besitzer/Repository» ist ein Text mit Muster (#523).
      *
      * `env`: Variable der Umgebung mit Vorrang – ist sie gesetzt, ist die Einstellung in der Administration gesperrt (#366).
      * Typ `secret`: verschlüsselt gespeichert (APP_KEY), nie angezeigt; setzen nur über setSecret().
      *
-     * @var array<string, array{gruppe: string, label: string, hinweis: string, typ: 'int'|'bool'|'repo'|'url'|'choice'|'secret'|'text'|'email', min?: int, max?: int, einheit?: string, optionen?: array<string, string>, env?: string}>
+     * @var array<string, array{group: string, label: string, hint: string, type: 'int'|'bool'|'url'|'choice'|'secret'|'text'|'email', min?: int, max?: int, unit?: string, options?: array<string, string>, env?: string, pattern?: string, pattern_hint?: string}>
      */
     public const DEFINITIONS = [
-        'retention.inactive_months' => ['gruppe' => 'Löschfristen', 'label' => 'Inaktive Community-Konten löschen nach', 'hinweis' => 'Ohne Anmeldung; vorher kommt ein Hinweis per Mail.', 'typ' => 'int', 'min' => 6, 'max' => 60, 'einheit' => 'Monaten'],
-        'retention.notice_days' => ['gruppe' => 'Löschfristen', 'label' => 'Hinweis vor der Löschung', 'hinweis' => 'Tage zwischen Hinweis und Löschung.', 'typ' => 'int', 'min' => 7, 'max' => 90, 'einheit' => 'Tage'],
-        'retention.audit_years' => ['gruppe' => 'Löschfristen', 'label' => 'Audit-Protokoll aufbewahren', 'hinweis' => 'Danach werden Einträge gelöscht.', 'typ' => 'int', 'min' => 1, 'max' => 10, 'einheit' => 'Jahre'],
-        'retention.proposal_months' => ['gruppe' => 'Löschfristen', 'label' => 'Vorschläge mit Personenbezug', 'hinweis' => 'Nach Abschluss; danach ohne Personenbezug («Community»).', 'typ' => 'int', 'min' => 6, 'max' => 60, 'einheit' => 'Monate'],
-        'source_check.months' => ['gruppe' => 'Quellenprüfung', 'label' => 'Wiedervorlage der Herkunft nach', 'hinweis' => 'Seite «Prüfung»: Herkunft nie oder vor dieser Zeit geprüft.', 'typ' => 'int', 'min' => 1, 'max' => 60, 'einheit' => 'Monaten'],
-        'registration.open' => ['gruppe' => 'Konten', 'label' => 'Registrierung offen', 'hinweis' => 'Neue Konten selbst anlegen (mit E-Mail oder Microsoft). Wirkt nur mit eingerichtetem Versand (Systemseite); «Passwort vergessen» und Einladungen gehen unabhängig davon.', 'typ' => 'bool'],
-        'publish.four_eyes' => ['gruppe' => 'Freigabe', 'label' => 'Vier-Augen-Prinzip', 'hinweis' => 'Freigeben nicht durch die Person der letzten Änderung. Gilt für «Veröffentlichen»; Zusammenführen und Wiederherstellen sind ausgenommen.', 'typ' => 'bool'],
-        'privacy.draft_notice' => ['gruppe' => 'Hinweise und Links', 'label' => 'Hinweis «Datenschutzerklärung im Entwurf»', 'hinweis' => 'Auf /datenschutz, bis die Erklärung juristisch geprüft ist (#66).', 'typ' => 'bool'],
-        'links.github_repo' => ['gruppe' => 'Hinweise und Links', 'label' => 'GitHub-Repository für «Fehler melden»', 'hinweis' => 'Form «Besitzer/Repository»; leer blendet den Link aus.', 'typ' => 'repo'],
-        'updates.check' => ['gruppe' => 'Updates', 'label' => 'Auf neue Versionen prüfen', 'hinweis' => 'Fragt höchstens täglich die öffentlichen Releases auf GitHub ab (nur die Versionsnummer, keine Daten dieser Installation) und zeigt einen Hinweis in der Administration.', 'typ' => 'bool'],
-        'updates.policy' => ['gruppe' => 'Updates', 'label' => 'Automatische Updates', 'hinweis' => 'Nur mit eingerichtetem Update-Dienst. «Nur Korrekturen» spielt X.Y.Z mit gleicher Haupt- und Nebenversion ein; neue Funktionen nie automatisch über eine Hauptversion.', 'typ' => 'choice', 'optionen' => ['aus' => 'aus', 'korrektur' => 'nur Korrekturen', 'funktion' => 'Korrekturen und neue Funktionen']],
-        'updates.window' => ['gruppe' => 'Updates', 'label' => 'Zeitfenster für automatische Updates', 'hinweis' => 'Stunde, ab der automatische Updates laufen dürfen (Ortszeit), z. B. 3 für 03:00–04:00.', 'typ' => 'int', 'min' => 0, 'max' => 23, 'einheit' => 'Uhr'],
-        'links.source_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Quellcode der laufenden Version', 'hinweis' => 'Link «Quellcode (AGPL-3.0)» in der Fusszeile; wer den Code ändert, verweist auf das eigene Repository. Mit https://.', 'typ' => 'url', 'env' => 'GLOSSARY_SOURCE_URL'],
-        'dump.require_password' => ['gruppe' => 'Betrieb', 'label' => 'Vollständige Dumps nur mit Passwort', 'hinweis' => 'Administration › System und glossary:dump verlangen ein Passwort (AES-256).', 'typ' => 'bool', 'env' => 'GLOSSARY_DUMP_REQUIRE_PASSWORD'],
-        'metrics.token' => ['gruppe' => 'Betrieb', 'label' => 'Token für die Metriken (/metrics)', 'hinweis' => 'Prometheus ruft /metrics mit «Authorization: Bearer <Token>» ab. Ohne Token sind die Metriken aus.', 'typ' => 'secret', 'env' => 'GLOSSARY_METRICS_TOKEN'],
-        'links.pages_url' => ['gruppe' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hinweis' => 'Mit https://; leer blendet den Link aus.', 'typ' => 'url'],
+        'retention.inactive_months' => ['group' => 'Löschfristen', 'label' => 'Inaktive Community-Konten löschen nach', 'hint' => 'Ohne Anmeldung; vorher kommt ein Hinweis per Mail.', 'type' => 'int', 'min' => 6, 'max' => 60, 'unit' => 'Monaten'],
+        'retention.notice_days' => ['group' => 'Löschfristen', 'label' => 'Hinweis vor der Löschung', 'hint' => 'Tage zwischen Hinweis und Löschung.', 'type' => 'int', 'min' => 7, 'max' => 90, 'unit' => 'Tage'],
+        'retention.audit_years' => ['group' => 'Löschfristen', 'label' => 'Audit-Protokoll aufbewahren', 'hint' => 'Danach werden Einträge gelöscht.', 'type' => 'int', 'min' => 1, 'max' => 10, 'unit' => 'Jahre'],
+        'retention.proposal_months' => ['group' => 'Löschfristen', 'label' => 'Vorschläge mit Personenbezug', 'hint' => 'Nach Abschluss; danach ohne Personenbezug («Community»).', 'type' => 'int', 'min' => 6, 'max' => 60, 'unit' => 'Monate'],
+        'source_check.months' => ['group' => 'Quellenprüfung', 'label' => 'Wiedervorlage der Herkunft nach', 'hint' => 'Seite «Prüfung»: Herkunft nie oder vor dieser Zeit geprüft.', 'type' => 'int', 'min' => 1, 'max' => 60, 'unit' => 'Monaten'],
+        'registration.open' => ['group' => 'Konten', 'label' => 'Registrierung offen', 'hint' => 'Neue Konten selbst anlegen (mit E-Mail oder Microsoft). Wirkt nur mit eingerichtetem Versand (Systemseite); «Passwort vergessen» und Einladungen gehen unabhängig davon.', 'type' => 'bool'],
+        'publish.four_eyes' => ['group' => 'Freigabe', 'label' => 'Vier-Augen-Prinzip', 'hint' => 'Freigeben nicht durch die Person der letzten Änderung. Gilt für «Veröffentlichen»; Zusammenführen und Wiederherstellen sind ausgenommen.', 'type' => 'bool'],
+        'privacy.draft_notice' => ['group' => 'Hinweise und Links', 'label' => 'Hinweis «Datenschutzerklärung im Entwurf»', 'hint' => 'Auf /datenschutz, bis die Erklärung juristisch geprüft ist (#66).', 'type' => 'bool'],
+        'links.github_repo' => ['group' => 'Hinweise und Links', 'label' => 'GitHub-Repository für «Fehler melden»', 'hint' => 'Form «Besitzer/Repository»; leer blendet den Link aus.', 'type' => 'text', 'max' => 200, 'pattern' => self::REPO_PATTERN, 'pattern_hint' => 'Form «Besitzer/Repository».'],
+        'updates.check' => ['group' => 'Updates', 'label' => 'Auf neue Versionen prüfen', 'hint' => 'Fragt höchstens täglich die öffentlichen Releases auf GitHub ab (nur die Versionsnummer, keine Daten dieser Installation) und zeigt einen Hinweis in der Administration.', 'type' => 'bool'],
+        'updates.policy' => ['group' => 'Updates', 'label' => 'Automatische Updates', 'hint' => 'Nur mit eingerichtetem Update-Dienst. «Nur Korrekturen» spielt X.Y.Z mit gleicher Haupt- und Nebenversion ein; neue Funktionen nie automatisch über eine Hauptversion.', 'type' => 'choice', 'options' => ['aus' => 'aus', 'korrektur' => 'nur Korrekturen', 'funktion' => 'Korrekturen und neue Funktionen']],
+        'updates.window' => ['group' => 'Updates', 'label' => 'Zeitfenster für automatische Updates', 'hint' => 'Stunde, ab der automatische Updates laufen dürfen (Ortszeit), z. B. 3 für 03:00–04:00.', 'type' => 'int', 'min' => 0, 'max' => 23, 'unit' => 'Uhr'],
+        'links.source_url' => ['group' => 'Hinweise und Links', 'label' => 'Quellcode der laufenden Version', 'hint' => 'Link «Quellcode (AGPL-3.0)» in der Fusszeile; wer den Code ändert, verweist auf das eigene Repository. Mit https://.', 'type' => 'url', 'env' => 'GLOSSARY_SOURCE_URL'],
+        'dump.require_password' => ['group' => 'Betrieb', 'label' => 'Vollständige Dumps nur mit Passwort', 'hint' => 'Administration › System und glossary:dump verlangen ein Passwort (AES-256).', 'type' => 'bool', 'env' => 'GLOSSARY_DUMP_REQUIRE_PASSWORD'],
+        'metrics.token' => ['group' => 'Betrieb', 'label' => 'Token für die Metriken (/metrics)', 'hint' => 'Prometheus ruft /metrics mit «Authorization: Bearer <Token>» ab. Ohne Token sind die Metriken aus.', 'type' => 'secret', 'env' => 'GLOSSARY_METRICS_TOKEN'],
+        'links.pages_url' => ['group' => 'Hinweise und Links', 'label' => 'Adresse der Lesefassung (GitHub Pages)', 'hint' => 'Mit https://; leer blendet den Link aus.', 'type' => 'url'],
         // Entwicklungs-Sync (#478, DEC-041 A12): Rolle dieser Instanz
-        'sync.role' => ['gruppe' => 'Betrieb', 'label' => 'Rolle im Entwicklungs-Sync', 'hinweis' => '«Master» = öffentliches Glossary (prod), «Test» = Testumgebung, «Entwicklung» = dev (nicht mit APP_ENV=production), «Instanz» = selbst gehostet ohne Entwicklungs-Sync.', 'typ' => 'choice', 'optionen' => ['instance' => 'Instanz', 'master' => 'Master', 'test' => 'Test', 'development' => 'Entwicklung'], 'env' => 'GLOSSARY_SYNC_ROLE'],
+        'sync.role' => ['group' => 'Betrieb', 'label' => 'Rolle im Entwicklungs-Sync', 'hint' => '«Master» = öffentliches Glossary (prod), «Test» = Testumgebung, «Entwicklung» = dev (nicht mit APP_ENV=production), «Instanz» = selbst gehostet ohne Entwicklungs-Sync.', 'type' => 'choice', 'options' => ['instance' => 'Instanz', 'master' => 'Master', 'test' => 'Test', 'development' => 'Entwicklung'], 'env' => 'GLOSSARY_SYNC_ROLE'],
         // MCP-Server (#261, DEC-029 O2): öffentlich lesen für KI-Assistenten unter /mcp
-        'mcp.enabled' => ['gruppe' => 'Schnittstellen', 'label' => 'MCP-Server für KI-Assistenten', 'hinweis' => 'Assistenten wie Claude, ChatGPT, Copilot oder Rovo lesen veröffentlichte Begriffe unter /mcp (ohne Anmeldung, 60 Anfragen pro Minute und IP-Adresse). Eingaben werden nicht gespeichert.', 'typ' => 'bool', 'env' => 'GLOSSARY_MCP'],
+        'mcp.enabled' => ['group' => 'Schnittstellen', 'label' => 'MCP-Server für KI-Assistenten', 'hint' => 'Assistenten wie Claude, ChatGPT, Copilot oder Rovo lesen veröffentlichte Begriffe unter /mcp (ohne Anmeldung, 60 Anfragen pro Minute und IP-Adresse). Eingaben werden nicht gespeichert.', 'type' => 'bool', 'env' => 'GLOSSARY_MCP'],
         // Melden aus Erweiterung und Einbindung (#480, DEC-042 M4, M7)
-        'candidates.anonymous' => ['gruppe' => 'Melden', 'label' => 'Anonymes Melden aus Erweiterung und Einbindung', 'hinweis' => 'Killswitch: aus = nur angemeldete Personen melden fehlende Begriffe bzw. falsche Erklärungen. Alles landet zuerst bei der Redaktion (Kandidaten).', 'typ' => 'bool'],
-        'candidates.blocklist' => ['gruppe' => 'Melden', 'label' => 'Gesperrte Wörter', 'hinweis' => 'Mit Komma getrennt; solche Meldungen werden ohne Fehlermeldung verworfen.', 'typ' => 'text', 'max' => 2000],
-        'candidates.origins' => ['gruppe' => 'Melden', 'label' => 'Webseiten mit Einbindung, die melden dürfen', 'hinweis' => 'Ursprünge mit https://, mit Komma getrennt (z. B. https://www.schule.ch). Die Browser-Erweiterung darf immer.', 'typ' => 'text', 'max' => 2000],
+        'candidates.anonymous' => ['group' => 'Melden', 'label' => 'Anonymes Melden aus Erweiterung und Einbindung', 'hint' => 'Killswitch: aus = nur angemeldete Personen melden fehlende Begriffe bzw. falsche Erklärungen. Alles landet zuerst bei der Redaktion (Kandidaten).', 'type' => 'bool'],
+        'candidates.blocklist' => ['group' => 'Melden', 'label' => 'Gesperrte Wörter', 'hint' => 'Mit Komma getrennt; solche Meldungen werden ohne Fehlermeldung verworfen.', 'type' => 'text', 'max' => 2000],
+        'candidates.origins' => ['group' => 'Melden', 'label' => 'Webseiten mit Einbindung, die melden dürfen', 'hint' => 'Ursprünge mit https://, mit Komma getrennt (z. B. https://www.schule.ch). Die Browser-Erweiterung darf immer.', 'type' => 'text', 'max' => 2000],
         // Impressum (#411): je Instanz; leer zeigt die Seite einen Hinweis für die Betreiber
-        'imprint.operator' => ['gruppe' => 'Impressum', 'label' => 'Betreiber', 'hinweis' => 'Name der Person oder Organisation, die diese Instanz betreibt, z. B. «Muster Schule, Schulverwaltung».', 'typ' => 'text', 'max' => 150, 'env' => 'GLOSSARY_IMPRESSUM_BETREIBER'],
-        'imprint.address' => ['gruppe' => 'Impressum', 'label' => 'Postadresse', 'hinweis' => 'Strasse, PLZ und Ort.', 'typ' => 'text', 'max' => 200, 'env' => 'GLOSSARY_IMPRESSUM_ADRESSE'],
-        'imprint.email' => ['gruppe' => 'Impressum', 'label' => 'Kontakt (E-Mail)', 'hinweis' => 'Allgemeine Anfragen.', 'typ' => 'email', 'env' => 'GLOSSARY_IMPRESSUM_EMAIL'],
-        'imprint.privacy_email' => ['gruppe' => 'Impressum', 'label' => 'Kontakt Datenschutz (E-Mail)', 'hinweis' => 'Anfragen zu Personendaten; leer = Kontakt oben.', 'typ' => 'email', 'env' => 'GLOSSARY_IMPRESSUM_DATENSCHUTZ'],
-        'imprint.register' => ['gruppe' => 'Impressum', 'label' => 'Handelsregister / UID', 'hinweis' => 'Leer, wenn keine vorhanden.', 'typ' => 'text', 'max' => 100, 'env' => 'GLOSSARY_IMPRESSUM_UID'],
-        'imprint.content' => ['gruppe' => 'Impressum', 'label' => 'Verantwortlich für den Inhalt', 'hinweis' => 'Z. B. «Die Community des Glossary; verantwortlich für die Veröffentlichung: …».', 'typ' => 'text', 'max' => 300, 'env' => 'GLOSSARY_IMPRESSUM_INHALT'],
+        'imprint.operator' => ['group' => 'Impressum', 'label' => 'Betreiber', 'hint' => 'Name der Person oder Organisation, die diese Instanz betreibt, z. B. «Muster Schule, Schulverwaltung».', 'type' => 'text', 'max' => 150, 'env' => 'GLOSSARY_IMPRESSUM_BETREIBER'],
+        'imprint.address' => ['group' => 'Impressum', 'label' => 'Postadresse', 'hint' => 'Strasse, PLZ und Ort.', 'type' => 'text', 'max' => 200, 'env' => 'GLOSSARY_IMPRESSUM_ADRESSE'],
+        'imprint.email' => ['group' => 'Impressum', 'label' => 'Kontakt (E-Mail)', 'hint' => 'Allgemeine Anfragen.', 'type' => 'email', 'env' => 'GLOSSARY_IMPRESSUM_EMAIL'],
+        'imprint.privacy_email' => ['group' => 'Impressum', 'label' => 'Kontakt Datenschutz (E-Mail)', 'hint' => 'Anfragen zu Personendaten; leer = Kontakt oben.', 'type' => 'email', 'env' => 'GLOSSARY_IMPRESSUM_DATENSCHUTZ'],
+        'imprint.register' => ['group' => 'Impressum', 'label' => 'Handelsregister / UID', 'hint' => 'Leer, wenn keine vorhanden.', 'type' => 'text', 'max' => 100, 'env' => 'GLOSSARY_IMPRESSUM_UID'],
+        'imprint.content' => ['group' => 'Impressum', 'label' => 'Verantwortlich für den Inhalt', 'hint' => 'Z. B. «Die Community des Glossary; verantwortlich für die Veröffentlichung: …».', 'type' => 'text', 'max' => 300, 'env' => 'GLOSSARY_IMPRESSUM_INHALT'],
     ];
 
-    /** Zwischenspeicher je Anwendungsinstanz (pro Anfrage bzw. Test frisch). */
-    private const BINDING = 'glossary.settings.stored';
+    /** Muster für «Besitzer/Repository» (GitHub). */
+    public const REPO_PATTERN = '#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#';
 
     /** Vorgabe aus Konfiguration bzw. .env. */
     public static function default(string $key): mixed
@@ -98,46 +101,43 @@ final class Settings
         };
     }
 
+    /** Definitionen beim Core-Baustein anmelden (AppServiceProvider); Vorgaben bleiben dynamisch (Konfiguration). */
+    public static function register(CoreSettings $settings): void
+    {
+        foreach (self::DEFINITIONS as $key => $definition) {
+            $settings->define($key, $definition + ['default' => fn (): mixed => self::default($key)]);
+        }
+    }
+
     public static function get(string $key): mixed
     {
-        if (self::locked($key) !== null) {
-            return self::default($key);   // Umgebung hat Vorrang
-        }
-        $stored = self::stored();
-        if (! array_key_exists($key, $stored)) {
+        self::known($key);
+        // gesperrt: Wert wie bisher aus der Konfiguration (liest dieselbe Umgebungsvariable, auch bei config:cache)
+        if (self::core()->locked($key) !== null) {
             return self::default($key);
         }
-        if ((self::DEFINITIONS[$key]['typ'] ?? null) === 'secret') {
-            try {
-                return Crypt::decryptString((string) $stored[$key]);
-            } catch (DecryptException) {
-                return '';   // anderer APP_KEY: neu setzen
-            }
-        }
 
-        return $stored[$key];
+        return self::core()->get($key);
     }
 
     /** Name der Umgebungsvariable, wenn sie gesetzt ist und die Einstellung sperrt; sonst null (#366). */
     public static function locked(string $key): ?string
     {
-        $env = self::DEFINITIONS[$key]['env'] ?? null;
-        if ($env === null) {
-            return null;
-        }
-        $value = getenv($env);
+        self::known($key);
 
-        return $value !== false && $value !== '' ? $env : null;
+        return self::core()->locked($key);
     }
 
     /** Herkunft des geltenden Werts: Umgebung, Administration oder Vorgabe (#366). */
     public static function source(string $key): string
     {
-        if (self::locked($key) !== null) {
-            return 'Umgebung';
-        }
+        self::known($key);
 
-        return array_key_exists($key, self::stored()) ? 'Administration' : 'Vorgabe';
+        return match (self::core()->source($key)) {
+            SettingSource::Environment => 'Umgebung',
+            SettingSource::Administration => 'Administration',
+            SettingSource::Default => 'Vorgabe',
+        };
     }
 
     /**
@@ -145,26 +145,19 @@ final class Settings
      */
     public static function setSecret(User $actor, string $key, ?string $value): void
     {
-        if ((self::DEFINITIONS[$key]['typ'] ?? null) !== 'secret') {
+        if ((self::DEFINITIONS[$key]['type'] ?? null) !== 'secret') {
             throw new InvalidArgumentException("Unbekanntes Geheimnis «{$key}».");
         }
         if (self::locked($key) !== null) {
             throw new InvalidArgumentException('Wird in der Umgebung gesetzt ('.self::locked($key).').');
         }
-        $had = array_key_exists($key, self::stored());
+        $had = self::core()->source($key) === SettingSource::Administration;
         DB::transaction(function () use ($actor, $key, $value, $had): void {
-            if ($value === null || $value === '') {
-                DB::table('settings')->where('key', $key)->delete();
-            } else {
-                DB::table('settings')->updateOrInsert(['key' => $key], [
-                    'value' => json_encode(Crypt::encryptString($value)), 'updated_by_id' => $actor->id, 'updated_at' => now(),
-                ]);
-            }
+            self::core()->setSecret($key, $value, $actor->id);
             Audit::log($actor, null, 'settings.changed', [
                 'key' => $key, 'old' => $had ? 'gesetzt' : '–', 'new' => $value === null || $value === '' ? 'entfernt' : ($had ? 'erneuert' : 'gesetzt'),
             ]);
         });
-        self::flush();
     }
 
     public static function int(string $key): int
@@ -184,140 +177,50 @@ final class Settings
 
     /**
      * Mehrere Werte setzen (gleich der Vorgabe = Eintrag entfernen). Ungültige Werte → Ausnahme, nichts gespeichert.
+     * Geheimnisse nur über setSecret(); gesperrte Werte kommen aus der Umgebung und werden übergangen.
      *
      * @param  array<string, mixed>  $values
      * @return list<string> geänderte Schlüssel
      */
     public static function set(User $actor, array $values): array
     {
-        $clean = [];
-        foreach ($values as $key => $value) {
-            if (! isset(self::DEFINITIONS[$key])) {
-                throw new InvalidArgumentException("Unbekannte Einstellung «{$key}».");
-            }
-            // Geheimnisse nur über setSecret(); gesperrte Werte kommen aus der Umgebung
-            if (self::DEFINITIONS[$key]['typ'] === 'secret' || self::locked($key) !== null) {
-                continue;
-            }
-            $clean[$key] = self::validate($key, $value);
-            // Rolle «Entwicklung» nie in production (#478, DEC-041 A12)
-            if ($key === 'sync.role' && $clean[$key] === 'development' && app()->environment('production')) {
-                throw new InvalidArgumentException('«Entwicklung» ist mit APP_ENV=production nicht erlaubt.');
-            }
+        foreach (array_keys($values) as $key) {
+            self::known($key);
         }
-        $changed = [];
-        DB::transaction(function () use ($actor, $clean, &$changed): void {
-            foreach ($clean as $key => $value) {
-                $old = self::get($key);
-                if ($old === $value) {
-                    continue;
-                }
-                if ($value === self::default($key)) {
-                    DB::table('settings')->where('key', $key)->delete();
-                } else {
-                    DB::table('settings')->updateOrInsert(['key' => $key], [
-                        'value' => json_encode($value), 'updated_by_id' => $actor->id, 'updated_at' => now(),
-                    ]);
-                }
-                Audit::log($actor, null, 'settings.changed', ['key' => $key, 'old' => $old, 'new' => $value]);
-                $changed[] = $key;
-            }
-        });
-        self::flush();
+        // Rolle «Entwicklung» nie in production (#478, DEC-041 A12)
+        if (($values['sync.role'] ?? null) === 'development' && self::locked('sync.role') === null && app()->environment('production')) {
+            throw new InvalidArgumentException('«Entwicklung» ist mit APP_ENV=production nicht erlaubt.');
+        }
 
-        return $changed;
+        return DB::transaction(function () use ($actor, $values): array {
+            $old = [];
+            foreach (array_keys($values) as $key) {
+                $old[$key] = self::DEFINITIONS[$key]['type'] === 'secret' ? null : self::get($key);
+            }
+            $changed = self::core()->set($values, $actor->id);
+            foreach ($changed as $key) {
+                Audit::log($actor, null, 'settings.changed', ['key' => $key, 'old' => $old[$key], 'new' => self::get($key)]);
+            }
+
+            return $changed;
+        });
     }
 
     /** Zwischenspeicher leeren (Tests, nach Änderungen). */
     public static function flush(): void
     {
-        app()->forgetInstance(self::BINDING);
+        self::core()->flush();
     }
 
-    private static function validate(string $key, mixed $value): mixed
+    private static function core(): CoreSettings
     {
-        $def = self::definition($key);
-        $label = (string) $def['label'];
-        $min = (int) ($def['min'] ?? 0);
-        $max = (int) ($def['max'] ?? PHP_INT_MAX);
-
-        return match ((string) $def['typ']) {
-            'int' => (function () use ($label, $min, $max, $value): int {
-                if (! is_numeric($value) || (int) $value != $value || (int) $value < $min || (int) $value > $max) {
-                    throw new InvalidArgumentException("«{$label}»: ganze Zahl von {$min} bis {$max}.");
-                }
-
-                return (int) $value;
-            })(),
-            'bool' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
-            'repo' => (function () use ($label, $value): string {
-                $v = trim((string) $value);
-                if ($v !== '' && preg_match('#^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$#', $v) !== 1) {
-                    throw new InvalidArgumentException("«{$label}»: Form «Besitzer/Repository».");
-                }
-
-                return $v;
-            })(),
-            'choice' => (function () use ($label, $value, $def): string {
-                $v = (string) $value;
-                /** @var array<string, string> $options */
-                $options = $def['optionen'] ?? [];
-                if (! array_key_exists($v, $options)) {
-                    throw new InvalidArgumentException("«{$label}»: ungültige Auswahl.");
-                }
-
-                return $v;
-            })(),
-            'text' => (function () use ($label, $value, $def): string {
-                $v = trim((string) $value);
-                if (mb_strlen($v) > (int) ($def['max'] ?? 200)) {
-                    throw new InvalidArgumentException("«{$label}»: höchstens ".(int) ($def['max'] ?? 200).' Zeichen.');
-                }
-
-                return $v;
-            })(),
-            'email' => (function () use ($label, $value): string {
-                $v = trim((string) $value);
-                if ($v !== '' && filter_var($v, FILTER_VALIDATE_EMAIL) === false) {
-                    throw new InvalidArgumentException("«{$label}»: gültige E-Mail-Adresse angeben.");
-                }
-
-                return $v;
-            })(),
-            'url' => (function () use ($label, $value): string {
-                $v = trim((string) $value);
-                if ($v !== '' && preg_match('#^https://\S+$#i', $v) !== 1) {
-                    throw new InvalidArgumentException("«{$label}»: Adresse mit https://.");
-                }
-
-                return $v;
-            })(),
-            default => throw new InvalidArgumentException("Unbekannter Typ der Einstellung «{$key}»."),
-        };
+        return app(CoreSettings::class);
     }
 
-    /** @return array<string, mixed> */
-    private static function definition(string $key): array
+    private static function known(string $key): void
     {
-        return self::DEFINITIONS[$key];
-    }
-
-    /** @return array<string, mixed> */
-    private static function stored(): array
-    {
-        if (app()->bound(self::BINDING)) {
-            /** @var array<string, mixed> */
-            return app(self::BINDING);
+        if (! isset(self::DEFINITIONS[$key])) {
+            throw new InvalidArgumentException("Unbekannte Einstellung «{$key}».");
         }
-        // vor der Migration (z. B. erster Start) gelten die Vorgaben – ohne Schema-Abfrage bei jeder Anfrage (#137)
-        try {
-            $stored = DB::table('settings')->pluck('value', 'key')
-                ->map(fn (mixed $v): mixed => json_decode((string) $v, true))->all();
-        } catch (QueryException) {
-            return [];
-        }
-        app()->instance(self::BINDING, $stored);
-
-        return $stored;
     }
 }

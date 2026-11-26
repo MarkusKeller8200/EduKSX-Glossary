@@ -11,22 +11,16 @@ type Wert = number | boolean | string;
 
 type Einstellung = {
     key: string;
-    gruppe: string;
+    group: string;
     label: string;
-    hinweis: string;
-    typ:
-        | 'int'
-        | 'bool'
-        | 'repo'
-        | 'url'
-        | 'choice'
-        | 'secret'
-        | 'text'
-        | 'email';
-    optionen?: Record<string, string>;
+    hint: string;
+    type: 'int' | 'bool' | 'url' | 'choice' | 'secret' | 'text' | 'email';
+    options?: Record<string, string>;
     min?: number;
     max?: number;
-    einheit?: string;
+    unit?: string;
+    pattern?: string;
+    pattern_hint?: string;
     wert: Wert;
     vorgabe: Wert;
     gesetzt: boolean | null;
@@ -78,7 +72,7 @@ export default function Settings({
     const form = useForm<{ werte: Record<string, Wert> }>({
         werte: Object.fromEntries(
             einstellungen
-                .filter((e) => e.typ !== 'secret' && e.gesperrt === null)
+                .filter((e) => e.type !== 'secret' && e.gesperrt === null)
                 .map((e) => [e.key, e.wert]),
         ),
     });
@@ -89,7 +83,7 @@ export default function Settings({
         e.preventDefault();
         form.put('/admin/einstellungen', { preserveScroll: true });
     };
-    const gruppen = [...new Set(einstellungen.map((e) => e.gruppe))];
+    const gruppen = [...new Set(einstellungen.map((e) => e.group))];
     const labels = Object.fromEntries(
         einstellungen.map((e) => [e.key, e.label]),
     );
@@ -116,7 +110,7 @@ export default function Settings({
                             {g}
                         </legend>
                         {einstellungen
-                            .filter((e) => e.gruppe === g)
+                            .filter((e) => e.group === g)
                             .map((e) => (
                                 <Feld
                                     key={e.key}
@@ -262,18 +256,18 @@ function Feld({
                     {herkunft}
                 </span>
                 <p className="text-sm">
-                    {e.typ === 'secret' ? 'gesetzt' : text(e.wert)}
+                    {e.type === 'secret' ? 'gesetzt' : text(e.wert)}
                 </p>
                 <p className="text-xs text-muted-foreground">
                     Aus der Umgebung (<code>{e.gesperrt}</code>) – ändern in der{' '}
                     <code>.env</code> des Servers, danach{' '}
-                    <code>docker compose up -d</code>. {e.hinweis}
+                    <code>docker compose up -d</code>. {e.hint}
                 </p>
             </div>
         );
     }
 
-    if (e.typ === 'secret') {
+    if (e.type === 'secret') {
         const senden = (aktion: 'erzeugen' | 'entfernen') =>
             router.post(
                 `/admin/einstellungen/geheim/${e.key}`,
@@ -319,18 +313,18 @@ function Feld({
                         </Button>
                     ) : null}
                 </div>
-                <p className="text-xs text-muted-foreground">{e.hinweis}</p>
+                <p className="text-xs text-muted-foreground">{e.hint}</p>
             </div>
         );
     }
     const hint = (
         <p id={`${id}-hint`} className="text-xs text-muted-foreground">
-            {e.hinweis} Vorgabe: {text(e.vorgabe)}
-            {e.einheit && e.typ === 'int' ? ` ${e.einheit}` : ''}.
+            {e.hint} Vorgabe: {text(e.vorgabe)}
+            {e.unit && e.type === 'int' ? ` ${e.unit}` : ''}.
         </p>
     );
 
-    if (e.typ === 'bool') {
+    if (e.type === 'bool') {
         return (
             <div className="grid gap-1">
                 <label htmlFor={id} className="flex items-center gap-3 text-sm">
@@ -348,7 +342,7 @@ function Feld({
         );
     }
 
-    if (e.typ === 'choice') {
+    if (e.type === 'choice') {
         return (
             <div className="grid gap-1">
                 <Label htmlFor={id}>
@@ -362,7 +356,7 @@ function Feld({
                     value={String(wert)}
                     onChange={(ev) => onChange(ev.target.value)}
                 >
-                    {Object.entries(e.optionen ?? {}).map(([k, l]) => (
+                    {Object.entries(e.options ?? {}).map(([k, l]) => (
                         <option key={k} value={k}>
                             {l}
                         </option>
@@ -383,28 +377,28 @@ function Feld({
                 <Input
                     id={id}
                     type={
-                        e.typ === 'int'
+                        e.type === 'int'
                             ? 'number'
-                            : e.typ === 'email'
+                            : e.type === 'email'
                               ? 'email'
                               : 'text'
                     }
                     min={e.min}
                     max={e.max}
-                    className={e.typ === 'int' ? 'w-28' : 'max-w-md'}
+                    className={e.type === 'int' ? 'w-28' : 'max-w-md'}
                     aria-describedby={`${id}-hint`}
                     value={String(wert)}
                     onChange={(ev) =>
                         onChange(
-                            e.typ === 'int'
+                            e.type === 'int'
                                 ? Number(ev.target.value)
                                 : ev.target.value,
                         )
                     }
                 />
-                {e.einheit ? (
+                {e.unit ? (
                     <span className="text-sm text-muted-foreground">
-                        {e.einheit}
+                        {e.unit}
                     </span>
                 ) : null}
             </div>

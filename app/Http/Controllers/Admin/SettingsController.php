@@ -22,7 +22,7 @@ class SettingsController extends Controller
     {
         $items = [];
         foreach (Settings::DEFINITIONS as $key => $def) {
-            $secret = $def['typ'] === 'secret';
+            $secret = $def['type'] === 'secret';
             $items[] = $def + [
                 'key' => $key,
                 // Geheimnisse nie ausgeben, nur ob gesetzt
