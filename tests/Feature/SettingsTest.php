@@ -82,13 +82,13 @@ class SettingsTest extends TestCase
     public function test_core_baustein_mit_historie_und_audit(): void
     {
         $dev = $this->developer();
-        $this->assertSame(['links.github_repo'], Settings::set($dev, ['links.github_repo' => ' MarkusKeller8200/EduKSX-Glossary ']));
-        $this->assertSame('MarkusKeller8200/EduKSX-Glossary', Settings::string('links.github_repo'));
+        $this->assertSame(['links.github_repo'], Settings::set($dev, ['links.github_repo' => ' beispiel-schule/glossary ']));
+        $this->assertSame('beispiel-schule/glossary', Settings::string('links.github_repo'));
         $this->assertSame('Administration', Settings::source('links.github_repo'));
 
         $this->assertDatabaseHas('data_changes', ['subject_type' => 'settings', 'subject_id' => 'links.github_repo', 'action' => 'updated']);
         $audit = UserAudit::query()->where('action', 'settings.changed')->latest('id')->firstOrFail();
-        $this->assertSame(['key' => 'links.github_repo', 'new' => 'MarkusKeller8200/EduKSX-Glossary'], array_intersect_key($audit->new_values, ['key' => 1, 'new' => 1]));
+        $this->assertSame(['key' => 'links.github_repo', 'new' => 'beispiel-schule/glossary'], array_intersect_key($audit->new_values, ['key' => 1, 'new' => 1]));
 
         Settings::setSecret($dev, 'metrics.token', 'geheim-geheim-geheim');
         $this->assertSame('geheim-geheim-geheim', Settings::string('metrics.token'));

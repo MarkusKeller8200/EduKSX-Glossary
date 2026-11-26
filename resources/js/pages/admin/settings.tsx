@@ -14,14 +14,7 @@ type Einstellung = {
     group: string;
     label: string;
     hint: string;
-    type:
-        | 'int'
-        | 'bool'
-        | 'url'
-        | 'choice'
-        | 'secret'
-        | 'text'
-        | 'email';
+    type: 'int' | 'bool' | 'url' | 'choice' | 'secret' | 'text' | 'email';
     options?: Record<string, string>;
     min?: number;
     max?: number;

@@ -112,6 +112,10 @@ final class Settings
     public static function get(string $key): mixed
     {
         self::known($key);
+        // gesperrt: Wert wie bisher aus der Konfiguration (liest dieselbe Umgebungsvariable, auch bei config:cache)
+        if (self::core()->locked($key) !== null) {
+            return self::default($key);
+        }
 
         return self::core()->get($key);
     }
