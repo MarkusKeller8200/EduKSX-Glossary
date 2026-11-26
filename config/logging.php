@@ -1,7 +1,7 @@
 <?php
 
 use App\Logging\ModuleProcessor;
-use Monolog\Formatter\JsonFormatter;
+use EduKSX\Core\Logging\UseEduksxFormat;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -111,8 +111,11 @@ return [
             'handler_with' => [
                 'stream' => 'php://stderr',
             ],
-            // LOG_FORMAT=json (Vorgabe im Image, #192): eine Zeile JSON je Eintrag mit request_id, Modul und Version
-            'formatter' => env('LOG_FORMAT') === 'json' ? JsonFormatter::class : env('LOG_STDERR_FORMATTER'),
+            // LOG_FORMAT=json (Vorgabe im Image, #192): Format von eduksx/core (KONZEPT-PROTOKOLLIERUNG §6, §7) – eine
+            // Zeile JSON mit Zeit (UTC), request_id, trace_id, Modul und Version; Personendaten maskiert; befristetes
+            // Debug je Organisation (eduksx:debug). Ohne LOG_FORMAT=json Text wie bisher (Entwicklung).
+            'formatter' => env('LOG_FORMAT') === 'json' ? null : env('LOG_STDERR_FORMATTER'),
+            'tap' => env('LOG_FORMAT') === 'json' ? [UseEduksxFormat::class] : [],
             'processors' => [PsrLogMessageProcessor::class, ModuleProcessor::class],
         ],
 

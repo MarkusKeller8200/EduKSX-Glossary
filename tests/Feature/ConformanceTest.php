@@ -25,6 +25,25 @@ final class ConformanceTest extends TestCase
         $this->assertOpenApiConforms(base_path('openapi/glossary-v1.json'));
     }
 
+    /**
+     * Protokoll im Image (LOG_FORMAT=json): Format und Maskierung von eduksx/core (KONZEPT-PROTOKOLLIERUNG §6, #521).
+     */
+    public function test_protokoll_maskiert_personendaten(): void
+    {
+        $previous = getenv('LOG_FORMAT');
+        putenv('LOG_FORMAT=json');
+        $_ENV['LOG_FORMAT'] = $_SERVER['LOG_FORMAT'] = 'json';
+        try {
+            $channels = (require base_path('config/logging.php'))['channels'];
+        } finally {
+            $previous === false ? putenv('LOG_FORMAT') : putenv('LOG_FORMAT='.$previous);
+            unset($_ENV['LOG_FORMAT'], $_SERVER['LOG_FORMAT']);
+        }
+        config(['logging.channels.stderr' => $channels['stderr']]);
+
+        $this->assertLoggingMasksPersonalData('stderr');
+    }
+
     /** Steckbrief und /health nach spec/v1 (#189). */
     public function test_steckbrief_und_health(): void
     {
