@@ -8,6 +8,9 @@ Format angelehnt an [Keep a Changelog](https://keepachangelog.com/de/), Versione
 
 ### Geändert
 
+- **Protokoll nach eduksx/core 0.3 (#521):** Im Image (`LOG_FORMAT=json`) schreibt `stderr` das Format von Core: Zeit
+  in UTC, `request_id`, `trace_id` (W3C traceparent), Modul und Version; Personendaten werden maskiert. Befristetes
+  Debug je Organisation (`php artisan eduksx:debug`) und Protokollpaket für den Support stehen damit bereit.
 - **Stack (#518):** PHP 8.5, CI mit Node 26 und PostgreSQL 18 (EduKSX-Architektur KONZEPT-STACK ST2).
 - **`@eduksx/ui` (#518):** Bezug über das gebaute Paket am Release (`eduksx-ui-0.1.0.tgz`) statt als git-Abhängigkeit;
   npm 11 (Node 26) führt `prepare` mit `ignore-scripts=true` nicht mehr aus (EduKSX-UI #62).

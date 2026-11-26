@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d80aac5c4c472f915049827213af8217",
+    "content-hash": "debf37f963d6f51eb3b290376719c1ae",
     "packages": [
         {
             "name": "brick/math",
@@ -446,22 +446,22 @@
         },
         {
             "name": "eduksx/core",
-            "version": "v0.2.1",
+            "version": "v0.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/MarkusKeller8200/EduKSX-Core",
-                "reference": "1c0c314553c0c98dccb2c17f57b17badf18412d2"
+                "reference": "bec39c2f952d6905987154b43588d993e2401b96"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/1c0c314553c0c98dccb2c17f57b17badf18412d2",
-                "reference": "1c0c314553c0c98dccb2c17f57b17badf18412d2",
+                "url": "https://api.github.com/repos/MarkusKeller8200/EduKSX-Core/zipball/bec39c2f952d6905987154b43588d993e2401b96",
+                "reference": "bec39c2f952d6905987154b43588d993e2401b96",
                 "shasum": ""
             },
             "require": {
                 "laravel/framework": "^13.0",
                 "opis/json-schema": "^2.6",
-                "php": "^8.4"
+                "php": "^8.5"
             },
             "require-dev": {
                 "laravel/pint": "^1.20",
@@ -519,7 +519,7 @@
                 }
             ],
             "description": "Gemeinsame Bausteine der EduKSX-Plattform für Laravel-Module (Fehler, Sicherheit, Datenbank, Listen, Prüfungen, Steckbrief, Ereignisse, Historie).",
-            "time": "2026-11-14T00:06:59+00:00"
+            "time": "2026-11-26T00:12:07+00:00"
         },
         {
             "name": "egulias/email-validator",
